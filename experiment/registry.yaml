@@ -1,0 +1,40 @@
+experiments:
+  EXP005:
+    role: FlashFuzz coverage baseline
+    outputs:
+      - results/raw/EXP005
+      - results/processed/EXP005
+  EXP006:
+    role: Historical Bug Information Database
+    outputs:
+      - experiment/EXP006_historical_bug_pattern_dataset/bug_reports
+      - experiment/EXP006_historical_bug_pattern_dataset/bug_patterns
+      - experiment/EXP006_historical_bug_pattern_dataset/knowledge_base
+  EXP007:
+    role: single-pattern prompt injection
+    depends_on:
+      - EXP005
+      - EXP006
+  EXP008:
+    role: multi-pattern prompt injection
+    depends_on:
+      - EXP005
+      - EXP006
+      - EXP007
+  EXP009:
+    role: pattern reasoning / knowledge-guided harness generation
+    depends_on:
+      - EXP006
+      - EXP008
+  EXP010:
+    role: result analysis
+    depends_on:
+      - EXP005
+      - EXP007
+      - EXP008
+      - EXP009
+
+archive:
+  EXP001-EXP004:
+    location: research_notes/archive/baseline_experiments
+    note: early exploration and reproduction notes, not formal paper experiments
