@@ -1,0 +1,11 @@
+knowledge_field,example_content,purpose,prompt_usage,harness_effect
+bug_theme,"Memory layout assumption violation","Abstract concrete bugs into reusable testing categories","Inserted into Bug Theme section of prompt","Guides LLM toward memory-layout related testing"
+general_principle,"Backend implementations may rely on hidden tensor storage assumptions","Explain why the historical bug happens and provide mechanism-level knowledge","Inserted into General Principle section","Encourages mechanism-based harness generation instead of literal bug reproduction"
+risk_category,"Memory Layout Boundary / Output Tensor Boundary","Provide reusable risk classification for pattern organization and future aggregation","Used as risk information in prompt construction","Supports grouping multiple patterns by similar risks"
+risk_dimensions,"layout, shape, dtype, output storage","Describe concrete testing dimensions affected by historical bugs","Converted into risk dimension description","Influences tensor state exploration"
+failure_mechanism,"Backend or kernel assumptions violated under special tensor conditions","Identify where the failure occurs","Provides root cause information to LLM","Helps LLM select suitable testing strategies"
+testing_insights,"Generate non-contiguous tensors and explore abnormal output tensors","Convert historical bugs into executable testing strategies","Inserted into testing insights section","Leads to view transformation and output tensor generation"
+constraint_awareness,"Preserve valid tensor shape relationships and API constraints","Prevent invalid random inputs","Provides constraints during harness generation","Maintains executable harness quality"
+oracle_strategy,"Detect exceptions or incorrect behaviors","Define how generated inputs should be checked","Inserted into oracle guidance","Influences bug detection strategy"
+avoid_literal_reproduction,"Avoid reproducing exact historical bug inputs","Prevent LLM from generating fixed PoCs","Inserted as reasoning guidance","Promotes generalized testing strategies"
+generation_strategy,"Generate diverse tensor layout and output tensor variations","Provide direct harness generation guidance","Inserted into generation strategy section","Produces apply_view_transform and matmul_out related code"

@@ -1,0 +1,5 @@
+method,covered,total,coverage
+baseline,549,30094,1.82
+single_pattern,532,30094,1.77
+multi_pattern,613,30094,2.04
+reasoning_pattern,607,30094,2.02

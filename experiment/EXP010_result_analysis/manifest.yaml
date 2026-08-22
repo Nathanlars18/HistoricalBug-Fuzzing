@@ -1,0 +1,18 @@
+experiment_id: EXP010
+assets:
+  source_report:
+    path: experiment/EXP010_result_analysis/report_legacy.md
+  source_data:
+    path: analysis/tables/source_data/EXP010/
+  analysis_markdown:
+    path: analysis/RQ1_pattern_effectiveness/torch_matmul/
+  figures:
+    path: analysis/figures/torch.matmul_coverage_curve.png
+  diffs:
+    path: analysis/RQ1_pattern_effectiveness/diffs/EXP010/
+  scripts:
+    path: experiment/EXP010_result_analysis/scripts/
+  known_issues:
+    - Current evidence covers only torch.matmul and should be validated across multiple APIs and trials.
+    - Coverage percentages in legacy documents may use differing measurement scopes or denominators and require reconciliation.
+    - EXP010 aggregates EXP007, EXP008, and EXP009 results and does not define a new harness.

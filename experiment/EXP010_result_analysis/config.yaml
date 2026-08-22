@@ -1,0 +1,16 @@
+experiment_id: EXP010
+method: result_analysis
+depends_on:
+  - EXP007
+  - EXP008
+  - EXP009
+target_api: torch.matmul
+analysis_scope:
+  - coverage_comparison
+  - harness_diff
+  - pattern_harness_mapping
+  - knowledge_traceability
+notes:
+  - "Migrated from FlashFuzz-HistoricalBug EXP010."
+  - "Current results are pilot torch.matmul evidence."
+  - "Coverage percentage discrepancies across legacy documents require later reconciliation."
