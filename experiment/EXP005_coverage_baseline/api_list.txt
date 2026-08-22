@@ -1,0 +1,10 @@
+torch.add
+torch.mul
+torch.matmul
+torch.mm
+torch.addmm
+torch.relu
+torch.sigmoid
+torch.softmax
+torch.tanh
+torch.exp

@@ -1,0 +1,11 @@
+API,Covered Branches,Total Branches,Branch Coverage
+torch.add,235,30094,0.78%
+torch.mul,297,30094,0.99%
+torch.matmul,606,30094,2.01%
+torch.mm,160,30094,0.53%
+torch.addmm,126,30094,0.42%
+torch.relu,151,30094,0.50%
+torch.sigmoid,164,30094,0.54%
+torch.softmax,271,30094,0.90%
+torch.tanh,241,30094,0.80%
+torch.exp,188,30094,0.62%

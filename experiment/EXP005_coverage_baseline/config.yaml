@@ -1,0 +1,15 @@
+experiment_id: EXP005
+method: flashfuzz_coverage_baseline
+target_framework: pytorch
+framework_version: "2.2"
+backend: cpu
+fuzzing_engine: libFuzzer
+time_budget_seconds: 600
+role:
+  - baseline_for_EXP007
+  - baseline_for_EXP008
+  - baseline_for_EXP009
+  - input_for_EXP010
+notes:
+  - "Migrated from FlashFuzz-HistoricalBug EXP005."
+  - "This experiment provides baseline coverage comparison for later pattern-enhanced harness experiments."

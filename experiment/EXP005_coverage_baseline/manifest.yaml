@@ -1,0 +1,39 @@
+experiment_id: EXP005
+assets:
+  legacy_readme:
+    path: experiment/EXP005_coverage_baseline/README_legacy.md
+  api_list:
+    path: experiment/EXP005_coverage_baseline/api_list.txt
+    count: 10
+  deepseek_harnesses:
+    path: experiment/EXP005_coverage_baseline/harnesses/deepseek/
+    count: 10
+  original_flashfuzz_harnesses:
+    path: experiment/EXP005_coverage_baseline/harnesses/original_flashfuzz/
+    count: 0
+    notes: No main.cpp files were present under the source original_flashfuzz directory.
+  run_scripts:
+    paths:
+      - experiment/EXP005_coverage_baseline/scripts/run_legacy_600s.sh
+      - experiment/EXP005_coverage_baseline/scripts/coverage_fuzzing.py
+      - experiment/EXP005_coverage_baseline/scripts/summarize_results.py
+  raw_results:
+    paths:
+      - results/raw/EXP005/deepseek/
+      - results/raw/EXP005/original_flashfuzz/
+  processed_results:
+    path: results/processed/EXP005/
+  skipped_large_artifacts:
+    - corpus, fuzz binaries, build outputs, profraw, profdata, cache, artifacts, and large logs
+  skipped_flashfuzz_helpers:
+    - copy.py
+    - random_seed.py
+    - fuzzer_utils.cpp
+    - fuzzer_utils.h
+    - build.sh
+    - fuzz.sh
+  known_hardcoded_paths:
+    file: experiment/EXP005_coverage_baseline/scripts/run_legacy_600s.sh
+    paths:
+      - /workspace/FlashFuzz/scripts/get_coverage_results.py
+      - /root/pytorch/build-fuzz/lib/libtorch_cpu.so

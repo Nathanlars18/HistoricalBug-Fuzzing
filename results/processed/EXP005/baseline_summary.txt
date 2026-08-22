@@ -1,0 +1,11 @@
+API	0-60	540-600
+torch.add	257	258
+torch.addmm	128	128
+torch.exp	156	155
+torch.matmul	428	463
+torch.mm	206	206
+torch.mul	282	283
+torch.relu	149	149
+torch.sigmoid	253	254
+torch.softmax	198	198
+torch.tanh	250	250
