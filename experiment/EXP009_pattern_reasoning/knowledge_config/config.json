@@ -1,0 +1,7 @@
+{
+    "knowledge_source":
+    "../EXP006_historical_bug_pattern_dataset/knowledge_base",
+
+    "api":
+    "torch.matmul"
+}

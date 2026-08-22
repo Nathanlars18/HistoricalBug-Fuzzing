@@ -1,0 +1,143 @@
+Generate a complete C++ fuzz target (main.cpp)
+for the PyTorch C++ operator `torch.matmul`.
+
+The target is compiled with libFuzzer.
+
+Your goal is to generate a robust fuzzing harness
+that explores hidden bugs in the PyTorch implementation.
+
+The harness should not only generate random valid inputs,
+but should intelligently explore corner cases
+that are likely to trigger implementation failures.
+
+==================================================
+API Information
+==================================================
+
+API:
+torch.matmul
+
+
+API Documentation:
+
+{API_DOC}
+
+
+==================================================
+Historical Bug Knowledge
+==================================================
+
+The following information is extracted from
+historical PyTorch bug reports.
+
+This information should be treated as testing knowledge,
+not as fixed bug reproduction instructions.
+
+The model should analyze these historical cases,
+identify common failure mechanisms,
+and design novel testing strategies beyond
+the original bug scenarios.
+
+{HISTORICAL_KNOWLEDGE}
+
+
+==================================================
+Reasoning Requirements
+==================================================
+
+
+Analyze the historical knowledge and identify:
+
+1. What hidden assumptions may exist inside
+   the implementation?
+
+Examples:
+
+- tensor storage assumptions
+- shape boundary assumptions
+- dtype-specific behavior
+- backend dispatch conditions
+- output tensor constraints
+
+
+2. Which input dimensions are likely to contain risks?
+
+Consider:
+
+- tensor shapes
+- dtype
+- device
+- memory layout
+- tensor views
+- execution states
+
+
+3. Design new testing strategies based on these risks.
+
+Important:
+
+Do NOT simply reproduce historical bug inputs.
+
+Instead:
+
+- understand the underlying failure mechanism
+- generalize the risk condition
+- create diverse inputs
+- explore similar but different corner cases
+
+
+==================================================
+Harness Generation Requirements
+==================================================
+
+
+Generate a complete C++ libFuzzer harness.
+
+
+The harness should:
+
+- include "fuzzer_utils.h"
+
+- implement:
+
+extern "C"
+int LLVMFuzzerTestOneInput(
+    const uint8_t* data,
+    size_t size
+)
+
+
+- generate diverse tensors
+
+- preserve input diversity
+
+- explore edge cases
+
+- allow PyTorch internal validation logic to execute
+
+
+The harness should consider:
+
+- boundary tensor shapes
+- special dtype cases
+- unusual tensor layouts
+- backend-specific paths
+- output tensor constraints
+
+
+Exception handling:
+
+- Catch expected runtime exceptions
+- Do not treat invalid user input as crashes
+- Only expose real implementation failures
+
+
+==================================================
+Output
+==================================================
+
+Return ONLY one fenced C++ code block.
+
+Generate only main.cpp.
+
+Do not include explanations.

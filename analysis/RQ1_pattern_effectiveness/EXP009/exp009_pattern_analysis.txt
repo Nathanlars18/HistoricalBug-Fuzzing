@@ -1,0 +1,10 @@
+============================================================
+Harness Pattern Analysis
+============================================================
+unaligned_memory: []
+zero_dimension: []
+specific_shape: []
+storage_violation: []
+
+No obvious direct reproduction indicators
+============================================================

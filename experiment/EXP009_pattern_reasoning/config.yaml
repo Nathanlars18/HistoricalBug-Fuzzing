@@ -1,0 +1,18 @@
+experiment_id: EXP009
+method: pattern_reasoning
+target_api: torch.matmul
+depends_on:
+  - EXP006
+  - EXP008
+dataset: experiment/EXP006_historical_bug_pattern_dataset
+knowledge_source: experiment/EXP006_historical_bug_pattern_dataset/knowledge_base
+framework: pytorch
+framework_version: "2.2"
+backend: cpu
+fuzzing_engine: libFuzzer
+notes:
+  - "Migrated from FlashFuzz-HistoricalBug EXP009."
+  - "This is a pilot knowledge-guided reasoning experiment."
+  - "The original EXP009 README duplicated EXP008 and is retained only as README_legacy.md."
+  - "Duplicate reasoning main.cpp files were deduplicated during migration."
+  - "The valid coverage CSV is migrated from output/torch.matmul/reasoning_pattern_coverage_results.csv."

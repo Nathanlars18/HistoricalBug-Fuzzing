@@ -1,0 +1,172 @@
+#include "fuzzer_utils.h"
+#include <torch/torch.h>
+#include <cstdint>
+#include <vector>
+#include <stdexcept>
+#include <iostream>
+
+// Helper to create a non-contiguous tensor view from an existing tensor.
+// The operation is controlled by a byte from the fuzzer input.
+static torch::Tensor apply_view_transform(const torch::Tensor& t, uint8_t op) {
+    // No valid operation on scalar tensors or if not enough dims
+    if (t.dim() == 0) return t;
+
+    // Use the low nibble to select operation type, high nibble for parameters
+    uint8_t code = op & 0x0F;
+    uint8_t arg  = (op >> 4) & 0x0F;
+
+    switch (code) {
+        case 0: // slice along first dimension (if exists and size > 1)
+            if (t.dim() > 0 && t.size(0) > 1) {
+                int64_t start = arg % t.size(0);
+                int64_t end   = start + (1 + (arg / 17)) % (t.size(0) - start + 1); // make it variable
+                if (end > start + 1) // ensure we actually narrow
+                    return t.narrow(0, start, end - start);
+            }
+            break;
+        case 1: // slice along second dimension
+            if (t.dim() > 1 && t.size(1) > 1) {
+                int64_t start = arg % t.size(1);
+                int64_t end   = start + (1 + (arg / 17)) % (t.size(1) - start + 1);
+                if (end > start + 1)
+                    return t.narrow(1, start, end - start);
+            }
+            break;
+        case 2: // slice along last dimension
+            if (t.dim() > 0 && t.size(-1) > 1) {
+                int64_t start = arg % t.size(-1);
+                int64_t end   = start + (1 + (arg / 17)) % (t.size(-1) - start + 1);
+                if (end > start + 1)
+                    return t.narrow(-1, start, end - start);
+            }
+            break;
+        case 3: // transpose dim0 and dim1 (if at least 2D)
+            if (t.dim() >= 2) return t.transpose(0, 1);
+            break;
+        case 4: // transpose dim0 and last dim
+            if (t.dim() >= 2) return t.transpose(0, -1);
+            break;
+        case 5: // permute: reverse all dimensions (if 2D+)
+            if (t.dim() >= 2) {
+                std::vector<int64_t> dims(t.dim());
+                for (int64_t i = 0; i < t.dim(); ++i) dims[t.dim() - 1 - i] = i;
+                return t.permute(dims);
+            }
+            break;
+        case 6: // flatten a couple of dims then reshape back? simpler: take a selection of an element along first dim
+            if (t.dim() > 0 && t.size(0) > 0) {
+                return t.select(0, arg % t.size(0)).unsqueeze(0);
+            }
+            break;
+        default:
+            break;
+    }
+    return t; // return original if no transformation applied
+}
+
+// Fuzzer entry point
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
+    try {
+        size_t offset = 0;
+
+        // Create two tensors from the fuzz input
+        torch::Tensor A = fuzzer_utils::createTensor(data, size, offset);
+        torch::Tensor B = fuzzer_utils::createTensor(data, size, offset);
+
+        // If there is enough data, apply view transforms to A and B
+        if (offset + 2 <= size) {
+            uint8_t opA = data[offset++];
+            uint8_t opB = data[offset++];
+            A = apply_view_transform(A, opA);
+            B = apply_view_transform(B, opB);
+        }
+
+        // Perform the matmul without output tensor
+        torch::Tensor reference_result;
+        try {
+            reference_result = torch::matmul(A, B);
+        } catch (const c10::Error& e) {
+            // Matmul may throw for incompatible shapes or unsupported dtypes.
+            // This is expected, discard the input.
+            std::cout << "Exception caught: " << e.what() << std::endl;
+            return -1;
+        } catch (const std::exception& e) {
+            std::cout << "Exception caught: " << e.what() << std::endl;
+            return -1;
+        }
+
+        // Optionally test with an output tensor, if we have more bytes
+        if (offset < size) {
+            uint8_t out_mode = data[offset++];
+            // out_mode == 0: skip output testing
+            if (out_mode != 0) {
+                torch::Tensor out;
+                torch::IntArrayRef out_shape = reference_result.sizes();
+                torch::ScalarType out_dtype = reference_result.scalar_type();
+
+                // Different output scenarios based on out_mode
+                if (out_mode < 64) {
+                    // Normal contiguous output tensor
+                    out = torch::empty(out_shape, torch::TensorOptions().dtype(out_dtype));
+                } else if (out_mode < 128) {
+                    // Non-contiguous view: create a larger tensor and slice to match out_shape
+                    if (out_shape.size() > 0 && out_shape[0] > 0) {
+                        std::vector<int64_t> larger_shape = out_shape.vec();
+                        larger_shape[0] *= 2;
+                        torch::Tensor large = torch::empty(larger_shape, torch::TensorOptions().dtype(out_dtype));
+                        out = large.narrow(0, 0, out_shape[0]);
+                        // If still contiguous, apply a transpose to force non-contiguity
+                        if (out.is_contiguous() && out.dim() >= 2) {
+                            out = out.transpose(0, 1);
+                        }
+                    } else {
+                        out = torch::empty(out_shape, torch::TensorOptions().dtype(out_dtype));
+                    }
+                } else if (out_mode < 192) {
+                    // More aggressive non-contiguous output: slice and transpose/permute
+                    if (out_shape.size() >= 2) {
+                        std::vector<int64_t> large_shape = out_shape.vec();
+                        large_shape[0] *= 2;
+                        large_shape[1] *= 2;
+                        torch::Tensor large = torch::empty(large_shape, torch::TensorOptions().dtype(out_dtype));
+                        out = large.slice(0, 0, out_shape[0]).slice(1, 0, out_shape[1]);
+                        // Permute some dimensions
+                        std::vector<int64_t> perm(out.dim());
+                        for (int64_t i = 0; i < out.dim(); ++i) perm[i] = i;
+                        std::swap(perm[0], perm[1]);
+                        out = out.permute(perm);
+                    } else {
+                        out = torch::empty(out_shape, torch::TensorOptions().dtype(out_dtype));
+                    }
+                } else {
+                    // Intentionally mismatched shape (expect exception)
+                    // Create an output with a different size
+                    std::vector<int64_t> wrong_shape = out_shape.vec();
+                    if (!wrong_shape.empty()) {
+                        wrong_shape[0] = wrong_shape[0] > 1 ? wrong_shape[0] - 1 : wrong_shape[0] + 2;
+                    } else {
+                        wrong_shape.push_back(2); // scalar case
+                    }
+                    out = torch::empty(wrong_shape, torch::TensorOptions().dtype(out_dtype));
+                }
+
+                // Call matmul with out= parameter
+                try {
+                    torch::matmul_out(out, A, B);
+                } catch (const c10::Error& e) {
+                    std::cout << "Exception caught: " << e.what() << std::endl;
+                    return -1;
+                } catch (const std::exception& e) {
+                    std::cout << "Exception caught: " << e.what() << std::endl;
+                    return -1;
+                }
+            }
+        }
+
+        return 0; // Input processed successfully
+    } catch (const std::exception& e) {
+        // Catch any unexpected parsing or runtime errors
+        std::cout << "Exception caught: " << e.what() << std::endl;
+        return -1;
+    }
+}

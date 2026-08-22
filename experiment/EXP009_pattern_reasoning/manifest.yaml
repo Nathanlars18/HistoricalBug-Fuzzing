@@ -1,0 +1,45 @@
+experiment_id: EXP009
+assets:
+  legacy_readme:
+    path: experiment/EXP009_pattern_reasoning/README_legacy.md
+  experiment_log:
+    path: experiment/EXP009_pattern_reasoning/experiment_log.md
+  knowledge_config:
+    path: experiment/EXP009_pattern_reasoning/knowledge_config/config.json
+  prompts:
+    path: experiment/EXP009_pattern_reasoning/prompts/
+  raw_llm_response:
+    path: results/raw/EXP009/llm/raw_response.txt
+  generation_scripts:
+    paths:
+      - experiment/EXP009_pattern_reasoning/scripts/knowledge_loader.py
+      - experiment/EXP009_pattern_reasoning/scripts/llm_deepseek_pattern.py
+      - experiment/EXP009_pattern_reasoning/scripts/analyze_harness.py
+      - experiment/EXP009_pattern_reasoning/scripts/collect_coverage_reasoning.py
+  canonical_reasoning_harness:
+    path: experiment/EXP009_pattern_reasoning/harnesses/reasoning/main.cpp
+    source: results/exp009_reasoning_main.cpp
+  raw_results:
+    path: results/raw/EXP009/
+  processed_results:
+    path: results/processed/EXP009/
+  analysis_files:
+    path: analysis/RQ1_pattern_effectiveness/EXP009/
+  skipped_large_artifacts:
+    - source: corpus, fuzz, build, profraw, profdata, cache, and large logs
+      reason: generated or large artifacts excluded from migration
+    - source: duplicate FlashFuzz helper files
+      reason: shared helpers are outside the EXP009 research-asset scope
+  skipped_duplicate_files:
+    - results/torch_matmul_reasoning_main.cpp
+    - output/torch.matmul/main.cpp
+    - baseline/
+    - coverage/torch.matmul/multi/
+    - multi_pattern_coverage_results.csv
+  skipped_placeholder_files:
+    - source: reasoning_pattern_coverage_results.csv
+      size_bytes: 27
+      reason: incomplete placeholder; valid output coverage CSV was migrated
+  comparison_reference_to_EXP008:
+    path: analysis/RQ1_pattern_effectiveness/EXP009/diffs/exp008_vs_exp009.diff
+    notes: EXP008 multi-pattern duplicate coverage was not migrated into EXP009.
