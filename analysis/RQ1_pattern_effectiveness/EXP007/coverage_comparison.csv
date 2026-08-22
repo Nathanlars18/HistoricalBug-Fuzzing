@@ -1,0 +1,11 @@
+api,mode,interval,covered_branches,total_branches,coverage
+torch.matmul,baseline,0-60,483,30068,1.61%
+torch.matmul,baseline,60-120,490,30068,1.63%
+torch.matmul,baseline,120-180,504,30068,1.68%
+torch.matmul,baseline,180-240,505,30068,1.68%
+torch.matmul,baseline,240-300,506,30068,1.68%
+torch.matmul,pattern,0-60,471,30068,1.57%
+torch.matmul,pattern,60-120,471,30068,1.57%
+torch.matmul,pattern,120-180,476,30068,1.58%
+torch.matmul,pattern,180-240,476,30068,1.58%
+torch.matmul,pattern,240-300,491,30068,1.63%

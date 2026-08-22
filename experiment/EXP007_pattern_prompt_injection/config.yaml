@@ -1,0 +1,13 @@
+experiment_id: EXP007
+method: single_pattern_prompt_injection
+target_api: torch.matmul
+depends_on:
+  - EXP006
+dataset: dataset/processed/historical_bug_patterns_v1
+framework: pytorch
+framework_version: "2.2"
+backend: cpu
+fuzzing_engine: libFuzzer
+notes:
+  - "Migrated from FlashFuzz-HistoricalBug EXP007."
+  - "This is a pilot single-pattern experiment."

@@ -1,0 +1,3 @@
+api,mode,compile,exec_per_sec,total_exec,new_units
+torch.matmul,baseline,success,78,4866,24
+torch.matmul,pattern,success,128,7841,22

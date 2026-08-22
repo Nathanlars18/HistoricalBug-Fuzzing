@@ -1,0 +1,10 @@
+Metric,Baseline,Pattern-Enhanced
+API,torch.matmul,torch.matmul
+LLM,DeepSeek-V4-Pro,DeepSeek-V4-Pro
+Time(s),300,300
+Initial Corpus,100,100
+Executed Units,43857,72384
+Exec/s,145,240
+New Units,299,397
+Final Corpus,399,497
+Crash,0,0

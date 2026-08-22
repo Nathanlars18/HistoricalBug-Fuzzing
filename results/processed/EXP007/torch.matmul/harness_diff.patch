@@ -1,0 +1,104 @@
+--- baseline/torch.matmul/main.cpp	2026-08-09 17:30:52.471265608 +0800
++++ output/torch.matmul/main.cpp	2026-08-07 19:16:15.804509569 +0800
+@@ -1,50 +1,58 @@
+ #include "fuzzer_utils.h"
+-#include <torch/torch.h>
++#include <cstring>
+ #include <iostream>
+ 
+-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+-{
+-    try
+-    {
++namespace {
++    // Helper: make a float32 tensor unaligned by copying its data into a byte storage 
++    // and returning a view whose data pointer is offset by 1-3 bytes.
++    void apply_unalignment(torch::Tensor &t, int offset_bytes) {
++        if (t.dtype() != torch::kFloat32) return; // only float32 is relevant for the known bug
++        int64_t numel = t.numel();
++        if (numel == 0) return;
++        int64_t byte_size = numel * t.element_size(); // = numel * 4
++        // Create a byte storage with extra space so we can offset the start
++        auto storage = torch::empty({byte_size + static_cast<int64_t>(offset_bytes)}, torch::kUInt8);
++        std::memcpy(storage.data_ptr<uint8_t>() + offset_bytes, t.data_ptr<float>(), byte_size);
++        // Take a slice that starts at the offset and has the exact number of bytes needed
++        auto slice = storage.narrow(0, offset_bytes, byte_size);
++        // Reinterpret the bytes as float32 and then reshape to the original tensor shape
++        t = slice.view(torch::kFloat32).view(t.sizes());
++    }
++}
++
++extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
++    try {
++        // Need at least one byte to decide alignment/corner case flags
++        if (Size < 1) return 0;
+         size_t offset = 0;
+ 
+-        // Parse two tensors from the fuzz input
+-        torch::Tensor t1 = fuzzer_utils::createTensor(Data, Size, offset);
+-        torch::Tensor t2 = fuzzer_utils::createTensor(Data, Size, offset);
+-
+-        // Try matmul in both orders to cover a wider range of edge cases
+-        try
+-        {
+-            auto result1 = torch::matmul(t1, t2);
+-            (void)result1; // suppress unused warning
+-        }
+-        catch (const std::exception &e)
+-        {
+-            std::cout << "matmul(t1, t2) exception: " << e.what() << std::endl;
+-            // Shape/dtype mismatches and other expected errors are not crashes
+-        }
+-
+-        try
+-        {
+-            auto result2 = torch::matmul(t2, t1);
+-            (void)result2;
+-        }
+-        catch (const std::exception &e)
+-        {
+-            std::cout << "matmul(t2, t1) exception: " << e.what() << std::endl;
+-        }
+-    }
+-    catch (const std::exception &e)
+-    {
+-        // Exception during parsing or any other unexpected error
++        // Control byte: low 2 bits → alignment mode, next 2 bits → offset (1-3)
++        uint8_t control = Data[offset++];
++        int unalign_mode = control & 0x03;          // 0=none, 1=unalign input, 2=unalign other, 3=both
++        int unalign_offset_bytes = ((control >> 2) & 0x03) % 3 + 1;  // 1,2,3
++
++        bool unalign_input = (unalign_mode == 1 || unalign_mode == 3);
++        bool unalign_other = (unalign_mode == 2 || unalign_mode == 3);
++
++        // Parse two tensors from the remaining data
++        torch::Tensor input = fuzzer_utils::createTensor(Data, Size, offset);
++        torch::Tensor other = fuzzer_utils::createTensor(Data, Size, offset);
++
++        // Optionally force unaligned memory on the float32 tensors
++        if (unalign_input)  apply_unalignment(input, unalign_offset_bytes);
++        if (unalign_other)  apply_unalignment(other, unalign_offset_bytes);
++
++        // Execute the matrix multiplication – this is where the bug may surface
++        auto result = torch::matmul(input, other);
++
++        // Prevent the result from being optimised away (non‑trivial use)
++        volatile int64_t numel = result.numel();
++        (void)numel;
++
++    } catch (const std::exception &e) {
++        // Expected for invalid shapes, dtype mismatches, etc. – not a crash
+         std::cout << "Exception caught: " << e.what() << std::endl;
+-        return 0; // do not treat as a crash
++        return 0;   // keep the input for future mutations
+     }
+-    catch (...)
+-    {
+-        std::cout << "Unknown exception caught" << std::endl;
+-        return 0;
+-    }
+-
+-    return 0; // execution succeeded (from fuzzer's perspective)
++    return 0;
+ }
+\ No newline at end of file
