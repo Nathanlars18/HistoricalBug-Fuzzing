@@ -3,21 +3,23 @@ assets:
   legacy_readme:
     path: experiment/EXP007_pattern_prompt_injection/README_legacy.md
   experiment_log:
-    path: research_notes/experiments/EXP007.md
+    path: experiment/EXP007_pattern_prompt_injection/experiment_log.md
   baseline_harness:
     path: experiment/EXP007_pattern_prompt_injection/harnesses/baseline/main.cpp
   single_pattern_harness:
     path: experiment/EXP007_pattern_prompt_injection/harnesses/single_pattern/main.cpp
   raw_results:
-    path: results/raw/EXP007/coverage_results.csv
+    path: results/raw/EXP007/
   processed_results:
     path: results/processed/EXP007/
+  analysis:
+    path: analysis/RQ1_pattern_effectiveness/EXP007/
   generation_scripts:
     paths:
-      - scripts/harness_generation/legacy/exp007_baseline.py
-      - scripts/harness_generation/legacy/exp007_single_pattern.py
-      - scripts/harness_generation/pattern_adapter.py
-      - scripts/coverage/legacy/collect_exp007_coverage.py
+      - experiment/EXP007_pattern_prompt_injection/scripts/llm_deepseek_baseline.py
+      - experiment/EXP007_pattern_prompt_injection/scripts/llm_deepseek_pattern.py
+      - experiment/EXP007_pattern_prompt_injection/scripts/pattern_adapter.py
+      - experiment/EXP007_pattern_prompt_injection/scripts/collect_coverage.py
   skipped_large_artifacts:
     - source: output_v1/
       reason: excluded output tree containing corpus artifacts
