@@ -1,0 +1,11 @@
+API,executed_units,exec_per_sec,new_units_added,peak_rss_mb
+torch.add,6306,103,474,514
+torch.addmm,13789,226,678,429
+torch.exp,5606,91,413,433
+torch.matmul,7860,128,280,439
+torch.mm,14902,244,712,425
+torch.mul,12627,207,816,439
+torch.relu,25339,415,1517,431
+torch.sigmoid,16656,273,976,441
+torch.softmax,4470,73,572,447
+torch.tanh,4393,72,546,458
