@@ -1,22 +1,14 @@
-# Historical Bug Dataset
+# Historical Bug Source Data
 
-This directory contains the research data used to turn historical PyTorch bugs
-into reusable inputs for fuzzing harness generation.
+This directory is the workspace for raw historical issue data, raw reports,
+reproduction code, bug selection records, and LLM selection responses.
 
-## Data flow
+- `raw/` contains source reports, historical issue material, and reproduction
+  code.
+- `interim/` contains bug-selection records, prompts, and LLM responses.
 
-```text
-raw historical bug reports
-  -> structured bug reports
-  -> bug patterns
-  -> knowledge base
-  -> harness generation
-```
+Canonical processed bug reports, bug patterns, and knowledge-base items are not
+stored in `dataset/`. The formal processed Historical Bug Information Database
+is located at:
 
-- `raw/` preserves source reports and reproduction code.
-- `interim/` records dataset selection and intermediate LLM artifacts.
-- `processed/historical_bug_patterns_v1/` is the canonical EXP006 dataset.
-- `schemas/` documents transformations between dataset stages.
-- `validation/` contains manually authored reference examples.
-
-See `manifest.csv` for component counts and `lineage.csv` for provenance.
+`experiment/EXP006_historical_bug_pattern_dataset/`

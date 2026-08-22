@@ -6,9 +6,9 @@ not included.
 
 - `selection/` contains the DLFrameBRCode PyTorch filtering, LLM selection,
   review-column, merge, export, and structured-report generation utilities.
-- `pattern_knowledge_generation/` contains the EXP006 batch and per-item tools
-  used to transform structured bug reports into bug patterns and knowledge-base
-  items.
+- `experiment/EXP006_historical_bug_pattern_dataset/scripts/` contains the
+  EXP006 batch and per-item tools used to transform structured bug reports into
+  bug patterns and knowledge-base items.
 
 The scripts operate on the data flow documented in `dataset/README.md`. Review
 paths and runtime configuration before executing them in this repository.
