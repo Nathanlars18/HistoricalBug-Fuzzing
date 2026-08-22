@@ -1,0 +1,16 @@
+**/corpus/**
+**/build/**
+**/fuzz
+**/*.profraw
+**/*.profdata
+**/*.o
+**/*.so
+**/core
+**/crash-*
+**/__pycache__/**
+**/.pytest_cache/**
+.env
+*.log
+DEEPSEEK_API_KEY
+token*
+secret*

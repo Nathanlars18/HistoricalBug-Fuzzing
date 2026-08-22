@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+title: "HistoricalBug-Fuzzing"
+message: "If you use this research artifact, please cite the corresponding paper or repository."
+authors:
+  - family-names: "Nathan"
+    given-names: ""
+version: "0.1.0"
+date-released: 2026-08-22

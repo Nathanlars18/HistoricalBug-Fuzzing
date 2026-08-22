@@ -1,0 +1,22 @@
+project: HistoricalBug-Fuzzing
+
+flashfuzz:
+  role: "third-party fuzzing and harness execution backend"
+  submodule_path: "third_party/FlashFuzz"
+  repository: ""
+  commit: ""
+
+framework:
+  name: "PyTorch"
+  version: "2.2"
+  commit: "8ac9b20"
+
+fuzzer:
+  name: "libFuzzer"
+
+compiler:
+  clang: "14"
+
+notes:
+  - "FlashFuzz will be added later as a pinned third-party dependency."
+  - "This file records dependency versions for reproducibility."
