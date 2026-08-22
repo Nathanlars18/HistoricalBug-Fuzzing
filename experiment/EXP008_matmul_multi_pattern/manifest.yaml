@@ -1,0 +1,43 @@
+experiment_id: EXP008
+assets:
+  legacy_readme:
+    path: experiment/EXP008_matmul_multi_pattern/README_legacy.md
+  experiment_log:
+    path: experiment/EXP008_matmul_multi_pattern/experiment_log.md
+  prompts:
+    path: experiment/EXP008_matmul_multi_pattern/prompts/
+  raw_llm_response:
+    path: results/raw/EXP008/llm/raw_response.txt
+  generation_scripts:
+    paths:
+      - experiment/EXP008_matmul_multi_pattern/scripts/llm_deepseek_pattern.py
+      - experiment/EXP008_matmul_multi_pattern/scripts/pattern_adapter.py
+      - experiment/EXP008_matmul_multi_pattern/scripts/collect_coverage_multi.py
+  final_multi_pattern_harness:
+    path: experiment/EXP008_matmul_multi_pattern/harnesses/multi_pattern/main.cpp
+  raw_results:
+    path: results/raw/EXP008/
+  processed_results:
+    path: results/processed/EXP008/
+  analysis_files:
+    path: analysis/RQ1_pattern_effectiveness/EXP008/
+  skipped_large_artifacts:
+    - source: baseline/torch.matmul/corpus/ and output/torch.matmul/corpus/
+      reason: large fuzzing corpora
+    - source: output/torch.matmul/fuzz
+      reason: fuzzing binary
+    - source: output/torch.matmul/*.log
+      reason: large raw runtime logs
+    - source: build, cache, profraw, and profdata artifacts
+      reason: generated large artifacts excluded from migration
+    - source: duplicate FlashFuzz helper files
+      reason: shared helpers are outside the EXP008 research-asset scope
+  baseline_reference:
+    experiments:
+      - EXP005
+      - EXP007
+    notes: The EXP008 source baseline main.cpp was byte-identical to the canonical multi-pattern harness and was not migrated independently; use EXP005 or explicit comparison files for baseline results.
+
+legacy_results:
+  - path: results/processed/EXP008/legacy/multi_pattern_coverage_results.csv
+    note: "Legacy top-level EXP008 coverage result retained for traceability. The canonical interval coverage file is results/processed/EXP008/multi_600s_coverage.csv."

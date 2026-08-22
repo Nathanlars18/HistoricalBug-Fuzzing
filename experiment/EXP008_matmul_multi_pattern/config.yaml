@@ -1,0 +1,15 @@
+experiment_id: EXP008
+method: multi_pattern_prompt_injection
+target_api: torch.matmul
+depends_on:
+  - EXP006
+  - EXP005
+dataset: experiment/EXP006_historical_bug_pattern_dataset
+framework: pytorch
+framework_version: "2.2"
+backend: cpu
+fuzzing_engine: libFuzzer
+notes:
+  - "Migrated from FlashFuzz-HistoricalBug EXP008."
+  - "This is a pilot multi-pattern experiment."
+  - "Baseline results should be traced to EXP005 or explicit comparison files."

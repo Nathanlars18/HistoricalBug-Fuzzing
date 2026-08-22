@@ -1,0 +1,204 @@
+#include "fuzzer_utils.h"
+#include <cstdint>
+#include <cstring>
+#include <vector>
+#include <torch/torch.h>
+#include <iostream>
+#include <random>
+
+namespace {
+
+// Utility: read a bounded integer from fuzz data
+int64_t readInt64(const uint8_t* data, size_t& off, size_t size, int64_t min, int64_t max) {
+    constexpr size_t needed = sizeof(int64_t);
+    int64_t val = min;
+    if (off + needed <= size) {
+        std::memcpy(&val, data + off, needed);
+        off += needed;
+    } else {
+        // Not enough data, use min
+        off = size; // consume remaining
+    }
+    if (val < min) val = min;
+    if (val > max) val = max;
+    return val;
+}
+
+// Special case 1: unaligned float M=1 matmul (historical crash)
+void testUnalignedFloatM1(const uint8_t* data, size_t size) {
+    size_t off = 0;
+    if (size < 1) return;
+    // Read K, N from data after the flag already consumed? We'll call this after reading special_flag.
+    // We'll pass remaining data starting from offset 1, but here we receive the full data and size.
+    // We'll use off starting at 1 because special_flag is at index 0 and we already read it.
+    // Actually, better to receive the sub-buffer after the flag. We'll do that in the main.
+    // For simplicity, in main we'll call with &data[1] and size-1.
+    // Let's assume off starts at 0 for that sub-buffer.
+    // We'll generate K and N from the remaining bytes.
+    off = 0;
+    int64_t K = readInt64(data, off, size, 1, 16);
+    int64_t N = readInt64(data, off, size, 1, 16);
+    // Allocate a buffer that we can intentionally misalign
+    std::vector<uint8_t> buf(sizeof(float) * K * 1 + 1); // +1 to allow offset
+    // Fill with some random-ish data? We'll just leave zero.
+    // Create pointer that is not 4-byte aligned (assuming buf.data() is aligned to 16 usually)
+    float* ptr = reinterpret_cast<float*>(&buf[1]); // misaligned for float
+    // Build input tensor of shape [1, K] or [K, 1]? M=1 means first dim is 1, so [1, K].
+    // We need [1, K] x [K, N] => [1, N].
+    // Ensure data pointer is not 4-byte aligned: (reinterpret_cast<uintptr_t>(ptr) % 4 != 0)
+    if (reinterpret_cast<uintptr_t>(ptr) % 4 == 0) {
+        // Might still be aligned by chance; move one more byte
+        ++ptr;
+    }
+    auto options = torch::TensorOptions().dtype(torch::kFloat).device(torch::kCPU);
+    // Use from_blob without cloning so that the misaligned pointer is used
+    // We must keep buf alive during the matmul call.
+    torch::Tensor A = torch::from_blob(ptr, {1, K}, options);
+    // Create B normally (aligned) with shape [K, N]
+    torch::Tensor B = torch::rand({K, N}, options);
+    // Perform matmul
+    try {
+        torch::Tensor result = torch::matmul(A, B);
+        // Optionally force computation by doing .item()
+        (void)result;
+    } catch (const std::exception& e) {
+        // Any runtime error is acceptable
+    }
+}
+
+// Special case 2: zero inner dimension with int64 (historical bug)
+void testZeroDimInt64(const uint8_t* data, size_t size) {
+    size_t off = 0;
+    int64_t M = readInt64(data, off, size, 1, 16);
+    int64_t N = readInt64(data, off, size, 1, 16);
+    // Create tensors A: [M, 0], B: [0, N] with int64
+    auto options = torch::TensorOptions().dtype(torch::kInt64).device(torch::kCPU);
+    torch::Tensor A = torch::empty({M, 0}, options);
+    torch::Tensor B = torch::empty({0, N}, options);
+    try {
+        torch::Tensor result = torch::matmul(A, B);
+        (void)result;
+    } catch (const std::exception& e) {
+        // expected if shape invalid, but should not crash
+    }
+}
+
+// Special case 3: non-contiguous output view (historical MPS bug, may crash with sanitizers)
+void testNonContiguousOut(const uint8_t* data, size_t size) {
+    // We'll generate normal input tensors using fuzzer_utils, but then force a non-contiguous out.
+    // This test requires an out= argument.
+    // We'll use a small set of shapes to keep it fast.
+    size_t off = 0;
+    // Use createTensor to get two tensors? That consumes a lot of data.
+    // Instead, generate simple shapes and random tensors.
+    int64_t M = readInt64(data, off, size, 1, 4);
+    int64_t K = readInt64(data, off, size, 1, 4);
+    int64_t N = readInt64(data, off, size, 1, 4);
+    auto options = torch::TensorOptions().dtype(torch::kFloat).device(torch::kCPU);
+    torch::Tensor A = torch::rand({M, K}, options);
+    torch::Tensor B = torch::rand({K, N}, options);
+    // Create a non-contiguous output view, e.g., a diagonal or a slice of a larger tensor
+    // For simplicity, create a larger tensor and slice it with non-unit strides.
+    int64_t out_rows = M;
+    int64_t out_cols = N;
+    torch::Tensor big = torch::empty({out_rows * 2, out_cols * 2}, options); // larger contiguous
+    // Slice to get a non-contiguous block, e.g., select every other row and column.
+    torch::Tensor out = big.index({torch::indexing::Slice(0, out_rows * 2, 2),
+                                   torch::indexing::Slice(0, out_cols * 2, 2)});
+    // Now call matmul with out=
+    try {
+        torch::matmul_out(out, A, B);
+        // Wait for kernel completion if necessary
+        if (out.is_cpu()) {
+            // no sync needed
+        } else {
+            torch::cuda::synchronize(); // in case device is CUDA, but we are on CPU
+        }
+    } catch (const std::exception& e) {
+        // ignore
+    }
+}
+
+// Special case 4: out view with insufficient storage (historical memory corruption bug)
+void testUndersizedOutView(const uint8_t* data, size_t size) {
+    size_t off = 0;
+    int64_t M = readInt64(data, off, size, 1, 8);
+    int64_t K = readInt64(data, off, size, 1, 8);
+    int64_t N = readInt64(data, off, size, 1, 8);
+    auto options = torch::TensorOptions().dtype(torch::kFloat).device(torch::kCPU);
+    torch::Tensor A = torch::rand({M, K}, options);
+    torch::Tensor B = torch::rand({K, N}, options);
+    // Create a small contiguous tensor big enough to hold part of result
+    int64_t small_rows = M / 2;
+    if (small_rows < 1) small_rows = 1;
+    int64_t small_cols = N / 2;
+    if (small_cols < 1) small_cols = 1;
+    torch::Tensor small = torch::empty({small_rows, small_cols}, options);
+    // Make a view that does not own the storage but provides a shape larger than storage.
+    // Use as_strided to create a view with bigger shape but same storage size.
+    torch::Tensor out = small.as_strided({M, N}, {small_rows > 1 ? 1 : 0, small_cols > 1 ? 1 : 0});
+    // This could be dangerous; we just catch errors.
+    try {
+        torch::matmul_out(out, A, B);
+    } catch (const std::exception& e) {
+        // expected to possibly throw or crash
+    }
+}
+
+} // anonymous namespace
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
+    try {
+        // At least one byte for special_flag
+        if (Size < 1) return 0;
+        uint8_t special_flag = Data[0];
+        // Limit the special flag to decide test case
+        if (special_flag < 51) { // ~20% chance (0..50 out of 256)
+            // test unaligned float M=1
+            testUnalignedFloatM1(Data + 1, Size - 1);
+        } else if (special_flag < 102) { // next ~20%
+            // test zero inner dimension int64
+            testZeroDimInt64(Data + 1, Size - 1);
+        } else if (special_flag < 153) {
+            // test non-contiguous out
+            testNonContiguousOut(Data + 1, Size - 1);
+        } else if (special_flag < 204) {
+            // test undersized out view
+            testUndersizedOutView(Data + 1, Size - 1);
+        } else {
+            // Normal fuzzing: create two tensors using fuzzer_utils
+            size_t offset = 1;
+            // Ensure we have minimum data for at least two tensors (metadata)
+            if (Size - offset < 4) return 0; // need at least dtype+rank for two tensors
+            torch::Tensor input = fuzzer_utils::createTensor(Data, Size, offset);
+            torch::Tensor other = fuzzer_utils::createTensor(Data, Size, offset);
+            // Optionally use out argument if there is still data and a flag says so.
+            bool use_out = false;
+            if (Size > offset) {
+                use_out = (Data[offset++] & 1);
+            }
+            if (use_out) {
+                // Create an output tensor using the same parsing but with constraints?
+                // For simplicity, create a third tensor.
+                torch::Tensor out = fuzzer_utils::createTensor(Data, Size, offset);
+                try {
+                    torch::matmul_out(out, input, other);
+                } catch (const std::exception& e) {
+                    // ignore runtime errors from invalid shapes/dtypes
+                }
+            } else {
+                try {
+                    torch::Tensor result = torch::matmul(input, other);
+                    (void)result;
+                } catch (const std::exception& e) {
+                    // ignore
+                }
+            }
+        }
+    } catch (const std::exception& e) {
+        // Log the exception message (as requested)
+        std::cout << "Exception caught: " << e.what() << std::endl;
+        return -1; // discard input that caused a global catch (should be rare)
+    }
+    return 0; // keep input
+}
