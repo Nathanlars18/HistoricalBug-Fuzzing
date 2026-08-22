@@ -1,0 +1,12 @@
+{
+    "target_api": "_object_to_tensor",
+    "bug_category": "Other",
+    "trigger_condition": "Passing a large Python object (e.g., a 50 MB string) to torch.distributed.distributed_c10d._object_to_tensor or related all_gather_object, causing serialization to produce a large ByteStorage and then converting it via torch.tensor(byte_storage, dtype=torch.uint8).",
+    "oracle_type": "Performance Issue",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "This is a pure performance regression in _object_to_tensor for large objects, with no functional failure or incorrect output. The oracle is timing-based and the regression is version-specific, so it is excluded by the stated criteria.",
+    "confidence": "High",
+    "bug_id": "65696"
+}

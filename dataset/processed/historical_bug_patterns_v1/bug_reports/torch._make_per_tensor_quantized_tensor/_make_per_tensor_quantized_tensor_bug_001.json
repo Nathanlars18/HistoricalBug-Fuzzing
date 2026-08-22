@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "41115",
+        "title": "All cpu allocations after calling _make_per_tensor_quantized_tensor on a cuda tensor are in pinned memory"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch._make_per_tensor_quantized_tensor",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nAfter some quantization operations are called on cuda tensors (in particular, _make_per_tensor_quantized_tensor, maybe some others) all subsequent cpu allocations are using pinned memory",
+    "trigger_conditions": {
+        "category": "State Boundary",
+        "pattern": "Hidden State Leakage Across Tensor Operations",
+        "condition": "Perform a tensor operation that changes internal runtime state, followed by an unrelated tensor operation, and detect unexpected behavior caused by leaked state.",
+        "operation_context": "Call torch._make_per_tensor_quantized_tensor on a CUDA integer tensor, then allocate a CPU tensor and check is_pinned(); the CPU allocation incorrectly becomes pinned memory."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Call torch._make_per_tensor_quantized_tensor on a CUDA integer tensor, then allocate a CPU tensor and check is_pinned(); the CPU allocation incorrectly becomes pinned memory.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "Medium"
+    },
+    "raw_content_reference": "raw_reports/41115_summary_with_code.txt"
+}

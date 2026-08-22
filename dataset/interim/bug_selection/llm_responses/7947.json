@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.functional.embedding_bag",
+    "bug_category": "Other",
+    "trigger_condition": "Call torch.nn.functional.embedding_bag with max_norm set to a non-None value.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by a concrete input condition (max_norm is not None) and produces a deterministic NameError exception. It can be abstracted as an optional parameter code path referencing an undefined internal variable, and a harness can easily be generated to call embedding_bag with max_norm set.",
+    "confidence": "High",
+    "bug_id": "7947"
+}

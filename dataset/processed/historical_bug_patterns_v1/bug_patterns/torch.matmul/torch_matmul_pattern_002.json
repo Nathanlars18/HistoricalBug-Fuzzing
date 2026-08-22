@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_matmul_pattern_002",
+        "api_name": "torch.matmul",
+        "source_report": "matmul_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "71774",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": "Dtype Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_matmul_zero_inner_dim_uninitialized_output_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Inner dimension = 0",
+        "dtype_trigger": "torch.long",
+        "device_trigger": "CPU",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "Matrix multiplication on fbgemm backend with zero-size reduction dimension",
+        "concrete_constraints": "At least one matrix operand has zero inner dimension and dtype torch.long on CPU."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "Backend implementation fails to correctly handle zero-size reduction dimension.",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Output contains different values from uninitialized memory.",
+        "signal": "Result inconsistency between repeated executions",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate matrix operands with zero inner dimension while varying outer dimensions, and use integer dtypes.",
+        "tensor_construction": "Create tensors with shapes such as (m,0) @ (0,n) or (0,k) @ (k,n), ensuring at least one zero reduction dimension.",
+        "constraint_injection": "Use torch.long tensors and ensure CPU backend is used.",
+        "operation_sequence": "Invoke torch.matmul or addmm on the constructed zero-inner-dimension integer tensors and repeat execution.",
+        "oracle_construction": "Run the same operation multiple times and compare outputs; inconsistent or non-deterministic results indicate uninitialized memory."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

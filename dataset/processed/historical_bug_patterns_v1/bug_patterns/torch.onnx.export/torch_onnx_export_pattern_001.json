@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_onnx_export_pattern_001",
+        "api_name": "torch.onnx.export",
+        "source_report": "export_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "60179",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Graph Transformation Boundary",
+        "secondary_category": "Shape Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_onnx_export_pad_dimension_order_bug",
+        "general_category": "Graph Transformation Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Exporting a model containing torch.nn.functional.pad on a tensor with rank >= 3, where the 6-element pad tuple has non-zero padding on a non-last dimension, such as F.pad(x, [0, 0, 0, k, 0, 0]), especially when dynamic axes are used."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "ONNX Runtime output differs from the original PyTorch output after exporting a model containing F.pad.",
+        "signal": "Mismatch between PyTorch reference output and ONNX Runtime output when padding is applied to non-last dimensions.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary input tensor ranks and shapes, especially 3D, 4D, and 5D tensors, and generate pad tuples with non-zero padding on non-last dimensions.",
+        "tensor_construction": "Construct random tensors and wrap torch.nn.functional.pad in an nn.Module for export through torch.onnx.export.",
+        "constraint_injection": "Use pad tuples with length equal to 2 * tensor rank; set non-zero padding only in positions that do not correspond to the last dimension, for example [0, 0, 0, k, 0, 0] for rank 3; enable dynamic_axes for selected dimensions.",
+        "operation_sequence": "Execute the PyTorch module to obtain a reference output, export the module to ONNX, run the exported model with ONNX Runtime, and compare the results.",
+        "oracle_construction": "Use the PyTorch model output as the reference result; flag any mismatch between PyTorch and ONNX Runtime outputs as an incorrect export."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

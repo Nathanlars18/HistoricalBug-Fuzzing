@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_randperm_pattern_001",
+        "api_name": "torch.randperm",
+        "source_report": "randperm_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "58545",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": "Device Transition"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_randperm_generator_device_identifier_normalization_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "Non-canonical CUDA device identifier 'cuda' is supplied to a CUDA generator while API validation expects canonical 'cuda:0'.",
+        "memory_trigger": "",
+        "value_trigger": "Device string 'cuda' is used instead of the canonical form 'cuda:0'.",
+        "state_trigger": "Default tensor type is configured for GPU/CUDA, influencing device resolution for generator or device arguments.",
+        "execution_trigger": "torch.randperm is invoked with a CUDA Generator created with device='cuda'.",
+        "concrete_constraints": "torch.randperm is called with a CUDA Generator using device='cuda' while the default tensor type is GPU."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "torch.randperm raises RuntimeError when called with a CUDA Generator created with device='cuda', while validation expects 'cuda:0'.",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate device string arguments across canonical and non-canonical CUDA forms such as 'cuda', 'cuda:0', 'cuda:1', 'cuda:0,1', case variants, and whitespace variants when constructing generators and device contexts.",
+        "tensor_construction": "Create CUDA generators with mutated device strings while optionally setting the default tensor type to CUDA to vary global device resolution state.",
+        "constraint_injection": "Require CUDA availability and inject non-canonical device identifiers into APIs that accept device or generator arguments.",
+        "operation_sequence": "Call torch.randperm and similar random sampling or device-aware APIs with the crafted generator and an explicit n; compare behavior across canonical and non-canonical device strings.",
+        "oracle_construction": "Treat uncaught RuntimeError as a failure when the non-canonical device string should be accepted; verify returned tensors reside on the intended CUDA device."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

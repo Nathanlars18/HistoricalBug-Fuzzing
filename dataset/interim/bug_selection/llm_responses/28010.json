@@ -1,0 +1,12 @@
+{
+    "target_api": "Tensor.__setitem__",
+    "bug_category": "Dtype Boundary",
+    "trigger_condition": "Assigning a tensor of a different dtype to a float64 tensor using an advanced list index, such as A[:, [i]] = b.unsqueeze(-1), where type promotion occurs.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by indexed assignment with dtype promotion and produces clearly incorrect tensor values, making it suitable for input generation and output comparison oracles.",
+    "confidence": "High",
+    "bug_id": "28010"
+}

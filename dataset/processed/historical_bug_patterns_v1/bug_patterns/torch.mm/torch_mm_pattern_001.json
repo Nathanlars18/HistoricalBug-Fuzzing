@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_mm_pattern_001",
+        "api_name": "torch.mm",
+        "source_report": "mm_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "61291",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_mm_cuda_shape_mismatch_validation_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Matrix multiplication inputs have incompatible inner dimensions, e.g. (1,1) and (2,1), or more generally (m,k) and (k',n) with k != k'.",
+        "dtype_trigger": "Default tensor type is set to torch.cuda.DoubleTensor or another CUDA floating-point default type.",
+        "device_trigger": "CUDA GPU tensors are used.",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "torch.set_default_tensor_type(torch.cuda.DoubleTensor) causes newly created tensors in nn.Linear or torch.mm to be CUDA tensors.",
+        "execution_trigger": "torch.mm or nn.Linear executes on CUDA tensors with incompatible matrix dimensions.",
+        "concrete_constraints": "Set default tensor type to a CUDA floating-point type; create CUDA matrix tensors whose inner dimensions do not match; pass them to torch.mm or nn.Linear; CPU execution of the equivalent shapes should raise a shape mismatch error."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "CUDA path of torch.mm lacks the input shape compatibility check that the CPU path applies.",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Expected behavior is a shape mismatch RuntimeError as observed on CPU; CUDA path may not raise the expected error and may return incorrect output.",
+        "signal": "Missing RuntimeError or shape mismatch exception on CUDA execution",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate torch.mm and nn.Linear inputs with incompatible inner dimensions, varying shapes such as (1,1) against (2,1) and other mismatched (m,k)/(k',n) combinations.",
+        "tensor_construction": "Construct tensors on CUDA by setting the default tensor type to a CUDA floating-point type or by explicitly placing tensors on cuda.",
+        "constraint_injection": "Inject CUDA default dtype/device state and enforce matrix dimension mismatches, including small, large, and broadcast-like shapes where k != k'.",
+        "operation_sequence": "Call torch.mm or nn.Linear with CUDA tensors whose inner dimensions are incompatible; execute the same operation on CPU tensors as a reference.",
+        "oracle_construction": "Compare CUDA behavior against CPU behavior: CPU should raise a shape mismatch exception; if CUDA returns a result or fails to raise the expected RuntimeError, record as a bug."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

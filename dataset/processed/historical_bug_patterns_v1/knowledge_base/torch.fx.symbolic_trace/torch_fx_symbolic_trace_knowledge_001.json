@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_fx_symbolic_trace_knowledge_001",
+        "source_pattern_id": "torch_fx_symbolic_trace_pattern_001",
+        "source_report": "symbolic_trace_bug_001.json",
+        "api_name": "torch.fx.symbolic_trace",
+        "original_issue": "GitHub Issue 60417, PyTorch",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Attribute access default fallback loss in graph tracing",
+        "general_principle": "Tracing and code transformation frameworks may not preserve fallback semantics for attribute access, causing generated graphs to diverge from original behavior.",
+        "risk_category": [
+            "Graph Transformation Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Default fallback values with shape-like semantics (e.g., torch.Size) may not survive tracing.",
+        "dtype": "Default fallback values of various dtypes (int, Tensor, None) may be lost or coerced incorrectly.",
+        "memory": "",
+        "device": "",
+        "execution_state": "Original and traced module execution may diverge when fallback values are used for missing attributes."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "During symbolic tracing, the framework converts Python operations into graph nodes. When encountering getattr with a default fallback, the transformation may drop the fallback value, causing the traced graph to raise an exception or produce incorrect results when the target attribute is missing."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore modules whose forward methods use getattr with default fallback values for missing attributes",
+            "Vary the target attribute name, including existing, non-existent, and dynamically generated names",
+            "Vary default fallback value types such as shapes, integers, tuples, tensors, and None",
+            "Run both original and traced modules on representative inputs to compare behavior"
+        ],
+        "constraint_awareness": [
+            "Tracing frameworks may not support all Python builtins with fallback semantics",
+            "Default values must be exactly preserved in the traced graph",
+            "Attribute targets may be absent at trace time or execution time"
+        ],
+        "oracle_strategy": [
+            "Compare outputs of original and traced modules for inputs that rely on default fallback",
+            "Monitor for exceptions or crashes during symbolic tracing or traced module execution"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any code transformation or tracing framework that converts Python code into a graph risks dropping dynamic fallback semantics for attribute access. This principle applies beyond torch.fx to other symbolic tracing, JIT compilation, or graph extraction tools."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on attribute access with fallback defaults rather than only direct getattr usage",
+            "Ensure that traced and original modules are executed under identical conditions",
+            "Consider fallback values that have structural or type significance (e.g., shapes, device, dtype)"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that create modules with varied getattr fallback patterns and compare original vs traced execution, rather than reproducing the specific missing attribute case."
+        ]
+    }
+}

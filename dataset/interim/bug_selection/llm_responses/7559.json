@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.Tensor.__getitem__",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Indexing a tensor with a zero-length slice such as slice(0), especially when combined with other slices or followed by further indexing on the resulting tensor.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "Zero-length slice indexing is a reproducible input pattern. The bug yields clear oracles, including incorrect tensor output and an indexing RuntimeError, and can be generalized into a shape-boundary indexing pattern.",
+    "confidence": "High",
+    "bug_id": "7559"
+}

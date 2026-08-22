@@ -1,0 +1,80 @@
+{
+  "id": "torch.matmul_pattern_001",
+
+  "api": "torch.matmul",
+
+  "source": {
+    "type": "GitHub Issue",
+    "id": "#191238",
+    "repository": "pytorch/pytorch"
+  },
+  "verification_status": {
+    "level": "official_triaged",
+    "fixed": false
+  },
+  "bug_category": [
+    "Memory Layout",
+    "Backend Dispatch"
+  ],
+  "pattern_abstraction": {
+
+    "api_specific_pattern":
+    "matmul_unaligned_memory_access_bug",
+
+    "general_category":
+    "Memory Layout Boundary",
+
+    "transferability":
+    "medium"
+  },
+  "trigger_condition": {
+    "shape": {
+      "condition": "matrix multiplication with M=1"
+    },
+
+    "dtype": {
+      "value": "float32"
+    },
+
+    "memory": {
+      "condition": "tensor data pointer is not 4-byte aligned"
+    },
+
+    "device": {
+      "value": "CPU"
+    },
+
+    "backend": {
+      "value": "CPU BLAS"
+    }
+  },
+
+
+  "root_cause": {
+    "description": "Unaligned tensor memory is passed into a BLAS execution path that assumes aligned memory."
+  },
+
+
+  "bug_oracle": {
+    "type": "Crash",
+    "signal": "SIGBUS",
+    "exit_code": 138
+  },
+
+
+  "harness_strategy": {
+
+    "tensor_construction": [
+      "Create tensor from buffer with non-zero byte offset",
+      "Generate misaligned memory address"
+    ],
+
+    "constraints": [
+      "dtype=float32",
+      "data_ptr() % 4 != 0",
+      "M=1"
+    ],
+
+    "operation": "torch.matmul"
+  }
+}

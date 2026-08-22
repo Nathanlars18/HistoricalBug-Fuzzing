@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "8508",
+        "title": "Crash with SIGFPE due to unhandled cases in distributions.MultivariateNormal"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.distributions.MultivariateNormal",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "Shape Boundary",
+        "pattern": "Distribution Parameter Shape Validation Failure",
+        "condition": "Providing distribution parameters with incompatible scalar, batch, or event dimensions, such as a 0-dimensional loc tensor with a matrix covariance input.",
+        "operation_context": "Passing a 0-dimensional scalar tensor as loc to torch.distributions.MultivariateNormal with a 1x1 covariance matrix (e.g., torch.eye(1) * sigma)."
+    },
+    "failure_behavior": {
+        "type": "Crash",
+        "description": "Passing a 0-dimensional scalar tensor as loc to torch.distributions.MultivariateNormal with a 1x1 covariance matrix (e.g., torch.eye(1) * sigma).",
+        "oracle": "Crash"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/8508_summary_with_code.txt"
+}

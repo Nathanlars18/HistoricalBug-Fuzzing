@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.functional.grid_sample",
+    "bug_category": "Other",
+    "trigger_condition": "Call torch.nn.functional.grid_sample with valid 5D input and grid tensors but an unsupported mode string such as 'anything'.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is a reproducible input validation flaw: grid_sample does not reject an invalid mode argument. A fuzzing harness can pass arbitrary invalid mode strings and expect an exception, making it suitable for pattern extraction and harness generation.",
+    "confidence": "High",
+    "bug_id": "8693"
+}

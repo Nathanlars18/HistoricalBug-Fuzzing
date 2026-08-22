@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_Tensor_pow_knowledge_001",
+        "source_pattern_id": "torch_Tensor_pow_pattern_001",
+        "source_report": "pow_bug_001.json",
+        "api_name": "torch.Tensor.pow",
+        "original_issue": "Unsupported CUDA integer pow for negative values may raise an exception after synchronization.",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Backend arithmetic kernel dtype/value domain gap",
+        "general_principle": "Backend kernels may rely on hidden support assumptions about dtype and value ranges; unsupported combinations may only fail after deferred execution is forced.",
+        "risk_category": [
+            "Dtype Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "",
+        "dtype": "Signed integer dtype boundaries and backend-specific support for negative values",
+        "memory": "",
+        "device": "CUDA backend dispatch and device-specific arithmetic kernel availability",
+        "execution_state": "Lazy kernel execution may defer unsupported operation errors until synchronization or result access"
+    },
+    "failure_mechanism": {
+        "layer": "Kernel Layer",
+        "description": "Backend kernels may not implement certain dtype and value domain combinations. The failure remains latent until the operation is forced to execute, at which point an unsupported kernel or runtime exception surfaces."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore signed integer dtypes including narrow and wide integer types",
+            "Vary operands to include negative and boundary integer values",
+            "Vary operator operands such as exponents across small and large positive integers",
+            "Combine arithmetic operations with eager execution triggers such as synchronization, printing, or item access",
+            "Exercise both CPU and CUDA device paths to detect backend-specific gaps"
+        ],
+        "constraint_awareness": [
+            "Backend kernels may support only a subset of dtype and value combinations",
+            "Lazy execution can defer errors until synchronization or result materialization",
+            "Integer signedness and overflow boundaries can interact with kernel-level support"
+        ],
+        "oracle_strategy": [
+            "Monitor for runtime exceptions after forcing execution with synchronization or printing",
+            "Compare device results against a CPU reference implementation where support is expected",
+            "Use device synchronization or sanitizer checks to detect asynchronous kernel failures"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "The principle of backend-specific dtype/value support gaps and deferred error visibility applies to many operators with integer arithmetic and device dispatch. However, the exact unsupported combinations vary by operator and backend, so it is not universally predictive without per-API investigation."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe backend-specific arithmetic operations with signed integer dtype and negative value domains",
+            "Force eager execution after arithmetic operations to expose latent kernel failures",
+            "Vary dtype and value ranges rather than reproducing a single known case"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary signed integer dtypes, negative and boundary values, and force execution after arithmetic operations. Use synchronization or result observation as oracles, and compare against CPU references where applicable."
+        ]
+    }
+}

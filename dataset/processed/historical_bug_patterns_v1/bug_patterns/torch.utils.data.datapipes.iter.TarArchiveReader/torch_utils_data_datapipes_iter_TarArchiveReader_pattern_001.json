@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_utils_data_datapipes_iter_TarArchiveReader_pattern_001",
+        "api_name": "torch.utils.data.datapipes.iter.TarArchiveReader",
+        "source_report": "TarArchiveReader_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "65808",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Execution State Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_datapipe_tararchive_reader_stream_lifetime_bug",
+        "general_category": "Execution State Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Upstream archive is exhausted and closed while downstream buffered consumer still holds unread yielded member streams.",
+        "execution_trigger": "Buffered consumer such as Shuffler requests more elements than the tar archive contains, forcing archive exhaustion before yielded streams are consumed.",
+        "concrete_constraints": "Pipeline uses TarArchiveReader followed by a buffered consumer such as Shuffler; buffer_size is greater than the number of archive entries; yielded archive member streams are read only after the archive has been exhausted and closed."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Exception is raised when consuming a yielded stream after the owning tar archive has been closed.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate tar archives with varying entry counts, entry sizes, compression formats, and directory structures; vary member stream sizes and include empty files.",
+        "tensor_construction": "Create file-based data sources and downstream buffered datapipe consumers with configurable buffer sizes.",
+        "constraint_injection": "Set the buffered consumer buffer_size to exceed the upstream archive entry count so the upstream archive is exhausted before yielded member streams are consumed.",
+        "operation_sequence": "Construct a datapipe pipeline: archive reader followed by buffering or shuffling consumer. Trigger iteration to fill the buffer and exhaust the archive, then read the previously yielded member streams.",
+        "oracle_construction": "Monitor for exceptions or invalid stream states when reading yielded streams after archive exhaustion; compare behavior against direct tarfile member reads."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

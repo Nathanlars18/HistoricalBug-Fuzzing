@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_onnx_export_knowledge_002",
+        "source_pattern_id": "torch_onnx_export_pattern_002",
+        "source_report": "export_bug_002.json",
+        "api_name": "torch.onnx.export",
+        "original_issue": "GitHub Issue 61345",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Broadcast shape preservation failure during graph export",
+        "general_principle": "Graph export and transformation pipelines may not preserve or validate shape semantics for singleton axes that are later required to broadcast to non-1 dimensions, causing backend runtime failures.",
+        "risk_category": [
+            "Graph Transformation Boundary",
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Singleton axes introduced by registered buffers or parameters, indexing, slicing, squeezing, or selection operations that subsequently participate in broadcasting against larger non-1 spatial dimensions; varying rank and singleton placement.",
+        "dtype": "",
+        "memory": "",
+        "device": "",
+        "execution_state": "Module-level buffers or parameters with extra dimensions are traced and exported; runtime inference is performed by a separate backend engine."
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Backend runtime shape inference or broadcast iterator logic may encounter unresolved or invalid broadcast axes when the exported graph carries implicit singleton axes that must expand to larger non-1 dimensions. This reflects a mismatch between graph transformation output and backend runtime assumptions."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary buffer and parameter ranks and positions of singleton dimensions",
+            "Insert indexing, slicing, squeeze, or selection operations that remove or retain singleton axes",
+            "Broadcast tensors with singleton axes against larger non-1 dimensions",
+            "Vary export-time and runtime input shapes around broadcast compatibility"
+        ],
+        "constraint_awareness": [
+            "Exported graphs must preserve explicit shape and broadcasting semantics",
+            "Backend runtimes may reject singleton-to-non-1 broadcasts if shape inference loses axis information",
+            "Buffers and parameters registered on modules should be treated as part of the graph shape contract"
+        ],
+        "oracle_strategy": [
+            "Compare backend runtime success, output shape, and values against a PyTorch reference",
+            "Monitor for broadcast-related exceptions or shape validation failures",
+            "Check that exported model outputs match eager-mode broadcasting behavior"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "The principle applies to graph export, tracing, and compiler transformations beyond torch.onnx.export whenever an intermediate representation must preserve shape and broadcasting semantics for a backend runtime; however, the exact failure surface depends on backend shape inference rules."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Explore modules with registered buffers or parameters that contain extra singleton dimensions",
+            "Create broadcast operations where a singleton axis is not explicitly present or is ambiguous in the exported graph",
+            "Consider both shape preservation in the intermediate representation and backend runtime validation",
+            "Combine shape-altering operations with broadcasting rather than only testing direct broadcasting"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate diverse graph structures with singleton axes, indexing, slicing, squeeze, or selection operations, and broadcast binary operations before export. Run exported models through the target backend runtime and compare outputs to eager reference, treating any broadcast exception or shape mismatch as a failure signal."
+        ]
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_distributions_MultivariateNormal_pattern_001",
+        "api_name": "torch.distributions.MultivariateNormal",
+        "source_report": "MultivariateNormal_bug_001.json",
+        "source": {},
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_distributions_multivariate_normal_parameter_shape_mismatch_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Distribution parameters with incompatible scalar, batch, or event dimensions, such as 0-dimensional loc with matrix covariance",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Passing a 0-dimensional scalar tensor as loc to torch.distributions.MultivariateNormal with a covariance_matrix of shape [1, 1], or more generally parameters whose broadcast/event shapes are inconsistent."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Crash",
+        "description": "Process terminated with SIGFPE when incompatible distribution parameter shapes were provided to torch.distributions.MultivariateNormal.",
+        "signal": "SIGFPE",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate distribution parameter shapes across scalar, vector, and matrix combinations, focusing on mismatches between loc and covariance_matrix dimensions.",
+        "tensor_construction": "Construct torch.distributions.MultivariateNormal instances with incompatible batch or event shapes, including torch.tensor(0.0) or torch.zeros(()) as loc and torch.eye(1) * sigma as covariance_matrix.",
+        "constraint_injection": "Inject shape invariants that enforce consistent event dimensions between loc and covariance parameters, and vary or bypass validation checks to expose unhandled shape combinations.",
+        "operation_sequence": "Initialize distribution parameters with mismatched shapes, then invoke methods such as sample(), log_prob(), or entropy() to trigger shape handling code paths.",
+        "oracle_construction": "Monitor for crash signals such as SIGFPE or SIGSEGV, unexpected RuntimeError exceptions, or results inconsistent with expected shape validation failures."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

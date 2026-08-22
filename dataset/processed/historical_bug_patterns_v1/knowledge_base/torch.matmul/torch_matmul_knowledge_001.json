@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_matmul_knowledge_001",
+        "source_pattern_id": "torch_matmul_pattern_001",
+        "source_report": "matmul_bug_001.json",
+        "api_name": "torch.matmul",
+        "original_issue": "GitHub Issue #191238",
+        "verification_status": "official_triaged",
+        "confidence": "high"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Unaligned storage in BLAS-backed linear algebra operations",
+        "general_principle": "Backend libraries may rely on hidden memory alignment assumptions for optimized execution paths; logically valid tensors backed by misaligned storage can violate these assumptions and cause fatal memory access failures.",
+        "risk_category": [
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Degenerate or boundary dimensions, such as dimension size 1, that select specialized backend execution paths",
+        "dtype": "Dtypes commonly mapped to BLAS backends, especially float32",
+        "memory": "Logically contiguous tensors backed by misaligned data pointers, for example from slicing larger buffers or applying storage offsets",
+        "device": "CPU backend dispatches to platform-specific BLAS libraries",
+        "execution_state": "Large matrix dimensions or operation shapes that trigger optimized BLAS execution"
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "BLAS or vectorized backend paths may omit alignment validation before using aligned loads or stores; when a logically contiguous tensor is backed by misaligned memory, the backend can raise a bus error or crash."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Construct tensors that are logically contiguous but are views into larger buffers with controlled storage offsets",
+            "Vary alignment offsets, such as modulo 4, 8, or 16, to probe hidden backend alignment assumptions",
+            "Test linear algebra operations that share BLAS dispatch, such as matrix-vector, matrix-matrix, and affine transformations",
+            "Combine misaligned storage with degenerate leading dimensions and large reduction dimensions"
+        ],
+        "constraint_awareness": [
+            "Logical contiguity does not imply data pointer alignment",
+            "BLAS backends may impose platform-specific alignment constraints",
+            "Specialized paths for degenerate dimensions may bypass generic alignment handling"
+        ],
+        "oracle_strategy": [
+            "Monitor for crash signals such as SIGBUS or SIGSEGV",
+            "Compare unaligned executions against aligned reference executions for correctness",
+            "Use sanitizers to detect invalid memory access"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Many deep learning framework operations delegate to BLAS or vectorized kernels that assume aligned storage; the risk applies wherever tensor storage can be offset or sliced across APIs."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on storage alignment rather than only tensor shape or dtype",
+            "Generate inputs from slices or storage-offset tensors to create misaligned data pointers",
+            "Explore related BLAS-backed APIs under the same backend dispatch conditions"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Create generic harness logic that systematically varies storage alignment offsets while preserving logical contiguity, then invokes BLAS-backed APIs and checks for crash signals or mismatches against aligned references."
+        ]
+    }
+}

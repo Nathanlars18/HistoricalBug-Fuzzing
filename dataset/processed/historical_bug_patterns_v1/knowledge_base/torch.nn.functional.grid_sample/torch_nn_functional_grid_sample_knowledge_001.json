@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_nn_functional_grid_sample_knowledge_001",
+        "source_pattern_id": "torch_nn_functional_grid_sample_pattern_001",
+        "source_report": "grid_sample_bug_001.json",
+        "api_name": "torch.nn.functional.grid_sample",
+        "original_issue": "PyTorch#8693",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "String/enum argument validation gap at API boundary",
+        "general_principle": "API functions may fail to validate enumeration-like string arguments before dispatch, allowing unsupported values to bypass contract checks and produce missing or incorrect exceptions.",
+        "risk_category": [
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Valid, compatible tensor shapes are not the trigger; keeping shapes valid helps isolate argument validation issues",
+        "dtype": "Floating-point input and grid dtypes required by the API; not the primary invalid trigger",
+        "memory": "",
+        "device": "",
+        "execution_state": "Unsupported string value supplied to an option-like parameter while other arguments remain valid"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "Argument validation is missing for an enumeration-like string parameter. The invalid option value is not rejected before dispatch, leading to incorrect exception behavior."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Mutate string/enum parameters with unsupported values",
+            "Test empty strings, typo variants, case variants, and None for option-like arguments"
+        ],
+        "constraint_awareness": [
+            "Keep tensor shapes, dtypes, and other arguments valid to isolate parameter validation bugs",
+            "Ensure invalid option values are not masked by other invalid inputs"
+        ],
+        "oracle_strategy": [
+            "Expect a clear exception for unsupported string/enum values",
+            "Flag missing or delayed validation as API contract violations"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any API with string or enum-like options can have missing input validation. The strategy of mutating option parameters while keeping other inputs valid generalizes beyond grid_sample."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on option/enum-like parameters that are passed as strings or constants",
+            "Keep all structural and dtype arguments valid to expose only contract validation gaps",
+            "Compare behavior against documented allowed values"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate diverse API calls that vary option-like arguments across unsupported, empty, typo, and case-mutated values, while holding other arguments valid; use exception-based oracles to detect missing validation."
+        ]
+    }
+}

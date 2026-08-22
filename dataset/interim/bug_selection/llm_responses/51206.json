@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.functional.interpolate",
+    "bug_category": "Dtype Boundary",
+    "trigger_condition": "Calling torch.nn.functional.interpolate with mode='trilinear' or 'bicubic' on CUDA half-precision tensors under torch.cuda.amp.autocast.",
+    "oracle_type": "Performance Issue",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "This is a pure performance regression/slowdown under AMP for fp16 interpolation, not a correctness, crash, or exception bug; it is environment/hardware-dependent and excluded by the criteria.",
+    "confidence": "High",
+    "bug_id": "51206"
+}

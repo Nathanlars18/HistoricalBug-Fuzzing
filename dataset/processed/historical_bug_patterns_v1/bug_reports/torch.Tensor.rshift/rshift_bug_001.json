@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "8111",
+        "title": "[Bug] Weird bug when using ATen __rshift__() on cuda tensors"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.Tensor.__rshift__",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "Device Boundary",
+        "pattern": "CPU-CUDA Backend Semantic Divergence",
+        "condition": "Executing an operator on tensors located on different devices (CPU and CUDA) and comparing results, where CUDA produces behavior inconsistent with the CPU reference implementation.",
+        "operation_context": "Calling __rshift__ on a CUDA tensor with an integer shift amount; the same operation on CPU returns the correct right-shifted result."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Calling __rshift__ on a CUDA tensor with an integer shift amount; the same operation on CPU returns the correct right-shifted result.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/8111_summary_with_code.txt"
+}

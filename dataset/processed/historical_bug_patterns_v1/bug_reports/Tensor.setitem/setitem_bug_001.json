@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "28010",
+        "title": "Bad value assignment using list indices when type-promoting"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "Tensor.__setitem__",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nWhen type-promoting while assigning values using a list index, e.g. `A[:, [i]] = b`, where `A` and `b` are of different `dtype`, the assignment produces incorrect values.",
+    "trigger_conditions": {
+        "category": "Dtype Boundary",
+        "pattern": "Implicit Dtype Conversion in Indexed Assignment",
+        "condition": "Assigning tensors with different dtypes through indexed assignment operations, especially advanced indexing, and checking for incorrect value conversion.",
+        "operation_context": "Assigning a tensor of a different dtype to a float64 tensor using an advanced list index, such as A[:, [i]] = b.unsqueeze(-1), where type promotion occurs."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Assigning a tensor of a different dtype to a float64 tensor using an advanced list index, such as A[:, [i]] = b.unsqueeze(-1), where type promotion occurs.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/28010_summary_with_code.txt"
+}

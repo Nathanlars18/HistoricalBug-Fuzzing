@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_nn_functional_ctc_loss_pattern_001",
+        "api_name": "torch.nn.functional.ctc_loss",
+        "source_report": "ctc_loss_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "18215",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Gradient State Boundary",
+        "secondary_category": "Shape Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_ctc_loss_empty_target_gradient_bug",
+        "general_category": "Gradient State Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "At least one target sequence in a batch has length zero (label_sizes contains 0) and backward is requested after the forward pass."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "CTCLoss produces an incorrect gradient when at least one target sequence is empty.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate target sequence lengths to include zero-length targets across a batch while keeping log_probs shapes valid.",
+        "tensor_construction": "Construct CTC log_probs tensors with shape [T, N, C], integer target tensors, and label_sizes containing zeros for selected batch elements.",
+        "constraint_injection": "Ensure label_sizes values do not exceed input length, set one or more label_sizes to 0, and keep other CTC input constraints satisfied.",
+        "operation_sequence": "Run torch.nn.functional.ctc_loss forward, then call backward on the loss, and inspect gradients with respect to log_probs.",
+        "oracle_construction": "Compare gradients for empty-target cases to a differentiable reference or finite-difference baseline; any material mismatch is treated as an incorrect gradient."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

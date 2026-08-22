@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_mul_pattern_001",
+        "api_name": "torch.mul",
+        "source_report": "mul_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "47007",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Dtype Boundary",
+        "secondary_category": "Backend Dispatch Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_mul_cuda_bool_scalar_dtype_dispatch_bug",
+        "general_category": "Dtype Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "Boolean CUDA tensor and Python bool scalar",
+        "device_trigger": "CUDA",
+        "memory_trigger": "",
+        "value_trigger": "Python bool scalar operand",
+        "state_trigger": "",
+        "execution_trigger": "Binary element-wise multiplication dispatches to CUDA bool kernel",
+        "concrete_constraints": "Multiply a CUDA boolean tensor by a Python bool scalar using '*' or torch.mul; CPU path works, CUDA path raises RuntimeError."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "RuntimeError: _mul_cuda_ not implemented for 'Bool'",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate scalar-tensor combinations covering Python scalar types (bool, int, float) and tensor dtypes including bool.",
+        "tensor_construction": "Create CUDA boolean tensors with varied shapes and compare against CPU boolean tensors.",
+        "constraint_injection": "Force device/dtype combinations for element-wise binary ops, especially CUDA bool tensors with Python bool scalars.",
+        "operation_sequence": "Apply torch.mul and '*' with both scalar-tensor and tensor-scalar operand orders; run on CPU and CUDA.",
+        "oracle_construction": "Flag any exception or inconsistent CPU/CUDA behavior for dtype combinations that should be supported."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

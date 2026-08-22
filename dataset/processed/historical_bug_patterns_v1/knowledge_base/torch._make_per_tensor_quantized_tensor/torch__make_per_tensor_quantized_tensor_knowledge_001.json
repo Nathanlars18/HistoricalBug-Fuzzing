@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "knowledge_id": "torch__make_per_tensor_quantized_tensor_knowledge_001",
+        "source_pattern_id": "torch__make_per_tensor_quantized_tensor_pattern_001",
+        "source_report": "_make_per_tensor_quantized_tensor_bug_001.json",
+        "api_name": "torch._make_per_tensor_quantized_tensor",
+        "original_issue": "GitHub Issue #41115",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Stateful device operations leak allocator or pinned-memory state into subsequent unrelated allocations",
+        "general_principle": "API calls that change internal memory or allocator state may not restore isolation between device and host allocators, causing later tensor allocations to inherit unintended attributes such as pinned-memory status.",
+        "risk_category": [
+            "Execution State Boundary",
+            "Device Transition"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Shape variations may affect allocation paths and state retention; include scalar, zero-dim, and high-dim tensor shapes.",
+        "dtype": "Integer CUDA tensor dtypes may traverse stateful quantized-tensor construction paths with allocator side effects.",
+        "memory": "Pinned-memory or allocator flags may leak across operations, especially when a CPU allocation follows a CUDA stateful operation.",
+        "device": "CUDA-to-CPU transitions can reveal cross-device allocator state contamination.",
+        "execution_state": "Internal allocator or pinned-memory state persists across unrelated operations and changes subsequent tensor allocation behavior."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "A stateful operation on a CUDA tensor modifies allocator or pinned-memory state that is not reset, causing subsequent CPU allocations to incorrectly inherit the modified state."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary CUDA integer tensor shapes and dtypes while keeping the operation valid.",
+            "Alternate stateful device/quantized operations with unrelated CPU tensor allocations.",
+            "Probe both scalar and high-dimensional CUDA tensor inputs before CPU allocation queries."
+        ],
+        "constraint_awareness": [
+            "The operation may require valid integer types and supported device placement.",
+            "CPU allocator pinning state should be isolated from prior CUDA quantized-tensor operations.",
+            "Track allocator state or pinning flags before and after stateful operations."
+        ],
+        "oracle_strategy": [
+            "Compare CPU tensor pinning state before and after the stateful device operation.",
+            "Flag unexpected CPU pinned-memory state as evidence of allocator state leakage.",
+            "Use allocator instrumentation or sanitizer checks where available."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle of allocator or execution-state leakage across device boundaries applies to any stateful API that touches device memory and may influence later host allocations, not just the original quantized-tensor API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on stateful device or memory-related APIs and on whether later unrelated CPU allocations remain isolated from previous device-side side effects.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that establish a baseline allocator/pinning state, invoke a stateful device operation, then allocate a fresh CPU tensor and compare observable state such as pinning flags against the baseline."
+        ]
+    }
+}

@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "knowledge_id": "torch.matmul_knowledge_002",
+    "source_pattern_id": "torch.matmul_pattern_002",
+    "api": "torch.matmul",
+    "original_issue": "#71774",
+    "verification_status": "official_triaged",
+    "confidence": "high"
+  },
+
+
+  "knowledge_abstraction": {
+
+    "bug_theme":
+    "Zero-size tensor boundary handling failure",
+
+    "general_principle":
+    "Backend implementations may incorrectly handle tensors with empty dimensions or zero-sized computation regions, leading to incorrect results or unstable behavior.",
+
+    "risk_category": [
+      "Shape Boundary",
+      "Backend Dispatch Boundary"
+    ]
+
+  },
+
+
+  "risk_dimensions": {
+
+    "shape":
+    "Explore tensors with zero dimensions, empty tensors, and boundary tensor sizes.",
+
+    "dtype":
+    "Different datatype implementations may have different boundary behaviors.",
+
+    "memory":
+    "Empty storage or zero-element tensors may trigger special handling paths.",
+
+    "device":
+    "Different backend implementations may handle empty computation differently.",
+
+    "execution_state":
+    "Backend dispatch paths for special tensor sizes should be considered."
+  },
+
+
+  "failure_mechanism": {
+
+    "layer":
+    "Backend Layer",
+
+    "description":
+    "Backend implementations may fail to correctly initialize or process results when computation involves empty tensor dimensions."
+  },
+
+
+  "testing_insights": {
+
+    "input_exploration":
+    [
+      "Generate tensors with zero-sized dimensions.",
+      "Explore minimum and boundary tensor shapes."
+    ],
+
+
+    "constraint_awareness":
+    [
+      "Consider special tensor shapes that trigger optimized backend paths.",
+      "Consider dtype-specific boundary behavior."
+    ],
+
+
+    "oracle_strategy":
+    [
+      "Compare outputs with reference implementations.",
+      "Detect incorrect numerical results."
+    ]
+  },
+
+
+  "transferability": {
+
+    "level":
+    "high"
+  },
+
+
+  "llm_reasoning_guidance": {
+
+    "important_considerations":
+    [
+      "Boundary tensor shapes may expose missing backend handling.",
+      "Explore empty and minimal tensor cases."
+    ],
+
+
+    "avoid_literal_reproduction":
+    true,
+
+
+    "generation_strategy":
+    "Generate diverse boundary shapes rather than only reproducing zero inner dimensions."
+  }
+}

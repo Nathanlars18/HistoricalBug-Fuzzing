@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_nn_functional_grid_sample_pattern_001",
+        "api_name": "torch.nn.functional.grid_sample",
+        "source_report": "grid_sample_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "8693",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_grid_sample_invalid_mode_validation_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Valid 5D input and grid tensors",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "mode is an unsupported string value such as 'anything'",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Call torch.nn.functional.grid_sample with valid 5D input and grid tensors, valid padding_mode and align_corners, but mode set to an unsupported string value."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Call torch.nn.functional.grid_sample with valid 5D input and grid tensors but an unsupported mode string such as 'anything'.",
+        "signal": "Exception",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate the mode parameter with unsupported string values while keeping other arguments valid.",
+        "tensor_construction": "Construct valid 5D floating-point input and grid tensors with compatible shapes.",
+        "constraint_injection": "Inject invalid mode strings such as 'anything', empty string, or typo variants into the mode argument.",
+        "operation_sequence": "Call torch.nn.functional.grid_sample(input, grid, mode=invalid_mode, padding_mode='zeros', align_corners=False).",
+        "oracle_construction": "Verify that an exception is raised for unsupported mode values; flag missing or incorrect argument validation as a bug."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

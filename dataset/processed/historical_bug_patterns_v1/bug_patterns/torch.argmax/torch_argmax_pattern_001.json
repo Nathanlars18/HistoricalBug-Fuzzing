@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_argmax_pattern_001",
+        "api_name": "torch.argmax",
+        "source_report": "argmax_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "37680",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Gradient State Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_argmax_non_differentiable_grad_state_leak",
+        "general_category": "Gradient State Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "Input is a floating-point tensor; output is an integer tensor.",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Input tensor has requires_grad=True.",
+        "execution_trigger": "A non-differentiable operator such as torch.argmax or torch.argmin is called on the gradient-enabled input.",
+        "concrete_constraints": "input.dtype is floating-point; input.requires_grad=True; output.dtype is integer; output.requires_grad is incorrectly True."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "The integer output tensor produced by torch.argmax or torch.argmin incorrectly retains requires_grad=True, even though non-floating-point tensors should not require gradients.",
+        "signal": "output.requires_grad == True while output.dtype is integer",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary input dtype, shape, device, and requires_grad flag across floating-point and non-floating-point tensors.",
+        "tensor_construction": "Construct floating-point tensors with requires_grad=True and pass them to non-differentiable operations that return integer tensors.",
+        "constraint_injection": "Enforce the invariant that integer or non-floating-point outputs must have requires_grad=False.",
+        "operation_sequence": "Apply non-differentiable index/reduction operators such as argmax and argmin to gradient-enabled tensors, then inspect output gradient state.",
+        "oracle_construction": "Compare output.requires_grad against the expected False for integer outputs; report any mismatch as Incorrect Output."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "Tensor_setitem_pattern_001",
+        "api_name": "Tensor.__setitem__",
+        "source_report": "setitem_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "28010",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Dtype Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "tensor___setitem___list_index_dtype_promotion_bug",
+        "general_category": "Dtype Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Advanced indexing with a list selects a subset of elements/columns; assigned source shape is broadcast-compatible with the selected destination.",
+        "dtype_trigger": "Source and destination tensors have different dtypes, so indexed assignment requires implicit dtype promotion.",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Destination is a float64 tensor and source is a different dtype; assignment is performed via advanced list indexing such as A[:, [i]] = b.unsqueeze(-1)."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Assigning a tensor of a different dtype to a float64 tensor using an advanced list index produces incorrect values when type promotion occurs.",
+        "signal": "Assigned tensor values differ from the expected values after correct dtype conversion.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary source/destination dtype pairs and advanced list index positions to cover different type-promotion paths.",
+        "tensor_construction": "Construct destination tensors and source tensors with mismatched dtypes and shape-compatible broadcasting for indexed assignment.",
+        "constraint_injection": "Force assignments through advanced list indexing on __setitem__ where type promotion is required.",
+        "operation_sequence": "Perform indexed assignment such as dst[:, [i]] = src.unsqueeze(-1) with mismatched dtypes; then compare against a reference cast-then-assign operation.",
+        "oracle_construction": "Build expected values by converting the source tensor to the destination dtype before assignment and applying the same index selection; report value mismatches."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

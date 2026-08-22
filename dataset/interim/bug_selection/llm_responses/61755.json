@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.hub.load",
+    "bug_category": "Other",
+    "trigger_condition": "Calling torch.hub.load with pretrained=True when the external hosting service returns HTTP 403 due to rate limiting.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "This failure depends on an external network service and rate limiting, which is excluded as a network/external dependency issue and cannot be reliably reproduced through local input generation.",
+    "confidence": "High",
+    "bug_id": "61755"
+}

@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_nn_utils_clip_grad_norm__pattern_001",
+        "api_name": "torch.nn.utils.clip_grad_norm_",
+        "source_report": "clip_grad_norm__bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "38605",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Device Transition",
+        "secondary_category": "Gradient State Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "clip_grad_norm_cross_device_gradient_parameter_bug",
+        "general_category": "Device Transition",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "Model parameters and their gradients are located on different devices, such as cuda:0 and cuda:1, when a gradient clipping or aggregation operation is called.",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Gradients are populated on a different device than their corresponding parameters.",
+        "execution_trigger": "Call torch.nn.utils.clip_grad_norm_ over a parameter list that contains parameters or gradients on different devices.",
+        "concrete_constraints": "Parameters and gradients must be distributed across multiple devices, e.g., cuda:0 and cuda:1, and the operation must require aggregating or clipping gradients across those devices."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Calling clip_grad_norm_ with parameters or gradients on different devices raises an exception.",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary device placement of a subset of parameters or gradients so that some reside on cuda:0 and others on cuda:1.",
+        "tensor_construction": "Create a small neural network module, split parameters across multiple devices, run forward/backward to generate gradients on those devices, and collect the mixed-device parameters.",
+        "constraint_injection": "Force parameter and gradient device mismatch by moving parameters after backward or by assigning gradients from tensors on different devices.",
+        "operation_sequence": "Initialize module -> split parameters across devices -> run forward/backward on corresponding devices -> call clip_grad_norm_ over all parameters -> observe exception.",
+        "oracle_construction": "The expected oracle is an exception such as RuntimeError when mixed-device gradients or parameters are supplied; success or a crash under mixed devices indicates inconsistent handling."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

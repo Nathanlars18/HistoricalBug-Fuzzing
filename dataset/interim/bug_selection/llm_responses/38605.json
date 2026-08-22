@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.utils.clip_grad_norm_",
+    "bug_category": "Device Boundary",
+    "trigger_condition": "Model parameters and their gradients are located on different devices (e.g., cuda:0 and cuda:1) when clip_grad_norm_ is called.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by a clear device-boundary condition: clip_grad_norm_ attempts to stack gradient norms from parameters on different devices, causing a RuntimeError. This is reproducible via input/model construction and abstracts into a general pattern of device-heterogeneous parameter aggregation.",
+    "confidence": "High",
+    "bug_id": "38605"
+}

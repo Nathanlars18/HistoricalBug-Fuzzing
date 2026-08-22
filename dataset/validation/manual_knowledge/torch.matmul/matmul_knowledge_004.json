@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "knowledge_id": "torch.matmul_knowledge_004",
+    "source_pattern_id": "torch.matmul_pattern_004",
+    "api": "torch.matmul",
+    "original_issue": "#170573",
+    "verification_status": "official_triaged",
+    "confidence": "high"
+  },
+
+
+  "knowledge_abstraction": {
+
+    "bug_theme":
+    "Output tensor storage boundary violation",
+
+    "general_principle":
+    "Operations writing into user-provided tensors may cause unsafe behavior when tensor metadata and underlying storage capacity are inconsistent.",
+
+    "risk_category": [
+      "Memory Layout Boundary",
+      "Shape Boundary"
+    ]
+
+  },
+
+
+  "risk_dimensions": {
+
+    "shape":
+    "Mismatch between expected output shape and provided output tensor should be explored.",
+
+    "dtype":
+    "Different dtype storage requirements may affect boundary behavior.",
+
+    "memory":
+    "Shared storage, views, and insufficient storage capacity are important risks.",
+
+    "device":
+    "Backend-specific output handling should be considered.",
+
+    "execution_state":
+    "Operations with user-controlled output tensors introduce additional states."
+  },
+
+
+  "failure_mechanism": {
+
+    "layer":
+    "ATen Layer",
+
+    "description":
+    "Tensor metadata manipulation may not correctly match underlying storage capacity, causing unsafe memory access."
+  },
+
+
+  "testing_insights": {
+
+    "input_exploration":
+    [
+      "Generate output tensor views.",
+      "Explore mismatched metadata and storage conditions."
+    ],
+
+
+    "constraint_awareness":
+    [
+      "Consider output tensor ownership and storage boundaries.",
+      "Consider operations with out parameters."
+    ],
+
+
+    "oracle_strategy":
+    [
+      "Use memory sanitizer detection.",
+      "Check sentinel values around tensor storage."
+    ]
+  },
+
+
+  "transferability": {
+
+    "level":
+    "high"
+  },
+
+
+  "llm_reasoning_guidance": {
+
+    "important_considerations":
+    [
+      "Output tensor constraints may expose memory safety issues.",
+      "Explore abnormal tensor storage relationships."
+    ],
+
+
+    "avoid_literal_reproduction":
+    true,
+
+
+    "generation_strategy":
+    "Generate various output tensor constraint violations instead of reproducing one storage bug."
+  }
+}

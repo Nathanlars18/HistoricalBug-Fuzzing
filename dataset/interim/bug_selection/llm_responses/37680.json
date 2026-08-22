@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.argmax",
+    "bug_category": "Gradient Boundary",
+    "trigger_condition": "A floating-point tensor with requires_grad=True is passed to torch.argmax or torch.argmin, producing an integer tensor that incorrectly retains requires_grad=True.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by generating a floating-point tensor that requires gradients and calling argmax/argmin. The expected oracle is that integer-typed outputs should not require gradients, which is a clear and general gradient-boundary property.",
+    "confidence": "High",
+    "bug_id": "37680"
+}

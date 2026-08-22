@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.randperm",
+    "bug_category": "Device Boundary",
+    "trigger_condition": "torch.randperm is called with a CUDA Generator created with device='cuda' (non-canonical device string), while the validation expects 'cuda:0'.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducibly triggered by generator device input and produces a clear RuntimeError. It can be abstracted as a device-boundary/canonicalization issue in random generator device validation.",
+    "confidence": "High",
+    "bug_id": "58545"
+}

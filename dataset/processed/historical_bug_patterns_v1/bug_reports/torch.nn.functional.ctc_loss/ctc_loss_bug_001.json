@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "18215",
+        "title": "CTCLoss with empty target doesn't work well"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.nn.functional.ctc_loss",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nCTCLoss doesn't provide the correct gradient when the target sequence is empty.",
+    "trigger_conditions": {
+        "category": "Gradient Boundary",
+        "pattern": "Empty Sequence Gradient Failure in Loss Functions",
+        "condition": "Calling sequence loss functions with empty target sequences or zero-length labels and performing backward computation.",
+        "operation_context": "CTCLoss is called with at least one empty target sequence, e.g., label_sizes contains 0."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "CTCLoss is called with at least one empty target sequence, e.g., label_sizes contains 0.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/18215_summary_with_code.txt"
+}

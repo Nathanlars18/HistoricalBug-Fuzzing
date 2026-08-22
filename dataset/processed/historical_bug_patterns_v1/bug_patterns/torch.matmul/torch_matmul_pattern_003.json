@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_matmul_pattern_003",
+        "api_name": "torch.matmul",
+        "source_report": "matmul_bug_003.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "104832",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_matmul_out_noncontiguous_view_wrong_output",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "256x256 matrices",
+        "dtype_trigger": "float",
+        "device_trigger": "Apple MPS",
+        "memory_trigger": "non-contiguous sliced tensor view used as out argument",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "matmul with out argument",
+        "concrete_constraints": "Input operands are float 256x256 matrices on Apple MPS; the out argument is a sliced non-contiguous view of a larger tensor."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Output tensor remains unchanged.",
+        "signal": "The sliced out tensor content is identical before and after the matmul and differs from the CPU reference result.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Create out tensors as sliced views of larger contiguous tensors to produce non-contiguous layouts.",
+        "tensor_construction": "Allocate a larger contiguous tensor and slice it to use as the matmul out argument; keep input operands as float matrices.",
+        "constraint_injection": "Run on Apple MPS device with float dtype; vary slice offsets, strides, and shapes while maintaining valid matmul dimensions.",
+        "operation_sequence": "Call torch.matmul(a, b, out=sliced_out) and inspect sliced_out after the call.",
+        "oracle_construction": "Compute the expected result on CPU for the same operands and use an equivalent sliced out view on CPU for comparison; flag cases where the MPS sliced out tensor is unchanged or differs from the CPU reference."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

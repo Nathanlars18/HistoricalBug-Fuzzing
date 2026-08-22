@@ -1,0 +1,44 @@
+{
+"metadata":{
+"bug_id":"pytorch_170573",
+"title":"Silent heap buffer overflow via implicit view resizing"
+},
+
+"api_information":{
+"primary_api":"torch.matmul",
+"affected_apis":[
+"torch.matmul",
+"torch.add",
+"torch.linalg.pinv"
+],
+"operator":"aten operations",
+"module":"standard ops"
+},
+
+"trigger_conditions":{
+"shape":[
+"undersized output view"
+],
+"dtype":[
+"float32"
+],
+"device":[
+"CPU"
+],
+"backend":[],
+"layout":[
+"view tensor"
+],
+"memory":[
+"insufficient storage"
+],
+"state":[],
+"operation_context":"operation with out argument"
+},
+
+"failure_behavior":{
+"type":"Memory Error",
+"description":"Kernel writes beyond valid output storage.",
+"oracle":"Memory corruption detection"
+}
+}

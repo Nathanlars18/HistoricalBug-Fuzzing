@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "31108",
+        "title": "test_int_pow_cuda failed on Windows"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.Tensor.pow",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug",
+    "trigger_conditions": {
+        "category": "Dtype Boundary",
+        "pattern": "Unsupported Integer CUDA Arithmetic Kernel",
+        "condition": "Calling arithmetic operators such as pow on CUDA integer tensors containing negative values, especially with large integer exponents, causing kernel failures.",
+        "operation_context": "CUDA integer tensors (int8/int16/int32/int64) containing negative values, using pow with exponent 4, then synchronizing/printing the result."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "CUDA integer tensors (int8/int16/int32/int64) containing negative values, using pow with exponent 4, then synchronizing/printing the result.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "Medium"
+    },
+    "raw_content_reference": "raw_reports/31108_summary_with_code.txt"
+}

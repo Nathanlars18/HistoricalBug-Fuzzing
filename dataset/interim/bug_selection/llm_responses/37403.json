@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.multinomial",
+    "bug_category": "Device Boundary",
+    "trigger_condition": "Calling torch.multinomial on a CUDA tensor with a large number of uniform categories (e.g., 1,000,000), replacement=True, and many samples; CPU produces near-uniform counts while CUDA samples only a small biased subset.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "Medium",
+    "include": "Yes",
+    "reason": "The bug is reproducible via input generation: create large uniform CUDA weights, draw many multinomial samples, and compare the categorical distribution against CPU or expected uniformity. It is a CUDA-specific device-boundary correctness issue with a statistical output oracle.",
+    "confidence": "Medium",
+    "bug_id": "37403"
+}

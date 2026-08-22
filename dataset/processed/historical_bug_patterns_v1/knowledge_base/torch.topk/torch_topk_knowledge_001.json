@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_topk_knowledge_001",
+        "source_pattern_id": "torch_topk_pattern_001",
+        "source_report": "topk_bug_001.json",
+        "api_name": "torch.topk",
+        "original_issue": "GitHub Issue #34191 (PyTorch)",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Non-finite gradient inputs can trigger backend assertions during backward",
+        "general_principle": "Backward implementations for differentiable operators may assume finite floating-point values, and non-finite inputs combined with requires_grad=True can violate device-side assertions or invariant checks, causing crashes.",
+        "risk_category": [
+            "Gradient State Boundary",
+            "Numerical Edge Case"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "No fixed shape boundary; non-finite values in any tensor shape may trigger the issue.",
+        "dtype": "Floating-point dtypes capable of representing NaN or Inf, such as float16, bfloat16, float32, and float64.",
+        "memory": "",
+        "device": "CUDA and potentially other accelerator backends where assertions are device-side.",
+        "execution_state": "requires_grad=True and backward invocation; repeated backward calls may further exercise cached gradient state."
+    },
+    "failure_mechanism": {
+        "layer": "Kernel Layer",
+        "description": "Backward or gradient kernels may contain assertions or assume finite inputs; non-finite values can cause device-side assertion failures and process termination."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Introduce NaN or Inf into floating-point tensors that require gradients.",
+            "Vary the count and position of non-finite values.",
+            "Test different floating-point dtypes capable of representing non-finite values.",
+            "Run on CUDA and invoke one or more backward passes."
+        ],
+        "constraint_awareness": [
+            "Tensor must require gradients.",
+            "Execution should be on a device backend that can assert, such as CUDA.",
+            "Non-finite values must be present before the differentiable operation."
+        ],
+        "oracle_strategy": [
+            "Detect CUDA assert failures or process termination during backward.",
+            "Monitor for device-side assertion signals after backward is invoked."
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "The principle applies broadly to differentiable operators whose backward kernels may assume finite floating-point inputs, but the manifestation and severity depend on backend implementations and specific gradient kernels."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on gradient-state and numerical edge interactions rather than a single API.",
+            "Explore operators that compute gradients on CUDA with non-finite floating-point inputs.",
+            "Consider repeated backward calls and gradient accumulation behavior.",
+            "Use non-finite values placed in varied tensor positions and shapes."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that mutate floating-point tensor values to include NaN or Inf, set requires_grad=True, run differentiable operations on CUDA, invoke backward, and detect device assertion or crash signals. Avoid hard-coding one specific API or exact reproduction values."
+        ]
+    }
+}

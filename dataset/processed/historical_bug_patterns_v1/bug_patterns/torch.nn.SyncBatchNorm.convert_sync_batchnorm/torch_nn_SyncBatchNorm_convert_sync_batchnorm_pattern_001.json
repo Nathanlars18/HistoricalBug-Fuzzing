@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_nn_SyncBatchNorm_convert_sync_batchnorm_pattern_001",
+        "api_name": "torch.nn.SyncBatchNorm.convert_sync_batchnorm",
+        "source_report": "convert_sync_batchnorm_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "37930",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Device Transition",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_convert_sync_batchnorm_device_affinity_loss_bug",
+        "general_category": "Device Transition",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "CUDA-resident model",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Model contains BatchNorm layers",
+        "execution_trigger": "Calling torch.nn.SyncBatchNorm.convert_sync_batchnorm on a CUDA-resident model",
+        "concrete_constraints": "The model must be on a non-CPU device before conversion; the harness checks whether newly created parameters or buffers remain on the original device."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Calling torch.nn.SyncBatchNorm.convert_sync_batchnorm on a CUDA-resident model containing BatchNorm layers creates new parameters on CPU instead of the original GPU device.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary model device placements and BatchNorm configurations before conversion.",
+        "tensor_construction": "Construct models containing BatchNorm layers and move them to a non-CPU device such as CUDA.",
+        "constraint_injection": "Assert that all parameters and buffers after conversion remain on the original device.",
+        "operation_sequence": "Move a model with BatchNorm layers to CUDA; apply torch.nn.SyncBatchNorm.convert_sync_batchnorm; inspect the device of all parameters and buffers.",
+        "oracle_construction": "Compare the device of every parameter and buffer before and after conversion; fail if any newly created parameter or buffer is placed on CPU."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

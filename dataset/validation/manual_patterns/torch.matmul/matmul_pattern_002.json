@@ -1,0 +1,81 @@
+{
+  "id": "torch.matmul_pattern_002",
+
+  "api": "torch.matmul",
+
+  "source": {
+    "type": "GitHub Issue",
+    "id": "#71774",
+    "repository": "pytorch/pytorch"
+  },
+
+  "verification_status": {
+    "level": "official_triaged",
+    "fixed": false
+  },
+
+  "bug_category": [
+    "Shape Boundary",
+    "Dtype Boundary",
+    "Backend Dispatch",
+    "Correctness"
+  ],
+  "pattern_abstraction": {
+ 
+    "api_specific_pattern":
+    "matmul_zero_dimension_integer_backend_bug",
+
+    "general_category":
+    "Shape Boundary",
+
+    "transferability":
+    "high"
+  },
+
+  "trigger_condition": {
+    "shape": {
+      "condition": "matrix multiplication inner dimension equals zero"
+    },
+
+    "dtype": {
+      "value": "torch.int64"
+    },
+
+    "device": {
+      "value": "CPU"
+    },
+
+    "backend": {
+      "value": "FBGEMM"
+    }
+  },
+
+
+  "root_cause": {
+    "description": "Backend implementation returns uninitialized memory when handling int64 matmul with zero-sized inner dimension."
+  },
+
+
+  "bug_oracle": {
+    "type": "Wrong Result",
+    "description": "Output contains uninitialized values instead of expected zero tensor."
+  },
+
+
+  "harness_strategy": {
+
+    "tensor_construction": [
+      "Generate tensors with zero inner dimension",
+      "Use int64 dtype tensors"
+    ],
+
+    "constraints": [
+      "A.shape=(M,0)",
+      "B.shape=(0,N)",
+      "dtype=torch.int64",
+      "device=CPU"
+    ],
+
+    "operation": "torch.matmul"
+  }
+}

@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.Tensor.align_to",
+    "bug_category": "Other",
+    "trigger_condition": "Passing an unnamed tensor, such as torch.randn(3, 3), to Tensor.align_to with dimension names triggers the named-tensor validation path and reports index None instead of a numeric index.",
+    "oracle_type": "Documentation Issue",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "The bug only affects the text of a RuntimeError message. It is a diagnostic/documentation-style issue rather than a functional failure, and it does not generalize into a reusable fuzzing pattern.",
+    "confidence": "High",
+    "bug_id": "27074"
+}

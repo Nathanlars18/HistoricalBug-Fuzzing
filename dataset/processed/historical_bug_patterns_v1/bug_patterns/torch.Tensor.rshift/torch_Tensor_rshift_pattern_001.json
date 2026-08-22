@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_Tensor_rshift_pattern_001",
+        "api_name": "torch.Tensor.__rshift__",
+        "source_report": "rshift_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "8111",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Device Transition",
+        "secondary_category": "Backend Dispatch"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_tensor_rshift_cuda_cpu_semantic_divergence_bug",
+        "general_category": "Backend Dispatch Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "Operation is executed on a CUDA tensor and compared with the CPU reference.",
+        "memory_trigger": "",
+        "value_trigger": "Integer shift amount applied via __rshift__.",
+        "state_trigger": "",
+        "execution_trigger": "The same operator produces diverging results between CPU and CUDA.",
+        "concrete_constraints": "Call torch.Tensor.__rshift__ on a CUDA tensor with an integer shift amount and compare against the same operation on CPU."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Calling __rshift__ on a CUDA tensor with an integer shift amount produces a result inconsistent with the CPU reference implementation.",
+        "signal": "Output mismatch between CPU and CUDA tensors for the same shift operation",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary integer shift amounts, tensor shapes, dtypes, and values.",
+        "tensor_construction": "Create identically valued tensors on CPU and CUDA with matching shapes and dtypes.",
+        "constraint_injection": "Force execution of the same operator on CPU and CUDA and compare outputs.",
+        "operation_sequence": "Apply torch.Tensor.__rshift__ and related bitwise shift operators to both CPU and CUDA tensors.",
+        "oracle_construction": "Use CPU execution as the reference oracle; flag any CUDA output mismatch as incorrect output."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

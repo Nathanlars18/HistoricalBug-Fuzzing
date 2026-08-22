@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.jit.script",
+    "bug_category": "Other",
+    "trigger_condition": "Scripting a function that uses negative integer tensor indexing such as x[-3] under Python 3.9.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "The bug is reported specifically as a Python-3.9 issue, making it environment-specific rather than a reusable input-generation pattern across standard fuzzing environments.",
+    "confidence": "Medium",
+    "bug_id": "48674"
+}

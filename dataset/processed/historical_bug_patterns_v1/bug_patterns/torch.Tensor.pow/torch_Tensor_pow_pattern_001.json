@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_Tensor_pow_pattern_001",
+        "api_name": "torch.Tensor.pow",
+        "source_report": "pow_bug_001.json",
+        "source": {},
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Dtype Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_pow_cuda_integer_negative_unsupported_bug",
+        "general_category": "Dtype Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "CUDA integer tensors with dtype int8, int16, int32, or int64",
+        "device_trigger": "CUDA",
+        "memory_trigger": "",
+        "value_trigger": "Tensor contains negative values and exponent is a positive integer such as 4; larger integer exponents may increase failure likelihood",
+        "state_trigger": "",
+        "execution_trigger": "Synchronization or printing the result forces execution of the unsupported kernel",
+        "concrete_constraints": "CUDA integer tensors containing negative values, pow with exponent 4, followed by synchronize or print."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "Unsupported CUDA integer arithmetic kernel for pow with negative values",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Running pow on CUDA integer tensors containing negative values, then synchronizing or printing, raises an exception.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate integer tensor values to include negative values and boundary values such as -1 and INT_MIN.",
+        "tensor_construction": "Create CUDA tensors with integer dtypes int8, int16, int32, and int64 and initialize them with signed values.",
+        "constraint_injection": "Vary exponent values including small and large positive integers such as 2, 3, 4, and 31, then force eager execution with synchronize or print.",
+        "operation_sequence": "Apply torch.Tensor.pow or an equivalent arithmetic operator to CUDA integer tensors, then call synchronize or print to trigger kernel execution.",
+        "oracle_construction": "Detect runtime exceptions or kernel failures after executing pow on negative integer CUDA tensors."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

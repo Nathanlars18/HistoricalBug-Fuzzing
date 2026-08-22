@@ -1,0 +1,57 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_nn_utils_clip_grad_norm__knowledge_001",
+        "source_pattern_id": "torch_nn_utils_clip_grad_norm__pattern_001",
+        "source_report": "clip_grad_norm__bug_001.json",
+        "api_name": "torch.nn.utils.clip_grad_norm_",
+        "original_issue": "GitHub Issue 38605",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Cross-device parameter-gradient state mismatch",
+        "general_principle": "Operations that aggregate, normalize, or clip gradients may implicitly assume that parameters and their gradients reside on the same device. Violating this device consistency can trigger runtime errors or incorrect backend dispatch.",
+        "risk_category": [
+            "Device Transition",
+            "Gradient State Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "",
+        "dtype": "",
+        "memory": "",
+        "device": "Parameters and their corresponding gradients are placed on different devices, or a parameter list contains tensors spread across multiple devices.",
+        "execution_state": "Gradients are populated on a device different from their parameters, or device placement becomes inconsistent after manual moves or custom gradient assignment."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The gradient clipping or aggregation API assumes consistent device placement between parameters and gradients. Mixed-device inputs violate this implicit contract and can cause runtime errors during cross-device reduction or scalar computation."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary device placement of model parameters and gradients, including partial placement on different devices.",
+            "Explore mismatched parameter-gradient device pairs produced by moving parameters after backward or assigning gradients from tensors on other devices.",
+            "Test gradient aggregation and clipping operations with parameter lists that span multiple devices."
+        ],
+        "constraint_awareness": [
+            "Most aggregation and clipping operations expect parameters and gradients to share the same device.",
+            "Device placement can become inconsistent after manual moves, data-parallel splits, or custom gradient assignment.",
+            "Elementwise operations may tolerate mixed devices, but aggregation and reduction operations often do not."
+        ],
+        "oracle_strategy": [
+            "Monitor for runtime exceptions when mixed-device parameters or gradients are passed to aggregation or clipping APIs.",
+            "Compare mixed-device behavior against single-device baseline behavior to detect inconsistent device handling."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "This principle applies broadly to APIs that aggregate, reduce, clip, or synchronize parameters and gradients, including optimizers and distributed training utilities, because such operations commonly assume consistent device placement of related tensors."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on device placement relationships between parameters and gradients, especially mismatched devices, partially moved modules, and gradients created before or after device moves.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate mixed-device model states by moving parameters and assigning gradients from different devices, then call gradient aggregation or clipping APIs. Use runtime exceptions or inconsistent behavior relative to single-device baselines as failure signals."
+        ]
+    }
+}

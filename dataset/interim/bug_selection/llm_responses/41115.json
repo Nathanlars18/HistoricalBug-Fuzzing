@@ -1,0 +1,12 @@
+{
+    "target_api": "torch._make_per_tensor_quantized_tensor",
+    "bug_category": "State Boundary",
+    "trigger_condition": "Call torch._make_per_tensor_quantized_tensor on a CUDA integer tensor, then allocate a CPU tensor and check is_pinned(); the CPU allocation incorrectly becomes pinned memory.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "Medium",
+    "include": "Yes",
+    "reason": "The bug is reproducible with a simple API sequence and has a clear observable oracle via Tensor.is_pinned(), reflecting global allocator state leakage after a CUDA quantization operation.",
+    "confidence": "Medium",
+    "bug_id": "41115"
+}

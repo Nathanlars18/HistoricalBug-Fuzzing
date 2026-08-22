@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_nn_functional_ctc_loss_knowledge_001",
+        "source_pattern_id": "torch_nn_functional_ctc_loss_pattern_001",
+        "source_report": "ctc_loss_bug_001.json",
+        "api_name": "torch.nn.functional.ctc_loss",
+        "original_issue": "PyTorch GitHub Issue #18215",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Incorrect gradient computation for zero-length target sequences in sequence-loss functions",
+        "general_principle": "Loss functions that reduce over variable-length target sequences may rely on hidden assumptions about target length positivity. When zero-length targets are present, gradient normalization or reduction can become incorrect.",
+        "risk_category": [
+            "Gradient State Boundary",
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Batched variable-length target sequences with one or more zero-length targets; log_probs shapes where the target dimension can be empty for selected batch elements; interactions between time, batch, and class dimensions when some targets are empty.",
+        "dtype": "",
+        "memory": "",
+        "device": "",
+        "execution_state": "Backward pass requested after forward propagation with zero-length targets; autograd graph contains a loss value derived from empty target sequences."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The loss implementation may not correctly handle zero-length target sequences during gradient computation. Hidden assumptions about target length positivity can affect reduction or normalization logic, leading to incorrect gradients."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore batches containing one or more zero-length target sequences",
+            "Vary the number and position of empty targets within a batch",
+            "Explore all-empty target batches versus partially empty target batches",
+            "Explore valid log_probs shapes combined with empty target cases"
+        ],
+        "constraint_awareness": [
+            "Ensure per-sample target lengths remain within valid input sequence bounds",
+            "Treat zero-length target sequences as valid boundary inputs",
+            "Keep alignment and reduction constraints of sequence losses satisfied while introducing empty targets"
+        ],
+        "oracle_strategy": [
+            "Compare gradients against a finite-difference or reference implementation",
+            "Monitor for inconsistent or unexpected gradient values",
+            "Use tolerance-based comparisons for floating-point gradients"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "The principle applies to sequence loss or reduction APIs that accept per-sample lengths or variable-length targets and compute gradients. APIs with zero-length or degenerate sequence dimensions may share this failure mode, while APIs with fixed-length targets are less likely to be affected."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe zero-length and degenerate target/length dimensions for sequence loss functions",
+            "Focus on backward gradient correctness, not just forward loss values",
+            "Explore batched inputs with varying target lengths and empty sequences"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that mutate target lengths to include zero-length targets while preserving shape and length validity, then compare backward gradients against a numerical reference."
+        ]
+    }
+}

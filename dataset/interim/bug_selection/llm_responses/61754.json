@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.onnx.export",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Exporting a model that creates a 0-dim tensor with torch.zeros(()) and then applies an in-place operation such as y += x.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by a specific input/model shape pattern (scalar tensor constant followed by in-place op), has a clear exception oracle from ONNX checker, and can be abstracted into a reusable ONNX export generation pattern.",
+    "confidence": "High",
+    "bug_id": "61754"
+}

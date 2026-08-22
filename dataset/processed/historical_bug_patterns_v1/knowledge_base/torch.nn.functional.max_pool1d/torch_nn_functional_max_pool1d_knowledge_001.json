@@ -1,0 +1,59 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_nn_functional_max_pool1d_knowledge_001",
+        "source_pattern_id": "torch_nn_functional_max_pool1d_pattern_001",
+        "source_report": "max_pool1d_bug_001.json",
+        "api_name": "torch.nn.functional.max_pool1d",
+        "original_issue": "Segfault when applying max_pool1d to non-contiguous 3D tensor",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Memory layout assumption violation",
+        "general_principle": "Operators may fail when tensor storage is non-contiguous because underlying kernel or backend implementations may assume contiguous memory access patterns and not correctly handle arbitrary strides.",
+        "risk_category": [
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Tensors with dims greater than 2 where permutation, transpose, or slicing changes the memory layout",
+        "dtype": "",
+        "memory": "Non-contiguous tensor storage produced by layout-changing operations such as permute, transpose, or slicing",
+        "device": "CPU and GPU devices may exhibit different memory layout handling behavior",
+        "execution_state": ""
+    },
+    "failure_mechanism": {
+        "layer": "Kernel Layer",
+        "description": "Pooling kernels may assume contiguous input memory or compute access indices without fully accounting for non-contiguous strides, leading to out-of-bounds access or segmentation faults."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore non-contiguous tensors produced by permute, transpose, or slicing operations",
+            "Vary input dimensionality and shape combinations, especially 3D and higher",
+            "Include small or degenerate spatial dimensions with non-contiguous layouts"
+        ],
+        "constraint_awareness": [
+            "Track tensor contiguity and stride information before invoking operators",
+            "Consider pooling parameters including kernel_size, stride, padding, and especially kernel_size=1"
+        ],
+        "oracle_strategy": [
+            "Monitor for crashes, segmentation faults, or abnormal process termination",
+            "Compare outputs and completion behavior against a contiguous reference baseline"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Memory layout assumptions are common across tensor operators that delegate to kernels or backend libraries, so non-contiguous layout risks can affect many APIs beyond max_pool1d."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Generate inputs with non-contiguous memory layouts",
+            "Combine layout permutations with varied pooling parameters",
+            "Test both CPU and GPU execution paths"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Create contiguous base tensors, apply layout-changing operations such as permute, transpose, or slicing, then invoke the operator under test while monitoring process stability and comparing results against contiguous baselines."
+        ]
+    }
+}

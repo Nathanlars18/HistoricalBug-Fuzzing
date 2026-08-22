@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "8077",
+        "title": "[Bug] Parameters turn into Tensors after load"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.load",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "State Boundary",
+        "pattern": "Serialization State Preservation Failure",
+        "condition": "Serializing and deserializing objects containing framework-specific state, such as torch.nn.Parameter attributes, where the restored object loses its original semantic type or state information.",
+        "operation_context": "Saving a torch.nn.Module that has torch.nn.Parameter attributes (including nested module parameters) with torch.save, then loading it with torch.load. The loaded module retains the attribute but its type changes from torch.nn.Parameter to torch.Tensor."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Saving a torch.nn.Module that has torch.nn.Parameter attributes (including nested module parameters) with torch.save, then loading it with torch.load. The loaded module retains the attribute but its type changes from torch.nn.Parameter to torch.Tensor.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/8077_summary_with_code.txt"
+}

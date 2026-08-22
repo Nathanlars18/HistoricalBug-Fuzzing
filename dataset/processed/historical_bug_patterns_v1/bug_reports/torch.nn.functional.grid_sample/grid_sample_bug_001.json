@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "8693",
+        "title": "torch.nn.functional.grid_sample should throw error for invalid mode"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.nn.functional.grid_sample",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "Other",
+        "pattern": "Invalid Argument Validation Boundary",
+        "condition": "Calling grid_sample with valid tensors but unsupported string arguments such as invalid mode values.",
+        "operation_context": "Call torch.nn.functional.grid_sample with valid 5D input and grid tensors but an unsupported mode string such as 'anything'."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "Call torch.nn.functional.grid_sample with valid 5D input and grid tensors but an unsupported mode string such as 'anything'.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/8693_summary_with_code.txt"
+}

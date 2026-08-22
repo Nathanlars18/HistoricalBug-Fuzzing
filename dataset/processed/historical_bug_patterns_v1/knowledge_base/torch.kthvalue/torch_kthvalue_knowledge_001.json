@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_kthvalue_knowledge_001",
+        "source_pattern_id": "torch_kthvalue_pattern_001",
+        "source_report": "kthvalue_bug_001.json",
+        "api_name": "torch.kthvalue",
+        "original_issue": "PyTorch GitHub Issue #45721",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Strided CUDA tensor memory layout leads to incorrect kernel results",
+        "general_principle": "Kernel and backend implementations may rely on hidden memory layout assumptions; when input tensors are non-contiguous with non-unit strides, offset calculations can produce incorrect values or indices.",
+        "risk_category": [
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Strided views with logical shapes that differ from storage, including slicing with step greater than one, transposition, narrowing, or other stride-changing operations",
+        "dtype": "Various dtypes may expose stride indexing or offset issues; no single dtype is assumed to be safe",
+        "memory": "Non-contiguous memory layouts with stride greater than one, custom offsets, and view-derived tensors",
+        "device": "CUDA GPU tensors and operations dispatched to GPU kernels",
+        "execution_state": "Order-statistic or reduction-like operations called on non-contiguous GPU tensors"
+    },
+    "failure_mechanism": {
+        "layer": "Kernel Layer",
+        "description": "GPU kernel implementations may assume contiguous memory or incorrectly compute offsets for strided tensors, leading to wrong output values and index positions while the operation completes without immediate error."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Generate non-contiguous strided views from contiguous tensors using slicing, transpose, narrow, and other stride-changing operations",
+            "Vary shapes including small, large, degenerate, and uneven dimensions",
+            "Explore stride patterns with step greater than one, offset views, and negative strides",
+            "Test across different dtypes and CUDA device configurations"
+        ],
+        "constraint_awareness": [
+            "Keep selection or reduction parameters within valid dimension bounds for the current logical shape",
+            "Build reference results using the same logical tensor semantics, preferably from a contiguous tensor or CPU reference",
+            "Do not assume that non-contiguous and contiguous tensors follow identical execution paths"
+        ],
+        "oracle_strategy": [
+            "Compare returned values and indices against a contiguous tensor or CPU reference",
+            "Treat any value or index mismatch as a potential incorrect-output failure",
+            "Monitor crashes, sanitizer failures, and internal assertion errors"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Memory layout assumptions affect many tensor operations beyond order-statistic kernels, especially reductions, indexing, and GPU kernels that receive strided views. Testing non-contiguous CUDA tensors can reveal similar hidden stride handling bugs in other APIs."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on non-contiguous memory layouts rather than only unusual shapes",
+            "Use stride-changing view operations to expose hidden kernel offset assumptions",
+            "Always compare against a contiguous or CPU reference to detect subtle wrong results",
+            "Consider GPU-specific execution paths when designing harnesses"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Create general harness variants that combine non-contiguous view construction, valid parameter bounds, and differential comparison against contiguous reference results. Use this knowledge to guide input generation for APIs that accept tensor inputs and may dispatch to shape- or stride-sensitive kernels."
+        ]
+    }
+}

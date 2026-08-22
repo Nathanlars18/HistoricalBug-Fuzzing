@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "34191",
+        "title": "Topk backward twice (the second input is NAN) to trigger cuda assert."
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.topk",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nTopk backward twice (the second input is NAN) to trigger cuda assert.",
+    "trigger_conditions": {
+        "category": "Gradient Boundary",
+        "pattern": "Non-finite Value Gradient Failure",
+        "condition": "Calling differentiable operators with CUDA tensors containing NaN or Inf values and performing backward computation.",
+        "operation_context": "A CUDA tensor with requires_grad=True containing NaN values is passed to torch.topk, and the output is used for backward."
+    },
+    "failure_behavior": {
+        "type": "Crash",
+        "description": "A CUDA tensor with requires_grad=True containing NaN values is passed to torch.topk, and the output is used for backward.",
+        "oracle": "Crash"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/34191_summary_with_code.txt"
+}

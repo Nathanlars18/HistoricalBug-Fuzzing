@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_normal_pattern_001",
+        "api_name": "torch.normal",
+        "source_report": "normal_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "65709",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_normal_zero_size_broadcast_shape_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Zero-sized dimensions in mean/std tensors that require broadcasting",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Empty tensors with at least one zero-sized dimension and mismatched broadcast shapes, e.g., mean shape (0,2) and std shape (0,1)."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "torch.normal raises an exception when called with zero-sized mean and std tensors whose shapes require broadcasting.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate tensor shapes to introduce zero-sized dimensions while varying broadcast compatibility.",
+        "tensor_construction": "Generate empty and zero-sized mean/std tensor pairs with different broadcastable and non-broadcastable shapes.",
+        "constraint_injection": "Inject shape constraints covering zero-sized tensor broadcasting cases.",
+        "operation_sequence": "Call torch.normal with the generated mean/std tensor pairs.",
+        "oracle_construction": "Use broadcasting semantics as reference; detect crashes, unexpected exceptions, or inconsistencies in exception behavior."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

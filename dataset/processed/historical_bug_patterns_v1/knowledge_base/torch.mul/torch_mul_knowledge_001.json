@@ -1,0 +1,60 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_mul_knowledge_001",
+        "source_pattern_id": "torch_mul_pattern_001",
+        "source_report": "mul_bug_001.json",
+        "api_name": "torch.mul",
+        "original_issue": "GitHub Issue 47007 in PyTorch",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Dtype and backend dispatch mismatch for scalar-tensor binary operations",
+        "general_principle": "Backend dispatchers and kernels may not provide complete dtype coverage for scalar-tensor operations, causing combinations that succeed on one backend to fail on another.",
+        "risk_category": [
+            "Dtype Boundary",
+            "Backend Dispatch Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "No specific shape boundary identified; varying tensor shapes including zero-dim and multidimensional may expose shape-dependent dispatch behavior.",
+        "dtype": "Boolean tensor dtype with Python scalar operands, especially boolean scalars, and contrast with integer and floating scalar types.",
+        "memory": "",
+        "device": "CPU and CUDA backend dispatch differences for the same dtype and scalar combination.",
+        "execution_state": "Binary operation dispatch state, including operator versus functional API and tensor-scalar operand order."
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "The CUDA backend dispatch path lacks a valid bool multiplication kernel for Python bool scalar operands, causing a runtime error even when the CPU path succeeds."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Enumerate scalar types such as bool, int, and float with tensor dtypes including bool, integer, and floating point",
+            "Run identical scalar-tensor operations on CPU and CUDA with both operand orders",
+            "Vary tensor shapes including zero-dim, scalar-like, 1D, and multidimensional",
+            "Test both operator syntax and functional API for the same dtype and scalar combination",
+            "Extend exploration to similar element-wise binary operations with scalar operands"
+        ],
+        "constraint_awareness": [
+            "CPU success does not guarantee CUDA kernel coverage for the same dtype and scalar combination",
+            "Python scalar type may dispatch differently than a tensor scalar due to type promotion rules",
+            "Backend kernels may not cover boolean or other low-precision dtype combinations"
+        ],
+        "oracle_strategy": [
+            "Compare CPU and CUDA behavior for the same dtype and scalar combination",
+            "Flag runtime errors indicating missing backend kernel implementations",
+            "Treat any CPU-supported dtype combination that fails on another backend as a potential dispatch bug"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The underlying principle applies to any element-wise binary operation that relies on backend dtype dispatch with scalar-tensor operands. Many operators have similar dtype coverage gaps across backends, making this a general testing principle beyond torch.mul."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Prioritize dtype and scalar-type combinations across device and operator variants. Backend kernel dispatch may be incomplete for certain combinations even when the API should support them.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically enumerate scalar types, tensor dtypes, devices, and operator forms for element-wise binary ops. Do not hardcode the original torch.mul boolean scalar case."
+        ]
+    }
+}

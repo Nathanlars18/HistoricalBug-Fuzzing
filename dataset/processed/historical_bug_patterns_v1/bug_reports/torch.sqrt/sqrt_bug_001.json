@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "47358",
+        "title": "[complex] torch.{sqrt, abs}_ does not match numpy"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.sqrt",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "Dtype Boundary",
+        "pattern": "Complex Tensor Numerical Stability Boundary",
+        "condition": "Applying numerical operators to complex tensors with extremely large magnitude values, which may expose precision loss or inaccurate computation in specific dtype implementations.",
+        "operation_context": "Calling torch.sqrt on CPU complex tensors (complex64 or complex128) with large-magnitude real or imaginary components, such as 0-1e20j or -1e20-4988429.2j, causing inaccurate results from the CPU complex sqrt implementation."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Calling torch.sqrt on CPU complex tensors (complex64 or complex128) with large-magnitude real or imaginary components, such as 0-1e20j or -1e20-4988429.2j, causing inaccurate results from the CPU complex sqrt implementation.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/47358_summary_with_code.txt"
+}

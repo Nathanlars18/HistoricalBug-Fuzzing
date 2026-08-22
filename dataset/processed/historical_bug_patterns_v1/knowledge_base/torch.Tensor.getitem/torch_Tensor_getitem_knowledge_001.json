@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_Tensor_getitem_knowledge_001",
+        "source_pattern_id": "torch_Tensor_getitem_pattern_001",
+        "source_report": "getitem_bug_001.json",
+        "api_name": "torch.Tensor.__getitem__",
+        "original_issue": "PyTorch GitHub Issue #7559",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Zero-length slice shape boundary violation",
+        "general_principle": "Indexing operations may assume non-empty slice outputs and can produce incorrect shapes or values when a slice range is empty, especially when combined with non-empty slices or downstream shape-dependent operations.",
+        "risk_category": [
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Zero-length slice ranges where start equals stop, empty dimensions mixed with non-empty dimensions, and subsequent indexing or reshaping of empty results.",
+        "dtype": "Integer index dtypes and output dtype preservation on empty tensors may be underexplored.",
+        "memory": "Contiguous versus view-based tensors and zero-numel storage layouts may expose hidden assumptions.",
+        "device": "CPU and CUDA backends may diverge in empty slice handling.",
+        "execution_state": "Operations after empty slicing such as reshape, reduction, or further indexing may carry invalid state assumptions."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "Shape inference or dispatch for indexing may not correctly propagate zero-length slice dimensions, causing downstream operators to receive inconsistent shape metadata or compute wrong results."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore slice bounds producing start equals stop and empty ranges across one or more axes",
+            "Combine empty slices with non-empty slices and with zero-sized input dimensions",
+            "Apply follow-up operations such as further indexing, reshaping, and reductions to empty slice results",
+            "Test both contiguous and view-based tensors, including zero-numel tensors"
+        ],
+        "constraint_awareness": [
+            "Empty slice outputs must have zero extent in the corresponding dimension",
+            "Downstream shape-dependent operations must not assume at least one element",
+            "Result dtype and shape should match explicitly constructed empty tensors"
+        ],
+        "oracle_strategy": [
+            "Compare output shape, dtype, and values to explicit empty tensor construction",
+            "Monitor for incorrect values, shape mismatches, or crashes in subsequent operations",
+            "Use standard tensor library semantics as reference for empty slicing behavior"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "Zero-length dimension handling is a general shape boundary concern across slicing, indexing, and shape-dependent operators, but the exact failure conditions depend on each API's shape inference and dispatch implementation."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe shape boundaries where one dimension becomes zero while other dimensions remain non-empty",
+            "Exercise downstream shape-changing operations on empty slice results",
+            "Include both view and contiguous tensor inputs to expose memory layout assumptions"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that vary slice bounds to produce empty dimensions, compare results against explicit empty tensor semantics, and apply follow-up shape-dependent operations to detect incorrect propagation of empty shapes."
+        ]
+    }
+}

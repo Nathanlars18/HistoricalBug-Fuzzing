@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "knowledge_id": "torch.matmul_knowledge_003",
+    "source_pattern_id": "torch.matmul_pattern_003",
+    "api": "torch.matmul",
+    "original_issue": "#104832",
+    "verification_status": "official_triaged",
+    "confidence": "high"
+  },
+
+
+  "knowledge_abstraction": {
+
+    "bug_theme":
+    "Non-contiguous tensor view handling failure",
+
+    "general_principle":
+    "Operations involving tensor views and non-contiguous memory layouts may expose backend assumptions about storage organization.",
+
+    "risk_category": [
+      "Memory Layout Boundary",
+      "Backend Dispatch Boundary"
+    ]
+
+  },
+
+
+  "risk_dimensions": {
+
+    "shape":
+    "Output view shapes and slicing operations may affect execution behavior.",
+
+    "dtype":
+    "Floating point operations may activate specialized backend paths.",
+
+    "memory":
+    "Non-contiguous layouts and tensor views should be explored.",
+
+    "device":
+    "Different devices may contain independent backend implementations.",
+
+    "execution_state":
+    "Operations using output tensors may introduce additional states."
+  },
+
+
+  "failure_mechanism": {
+
+    "layer":
+    "Backend Layer",
+
+    "description":
+    "Backend implementations may incorrectly handle writes into non-contiguous tensor views."
+  },
+
+
+  "testing_insights": {
+
+    "input_exploration":
+    [
+      "Generate sliced tensor views.",
+      "Explore contiguous and non-contiguous memory layouts."
+    ],
+
+
+    "constraint_awareness":
+    [
+      "Consider operations involving output tensors.",
+      "Consider storage layout instead of only tensor values."
+    ],
+
+
+    "oracle_strategy":
+    [
+      "Compare results against contiguous reference execution.",
+      "Detect incorrect output values."
+    ]
+  },
+
+
+  "transferability": {
+
+    "level":
+    "medium"
+  },
+
+
+  "llm_reasoning_guidance": {
+
+    "important_considerations":
+    [
+      "Tensor view operations may expose hidden storage assumptions.",
+      "Explore different memory layouts."
+    ],
+
+
+    "avoid_literal_reproduction":
+    true,
+
+
+    "generation_strategy":
+    "Generate diverse tensor view configurations instead of reproducing one device-specific bug."
+  }
+}

@@ -1,0 +1,42 @@
+{
+"metadata":{
+"bug_id":"pytorch_104832",
+"title":"MPS matmul with sliced out argument produces wrong output"
+},
+
+"api_information":{
+"primary_api":"torch.matmul",
+"affected_apis":[
+"torch.matmul"
+],
+"operator":"aten::matmul",
+"module":"linear algebra"
+},
+
+"trigger_conditions":{
+"shape":[
+"256x256 matrices"
+],
+"dtype":[
+"float"
+],
+"device":[
+"Apple MPS"
+],
+"backend":[
+"MPS"
+],
+"layout":[
+"non-contiguous sliced tensor view"
+],
+"memory":[],
+"state":[],
+"operation_context":"matmul with out argument"
+},
+
+"failure_behavior":{
+"type":"Incorrect Output",
+"description":"Output tensor remains unchanged.",
+"oracle":"Compare output with CPU reference"
+}
+}

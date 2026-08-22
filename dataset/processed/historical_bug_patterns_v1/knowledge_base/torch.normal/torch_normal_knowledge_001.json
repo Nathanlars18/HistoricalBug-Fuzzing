@@ -1,0 +1,59 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_normal_knowledge_001",
+        "source_pattern_id": "torch_normal_pattern_001",
+        "source_report": "normal_bug_001.json",
+        "api_name": "torch.normal",
+        "original_issue": "PyTorch GitHub Issue #65709",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Zero-sized tensor broadcasting shape handling",
+        "general_principle": "Operations involving broadcasting may not consistently handle zero-sized dimensions, especially when broadcast shapes are ambiguous or incompatible.",
+        "risk_category": [
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Zero-sized dimensions in tensors participating in broadcasting",
+        "dtype": "",
+        "memory": "",
+        "device": "",
+        "execution_state": ""
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "Shape validation or broadcasting logic does not correctly account for zero-sized dimensions, causing exceptions during operator invocation."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore zero-sized dimensions in tensors that participate in broadcasting",
+            "Vary broadcast compatibility between operands with empty shapes",
+            "Generate mismatched broadcast shapes where at least one dimension is zero"
+        ],
+        "constraint_awareness": [
+            "Zero-sized tensors are valid inputs but may expose shape boundary edge cases",
+            "Broadcasting rules with empty dimensions require special handling in shape validation"
+        ],
+        "oracle_strategy": [
+            "Compare observed behavior against broadcasting semantics and expected validation behavior",
+            "Detect unexpected exceptions or inconsistent exception behavior for shape boundary inputs"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Broadcasting with zero-sized dimensions is a general shape boundary concern affecting many APIs that accept tensor operands and rely on broadcast semantics."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Consider zero-sized dimensions and empty tensors when generating shape boundary inputs",
+            "Explore broadcast-compatible and broadcast-incompatible shape combinations that include zero dimensions",
+            "Treat exception behavior as a first-class oracle signal"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate diverse tensor shape combinations with zero-sized dimensions and use broadcasting rules as a reference oracle to detect inconsistent shape validation or unexpected exceptions."
+        ]
+    }
+}

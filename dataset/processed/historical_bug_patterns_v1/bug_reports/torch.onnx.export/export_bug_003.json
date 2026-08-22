@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "61754",
+        "title": "[ONNX] Invalid ONNX graph when exporting prim__Constant of empty tensor data"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.onnx.export",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\ntorch.onnx exports invalid ONNX for scalar `torch.zeros` followed by an inplace op.",
+    "trigger_conditions": {
+        "category": "Graph Transformation Boundary",
+        "pattern": "Scalar Tensor Handling Failure During ONNX Graph Export",
+        "condition": "Exporting models containing 0-dimensional scalar tensors created by torch.zeros(()) followed by in-place tensor operations, which causes ONNX graph conversion failure.",
+        "operation_context": "Exporting a model that creates a 0-dim tensor with torch.zeros(()) and then applies an in-place operation such as y += x."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "Exporting a model that creates a 0-dim tensor with torch.zeros(()) and then applies an in-place operation such as y += x.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/61754_summary_with_code.txt"
+}

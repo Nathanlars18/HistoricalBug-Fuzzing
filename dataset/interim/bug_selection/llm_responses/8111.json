@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.Tensor.__rshift__",
+    "bug_category": "Device Boundary",
+    "trigger_condition": "Calling __rshift__ on a CUDA tensor with an integer shift amount; the same operation on CPU returns the correct right-shifted result.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by generating a CUDA tensor and applying right shift, has a clear incorrect-output oracle by comparing against CPU semantics, and abstracts to a device-specific operator correctness pattern.",
+    "confidence": "High",
+    "bug_id": "8111"
+}

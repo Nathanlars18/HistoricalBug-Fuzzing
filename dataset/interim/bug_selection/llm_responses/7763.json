@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.einsum",
+    "bug_category": "Gradient Boundary",
+    "trigger_condition": "A tensor with requires_grad=True is used as an operand in torch.einsum and then reused in another differentiable operation before backward, causing autograd to detect an in-place modification.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducibly triggered by generating a differentiable tensor, passing it to torch.einsum multiple times, and calling backward. The resulting RuntimeError is a clear oracle, and the issue can be generalized as an autograd in-place mutation pattern for functional APIs.",
+    "confidence": "High",
+    "bug_id": "7763"
+}

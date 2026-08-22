@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.functional.ctc_loss",
+    "bug_category": "Gradient Boundary",
+    "trigger_condition": "CTCLoss is called with at least one empty target sequence, e.g., label_sizes contains 0.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by generating CTC loss inputs where one or more target sequences have length zero. It produces incorrect gradients, and torch.autograd.gradcheck returns False, providing a clear oracle. The issue generalizes to sequence-loss functions handling empty target sequences.",
+    "confidence": "High",
+    "bug_id": "18215"
+}

@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.load/torch.save",
+    "bug_category": "Other",
+    "trigger_condition": "N/A - the report describes a missing device parameter in serialization APIs rather than an input-triggered failure.",
+    "oracle_type": "Documentation Issue",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "This is a feature request/API design discussion asking to unify torch.device with torch.load/torch.save map_location. It does not describe a reproducible bug, a clear failure oracle, or a generalizable bug pattern suitable for fuzzing.",
+    "confidence": "High",
+    "bug_id": "7178"
+}

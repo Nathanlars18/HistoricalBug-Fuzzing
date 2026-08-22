@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.Tensor.as_strided",
+    "bug_category": "Gradient Boundary",
+    "trigger_condition": "Applying as_strided or reshape to an expanded tensor that requires gradients, then computing gradients; for example, x.expand(3,2).as_strided([3,2], x.expand(3,2).stride()) followed by a differentiable operation.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by generating expanded tensors and applying view ops such as as_strided or reshape. The failure is an incorrect gradient, which can be detected by comparing gradients against an equivalent graph without the view op.",
+    "confidence": "High",
+    "bug_id": "8626"
+}

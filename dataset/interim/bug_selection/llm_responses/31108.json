@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.Tensor.pow",
+    "bug_category": "Dtype Boundary",
+    "trigger_condition": "CUDA integer tensors (int8/int16/int32/int64) containing negative values, using pow with exponent 4, then synchronizing/printing the result.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug can be reproduced by generating CUDA integer tensors with negative values and calling pow(4); the failure is a clear CUDA RuntimeError during synchronization/printing, and the pattern generalizes to integer pow dtype/device boundary testing.",
+    "confidence": "Medium",
+    "bug_id": "31108"
+}

@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "47090",
+        "title": "`torch.max` does not create a named tuple if applied to a subclass"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.max",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nIn PyTorch 1.7 on Ubuntu 20.04, `torch.max` does not create a named tuple if applied to a subclass, although the docs say it should be.\n\n\n\n```\n\nimport torch\n\nclass _T(torch.Tensor): ...\n\nx = torch.tensor([1,2]).as_subclass(_T)\n\ntorch.max(x, dim=0)\n\n```\n\n\n\nThat returns\n\n\n\n    (tensor(2), tensor(1))\n\n\n\nIt should return a named tuple.\n\n\n\ncc @hameerabbasi @rgommers @mruberry",
+    "trigger_conditions": {
+        "category": "Type Boundary",
+        "pattern": "Tensor Subclass Dispatch Inconsistency",
+        "condition": "Calling Tensor operators on Tensor subclass instances created through as_subclass, causing inconsistent return types or dispatch behavior compared with regular Tensor inputs.",
+        "operation_context": "Calling torch.max with dim on a torch.Tensor subclass instance, e.g. torch.tensor([1,2]).as_subclass(_T)."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Calling torch.max with dim on a torch.Tensor subclass instance, e.g. torch.tensor([1,2]).as_subclass(_T).",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/47090_summary_with_code.txt"
+}

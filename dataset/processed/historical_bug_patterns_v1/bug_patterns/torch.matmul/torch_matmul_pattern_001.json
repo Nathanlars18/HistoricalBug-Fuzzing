@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_matmul_pattern_001",
+        "api_name": "torch.matmul",
+        "source_report": "matmul_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "191238",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_matmul_unaligned_memory_access_bug",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "M=1",
+        "dtype_trigger": "float32",
+        "device_trigger": "CPU",
+        "memory_trigger": "contiguous tensor with unaligned storage; data_ptr alignment offset not divisible by 4",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "large matrix multiplication on Accelerate BLAS M=1 path",
+        "concrete_constraints": "Float32 CPU tensor with contiguous logical layout and data pointer not 4-byte aligned, used in matmul with M=1."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "CPU BLAS path assumes aligned tensor storage and does not safely handle unaligned tensor storage.",
+        "numerical_layer": "",
+        "confidence": "high"
+    },
+    "bug_oracle": {
+        "type": "Crash",
+        "description": "Process terminates with SIGBUS.",
+        "signal": "SIGBUS",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Create inputs with deliberately misaligned memory, for example by slicing into larger buffers or using storage offsets, and vary alignment offsets such as modulo 4.",
+        "tensor_construction": "Build float32 CPU tensors that are logically contiguous but whose data pointer is not 4-byte aligned.",
+        "constraint_injection": "Enforce alignment offset not divisible by 4 and use M=1 with large matrix multiplication dimensions.",
+        "operation_sequence": "Call torch.matmul and related linear algebra operations such as torch.mv, torch.addmm, and torch.nn.functional.linear on the unaligned tensors.",
+        "oracle_construction": "Detect crash signals including SIGBUS and SIGSEGV, and compare outputs against aligned reference executions for correctness."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

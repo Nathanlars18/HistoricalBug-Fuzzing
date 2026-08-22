@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "8626",
+        "title": "as_strided_backward in expanded case & dynamically created grad_fn for views"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.Tensor.as_strided",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "Gradient Boundary",
+        "pattern": "Aliased Tensor View Gradient Inconsistency",
+        "condition": "Applying view operations that create memory aliasing (such as as_strided, expand, or reshape) on tensors requiring gradients, followed by backward computation.",
+        "operation_context": "Applying as_strided or reshape to an expanded tensor that requires gradients, then computing gradients; for example, x.expand(3,2).as_strided([3,2], x.expand(3,2).stride()) followed by a differentiable operation."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Applying as_strided or reshape to an expanded tensor that requires gradients, then computing gradients; for example, x.expand(3,2).as_strided([3,2], x.expand(3,2).stride()) followed by a differentiable operation.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/8626_summary_with_code.txt"
+}

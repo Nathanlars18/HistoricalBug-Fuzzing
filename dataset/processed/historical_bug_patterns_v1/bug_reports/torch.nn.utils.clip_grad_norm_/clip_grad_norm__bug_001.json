@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "38605",
+        "title": "clip_grad_norm_ fails when parameters are on different devices (1.5 regression)"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.nn.utils.clip_grad_norm_",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nIn pytorch 1.4, `clip_grad_norm_` worked even when parameters were on different devices. Pytorch 1.5 no longer supports this, due to #32020.",
+    "trigger_conditions": {
+        "category": "Device Boundary",
+        "pattern": "Gradient-Parameter Device Inconsistency",
+        "condition": "Creating neural network parameters and gradients located on different devices and applying gradient aggregation or clipping operations that require consistent device placement.",
+        "operation_context": "Model parameters and their gradients are located on different devices (e.g., cuda:0 and cuda:1) when clip_grad_norm_ is called."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "Model parameters and their gradients are located on different devices (e.g., cuda:0 and cuda:1) when clip_grad_norm_ is called.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/38605_summary_with_code.txt"
+}

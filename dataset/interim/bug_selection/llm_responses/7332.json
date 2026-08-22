@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.functional.conv2d",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Passing a 3D input tensor to conv2d, which expects a 4D input tensor.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "The report describes a misleading error message for an invalid input shape, not a functional failure. Both versions raise RuntimeError, and the desired oracle depends on subjective error message quality rather than a clear, checkable failure condition.",
+    "confidence": "High",
+    "bug_id": "7332"
+}

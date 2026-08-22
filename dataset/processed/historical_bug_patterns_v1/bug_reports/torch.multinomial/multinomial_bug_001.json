@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "37403",
+        "title": "torch.multinomial behaves abnormally with CUDA tensor"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.multinomial",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nSeems 'torch.multinomial' can not handle high-precisionly drawing from multinomial distribution in CUDA.",
+    "trigger_conditions": {
+        "category": "Device Boundary",
+        "pattern": "CUDA Statistical Sampling Divergence",
+        "condition": "Using stochastic sampling operators on CUDA with large probability spaces and comparing sampling distribution correctness against CPU or statistical expectations.",
+        "operation_context": "Calling torch.multinomial on a CUDA tensor with a large number of uniform categories (e.g., 1,000,000), replacement=True, and many samples; CPU produces near-uniform counts while CUDA samples only a small biased subset."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Calling torch.multinomial on a CUDA tensor with a large number of uniform categories (e.g., 1,000,000), replacement=True, and many samples; CPU produces near-uniform counts while CUDA samples only a small biased subset.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "Medium"
+    },
+    "raw_content_reference": "raw_reports/37403_summary_with_code.txt"
+}

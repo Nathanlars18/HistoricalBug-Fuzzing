@@ -1,0 +1,59 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_nn_SyncBatchNorm_convert_sync_batchnorm_knowledge_001",
+        "source_pattern_id": "torch_nn_SyncBatchNorm_convert_sync_batchnorm_pattern_001",
+        "source_report": "convert_sync_batchnorm_bug_001.json",
+        "api_name": "torch.nn.SyncBatchNorm.convert_sync_batchnorm",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/37930",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Device affinity loss during model transformation",
+        "general_principle": "Model transformation APIs may create or replace parameters and buffers using the current default device rather than preserving the device placement of the original model.",
+        "risk_category": [
+            "Device Transition",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Models with normalization or stateful layers whose parameter shapes can vary across channel or feature dimensions.",
+        "dtype": "Floating point and mixed precision parameter and buffer dtypes that may affect newly allocated state.",
+        "memory": "Storage and layout of newly allocated parameters and buffers relative to existing model state.",
+        "device": "Models already resident on non-CPU devices such as CUDA before the transformation is applied.",
+        "execution_state": "Transformation applied after model construction and device movement, when new state may be allocated lazily."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The transformation API may allocate new parameters or buffers on a default device instead of deriving the target device from the input module, causing mixed device placement."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore models placed on non-default devices before applying conversion or transformation APIs.",
+            "Vary model structures containing multiple normalization or stateful submodules.",
+            "Vary parameter and buffer shapes and dtypes across the model.",
+            "Explore both default CPU device and non-CPU device placements for model state."
+        ],
+        "constraint_awareness": [
+            "Track the device of every parameter and buffer before and after the transformation.",
+            "Assert that all newly created or replaced state remains on the original model device.",
+            "Pay attention to APIs that construct new state rather than only modifying existing tensors."
+        ],
+        "oracle_strategy": [
+            "Compare device placement of parameters and buffers before and after transformation.",
+            "Fail if any parameter or buffer after the transformation resides on an unexpected device such as CPU.",
+            "Use device introspection of model state rather than relying only on outputs."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any API that transforms a model and synthesizes or replaces parameters and buffers can introduce device placement inconsistencies, especially when operating on non-default devices."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on transformations that create new model state and verify device affinity preservation across non-default devices. Avoid assuming all submodules preserve their original device automatically.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that construct models with stateful submodules, move them to a non-default device, apply the target transformation API, and check the device of all parameters and buffers. Vary model architecture, device placement, and state shape and dtype combinations rather than hardcoding the original bug."
+        ]
+    }
+}

@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "bug_id": "pytorch_191238",
+    "title": "SIGBUS in CPU matmul when fp32 weight is not 4-byte aligned",
+    "date": ""
+  },
+
+  "source_information": {
+    "repository": "pytorch/pytorch",
+    "issue_id": "191238",
+    "source_type": "GitHub Issue",
+    "issue_url": "",
+    "pr_id": "",
+    "commit_id": ""
+  },
+
+  "api_information": {
+    "primary_api": "torch.matmul",
+    "affected_apis": [
+      "torch.matmul",
+      "torch.mv",
+      "torch.addmm",
+      "torch.nn.functional.linear"
+    ],
+    "operator": "aten::matmul",
+    "module": "linear algebra"
+  },
+
+  "bug_description": "A float32 tensor with unaligned memory address causes SIGBUS during CPU matmul execution on the M=1 path.",
+
+  "trigger_conditions": {
+    "shape": [
+      "M=1"
+    ],
+    "dtype": [
+      "float32"
+    ],
+    "device": [
+      "CPU"
+    ],
+    "backend": [
+      "Accelerate BLAS"
+    ],
+    "layout": [
+      "contiguous tensor with unaligned storage"
+    ],
+    "memory": [
+      "data_ptr alignment offset not divisible by 4"
+    ],
+    "state": [],
+    "operation_context": "large matrix multiplication"
+  },
+
+  "failure_behavior": {
+    "type": "Crash",
+    "description": "Process terminates with SIGBUS.",
+    "oracle": "SIGBUS"
+  },
+
+  "root_cause_information": {
+    "layer": "Backend",
+    "description": "CPU BLAS path does not safely handle unaligned tensor storage."
+  },
+
+  "fix_information": {
+    "fixed": false,
+    "fix_description": "",
+    "commit": ""
+  },
+
+  "verification_information": {
+    "status": "triaged",
+    "confidence": "high"
+  },
+
+  "raw_content_reference": "../bug_reports_raw/pytorch/torch.matmul/matmul_bug_001.md"
+}

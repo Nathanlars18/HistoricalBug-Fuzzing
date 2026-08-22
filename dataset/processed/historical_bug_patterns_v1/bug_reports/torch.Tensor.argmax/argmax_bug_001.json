@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "28623",
+        "title": "argmax for half datatype."
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.Tensor.argmax",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\n\n\nIn pytorch version 1.2.0, argmax is supported for half datatype.\n\nHowever, in the current version, it generates a runtime error that argmax_cuda is not supported for half.",
+    "trigger_conditions": {
+        "category": "Dtype Boundary",
+        "pattern": "Unsupported Dtype Kernel in Reduction Operations",
+        "condition": "Calling reduction operators such as argmax with unsupported dtype and device combinations, especially float16 tensors on CUDA.",
+        "operation_context": "Calling argmax on a CUDA tensor with dtype torch.float16."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "Calling argmax on a CUDA tensor with dtype torch.float16.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/28623_summary_with_code.txt"
+}

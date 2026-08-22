@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_onnx_export_pattern_002",
+        "api_name": "torch.onnx.export",
+        "source_report": "export_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "61345",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Graph Transformation Boundary",
+        "secondary_category": "Shape Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_onnx_export_broadcast_shape_preservation_bug",
+        "general_category": "Graph Transformation Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Tensor/buffer contains singleton dimensions that are indexed or squeezed, then broadcast against larger non-1 spatial dimensions, e.g., (1,3,1,1) with (1,3,224,224).",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Module registers a buffer or tensor with extra singleton dimensions.",
+        "execution_trigger": "ONNX Runtime executes an ONNX model exported by torch.onnx.export.",
+        "concrete_constraints": "Export a module where a registered buffer with shape such as (1,1,3,1,1) is indexed to (1,3,1,1) and used in a broadcasting binary operation with an input such as (1,3,224,224)."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "ONNX Runtime BroadcastIterator initialization fails when broadcasting an indexed singleton axis against a larger non-1 dimension.",
+        "signal": "axis == 1 && axis == largest was false; Attempting to broadcast an axis by a dimension other than 1.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate tensor shapes and indexing/squeeze operations to create singleton broadcast axes that must expand to non-1 dimensions in exported graphs.",
+        "tensor_construction": "Construct buffers or parameters with extra singleton dimensions and inputs with larger spatial dimensions; vary rank, singleton placement, and indexing axes.",
+        "constraint_injection": "Insert buffer registration, indexing/slicing, and broadcast binary operations before ONNX export; force singleton-to-non-1 broadcasting in the traced graph.",
+        "operation_sequence": "register_buffer -> index/squeeze/select singleton axes -> broadcast binary op with larger input -> torch.onnx.export -> ONNX Runtime inference.",
+        "oracle_construction": "Run the exported ONNX model in ONNX Runtime and compare success, output shape, and values to the PyTorch reference; flag BroadcastIterator exceptions or shape mismatches."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

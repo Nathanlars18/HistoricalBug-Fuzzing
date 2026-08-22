@@ -1,0 +1,57 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_distributions_MultivariateNormal_knowledge_001",
+        "source_pattern_id": "torch_distributions_MultivariateNormal_pattern_001",
+        "source_report": "MultivariateNormal_bug_001.json",
+        "api_name": "torch.distributions.MultivariateNormal",
+        "original_issue": "Distribution parameter shape mismatch causes fatal signal in downstream methods.",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Distribution parameter shape/broadcast contract violation",
+        "general_principle": "Constructors for tensor-valued probability distributions may accept parameters whose scalar, batch, and event dimensions are inconsistent, and downstream methods may assume these dimensions have already been validated, causing fatal numerical or shape-handling failures.",
+        "risk_category": [
+            "Shape Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Inconsistent scalar, batch, and event dimension combinations among distribution parameters",
+        "dtype": "",
+        "memory": "",
+        "device": "",
+        "execution_state": "Methods invoked after construction may assume parameter shapes were validated and consistent"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The distribution API may not fully validate or normalize inconsistent parameter shapes at construction time; later shape-dependent operations can trigger arithmetic exceptions or unhandled execution paths."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary distribution parameter ranks across scalar, vector, and matrix combinations including zero-dimensional tensors",
+            "Probe mismatched batch dimensions among distribution parameters",
+            "Exercise distribution methods that consume the parameters, such as sampling and density evaluation"
+        ],
+        "constraint_awareness": [
+            "Distribution parameters must agree on event shape and broadcastable batch dimensions",
+            "Validation may reject some but not all invalid combinations, so bypass or vary validation paths"
+        ],
+        "oracle_strategy": [
+            "Monitor for fatal signals such as SIGFPE and SIGSEGV",
+            "Detect unexpected runtime exceptions or inconsistent shape-validation failures",
+            "Compare observed behavior against expected shape-contract validation outcomes"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies to any API that accepts multiple tensor parameters with implicit shape or broadcasting contracts, especially probability distributions, linear algebra operations, and loss functions."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on parameter combinations that violate implicit shape contracts while remaining tensors, and invoke downstream methods to exercise assumed-validated paths.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that construct APIs with systematically varied parameter shapes and broadcasting combinations, then call methods that consume the inferred or stored shapes; use oracles to detect crashes, fatal signals, and improper validation behavior."
+        ]
+    }
+}

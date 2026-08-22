@@ -1,0 +1,57 @@
+{
+    "metadata": {
+        "pattern_id": "torch__make_per_tensor_quantized_tensor_pattern_001",
+        "api_name": "torch._make_per_tensor_quantized_tensor",
+        "source_report": "_make_per_tensor_quantized_tensor_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "41115",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Execution State Boundary",
+        "secondary_category": "Device Transition"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_make_per_tensor_quantized_tensor_pinned_memory_state_leak_bug",
+        "general_category": "Execution State Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "Integer CUDA tensor",
+        "device_trigger": "CUDA tensor input to quantized tensor creation",
+        "memory_trigger": "Subsequent CPU allocation inherits pinned memory state",
+        "value_trigger": "",
+        "state_trigger": "Internal allocator or pinned-memory state leaks across operations",
+        "execution_trigger": "Call torch._make_per_tensor_quantized_tensor on a CUDA integer tensor, then allocate a CPU tensor"
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "After torch._make_per_tensor_quantized_tensor is called on a CUDA integer tensor, a newly allocated CPU tensor reports is_pinned() as True instead of False.",
+        "signal": "CPU tensor is_pinned() returns True unexpectedly",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary shapes and integer dtypes of CUDA input tensors while keeping the operation valid for quantized tensor creation.",
+        "tensor_construction": "Construct CUDA integer tensors and invoke torch._make_per_tensor_quantized_tensor.",
+        "constraint_injection": "Track allocator state and CPU tensor pinning flags before and after stateful quantized operations.",
+        "operation_sequence": "Run a stateful CUDA quantized tensor creation operation, then perform an unrelated CPU tensor allocation and query is_pinned().",
+        "oracle_construction": "Compare is_pinned() on a fresh CPU tensor allocated before and after the quantized operation; a change from False to True indicates leaked pinned-memory state."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

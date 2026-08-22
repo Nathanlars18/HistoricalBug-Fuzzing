@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_einsum_knowledge_001",
+        "source_pattern_id": "torch_einsum_pattern_001",
+        "source_report": "einsum_bug_001.json",
+        "api_name": "torch.einsum",
+        "original_issue": "In-place modification of requires_grad tensors used in a differentiable operation triggers autograd version mismatch during backward.",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "In-place mutation of autograd-tracked tensors after differentiable use",
+        "general_principle": "Autograd tracks tensor versions and saved states for gradient computation; mutating tensors in-place after they are used in differentiable operations invalidates that state and can cause runtime errors or incorrect gradients when backward is invoked.",
+        "risk_category": [
+            "Gradient State Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Explore scalar, zero-dimensional, broadcast-compatible, and shape-compatible tensors to expose aliasing and versioning issues.",
+        "dtype": "Explore floating-point and complex dtypes that support requires_grad; avoid or separately examine integer dtypes that cannot require gradients.",
+        "memory": "Explore tensors with shared storage, views, expanded dimensions, and aliasing relationships where an in-place mutation affects multiple autograd graph inputs.",
+        "device": "Explore CPU, CUDA, and other available backends; test device transfers before or after in-place mutation.",
+        "execution_state": "Explore requires_grad state, grad mode, leaf/non-leaf tensor state, and mutation timing before backward."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The autograd engine records tensor version counters when forward operations are performed. In-place mutations after forward increment those counters. When backward runs, the engine detects that saved tensors no longer match the current versions and raises an error or computes incorrect gradients."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore requires_grad tensors with varied shapes, dtypes, layouts, and aliasing relationships as operands to differentiable operations.",
+            "Apply in-place mutations such as add_, copy_, sub_, zero_, and resize_ to operands, outputs, or aliases after the forward call and before backward.",
+            "Reuse operands in multiple differentiable operations with in-place modifications between them.",
+            "Explore view and expanded tensors where mutating a base or a view affects shared version counters.",
+            "Test across CPU, CUDA, and other available backends to reveal device-specific autograd behavior."
+        ],
+        "constraint_awareness": [
+            "Only floating-point and complex dtypes support requires_grad; integer dtypes are not differentiable.",
+            "In-place operations on autograd-tracked tensors violate autograd's expected contract unless the operation is explicitly designed to handle them.",
+            "View tensors share storage with their base; mutating a view also mutates the base and increments the version counter.",
+            "Backward must be called after all in-place mutations to detect version mismatches.",
+            "Some paths may not raise exceptions but may silently produce incorrect gradients if version checks are bypassed."
+        ],
+        "oracle_strategy": [
+            "Monitor for RuntimeError exceptions during backward that indicate autograd version mismatch or saved tensor modification.",
+            "Compare gradients against a reference execution without in-place mutation; flag any gradient mismatch.",
+            "Check for crashes, hangs, or silent incorrect outputs when no exception is raised."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The risk is tied to the autograd engine and its version tracking rather than to any single operation. Any differentiable API that saves tensors for backward can be affected by in-place mutations of autograd-tracked tensors, so the testing principle generalizes broadly."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on differentiable operations that save inputs or intermediate tensors for gradient computation. Vary tensor shapes, dtypes, layouts, aliasing, and mutation timing relative to backward. Be aware that not all failures raise exceptions; gradient comparison against a mutation-free reference is necessary to catch silent incorrect gradients.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that select differentiable operations, create requires_grad tensors with diverse properties, introduce in-place mutations after forward and before backward, and compare gradients or monitor exceptions against a clean reference execution. Avoid hard-coding torch.einsum or any single API; apply the same pattern to many differentiable operations."
+        ]
+    }
+}

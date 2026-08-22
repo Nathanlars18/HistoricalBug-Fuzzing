@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.distributions.MultivariateNormal",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Passing a 0-dimensional scalar tensor as loc to torch.distributions.MultivariateNormal with a 1x1 covariance matrix (e.g., torch.eye(1) * sigma).",
+    "oracle_type": "Crash",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The crash is triggered by a specific shape condition (scalar/0-dimensional loc tensor) and produces a clear SIGFPE crash oracle. This can be generalized into a shape-boundary pattern for distribution parameter validation.",
+    "confidence": "High",
+    "bug_id": "8508"
+}

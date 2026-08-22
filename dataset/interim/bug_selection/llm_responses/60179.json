@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.onnx.export",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Exporting a model containing torch.nn.functional.pad on a 3D or higher-dimensional tensor, where the 6-element pad tuple has non-zero padding on a non-last dimension, such as F.pad(x, [0, 0, 0, k, 0, 0]), especially with dynamic axes.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by generating F.pad-based models, exporting to ONNX, and comparing against PyTorch outputs; the resulting shape mismatch gives a clear oracle, and the incorrect padding dimension mapping is a general exporter pattern.",
+    "confidence": "High",
+    "bug_id": "60179"
+}

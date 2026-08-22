@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.utils.data.DataLoader",
+    "bug_category": "Other",
+    "trigger_condition": "Using DataLoader with num_workers=2, pin_memory=True on a large dataset causes a multi-second delay at the end of each epoch.",
+    "oracle_type": "Performance Issue",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "This is a pure performance regression in DataLoader, and the criteria explicitly exclude pure performance regressions. It does not produce a crash, exception, or incorrect output.",
+    "confidence": "High",
+    "bug_id": "23642"
+}

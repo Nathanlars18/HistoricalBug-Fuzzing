@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "47007",
+        "title": "RuntimeError_ _mul_cuda_ not implemented for 'Bool'"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.mul",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nI just upgraded to PyTorch 1.7 and I now get an this error when multiplying a Python bool with a cuda bool tensor. I do not get the error on CPU. Furthermore, it was working well on the previous version (1.6).",
+    "trigger_conditions": {
+        "category": "Dtype Boundary",
+        "pattern": "Unsupported Scalar-Tensor Dtype Combination",
+        "condition": "Applying element-wise operators with unsupported combinations of tensor dtype and scalar dtype, such as multiplying CUDA boolean tensors with Python boolean scalars.",
+        "operation_context": "Multiply a CUDA boolean tensor by a Python bool scalar using '*' or torch.mul."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "Multiply a CUDA boolean tensor by a Python bool scalar using '*' or torch.mul.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/47007_summary_with_code.txt"
+}

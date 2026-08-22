@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_nn_functional_embedding_bag_knowledge_001",
+        "source_pattern_id": "torch_nn_functional_embedding_bag_pattern_001",
+        "source_report": "embedding_bag_bug_001.json",
+        "api_name": "torch.nn.functional.embedding_bag",
+        "original_issue": "PyTorch GitHub Issue #7947",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Optional parameter path activation failure",
+        "general_principle": "Optional parameters can select separate and less-tested internal execution paths. Even when all required arguments are valid, enabling an optional parameter can trigger hidden path defects that violate the API contract or cause unexpected exceptions.",
+        "risk_category": [
+            "API Contract Boundary",
+            "Execution State Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "No direct shape trigger identified; abnormal but valid shapes may interact with optional parameter paths.",
+        "dtype": "No direct dtype trigger identified; optional parameter paths may depend on dtype-specific behavior.",
+        "memory": "No direct memory layout trigger identified; optional parameter paths may change access patterns.",
+        "device": "No direct device trigger identified; optional parameter paths may differ across CPU and accelerator backends.",
+        "execution_state": "Presence or absence of optional parameters changes internal control flow and may expose hidden execution state bugs."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "Optional parameters can activate distinct internal execution branches. Under-tested branches may contain hidden assumptions or defects, causing valid API calls to raise undocumented exceptions instead of returning results or documented errors."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Toggle optional parameters between default and non-default values while keeping required inputs valid",
+            "Vary optional numeric parameters across typical, small, and boundary values",
+            "Combine multiple optional parameters to expose interactions between hidden execution paths",
+            "Compare functional API calls with equivalent module or wrapper calls under the same optional settings"
+        ],
+        "constraint_awareness": [
+            "Required arguments must remain within documented valid ranges to isolate optional parameter effects",
+            "Optional parameters may have hidden preconditions such as non-None, positive, or supported value ranges",
+            "Changing one optional parameter may select a completely different internal implementation",
+            "Undocumented exceptions from valid optional settings are contract violations"
+        ],
+        "oracle_strategy": [
+            "A valid call with optional parameters enabled should not raise undocumented exceptions",
+            "Compare output against the equivalent call with optional parameters disabled when semantics allow",
+            "Monitor for crashes, unexpected exceptions, or sanitizer failures when exercising optional parameter paths"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Many APIs expose optional parameters that select different internal execution paths. The principle of systematically toggling and combining optional parameters while keeping required inputs valid applies broadly beyond this specific API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on optional parameter toggling and non-default values while keeping required inputs valid",
+            "Explore combinations of optional parameters, not only single parameter changes",
+            "Consider both functional and module or wrapper API entry points",
+            "Compare behavior with default parameter settings to detect path-specific failures"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary optional parameters across otherwise valid input templates. Use the historical API only as an example, and apply the pattern to other APIs that expose optional execution paths. Flag any undocumented exception or crash as a potential failure."
+        ]
+    }
+}

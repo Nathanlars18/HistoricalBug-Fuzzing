@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_onnx_export_pattern_003",
+        "api_name": "torch.onnx.export",
+        "source_report": "export_bug_003.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "61754",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Graph Transformation Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_onnx_export_scalar_inplace_graph_bug",
+        "general_category": "Graph Transformation Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "0-dimensional scalar tensor",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "Empty tensor data created with torch.zeros(())",
+        "state_trigger": "In-place operation after scalar constant creation",
+        "execution_trigger": "ONNX graph export",
+        "concrete_constraints": "Model contains a 0-dimensional constant produced by torch.zeros(()) and then mutated by an in-place operation (e.g., y += x) during torch.onnx.export."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Exporting a model that creates a 0-dim tensor with torch.zeros(()) and then applies an in-place operation such as y += x.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary tensor shapes between 0-dimensional scalar and small tensors; vary constant factory values (zeros, ones, empty) used before in-place ops.",
+        "tensor_construction": "Construct 0-dimensional scalar tensors with torch.zeros(()), torch.ones(()), or torch.empty(()) and export them as graph constants.",
+        "constraint_injection": "Force in-place mutation of the scalar constant (for example, y += x) and vary the in-place operation type.",
+        "operation_sequence": "Create a scalar constant tensor, apply an in-place operation that consumes it, then export the model with torch.onnx.export.",
+        "oracle_construction": "Treat any export exception or any produced ONNX graph that fails an ONNX checker/model validation as a bug signal."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.utils.weight_norm",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Use torch.nn.utils.weight_norm(module, dim=None), which produces a 0-dim weight_g parameter, then wrap the model with torch.nn.DataParallel and run forward/backward on multiple CUDA devices.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "Medium",
+    "include": "Yes",
+    "reason": "The bug is triggered by a clear shape boundary condition: weight_norm(dim=None) creates a 0-dim parameter that DataParallel cannot replicate correctly, causing a runtime exception. This can be abstracted into a reusable shape-boundary pattern for module replication.",
+    "confidence": "High",
+    "bug_id": "7568"
+}

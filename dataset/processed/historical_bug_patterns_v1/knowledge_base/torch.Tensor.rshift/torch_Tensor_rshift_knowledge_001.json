@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_Tensor_rshift_knowledge_001",
+        "source_pattern_id": "torch_Tensor_rshift_pattern_001",
+        "source_report": "rshift_bug_001.json",
+        "api_name": "torch.Tensor.__rshift__",
+        "original_issue": "PyTorch Issue #8111",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Cross-device semantic divergence for bitwise shift operations",
+        "general_principle": "Operators dispatched to different backends may implement the same integer semantics differently; CPU-equivalent behavior should not be assumed for accelerator backends.",
+        "risk_category": [
+            "Device Transition",
+            "Backend Dispatch Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Vary shapes including zero-dim, empty, and non-contiguous or broadcast-compatible tensors.",
+        "dtype": "Explore signed and unsigned integer dtypes with varying bit widths; shifting semantics may differ by dtype.",
+        "memory": "Explore contiguous, strided, offset, and non-contiguous tensor storage layouts.",
+        "device": "Execute identical operations on CPU and CUDA or other available backends; compare cross-device results.",
+        "execution_state": "No special state; focus on backend dispatch path selected by current device."
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "The same logical operator dispatches to different backend implementations depending on device, and those implementations may encode divergent bitwise-shift semantics for equivalent integer inputs."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary integer shift amounts across a wide range, including zero, bit-width boundaries, negative values, and very large values.",
+            "Vary tensor shapes, integer dtypes, and storage layouts for both source tensor and shift operand.",
+            "Run the same bitwise shift operator on multiple available backends with identical input values."
+        ],
+        "constraint_awareness": [
+            "CPU output is a reference only when the semantics are well-defined for the chosen dtype and shift amount.",
+            "Backend-specific shift behavior may differ for shift amounts outside the range 0 to dtype bit width.",
+            "Ensure exact integer comparison rather than tolerance when detecting semantic divergence."
+        ],
+        "oracle_strategy": [
+            "Compare backend outputs against the CPU reference implementation using exact integer equality.",
+            "Flag any CPU-vs-backend output mismatch as incorrect output or semantic divergence.",
+            "Monitor for backend-specific crashes, exceptions, or sanitizer failures during execution."
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "The core principle applies broadly to integer bitwise and arithmetic operators whose semantics may differ across CPU and accelerator backends, but it is less relevant to bugs caused purely by shape or memory layout boundary issues."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on cross-device semantic comparison for integer operators.",
+            "Explore boundary shift amounts and integer dtype variations.",
+            "Treat CPU execution as a reference but validate semantic expectations for each dtype."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that construct equivalent tensors on CPU and accelerator devices, apply the target operator with varied integer inputs, and compare outputs exactly to expose backend semantic divergence."
+        ]
+    }
+}

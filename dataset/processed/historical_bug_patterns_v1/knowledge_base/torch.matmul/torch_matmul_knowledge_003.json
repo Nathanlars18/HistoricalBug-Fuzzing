@@ -1,0 +1,59 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_matmul_knowledge_003",
+        "source_pattern_id": "torch_matmul_pattern_003",
+        "source_report": "matmul_bug_003.json",
+        "api_name": "torch.matmul",
+        "original_issue": "pytorch/pytorch#104832",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Backend operations produce incorrect outputs when non-contiguous views are used as output tensors",
+        "general_principle": "Backend implementations may assume output tensors follow a standard contiguous memory layout; when an out argument is a sliced or non-contiguous view, these hidden assumptions can lead to silent incorrect results or omitted writes.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Output shapes formed by slicing larger tensors can create non-contiguous or offset views; vary slice offsets and resulting shapes while respecting valid operation dimensions.",
+        "dtype": "Floating-point dtypes are common, but integer and mixed dtypes may expose similar layout-sensitive behavior.",
+        "memory": "Non-contiguous views, arbitrary strides, slice offsets, overlapping memory, and view aliasing can violate backend layout assumptions.",
+        "device": "Accelerator backends with specialized memory layout requirements may be more likely to mishandle non-contiguous out tensors.",
+        "execution_state": "Operations using preallocated out arguments are sensitive to the output tensor's layout state before the call."
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Backend kernels may assume the output buffer has the expected contiguous layout. When a non-contiguous sliced view is supplied as the out argument, the kernel may write to the wrong locations or skip updating the visible view, leaving it unchanged or incorrect."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Create out tensors as non-contiguous sliced views of larger contiguous tensors",
+            "Vary slice offsets, strides, and resulting shapes while keeping valid operation dimensions",
+            "Test on multiple backend devices, especially those with specialized memory layout expectations",
+            "Explore different dtypes and mixed dtype combinations"
+        ],
+        "constraint_awareness": [
+            "Out tensor must satisfy the operation's shape and dtype constraints despite non-contiguous layout",
+            "Backend-specific layout requirements may differ from CPU or generic expectations",
+            "Sliced out views may alias input or intermediate tensors, creating hidden overlap risks"
+        ],
+        "oracle_strategy": [
+            "Compare operation output against a CPU reference computed with an equivalent out view",
+            "Detect cases where the out tensor remains unchanged or differs from the reference result",
+            "Monitor for backends that silently skip writes to non-contiguous out tensors"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies broadly to any API accepting preallocated out tensors or performing view-based output writes, especially on accelerator backends; non-contiguous output layouts are a general risk beyond a single operation."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on operations with out arguments or view-based outputs; vary memory layout, slice offsets, and backend devices; consider hidden backend assumptions about contiguous output buffers.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that construct valid non-contiguous out tensor views and compare results against reference implementations, rather than replaying the original matmul scenario."
+        ]
+    }
+}

@@ -1,0 +1,98 @@
+{
+  "id": "torch.matmul_pattern_003",
+
+  "api": "torch.matmul",
+
+  "source": {
+    "type": "GitHub Issue",
+    "id": "#104832",
+    "repository": "pytorch/pytorch"
+  },
+
+  "verification_status": {
+    "level": "official_triaged",
+    "fixed": true
+  },
+
+  "bug_category": [
+    "Memory Layout",
+    "Backend Dispatch"
+  ],
+  "pattern_abstraction": {
+
+    "api_specific_pattern":
+    "matmul_noncontiguous_output_view_backend_bug",
+
+    "general_category":
+    "Memory Layout Boundary",
+
+    "transferability":
+    "medium"
+  },
+
+  "trigger_condition": {
+
+    "shape": {
+      "condition": "Matrix multiplication with output tensor view"
+    },
+
+    "dtype": {
+      "value": "floating point tensor"
+    },
+
+    "device": {
+      "value": "MPS"
+    },
+
+    "memory": {
+      "condition": "Output tensor is a non-contiguous sliced view"
+    },
+
+    "operation": {
+      "condition": "torch.matmul with out argument"
+    }
+
+  },
+
+
+  "root_cause": {
+    "description": "MPS matmul implementation does not correctly handle non-contiguous output tensors, causing incorrect result when writing into sliced views."
+  },
+
+
+  "bug_oracle": {
+
+    "type": "Wrong Result",
+
+    "description": "The output tensor remains unchanged or differs from the reference result."
+  },
+
+
+  "harness_strategy": {
+
+    "tensor_construction": [
+
+      "Create normal input tensors for matrix multiplication",
+
+      "Allocate a larger output tensor",
+
+      "Create non-contiguous output view using slicing"
+    ],
+
+
+    "constraints": [
+
+      "device=MPS",
+
+      "use torch.matmul out argument",
+
+      "out tensor must be non-contiguous",
+
+      "compare result with contiguous reference output"
+    ],
+
+
+    "operation": "torch.matmul"
+
+  }
+}

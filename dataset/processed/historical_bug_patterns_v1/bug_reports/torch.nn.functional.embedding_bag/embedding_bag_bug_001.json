@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "7947",
+        "title": "EmbeddingBag max_norm parameter does not work"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.nn.functional.embedding_bag",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "State Boundary",
+        "pattern": "Optional Parameter Path Failure",
+        "condition": "Calling embedding_bag with optional parameter max_norm enabled, which activates an untested internal execution path and triggers an implementation exception.",
+        "operation_context": "Call torch.nn.functional.embedding_bag with max_norm set to a non-None value."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "Call torch.nn.functional.embedding_bag with max_norm set to a non-None value.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/7947_summary_with_code.txt"
+}

@@ -1,0 +1,71 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_multinomial_knowledge_001",
+        "source_pattern_id": "torch_multinomial_pattern_001",
+        "source_report": "multinomial_bug_001.json",
+        "api_name": "torch.multinomial",
+        "original_issue": "GitHub Issue 37403",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Stochastic sampling distribution bias for large categorical spaces on backend-specific implementations",
+        "general_principle": "Backend-specific random sampling kernels may rely on hidden numerical or algorithmic assumptions that break down for large discrete distributions, causing sampled outputs to diverge from the requested probability distribution even when inputs are valid.",
+        "risk_category": [
+            "Numerical Edge Case",
+            "Backend Dispatch Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Large number of probability categories and large sample counts; extreme ratios between category count and sample count.",
+        "dtype": "",
+        "memory": "Large probability tensors and sample buffers may stress allocation, layout, and reuse paths.",
+        "device": "CUDA or other non-CPU backends where sampling kernels differ from CPU reference implementations.",
+        "execution_state": "Stochastic sampling with replacement; repeated draws; interactions with random generator state."
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "A backend-specific sampling implementation may use an algorithm that biases selection for large category counts, causing some valid categories to be omitted or underrepresented relative to a CPU or reference sampler."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary the number of probability categories across small, moderate, and very large sizes",
+            "Vary sample counts, including counts much smaller and much larger than the category count",
+            "Vary probability distributions from uniform to near-uniform, skewed, and degenerate",
+            "Vary floating-point dtypes and devices, especially CPU versus CUDA",
+            "Explore replacement and non-replacement sampling modes"
+        ],
+        "constraint_awareness": [
+            "Probability inputs must be non-negative and sum to one",
+            "For replacement sampling, each draw is independent conditional on the same input distribution",
+            "Compare backend outputs against CPU or an analytic reference sampler with identical inputs",
+            "Ensure enough samples are drawn for statistical comparisons to be meaningful"
+        ],
+        "oracle_strategy": [
+            "Compare sampled category counts or unique category coverage between the target backend and a reference implementation",
+            "Detect statistically significant divergence from the expected distribution",
+            "Flag cases where many valid categories are never sampled under near-uniform probabilities",
+            "Monitor for crashes, sanitizer failures, or excessive memory use"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "The principle applies to APIs that perform stochastic sampling, discrete categorical selection, or backend-specific numerical routines where outputs should match a reference distribution. It is less applicable to deterministic shape, dtype, or memory layout contracts."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Include large category and sample counts to stress backend sampling algorithms",
+            "Always compare backend-specific execution against a CPU or analytic reference",
+            "Use uniform or near-uniform probabilities because they are sensitive to selection bias",
+            "Use fixed seeds or statistical tolerances for reproducibility in stochastic operations",
+            "Control for memory constraints and normalization errors when generating large tensors"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate diverse probability tensors with varying sizes, distributions, dtypes, and devices",
+            "Build paired CPU and backend execution paths for identical inputs",
+            "Use statistical oracles rather than exact expected values for stochastic operations",
+            "Vary replacement behavior and sample counts to expose backend-specific bias and edge cases"
+        ]
+    }
+}

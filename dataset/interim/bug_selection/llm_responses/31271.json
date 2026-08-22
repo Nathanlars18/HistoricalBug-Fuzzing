@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.Tensor.copy_",
+    "bug_category": "Dtype Boundary",
+    "trigger_condition": "CPU copy_ from a large uint8 tensor to a float32 tensor with single-threaded execution.",
+    "oracle_type": "Performance Issue",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "This is a pure performance regression in the CPU copy kernel, which is explicitly excluded by the dataset criteria.",
+    "confidence": "High",
+    "bug_id": "31271"
+}

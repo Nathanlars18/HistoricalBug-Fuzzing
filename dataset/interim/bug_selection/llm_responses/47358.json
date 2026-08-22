@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.sqrt",
+    "bug_category": "Dtype Boundary",
+    "trigger_condition": "Calling torch.sqrt on CPU complex tensors (complex64 or complex128) with large-magnitude real or imaginary components, such as 0-1e20j or -1e20-4988429.2j, causing inaccurate results from the CPU complex sqrt implementation.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug can be triggered by generating complex-valued CPU tensors with large magnitudes and comparing torch.sqrt output against NumPy or CUDA as an oracle. It represents a reusable numerical-boundary pattern for complex sqrt on CPU.",
+    "confidence": "High",
+    "bug_id": "47358"
+}

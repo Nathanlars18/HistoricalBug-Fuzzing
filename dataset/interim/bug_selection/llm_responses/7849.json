@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.where",
+    "bug_category": "Device Boundary",
+    "trigger_condition": "torch.where is called with tensors on mismatched devices, such as a CUDA condition and CPU operands, causing a backend-mismatch RuntimeError with an incorrectly formatted message.",
+    "oracle_type": "Documentation Issue",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "The reported bug is only an incorrect RuntimeError diagnostic message rather than a functional failure. The exception itself is expected for mixed-device inputs, so detection requires exact error-string assertions and does not abstract into a reusable fuzzing pattern for PyTorch computation behavior.",
+    "confidence": "High",
+    "bug_id": "7849"
+}

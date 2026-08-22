@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.parallel.DistributedDataParallel",
+    "bug_category": "Gradient Boundary",
+    "trigger_condition": "In a DDP-wrapped model's forward, assign a Parameter to an advanced-indexed view of an input tensor (e.g., x[[True, False]] = self.token) and then perform backward.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "Low",
+    "include": "Yes",
+    "reason": "The bug is reproducible by constructing a DDP model with indexed parameter assignment, yields a clear RuntimeError/internal assertion, and generalizes to autograd view creation-metadata mismatches under DDP.",
+    "confidence": "Medium",
+    "bug_id": "46242"
+}

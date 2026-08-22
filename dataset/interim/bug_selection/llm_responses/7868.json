@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.onnx.export",
+    "bug_category": "Memory Layout Boundary",
+    "trigger_condition": "Exporting a model containing consecutive transpose operations, such as x.transpose(1, 2).transpose(0, 1), to ONNX triggers incorrect transpose fusion in the peephole optimizer.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by a reproducible sequence of transpose operations during ONNX export, produces an incorrect transpose permutation in the exported graph, and can be abstracted into a general pattern for fuzzing ONNX export with transpose sequences.",
+    "confidence": "High",
+    "bug_id": "7868"
+}

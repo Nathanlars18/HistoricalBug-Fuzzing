@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_sqrt_knowledge_001",
+        "source_pattern_id": "torch_sqrt_pattern_001",
+        "source_report": "sqrt_bug_001.json",
+        "api_name": "torch.sqrt",
+        "original_issue": "GitHub Issue #47358 (PyTorch)",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Complex unary numerical precision degradation at extreme magnitudes",
+        "general_principle": "Complex floating-point kernels may use magnitude-dependent algorithms that lose precision or overflow/underflow for extreme real or imaginary components, causing deviation from reference implementations.",
+        "risk_category": [
+            "Numerical Edge Case",
+            "Dtype Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "",
+        "dtype": "complex64 and complex128 with large-magnitude real or imaginary components",
+        "memory": "",
+        "device": "CPU backend",
+        "execution_state": ""
+    },
+    "failure_mechanism": {
+        "layer": "Numerical Layer",
+        "description": "Complex unary operators may evaluate intermediate quantities that are sensitive to extreme magnitudes, leading to precision loss, overflow, or underflow in the computed real or imaginary parts."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary complex real and imaginary components across logarithmic or exponential magnitude scales",
+            "Include negative, positive, mixed-sign, and pure imaginary complex values",
+            "Test both complex64 and complex128 precision levels"
+        ],
+        "constraint_awareness": [
+            "CPU complex numerical kernels may diverge from NumPy or higher-precision references",
+            "Tolerances must account for complex dtype precision limits and magnitude-dependent error",
+            "Extreme component magnitudes can trigger intermediate overflow or underflow"
+        ],
+        "oracle_strategy": [
+            "Compare outputs against NumPy or a higher-precision reference for the same complex inputs",
+            "Flag numerical mismatches outside magnitude-aware tolerances",
+            "Monitor for NaN, Inf, or unexpected finite deviations from the reference"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The underlying risk affects complex numerical operators beyond torch.sqrt, including elementwise functions such as exp, log, trigonometric, and other arithmetic kernels that rely on magnitude-dependent complex arithmetic."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Target complex unary and related elementwise numerical operators on CPU and possibly other backends",
+            "Explore extreme magnitude regions rather than fixed reproduction values",
+            "Use precision-aware oracles that account for complex64 versus complex128 behavior"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate complex tensors using magnitude sweeps and varied sign/phase patterns, then compare outputs to NumPy or higher-precision references with appropriate tolerances. Focus on numerical consistency across complex dtypes and avoid hard-coded historical trigger values."
+        ]
+    }
+}

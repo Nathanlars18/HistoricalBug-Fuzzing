@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "37844",
+        "title": "Circular padding in Conv2d applies padding across the wrong dimension (regression from 1.4)"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.nn.Conv2d",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nIf you specify different padding for the H and W dimensions, `padding_mode='circular'` applies it across the wrong one - e.g, with padding `(0, 1)`, it will pad across the *H* dimension, even though it should apply it on the *W* one.",
+    "trigger_conditions": {
+        "category": "Shape Boundary",
+        "pattern": "Asymmetric Spatial Parameter Misalignment",
+        "condition": "Using Conv2d with spatial tuple parameters where height and width values differ (e.g., asymmetric padding), causing incorrect dimension mapping or output behavior.",
+        "operation_context": "Using nn.Conv2d with padding_mode='circular' and asymmetric padding tuple (h, w) where h != w, so padding is applied to the wrong spatial dimension."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Using nn.Conv2d with padding_mode='circular' and asymmetric padding tuple (h, w) where h != w, so padding is applied to the wrong spatial dimension.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/37844_summary_with_code.txt"
+}

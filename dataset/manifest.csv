@@ -1,0 +1,8 @@
+dataset_version,component,path,count,description
+v1,raw DLFrameBRCode reports,dataset/raw/DLFrameBRCode_PyTorch/reports,53,Raw PyTorch historical bug report summaries
+v1,reproduction code,dataset/raw/DLFrameBRCode_PyTorch/reproduction_code,53,Reproduction programs paired with raw historical bug reports
+v1,structured bug reports,dataset/processed/historical_bug_patterns_v1/bug_reports,39,Canonical structured EXP006 bug reports
+v1,bug patterns,dataset/processed/historical_bug_patterns_v1/bug_patterns,39,Canonical patterns extracted from structured bug reports
+v1,knowledge base,dataset/processed/historical_bug_patterns_v1/knowledge_base,39,Canonical knowledge items generated from bug patterns
+v1,schemas,dataset/schemas,5,Schemas and mapping rules for dataset transformations
+v1,validation files,dataset/validation,8,Manual pattern and knowledge reference examples

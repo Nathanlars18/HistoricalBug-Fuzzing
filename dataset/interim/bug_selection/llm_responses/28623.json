@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.Tensor.argmax",
+    "bug_category": "Dtype Boundary",
+    "trigger_condition": "Calling argmax on a CUDA tensor with dtype torch.float16.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by a specific dtype and device combination, produces a clear runtime exception, and generalizes to testing dtype support boundaries for reduction ops.",
+    "confidence": "High",
+    "bug_id": "28623"
+}

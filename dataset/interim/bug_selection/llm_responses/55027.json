@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.cuda.amp.autocast",
+    "bug_category": "Other",
+    "trigger_condition": "Training torchvision's fasterrcnn_resnet50_fpn on CUDA with specific synthetic image/target tensors; one reproduction requires torch.cuda.amp.autocast(enabled=True), while the error does not occur with AMP disabled.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "The failure requires a high-level torchvision object-detection model and is not reduced to a minimal PyTorch API trigger. The root cause is unclear from the report, and the pattern is too specific to a model/target/AMP combination to be reusable for PyTorch API fuzzing.",
+    "confidence": "Medium",
+    "bug_id": "55027"
+}

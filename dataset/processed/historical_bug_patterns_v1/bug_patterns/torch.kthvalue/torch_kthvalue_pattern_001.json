@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_kthvalue_pattern_001",
+        "api_name": "torch.kthvalue",
+        "source_report": "kthvalue_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "45721",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_kthvalue_strided_gpu_incorrect_result_bug",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Strided tensor views such as tensor[::2] that change the logical shape and strides.",
+        "dtype_trigger": "",
+        "device_trigger": "CUDA GPU tensor",
+        "memory_trigger": "Non-contiguous memory layout with stride greater than 1",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "Calling torch.kthvalue on a strided CUDA tensor",
+        "concrete_constraints": "Input tensor must be on CUDA and non-contiguous, for example created by slicing with a step greater than 1 such as tensor[::2]. k must be within valid dimension bounds. The returned values and indices should match contiguous tensor semantics."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.kthvalue returns incorrect values and indices when the input is a strided CUDA tensor.",
+        "signal": "Output values and indices differ from the expected contiguous-tensor result.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate non-contiguous strided views from contiguous tensors using slicing, transpose, narrow, or other stride-changing operations.",
+        "tensor_construction": "Build CUDA tensors with varied shapes, strides, and dtypes, then derive views with step greater than 1 such as tensor[::2].",
+        "constraint_injection": "Force the tensor device to CUDA and the memory layout to non-contiguous. Keep k within valid dimension bounds and compare against a contiguous reference.",
+        "operation_sequence": "Create a base CUDA tensor, derive a strided view, call torch.kthvalue on the strided view with a valid k value, and observe the returned values and indices.",
+        "oracle_construction": "Compute the expected result using a contiguous CUDA tensor or a CPU reference and compare both values and indices for equality."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

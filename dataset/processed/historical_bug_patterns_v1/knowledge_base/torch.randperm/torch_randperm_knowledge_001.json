@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_randperm_knowledge_001",
+        "source_pattern_id": "torch_randperm_pattern_001",
+        "source_report": "randperm_bug_001.json",
+        "api_name": "torch.randperm",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/58545",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Device identifier canonicalization and validation mismatch",
+        "general_principle": "APIs that accept device or generator identifiers may internally assume a canonical device form, causing semantically valid but non-canonical identifiers to be rejected when validation logic is over-strict or inconsistent with actual device resolution.",
+        "risk_category": [
+            "API Contract Boundary",
+            "Device Transition"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "",
+        "dtype": "",
+        "memory": "",
+        "device": "Non-canonical CUDA device identifier strings supplied through generator or device arguments, including variations such as 'cuda', 'cuda:0', 'cuda:1', case variants, whitespace variants, and multi-device forms.",
+        "execution_state": "Global default tensor type and CUDA context state that influence device resolution for generator or device arguments."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "Device identifier validation or canonicalization logic rejects a non-canonical but valid device string because the implementation expects a normalized or indexed form, leading to an exception before kernel execution."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary device identifier strings across canonical and non-canonical forms when constructing devices or generators.",
+            "Include indexed, non-indexed, case-variant, whitespace-variant, and multi-device CUDA identifier strings.",
+            "Combine non-canonical device identifiers with different global default tensor type states and explicit device arguments.",
+            "Apply such device identifier mutations to device-aware APIs that accept generator or device arguments."
+        ],
+        "constraint_awareness": [
+            "CUDA availability is required and non-canonical identifiers should be accepted when they refer to valid devices.",
+            "Device identifier canonicalization may interact with global default tensor type and generator device resolution state.",
+            "Validation may be stricter than actual device resolution, so semantically valid forms must not be rejected."
+        ],
+        "oracle_strategy": [
+            "Treat uncaught RuntimeError or validation exceptions for semantically valid non-canonical device identifiers as failures.",
+            "Verify returned tensors reside on the intended CUDA device.",
+            "Compare behavior across canonical and non-canonical device string forms for the same logical device."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Device and generator identifier parsing is shared across many APIs that accept device strings, generator objects, or device contexts. The same canonicalization mismatch can affect random sampling, tensor creation, and other device-aware operations."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Explore interaction between device identifier canonicalization and global default tensor type or device context.",
+            "Test semantically valid but non-normalized device strings across device-aware APIs.",
+            "Cover both generator arguments and explicit device arguments.",
+            "Require CUDA availability and isolate device validation failures from kernel execution failures."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically mutate device identifier strings and global device-context state across device-aware APIs, include canonical and non-canonical variants, and use exception oracles and device placement checks to detect validation mismatches."
+        ]
+    }
+}

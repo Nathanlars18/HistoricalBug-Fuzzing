@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_Tensor_argmax_knowledge_001",
+        "source_pattern_id": "torch_Tensor_argmax_pattern_001",
+        "source_report": "argmax_bug_001.json",
+        "api_name": "torch.Tensor.argmax",
+        "original_issue": "GitHub Issue #28623",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Reduction dtype/backend dispatch support gap",
+        "general_principle": "Reduction operators may fail when a dtype/device combination lacks a corresponding backend kernel dispatch or is not explicitly rejected at API validation time.",
+        "risk_category": [
+            "Dtype Boundary",
+            "Backend Dispatch Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "",
+        "dtype": "Low-precision floating-point dtypes such as float16 and bfloat16 on accelerator backends",
+        "memory": "",
+        "device": "CUDA and other accelerator backend dispatch paths",
+        "execution_state": ""
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "The API accepts a dtype/device combination, but the backend lacks a corresponding kernel dispatch path or fails to reject the unsupported combination, causing a runtime error."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary dtype and device combinations for reduction operations",
+            "Include low-precision floating-point dtypes on accelerator devices",
+            "Explore reduction APIs across varied shapes, strides, and memory layouts",
+            "Probe dtype/backend combinations that may lack kernel support"
+        ],
+        "constraint_awareness": [
+            "Some reduction operations have hidden dtype/backend dispatch constraints",
+            "Unsupported dtype/device combinations may pass API validation and fail later",
+            "Backend kernel availability varies by dtype and device"
+        ],
+        "oracle_strategy": [
+            "Monitor for runtime errors indicating missing kernel dispatch or unsupported dtype",
+            "Treat explicit exceptions on valid tensor inputs as dispatch boundary failures"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Reduction and similar dtype-sensitive operators rely on backend dispatch, so the principle of probing dtype/device combinations for missing kernel support applies broadly across many APIs."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe reduction APIs with dtype/device combinations at and beyond documented support boundaries",
+            "Do not assume API layer validation catches unsupported backend dispatch paths",
+            "Include low-precision dtypes on accelerator devices"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary dtype and device for reduction APIs",
+            "Combine floating-point dtypes such as float16 and bfloat16 with CUDA and other backends",
+            "Use generic error detection to classify runtime dispatch failures"
+        ]
+    }
+}

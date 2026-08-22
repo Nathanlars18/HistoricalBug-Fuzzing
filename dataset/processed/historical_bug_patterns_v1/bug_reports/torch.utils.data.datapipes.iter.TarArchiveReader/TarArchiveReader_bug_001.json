@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "65808",
+        "title": "Closing tar file in `TarFileReader` breaks buffered datapipes"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.utils.data.datapipes.iter.TarArchiveReader",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "State Boundary",
+        "pattern": "Streaming Resource Lifetime Violation",
+        "condition": "Creating a DataPipe pipeline where a buffered consumer such as Shuffler requests more elements than the upstream TarArchiveReader can provide, causing the underlying archive resource to be closed before all yielded streams are consumed.",
+        "operation_context": "A datapipe pipeline uses TarArchiveReader followed by Shuffler, and Shuffler's buffer_size is greater than the number of entries in the tar archive, causing the archive to be exhausted and closed before yielded member streams are read."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "A datapipe pipeline uses TarArchiveReader followed by Shuffler, and Shuffler's buffer_size is greater than the number of entries in the tar archive, causing the archive to be exhausted and closed before yielded member streams are read.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/65808_summary_with_code.txt"
+}

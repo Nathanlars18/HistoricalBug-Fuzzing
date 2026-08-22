@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "61345",
+        "title": "void onnxruntime__BroadcastIterator__Init(ptrdiff_t, ptrdiff_t) axis == 1 __ axis == largest was false. Attempting to broadcast an axis by a dimension other than 1. 3 by 224"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.onnx.export",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\nI get an error \n\n- reigster_buffer in Module\n\n- onnxruntime on onnx from torch.onnx.export",
+    "trigger_conditions": {
+        "category": "Graph Transformation Boundary",
+        "pattern": "Broadcasting Shape Preservation Failure During Graph Export",
+        "condition": "Exporting models containing indexed buffers or tensors with singleton dimensions followed by broadcasting operations, where ONNX graph generation mishandles the original tensor shape semantics.",
+        "operation_context": "Exporting a module that registers a buffer with extra singleton dimensions, indexes the buffer, and adds it to an input tensor with larger spatial dimensions; e.g., buffer shape (1,1,3,1,1) indexed to (1,3,1,1), input shape (1,3,224,224)."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "Exporting a module that registers a buffer with extra singleton dimensions, indexes the buffer, and adds it to an input tensor with larger spatial dimensions; e.g., buffer shape (1,1,3,1,1) indexed to (1,3,1,1), input shape (1,3,224,224).",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/61345_summary_with_code.txt"
+}

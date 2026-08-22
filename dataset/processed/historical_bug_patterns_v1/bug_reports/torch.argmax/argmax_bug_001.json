@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "37680",
+        "title": "We should not mark non-floating point Tensors as requirering gradients, ever"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.argmax",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "Gradient Boundary",
+        "pattern": "Non-differentiable Operator Gradient State Leakage",
+        "condition": "Applying non-differentiable operators such as argmax/argmin to tensors with requires_grad=True and checking whether gradient state is incorrectly propagated to integer outputs.",
+        "operation_context": "A floating-point tensor with requires_grad=True is passed to torch.argmax or torch.argmin, producing an integer tensor that incorrectly retains requires_grad=True."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "A floating-point tensor with requires_grad=True is passed to torch.argmax or torch.argmin, producing an integer tensor that incorrectly retains requires_grad=True.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/37680_summary_with_code.txt"
+}

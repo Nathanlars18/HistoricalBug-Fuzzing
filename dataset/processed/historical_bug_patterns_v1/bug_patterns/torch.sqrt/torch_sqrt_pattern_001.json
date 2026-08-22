@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_sqrt_pattern_001",
+        "api_name": "torch.sqrt",
+        "source_report": "sqrt_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "47358",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Dtype Boundary",
+        "secondary_category": "Numerical Edge Case"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_sqrt_complex_large_magnitude_precision_bug",
+        "general_category": "Numerical Edge Case",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "complex64 or complex128",
+        "device_trigger": "CPU",
+        "memory_trigger": "",
+        "value_trigger": "Large-magnitude real or imaginary components, such as values around 1e20",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "torch.sqrt on CPU complex tensors with large-magnitude real or imaginary components produces output that does not match numpy or another reference."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.sqrt on CPU complex tensors with large-magnitude real or imaginary components returns inaccurate results compared with numpy.",
+        "signal": "Numerical mismatch against reference output",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary complex real and imaginary components across logarithmic or exponential magnitude scales, including negative and pure imaginary values.",
+        "tensor_construction": "Build CPU complex64 and complex128 tensors with large-magnitude real and imaginary parts, including generated variants around extreme values such as 0-1e20j and -1e20-4988429.2j.",
+        "constraint_injection": "Target complex unary numerical operators on CPU and compare behavior across complex dtypes.",
+        "operation_sequence": "Apply torch.sqrt and similar complex numerical operators to generated complex tensors and collect outputs.",
+        "oracle_construction": "Compare operator outputs against NumPy or a higher-precision/triaged reference for the same complex inputs, flagging mismatches outside appropriate tolerance."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

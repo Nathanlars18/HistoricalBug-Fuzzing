@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_nn_parallel_DistributedDataParallel_pattern_001",
+        "api_name": "torch.nn.parallel.DistributedDataParallel",
+        "source_report": "DistributedDataParallel_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "46242",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Gradient State Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_ddp_parameter_indexed_view_mutation_autograd_bug",
+        "general_category": "Gradient State Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Model Parameter is assigned into an indexed/view-based tensor during a DDP-wrapped forward pass, leaving autograd state inconsistent for backward.",
+        "execution_trigger": "Forward pass under torch.nn.parallel.DistributedDataParallel followed by backward.",
+        "concrete_constraints": "In a DDP-wrapped forward, assign a Parameter to an advanced-indexed view of an input tensor (e.g., x[[True, False]] = self.token), then perform backward."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "In a DDP-wrapped model's forward, assigning a Parameter to an advanced-indexed view of an input tensor and then performing backward triggers an autograd-related exception.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate forward graphs where model Parameters are assigned into indexed or view-based tensor positions that participate in backward.",
+        "tensor_construction": "Create leaf tensors requiring gradients and use advanced indexing or view operations to expose differentiable mutation paths.",
+        "constraint_injection": "Wrap the model or forward pass in DistributedDataParallel or an equivalent gradient-stateful wrapper before running backward.",
+        "operation_sequence": "Perform forward pass with parameter-involved indexed assignment, compute a loss, then run backward.",
+        "oracle_construction": "Treat any autograd exception, gradient state inconsistency, or deviation from eager reference semantics as a failure."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

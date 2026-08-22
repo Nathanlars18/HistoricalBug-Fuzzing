@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "7559",
+        "title": "Wrong results for zero-length slices"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.Tensor.__getitem__",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "Shape Boundary",
+        "pattern": "Empty Tensor Slice Boundary",
+        "condition": "Generate tensors and apply zero-length slicing followed by indexing operations",
+        "operation_context": "Indexing a tensor with a zero-length slice such as slice(0), especially when combined with other slices or followed by further indexing on the resulting tensor."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Indexing a tensor with a zero-length slice such as slice(0), especially when combined with other slices or followed by further indexing on the resulting tensor.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/7559_summary_with_code.txt"
+}

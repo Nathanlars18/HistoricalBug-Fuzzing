@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.fx.symbolic_trace",
+    "bug_category": "Other",
+    "trigger_condition": "A traced nn.Module forward calls builtins.getattr on a Tensor attribute that does not exist and supplies a default value, e.g. getattr(a, 'nonexistent_attr', torch.Size([1,2])).",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by generating a model whose forward uses builtins.getattr with a default during torch.fx.symbolic_trace. The tracer drops the default argument, so executing the traced module raises AttributeError instead of returning the default, giving a clear oracle. This can be abstracted as an FX tracing semantic pattern for getattr defaults.",
+    "confidence": "High",
+    "bug_id": "60417"
+}

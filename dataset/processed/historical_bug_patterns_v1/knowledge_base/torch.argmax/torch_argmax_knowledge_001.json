@@ -1,0 +1,67 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_argmax_knowledge_001",
+        "source_pattern_id": "torch_argmax_pattern_001",
+        "source_report": "argmax_bug_001.json",
+        "api_name": "torch.argmax",
+        "original_issue": "PyTorch GitHub Issue #37680",
+        "verification_status": "official_triaged",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Gradient state leakage in non-differentiable operators",
+        "general_principle": "Operators that produce non-floating-point outputs from gradient-enabled inputs may fail to clear autograd state, violating the dtype-based gradient contract.",
+        "risk_category": [
+            "Gradient State Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Degenerate, zero-dim, scalar, and high-rank tensor shapes may expose gradient-state metadata propagation errors.",
+        "dtype": "Floating-point inputs that produce integer or non-floating-point outputs; boundaries between differentiable and non-differentiable dtypes.",
+        "memory": "",
+        "device": "CPU/accelerator transitions can expose inconsistent gradient-state handling in dtype-changing operations.",
+        "execution_state": "Gradient-enabled tensors passed through non-differentiable operations; output requires_grad state persists incorrectly."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The operator returns an integer/non-floating tensor but does not clear the gradient flag, violating the API contract that only floating-point tensors should require gradients."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Construct floating-point tensors with requires_grad=True across multiple dtypes and devices",
+            "Apply non-differentiable operations that return integer or boolean outputs",
+            "Vary tensor shapes including scalar, zero-dim, and high-rank layouts",
+            "Explore gradient-enabled inputs with different memory layouts and stride patterns"
+        ],
+        "constraint_awareness": [
+            "Only floating-point tensors should require gradients",
+            "Integer and boolean outputs must have requires_grad=False",
+            "Autograd state must not leak through non-differentiable operators",
+            "Check output dtype before validating gradient state"
+        ],
+        "oracle_strategy": [
+            "Inspect output.requires_grad for non-floating-point outputs and report any True as Incorrect Output",
+            "Compare gradient-state metadata against the dtype-based API contract",
+            "Monitor for mismatches between output dtype and requires_grad flag"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The gradient-state contract applies broadly to any API that can return non-floating-point outputs; indexing, reduction, sorting, and selection operations may share similar autograd metadata propagation issues."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe gradient-state contracts for non-differentiable operations that change output dtype",
+            "Verify that non-floating-point outputs never require gradients",
+            "Include empty, scalar, degenerate, and high-rank tensors in test generation",
+            "Remember that gradient state is metadata and does not depend on numerical operation result"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that construct gradient-enabled floating-point inputs and route them through dtype-changing non-differentiable operators",
+            "Instead of copying the original argmax issue, generalize to any operation that returns integer, boolean, or index-valued tensors",
+            "Assert the output gradient state against the expected dtype-based contract and record mismatches as failures"
+        ]
+    }
+}

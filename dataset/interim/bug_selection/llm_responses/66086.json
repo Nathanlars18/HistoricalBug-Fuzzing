@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.cosine_similarity",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Calling torch.cosine_similarity with two input tensors that have different numbers of dimensions, e.g., x1 shape [10, 2, 3, 4] and x2 shape [2, 3, 4], dim=-1.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by rank mismatch in torch.cosine_similarity, causing a RuntimeError regression. This is a reusable shape-boundary pattern for input generation fuzzing.",
+    "confidence": "High",
+    "bug_id": "66086"
+}

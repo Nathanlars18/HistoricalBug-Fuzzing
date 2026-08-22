@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.kthvalue",
+    "bug_category": "Memory Layout Boundary",
+    "trigger_condition": "Input tensor is on CUDA and has a non-contiguous strided layout, e.g., created by slicing with a step greater than 1 such as tensor[::2].",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by a reproducible input condition: a strided GPU tensor passed to kthvalue. It produces incorrect values and indices relative to the CPU reference, providing a clear output oracle. The bug generalizes to memory-layout boundary testing for reduction/selection operators on non-contiguous CUDA tensors.",
+    "confidence": "High",
+    "bug_id": "45721"
+}

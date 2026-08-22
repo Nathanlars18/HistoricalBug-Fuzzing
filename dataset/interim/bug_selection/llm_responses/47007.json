@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.mul",
+    "bug_category": "Dtype Boundary",
+    "trigger_condition": "Multiply a CUDA boolean tensor by a Python bool scalar using '*' or torch.mul.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by generating a bool CUDA tensor and multiplying it by a Python bool scalar. It produces a clear RuntimeError, and the pattern generalizes to unsupported dtype/device combinations for binary operations.",
+    "confidence": "High",
+    "bug_id": "47007"
+}

@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_nn_Conv2d_pattern_001",
+        "api_name": "torch.nn.Conv2d",
+        "source_report": "Conv2d_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "37844",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_nn_conv2d_asymmetric_padding_dimension_mapping_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Asymmetric spatial padding tuple (h, w) where h != w, e.g., (0, 1).",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "padding_mode='circular' combined with an asymmetric padding tuple.",
+        "state_trigger": "",
+        "execution_trigger": "Forward execution of torch.nn.Conv2d with asymmetric padding and padding_mode='circular'.",
+        "concrete_constraints": "Input is 4D (N, C, H, W); padding is a 2-tuple with different height and width padding amounts; padding_mode is 'circular'."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Conv2d output has circular padding applied along the wrong spatial dimension when asymmetric padding is specified; e.g., padding=(0, 1) pads along H instead of W.",
+        "signal": "Output spatial shape or padded values differ from the expected dimension order.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary padding tuples and spatial input shapes to produce asymmetric height/width padding configurations.",
+        "tensor_construction": "Construct 4D input tensors with distinct and sufficiently large height and width dimensions so dimension-specific padding effects can be observed.",
+        "constraint_injection": "Set padding_mode='circular' and supply asymmetric padding tuples where height and width padding values differ.",
+        "operation_sequence": "Execute Conv2d forward with parameter combinations such as (0,1), (1,0), (1,2), and (2,1) across varying spatial sizes.",
+        "oracle_construction": "Compare Conv2d output against a reference implementation that applies circular padding explicitly along the correct spatial dimension before convolution."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

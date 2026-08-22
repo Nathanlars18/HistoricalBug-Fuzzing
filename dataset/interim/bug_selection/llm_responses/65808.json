@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.utils.data.datapipes.iter.TarArchiveReader",
+    "bug_category": "State Boundary",
+    "trigger_condition": "A datapipe pipeline uses TarArchiveReader followed by Shuffler, and Shuffler's buffer_size is greater than the number of entries in the tar archive, causing the archive to be exhausted and closed before yielded member streams are read.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The failure is reproducible by constructing a tar archive with a known number of members and configuring Shuffler with a larger buffer_size. Reading from the yielded buffer then triggers 'ValueError: seek of closed file'. This abstracts into a resource lifetime/state boundary pattern for buffered datapipes.",
+    "confidence": "High",
+    "bug_id": "65808"
+}

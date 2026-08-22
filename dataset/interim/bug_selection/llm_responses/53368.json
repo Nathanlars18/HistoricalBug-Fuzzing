@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.Embedding",
+    "bug_category": "Other",
+    "trigger_condition": "Create nn.Embedding with padding_idx, modify the embedding weight at padding_idx after initialization, then perform a forward pass with an input containing padding_idx.",
+    "oracle_type": "Documentation Issue",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "The report is filed as a documentation problem describing an undocumented behavior change for nn.Embedding padding_idx. The intended behavior is ambiguous, so there is no clear oracle for a fuzzing bug pattern.",
+    "confidence": "Medium",
+    "bug_id": "53368"
+}

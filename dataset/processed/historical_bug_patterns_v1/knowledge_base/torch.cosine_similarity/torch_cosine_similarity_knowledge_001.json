@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_cosine_similarity_knowledge_001",
+        "source_pattern_id": "torch_cosine_similarity_pattern_001",
+        "source_report": "cosine_similarity_bug_001.json",
+        "api_name": "torch.cosine_similarity",
+        "original_issue": "PyTorch GitHub Issue 66086",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Rank mismatch in pairwise broadcasting operations",
+        "general_principle": "Pairwise operations that rely on broadcasting may have inconsistent rank normalization or shape contract enforcement, causing valid shape combinations to be rejected or misinterpreted.",
+        "risk_category": [
+            "Shape Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Input tensors with unequal ranks but compatible trailing dimensions; degenerate, zero-sized, or dimension-reduced shapes",
+        "dtype": "",
+        "memory": "",
+        "device": "",
+        "execution_state": ""
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The operation's broadcasting and reduction logic may not consistently handle inputs with different numbers of dimensions, leading to unexpected exceptions or incorrect shape validation."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary input tensor ranks while keeping trailing dimensions broadcast-compatible",
+            "Include rank pairs such as rank N and rank N-1, rank 4 and rank 3, and rank 0 with higher-rank tensors",
+            "Test positive and negative reduction dimension arguments",
+            "Explore degenerate dimensions of size 1 and zero-sized dimensions"
+        ],
+        "constraint_awareness": [
+            "Reduction dimension must exist in both input tensors",
+            "Broadcasting compatibility should be evaluated after rank alignment",
+            "Behavior may differ across framework versions or backends"
+        ],
+        "oracle_strategy": [
+            "Compare behavior against documented broadcasting semantics or a previous framework version",
+            "Monitor unexpected exceptions for shape combinations that should be accepted",
+            "Validate results against a manual broadcast-and-reduce reference implementation"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Rank normalization and broadcasting contract issues apply broadly to pairwise similarity, distance, comparison, and binary operations beyond the original API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe rank mismatches systematically rather than only same-rank broadcasting",
+            "Cover both positive and negative reduction dimensions",
+            "Include degenerate and zero-sized dimensions to expose shape-validation bugs"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary ranks, trailing dimension compatibility, and reduction dimension arguments for pairwise broadcasting APIs, then compare behavior against documented broadcasting semantics or a reference implementation."
+        ]
+    }
+}

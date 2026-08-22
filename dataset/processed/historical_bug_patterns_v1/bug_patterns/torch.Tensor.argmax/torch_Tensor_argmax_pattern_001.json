@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_Tensor_argmax_pattern_001",
+        "api_name": "torch.Tensor.argmax",
+        "source_report": "argmax_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "28623",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Dtype Boundary",
+        "secondary_category": "Backend Dispatch Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_argmax_half_cuda_dispatch_bug",
+        "general_category": "Dtype Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "torch.float16",
+        "device_trigger": "CUDA",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "Calling torch.Tensor.argmax on a CUDA tensor with dtype torch.float16",
+        "concrete_constraints": "dtype == torch.float16; device == cuda; api == torch.Tensor.argmax"
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Calling argmax on a CUDA tensor with dtype torch.float16 raises a runtime error.",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary dtype and device combinations for reduction operations, prioritizing float16 on CUDA.",
+        "tensor_construction": "Construct CUDA tensors with dtype torch.float16 and various shapes and strides.",
+        "constraint_injection": "Inject unsupported dtype/device combinations, such as torch.float16 on CUDA for reduction operations.",
+        "operation_sequence": "Call reduction APIs including torch.Tensor.argmax and similar reductions on the constructed tensors.",
+        "oracle_construction": "Treat RuntimeError messages indicating unsupported dtype or missing CUDA kernel dispatch for half tensors as triggering observations."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

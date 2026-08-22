@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_fx_symbolic_trace_pattern_001",
+        "api_name": "torch.fx.symbolic_trace",
+        "source_report": "symbolic_trace_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "60417",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Graph Transformation Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_fx_symbolic_trace_getattr_default_loss_bug",
+        "general_category": "Graph Transformation Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "getattr target attribute is absent and a default value is supplied",
+        "state_trigger": "",
+        "execution_trigger": "A module forward containing builtins.getattr with a default argument is traced by torch.fx.symbolic_trace",
+        "concrete_constraints": "Traced nn.Module forward calls builtins.getattr on an attribute that does not exist and supplies a default value, e.g. getattr(a, 'nonexistent_attr', torch.Size([1, 2]))."
+    },
+    "root_cause": {
+        "api_layer": "torch.fx.symbolic_trace",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "The traced module raises an exception because the getattr default value is lost during symbolic tracing.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate nn.Module forward methods containing builtins.getattr calls with default arguments and varied attribute names, including non-existent attributes.",
+        "tensor_construction": "Create nn.Module subclasses with Tensor attributes, including cases where the attribute targeted by getattr is absent.",
+        "constraint_injection": "Vary getattr default argument types such as torch.Size, int, tuple, Tensor, and None, and vary the target attribute name.",
+        "operation_sequence": "For each module, run torch.fx.symbolic_trace, then execute both the original and traced modules on representative inputs and capture outcomes.",
+        "oracle_construction": "Flag discrepancies where the original module succeeds using the getattr default but the traced module raises an exception or returns different results."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

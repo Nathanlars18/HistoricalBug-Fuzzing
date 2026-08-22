@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_max_pattern_001",
+        "api_name": "torch.max",
+        "source_report": "max_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "47090",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_max_subclass_namedtuple_return_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Tensor is a torch.Tensor subclass instance created with as_subclass",
+        "execution_trigger": "torch.max is called with a dim argument",
+        "concrete_constraints": "Input must be a torch.Tensor subclass instance created via as_subclass; call torch.max(input, dim=...) to trigger the namedtuple return path."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.max returns a plain tuple rather than a namedtuple when applied to a Tensor subclass, violating the documented return type.",
+        "signal": "Return value has type tuple rather than torch.return_types.max and lacks values/indices attributes.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Wrap tensors with different Tensor subclass types using as_subclass or lightweight subclass constructors.",
+        "tensor_construction": "Create base tensors with varied shapes, dtypes, and devices, then convert them to Tensor subclass instances.",
+        "constraint_injection": "Provide dim argument to torch.max to exercise the reduction/namedtuple return path.",
+        "operation_sequence": "For each subclass tensor, call torch.max(x, dim=selected_dim) and inspect the returned object type and attributes.",
+        "oracle_construction": "Check that the result is an instance of torch.return_types.max and has values and indices attributes; report plain tuple or missing named fields as incorrect output."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

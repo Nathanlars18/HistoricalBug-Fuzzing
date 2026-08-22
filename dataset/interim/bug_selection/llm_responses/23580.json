@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.qr",
+    "bug_category": "Other",
+    "trigger_condition": "Calling torch.qr on a CPU tensor with shape (1000, 10), e.g. torch.randn(1000, 10).",
+    "oracle_type": "Performance Issue",
+    "pattern_extractability": "Low",
+    "knowledge_generation_feasibility": "Low",
+    "include": "No",
+    "reason": "This is a pure performance regression in torch.qr and is explicitly excluded by the dataset criteria.",
+    "confidence": "High",
+    "bug_id": "23580"
+}

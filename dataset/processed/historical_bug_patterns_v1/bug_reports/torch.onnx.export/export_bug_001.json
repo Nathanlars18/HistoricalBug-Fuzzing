@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "60179",
+        "title": "torch.onnx.export deals incorrectly with padding dimensions for F.pad"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.onnx.export",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nWhen one exports a simple `nn.Module` containing `F.pad` to ONNX, and then runs that ONNX model via onnxruntime, one gets different results. The issue is that the produced .onnx file has the padding dimensions in the wrong order. \n\n\n\nI have verified that the bug is in `torch.onnx.export` not in onnxruntime. Firstly, I've looked at the .onnx file. Second, I've compared the outputs produced by onnxruntime and [onnx2pytorch](https://github.com/ToriML/onnx2pytorch) -- which both agree with each other, yet are different from the original PyTorch outputs.",
+    "trigger_conditions": {
+        "category": "Shape Boundary",
+        "pattern": "Dimension-sensitive Export Transformation Failure",
+        "condition": "Exporting models containing high-dimensional tensors with padding operations on non-last dimensions, especially under dynamic shape settings, may produce incorrect exported graphs.",
+        "operation_context": "Exporting a model containing torch.nn.functional.pad on a 3D or higher-dimensional tensor, where the 6-element pad tuple has non-zero padding on a non-last dimension, such as F.pad(x, [0, 0, 0, k, 0, 0]), especially with dynamic axes."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Exporting a model containing torch.nn.functional.pad on a 3D or higher-dimensional tensor, where the 6-element pad tuple has non-zero padding on a non-last dimension, such as F.pad(x, [0, 0, 0, k, 0, 0]), especially with dynamic axes.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/60179_summary_with_code.txt"
+}

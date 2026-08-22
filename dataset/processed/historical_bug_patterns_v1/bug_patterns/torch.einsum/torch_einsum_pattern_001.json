@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_einsum_pattern_001",
+        "api_name": "torch.einsum",
+        "source_report": "einsum_bug_001.json",
+        "source": {},
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Gradient State Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_einsum_inplace_autograd_mutation_bug",
+        "general_category": "Gradient State Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Input tensors to torch.einsum have requires_grad=True and are later modified in-place before backward.",
+        "execution_trigger": "Backward pass runs after in-place modification of autograd-tracked tensors.",
+        "concrete_constraints": "requires_grad=True tensor used in torch.einsum; in-place modification or reuse in another differentiable operation occurs before backward."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Autograd detects an in-place modification of a requires_grad tensor used in torch.einsum and raises an exception during backward.",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Apply in-place mutations such as add_, copy_, sub_, or zero_ to einsum operands or outputs after the forward call and before backward.",
+        "tensor_construction": "Construct tensors with requires_grad=True and varied shapes, dtypes, layouts, and aliasing relationships to use as torch.einsum operands.",
+        "constraint_injection": "Use einsum equations where outputs may alias inputs, and enforce requires_grad=True to expose autograd graph mutation.",
+        "operation_sequence": "Call torch.einsum with requires_grad tensors, apply an in-place mutation or reuse an operand in another differentiable operation, then call backward.",
+        "oracle_construction": "Compare backward behavior and gradients against a reference execution without in-place mutation; flag autograd exceptions or gradient mismatches."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

@@ -1,0 +1,60 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_onnx_export_knowledge_001",
+        "source_pattern_id": "torch_onnx_export_pattern_001",
+        "source_report": "export_bug_001.json",
+        "api_name": "torch.onnx.export",
+        "original_issue": "GitHub Issue #60179 (PyTorch)",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Dimension-order mapping mismatch during graph export of parameterized operations",
+        "general_principle": "Export and graph transformation APIs may misinterpret dimension-indexed parameters when source framework and target runtime use different axis ordering conventions, especially for operations whose parameters are specified from the last dimension backwards.",
+        "risk_category": [
+            "Graph Transformation Boundary",
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Higher-rank tensors where dimension-indexed parameters target non-last axes; dynamic axes that prevent static validation of dimension mapping",
+        "dtype": "",
+        "memory": "",
+        "device": "",
+        "execution_state": "Dynamic dimension export paths that bypass static shape checks"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The exporter translates dimension-indexed operation parameters into target graph operations using an incorrect axis mapping convention, causing the transformed graph to apply the operation along unintended axes."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary tensor ranks, especially higher-rank tensors with more than two dimensions",
+            "Vary which dimensions receive non-default operation parameters",
+            "Combine parameterized dimension operations with dynamic axes",
+            "Use shapes that make dimension-order mistakes observable in output values"
+        ],
+        "constraint_awareness": [
+            "Dimension-indexed parameters may follow last-dimension-first ordering",
+            "Target runtimes may expect axes in a different order than the source framework",
+            "Parameter tuple length usually depends on tensor rank and must remain consistent",
+            "Dynamic axes can hide axis mapping errors during export-time validation"
+        ],
+        "oracle_strategy": [
+            "Execute the original framework model to obtain a reference output",
+            "Run the exported graph in the target runtime and compare outputs numerically",
+            "Treat any mismatch as an incorrect graph transformation or export defect"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Many export and graph transformation paths translate dimension-specific parameters such as padding, slicing, concatenation, and normalization axes. The same axis ordering mismatch can affect any API that lowers a framework operation with dimension-indexed arguments to a backend or runtime with different axis conventions."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Generate harnesses that systematically vary tensor ranks and the axis targeted by dimension-indexed parameters. Include dynamic axes and compare source framework outputs against exported runtime outputs. Focus on operations where parameter order is defined relative to the last dimension.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Create parameterized modules wrapping dimension-sensitive operations, export them through graph transformation APIs, and use differential testing between the source framework and target runtime. Generalize dimension-indexed parameters rather than hardcoding specific padding tuples."
+        ]
+    }
+}

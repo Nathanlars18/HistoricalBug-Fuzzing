@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.SyncBatchNorm.convert_sync_batchnorm",
+    "bug_category": "Device Boundary",
+    "trigger_condition": "Calling torch.nn.SyncBatchNorm.convert_sync_batchnorm on a CUDA-resident model containing BatchNorm layers; newly created parameters are placed on CPU instead of the original GPU device.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by constructing a model with BatchNorm layers on GPU and calling convert_sync_batchnorm. The failure has a clear oracle: all converted model parameters should remain on the original device. It generalizes to a device-affinity preservation pattern in module conversion utilities.",
+    "confidence": "High",
+    "bug_id": "37930"
+}

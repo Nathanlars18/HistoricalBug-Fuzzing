@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_mm_knowledge_001",
+        "source_pattern_id": "torch_mm_pattern_001",
+        "source_report": "mm_bug_001.json",
+        "api_name": "torch.mm",
+        "original_issue": "GitHub Issue #61291 (PyTorch)",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Backend-specific shape validation inconsistency",
+        "general_principle": "Different backend implementations of the same operator may not enforce identical input shape contracts, so invalid shape combinations can be silently accepted or produce incorrect results on one backend while another backend correctly rejects them.",
+        "risk_category": [
+            "Shape Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Incompatible contracting/inner dimensions for shape-constrained operations; degenerate and small dimensions that may bypass shape checks.",
+        "dtype": "Default floating-point dtype/device settings can change the backend dispatch path and expose dtype-specific validation gaps.",
+        "memory": "",
+        "device": "CPU versus accelerator/CUDA backend dispatch may use separate implementation paths with different shape validation behavior.",
+        "execution_state": "Global default tensor type/device state affects where tensors are created and which operator code path is selected."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "The backend-specific dispatch path may omit shape compatibility checks that the reference backend path enforces, allowing invalid shape combinations to reach backend kernels or return incorrect results instead of raising the expected shape mismatch error."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary shape combinations with mismatched contracting/inner dimensions across shape-constrained operators.",
+            "Include small, large, and degenerate dimension values that may bypass validation or mask mismatches.",
+            "Run identical invalid shape combinations on CPU and accelerator backends to reveal validation divergence.",
+            "Mutate default tensor type/device state so the same logical operands dispatch to different backend paths."
+        ],
+        "constraint_awareness": [
+            "Shape-constrained operations must enforce the same input contract across all backend implementations.",
+            "Global default tensor type/device state is part of the effective input state and should be explicitly controlled.",
+            "A missing expected exception is a failure signal even when an incorrect result is returned without crashing.",
+            "Backend dispatch may choose different code paths for the same API; test all relevant backends."
+        ],
+        "oracle_strategy": [
+            "Compare backend behavior against a CPU/reference backend for identical invalid-shape inputs; the reference should raise a shape mismatch exception.",
+            "Treat absence of the expected exception on a non-reference backend as a bug signal.",
+            "Validate output values only after the shape contract has been confirmed; do not accept plausible outputs from invalid shapes."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The underlying principle applies to any operator with shape-contract validation implemented separately across backends; validation divergence can affect many shape-constrained APIs beyond matrix multiplication."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe shape-contract violations across multiple backends rather than only the default backend.",
+            "Include global default dtype/device state as a first-class input dimension.",
+            "Treat missing or inconsistent exceptions as failures, not just crashes or wrong outputs.",
+            "Explore shapes that are semantically invalid but may evade shape inference or validation."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically build shape-incompatible operands for a target shape-constrained API, execute the same operation on reference and accelerator backends, and assert that both paths reject invalid shapes consistently. Use global default tensor type/device state mutations to vary dispatch without hard-coding the original issue's exact shapes or API calls."
+        ]
+    }
+}

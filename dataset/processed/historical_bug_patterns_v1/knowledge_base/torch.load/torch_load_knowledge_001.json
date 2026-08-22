@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_load_knowledge_001",
+        "source_pattern_id": "torch_load_pattern_001",
+        "source_report": "load_bug_001.json",
+        "api_name": "torch.load",
+        "original_issue": "GitHub Issue #8077",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Semantic type loss during object deserialization",
+        "general_principle": "Serialization and deserialization APIs may reconstruct objects with generic tensor types instead of preserving framework-specific wrapper types and associated execution state.",
+        "risk_category": [
+            "Execution State Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Parameter tensor shapes ranging from scalar to nested and zero-size dimensions",
+        "dtype": "Non-default tensor dtypes and requires_grad-related dtype/state combinations",
+        "memory": "Shared or nested object graphs that must retain identity and storage relationships",
+        "device": "Serialized objects originally placed on different devices",
+        "execution_state": "Framework-specific wrappers such as parameter types and gradient tracking metadata"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "Deserialization can reconstruct stored objects using generic tensor types and fail to restore framework-specific wrapper metadata, causing silent semantic downgrades."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary nesting depth and placement of stateful wrapper objects",
+            "Explore different tensor shapes, dtypes, requires_grad values, and device placements",
+            "Include shared references and nested module-like structures",
+            "Test both top-level and deeply nested parameter-bearing objects"
+        ],
+        "constraint_awareness": [
+            "Serialization should preserve semantic wrapper types rather than only tensor values",
+            "Execution state such as requires_grad may be attached to wrapper objects",
+            "Deserialization may silently succeed while losing type identity"
+        ],
+        "oracle_strategy": [
+            "Assert that restored objects retain their original framework-specific wrapper types",
+            "Compare execution state metadata such as requires_grad before and after deserialization",
+            "Detect silent type downgrades that do not raise exceptions"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any persistence or checkpointing API that serializes rich object graphs with semantic wrapper types may lose type identity and execution state, so the testing principle applies broadly beyond the original API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on preservation of semantic wrapper types across serialization boundaries",
+            "Consider nested object graphs and shared references",
+            "Detect silent loss of execution state that does not trigger errors"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that construct objects with framework-specific semantic wrappers, serialize them through the target persistence API, deserialize them, and verify type and execution-state invariants rather than only numerical equality."
+        ]
+    }
+}

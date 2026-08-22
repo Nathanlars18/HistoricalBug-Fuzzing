@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_matmul_pattern_004",
+        "api_name": "torch.matmul",
+        "source_report": "matmul_bug_004.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "pytorch_170573",
+            "repository": ""
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": "Shape Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_matmul_out_view_implicit_resize_overflow",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "undersized output view",
+        "dtype_trigger": "float32",
+        "device_trigger": "CPU",
+        "memory_trigger": "view tensor with insufficient storage",
+        "value_trigger": "",
+        "state_trigger": "operation with out argument",
+        "execution_trigger": "",
+        "concrete_constraints": "Output tensor is an undersized view with insufficient storage for the matmul result and is passed via out=."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "Implicit view resizing of undersized output view",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Memory Error",
+        "description": "Kernel writes beyond valid output storage.",
+        "signal": "heap buffer overflow / memory corruption detection",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary output view shapes and storage sizes relative to the expected matmul result.",
+        "tensor_construction": "Construct float32 CPU output tensors as views with storage smaller than the intended result shape.",
+        "constraint_injection": "Pass undersized output views through out= parameters to trigger implicit view resizing.",
+        "operation_sequence": "Run torch.matmul with out= a view tensor having insufficient storage; repeat for other out= operations such as torch.add and torch.linalg.pinv.",
+        "oracle_construction": "Run under memory sanitizers or memory corruption detectors and compare against safe non-view references."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

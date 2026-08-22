@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_cosine_similarity_pattern_001",
+        "api_name": "torch.cosine_similarity",
+        "source_report": "cosine_similarity_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "66086",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_cosine_similarity_rank_mismatch_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Input tensors with different numbers of dimensions are passed to a pairwise broadcasting operation.",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Two input tensors where one has an extra leading dimension, such as rank 4 and rank 3 tensors, with the trailing dimensions matching and dim=-1."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Calling torch.cosine_similarity with rank-mismatched input tensors raises an exception instead of broadcasting as in the previous version.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Systematically vary the rank and shape of one input tensor while keeping the trailing dimension sizes compatible with the other input tensor.",
+        "tensor_construction": "Construct pairs of tensors with unequal ranks, such as rank N and rank N-1, with matching sizes along the reduction dimension.",
+        "constraint_injection": "Constrain one tensor to have fewer dimensions than the other while ensuring the target dimension exists in both; test multiple dim positions including negative dims.",
+        "operation_sequence": "Call torch.cosine_similarity and similar pairwise broadcasting operations with rank-mismatched tensor pairs across different dim values.",
+        "oracle_construction": "Compare behavior against documented broadcasting semantics or a previous framework version; an unexpected exception for previously accepted rank-mismatched inputs indicates a bug."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

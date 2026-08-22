@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.onnx.export",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Exporting a module that registers a buffer with extra singleton dimensions, indexes the buffer, and adds it to an input tensor with larger spatial dimensions; e.g., buffer shape (1,1,3,1,1) indexed to (1,3,1,1), input shape (1,3,224,224).",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "Medium",
+    "include": "Yes",
+    "reason": "The bug is reproducible through shape and broadcasting choices during ONNX export, and the ONNX Runtime failure provides a clear exception oracle.",
+    "confidence": "High",
+    "bug_id": "61345"
+}

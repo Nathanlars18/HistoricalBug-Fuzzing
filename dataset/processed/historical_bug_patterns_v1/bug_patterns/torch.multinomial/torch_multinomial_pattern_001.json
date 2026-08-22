@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_multinomial_pattern_001",
+        "api_name": "torch.multinomial",
+        "source_report": "multinomial_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "37403",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Numerical Edge Case",
+        "secondary_category": "Backend Dispatch Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_multinomial_cuda_large_category_sampling_bias",
+        "general_category": "Numerical Edge Case",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Large number of probability categories, e.g., 1,000,000, with many samples",
+        "dtype_trigger": "",
+        "device_trigger": "CUDA tensor",
+        "memory_trigger": "",
+        "value_trigger": "Uniform or near-uniform probabilities with replacement=True",
+        "state_trigger": "",
+        "execution_trigger": "Stochastic sampling with replacement and large sample count",
+        "concrete_constraints": "Call torch.multinomial on a CUDA tensor with a large number of uniform categories, replacement=True, and many samples; CPU reference with identical probabilities is expected to produce near-uniform counts while CUDA may sample only a small biased subset."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "CUDA sampling produces only a small biased subset while CPU produces near-uniform counts for a large uniform categorical distribution.",
+        "signal": "statistical divergence from CPU/reference distribution",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary category count, sample count, probability distribution shape, dtype, and device; include large uniform distributions.",
+        "tensor_construction": "Build probability tensors on CPU and CUDA with identical values; normalize to valid multinomial probabilities.",
+        "constraint_injection": "Use replacement=True; force CUDA execution; compare against CPU or analytic expectation.",
+        "operation_sequence": "Run torch.multinomial on CPU and CUDA with identical probabilities and sample counts; collect sampled category counts and unique categories.",
+        "oracle_construction": "Compare sampled category counts and unique category coverage between CPU and CUDA; trigger if CUDA distribution significantly deviates from CPU/statistical expectation, such as many categories never being sampled."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

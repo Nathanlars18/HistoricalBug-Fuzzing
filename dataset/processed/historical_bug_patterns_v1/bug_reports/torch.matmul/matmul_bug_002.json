@@ -1,0 +1,47 @@
+{
+"metadata":{
+"bug_id":"pytorch_71774",
+"title":"matmul returns uninitialized memory for int64 tensors with zero inner dimension"
+},
+
+"api_information":{
+"primary_api":"torch.matmul",
+"affected_apis":[
+"torch.matmul",
+"__rmatmul__",
+"addmm"
+],
+"operator":"aten::matmul",
+"module":"linear algebra"
+},
+
+"trigger_conditions":{
+"shape":[
+"inner dimension = 0"
+],
+"dtype":[
+"torch.long"
+],
+"device":[
+"CPU"
+],
+"backend":[
+"fbgemm"
+],
+"layout":[],
+"memory":[],
+"state":[],
+"operation_context":"matrix multiplication"
+},
+
+"failure_behavior":{
+"type":"Incorrect Output",
+"description":"Output contains different values from uninitialized memory.",
+"oracle":"Result inconsistency between repeated executions"
+},
+
+"root_cause_information":{
+"layer":"Backend",
+"description":"Backend implementation fails to correctly handle zero-size reduction dimension."
+}
+}

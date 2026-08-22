@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "37930",
+        "title": "convert_sync_batchnorm should respect device affinity"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.nn.SyncBatchNorm.convert_sync_batchnorm",
+        "affected_apis": []
+    },
+    "bug_description": "",
+    "trigger_conditions": {
+        "category": "Device Boundary",
+        "pattern": "Device Affinity Loss During Module Transformation",
+        "condition": "Applying module transformation or conversion operations to a model located on a specific device and checking whether newly created parameters or buffers remain on the original device.",
+        "operation_context": "Calling torch.nn.SyncBatchNorm.convert_sync_batchnorm on a CUDA-resident model containing BatchNorm layers; newly created parameters are placed on CPU instead of the original GPU device."
+    },
+    "failure_behavior": {
+        "type": "Incorrect Output",
+        "description": "Calling torch.nn.SyncBatchNorm.convert_sync_batchnorm on a CUDA-resident model containing BatchNorm layers; newly created parameters are placed on CPU instead of the original GPU device.",
+        "oracle": "Incorrect Output"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/37930_summary_with_code.txt"
+}

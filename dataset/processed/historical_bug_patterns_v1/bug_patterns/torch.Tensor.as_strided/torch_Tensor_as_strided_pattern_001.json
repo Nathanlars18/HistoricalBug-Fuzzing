@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_Tensor_as_strided_pattern_001",
+        "api_name": "torch.Tensor.as_strided",
+        "source_report": "as_strided_bug_001.json",
+        "source": {},
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Gradient State Boundary",
+        "secondary_category": "Memory Layout Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_as_strided_expanded_backward_grad_fn_bug",
+        "general_category": "Gradient State Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Tensor requires_grad=True; a view operation such as expand creates a stride-0 aliased tensor; as_strided or reshape is applied to the expanded view; gradients are computed through a differentiable operation."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Gradients computed through as_strided or reshape applied to an expanded tensor requiring gradients differ from the expected reference gradients.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate tensor shapes, strides, and requires_grad state to produce expanded, aliased view chains involving as_strided, reshape, and expand.",
+        "tensor_construction": "Create base tensors with requires_grad=True; derive expanded views with stride-0 dimensions; apply view operations with explicit shapes and strides.",
+        "constraint_injection": "Inject requires_grad and memory aliasing constraints; ensure at least one expanded dimension has zero stride before applying as_strided or reshape.",
+        "operation_sequence": "Build base tensor -> create expanded view -> apply as_strided or reshape -> apply differentiable operation -> backward -> inspect gradients.",
+        "oracle_construction": "Compare gradients from the view-based graph with reference gradients from an equivalent non-view or numerical computation; flag mismatches."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

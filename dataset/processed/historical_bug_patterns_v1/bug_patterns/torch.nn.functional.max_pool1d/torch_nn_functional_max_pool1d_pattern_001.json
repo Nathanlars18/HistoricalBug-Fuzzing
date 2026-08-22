@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_nn_functional_max_pool1d_pattern_001",
+        "api_name": "torch.nn.functional.max_pool1d",
+        "source_report": "max_pool1d_bug_001.json",
+        "source": {},
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_max_pool1d_noncontiguous_memory_layout_bug",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "3D input tensor, e.g. shape (N, C, L), made non-contiguous by dimension permutation",
+        "dtype_trigger": "",
+        "device_trigger": "CPU and GPU",
+        "memory_trigger": "Non-contiguous tensor produced by permute, transpose, or slicing",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "F.max_pool1d with kernel_size=1",
+        "concrete_constraints": "Input tensor shape (2500, 4, 100) produced from torch.rand(2500, 100, 4).permute(0, 2, 1); F.max_pool1d(input, kernel_size=1)."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Crash",
+        "description": "Segfault when calling max_pool1d on a non-contiguous 3D tensor.",
+        "signal": "SIGSEGV",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate non-contiguous inputs by applying permute, transpose, or slicing to contiguous tensors.",
+        "tensor_construction": "Construct 3D random tensors and then permute dimensions to produce non-contiguous layouts with varying shapes.",
+        "constraint_injection": "Vary pool kernel_size, stride, padding, and input contiguity; include kernel_size=1.",
+        "operation_sequence": "Create tensor -> apply layout-changing operation -> call torch.nn.functional.max_pool1d -> observe process.",
+        "oracle_construction": "Monitor for process crash/SIGSEGV; compare outputs or completion against contiguous baseline."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

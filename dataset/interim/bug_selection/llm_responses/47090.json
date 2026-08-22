@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.max",
+    "bug_category": "Other",
+    "trigger_condition": "Calling torch.max with dim on a torch.Tensor subclass instance, e.g. torch.tensor([1,2]).as_subclass(_T).",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "Medium",
+    "include": "Yes",
+    "reason": "The bug is reproducible by constructing a Tensor subclass, has a clear type-based oracle (should return a named tuple but returns a plain tuple), and generalizes to named-tuple-returning ops on Tensor subclasses.",
+    "confidence": "High",
+    "bug_id": "47090"
+}

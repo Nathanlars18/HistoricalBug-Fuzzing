@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.Tensor.index",
+    "bug_category": "Other",
+    "trigger_condition": "Calling Tensor.index with an integer index instead of a tuple of Tensors, e.g. torch.FloatTensor(5).index(3).",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "Medium",
+    "include": "Yes",
+    "reason": "The report describes a reproducible argument-type boundary issue: an integer index triggers a clear TypeError, and the condition can be exercised by generating different index argument types for Tensor.index.",
+    "confidence": "Medium",
+    "bug_id": "7639"
+}

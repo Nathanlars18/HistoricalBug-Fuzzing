@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.load",
+    "bug_category": "State Boundary",
+    "trigger_condition": "Saving a torch.nn.Module that has torch.nn.Parameter attributes (including nested module parameters) with torch.save, then loading it with torch.load. The loaded module retains the attribute but its type changes from torch.nn.Parameter to torch.Tensor.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by constructing a module with Parameter attributes, saving and loading it, and checking the loaded attribute type. It has a clear expected oracle (Parameter type should be preserved) and generalizes to serialization/deserialization state boundary issues.",
+    "confidence": "High",
+    "bug_id": "8077"
+}

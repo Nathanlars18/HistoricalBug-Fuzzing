@@ -1,0 +1,60 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_Tensor_as_strided_knowledge_001",
+        "source_pattern_id": "torch_Tensor_as_strided_pattern_001",
+        "source_report": "as_strided_bug_001.json",
+        "api_name": "torch.Tensor.as_strided",
+        "original_issue": "",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Autograd gradient state corruption through aliased zero-stride view chains",
+        "general_principle": "Differentiable view operations that create aliased or stride-0 storage may violate the autograd engine's assumptions about gradient accumulation and view propagation, leading to incorrect gradients.",
+        "risk_category": [
+            "Gradient State Boundary",
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Expanded dimensions with stride-0 aliases; reshape/view combinations that alter stride relationships; degenerate or broadcast shapes.",
+        "dtype": "Floating-point autograd-eligible dtypes; mixed or unusual dtypes may expose gradient propagation gaps.",
+        "memory": "Aliased storage, overlapping memory, non-contiguous layouts, zero-stride expanded views, offset or sliced tensors.",
+        "device": "",
+        "execution_state": "requires_grad=True tensors; view-operation chains before differentiable computation; gradient accumulation state."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "Autograd/view operation gradient formulas may not correctly propagate gradients when tensors alias storage through stride-0 expanded dimensions or overlapping view chains, causing mismatched gradient results."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary shapes with dimensions that are expanded to stride-0 aliases",
+            "Chain view operations such as expand, reshape, as_strided, and permute in different orders",
+            "Include non-contiguous, sliced, and offset storage layouts",
+            "Vary requires_grad state across base and view tensors"
+        ],
+        "constraint_awareness": [
+            "Autograd-eligible floating-point tensors are required for gradient comparison",
+            "Expanded stride-0 dimensions introduce storage aliasing and overlap",
+            "Reference gradient computation must account for view semantics and memory aliasing",
+            "The problematic state often depends on the order of view operations in the graph"
+        ],
+        "oracle_strategy": [
+            "Compare autograd gradients against equivalent reference gradients from non-view or numerical computation",
+            "Flag gradient mismatches, unexpected NaNs, or inf values",
+            "Inspect gradient values at aliased and zero-stride positions for incorrect accumulation"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies to any differentiable API that accepts or returns view/aliased tensors, especially operations involving stride-0 expansion or overlap; autograd gradient state boundaries are common across many view-producing operations."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on autograd view chains and aliased storage with stride-0 expanded dimensions; ensure generated harnesses vary shapes, strides, and operation order rather than reproducing a single known sequence.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate diverse shape/view combinations, apply differentiable operations after view chains, and use reference gradient comparison to detect incorrect autograd propagation."
+        ]
+    }
+}

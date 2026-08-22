@@ -1,0 +1,61 @@
+{
+    "metadata": {
+        "knowledge_id": "Tensor_setitem_knowledge_001",
+        "source_pattern_id": "Tensor_setitem_pattern_001",
+        "source_report": "setitem_bug_001.json",
+        "api_name": "Tensor.__setitem__",
+        "original_issue": "PyTorch #28010",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Dtype promotion mismatch in indexed assignment",
+        "general_principle": "In-place assignment APIs may perform implicit dtype promotion differently depending on the memory layout of the selected destination view; advanced indexing can trigger paths that do not match explicit cast-then-assign semantics.",
+        "risk_category": [
+            "Dtype Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Advanced indexing selection shape and source broadcasting compatibility",
+        "dtype": "Mismatched source/destination dtype pairs requiring implicit promotion",
+        "memory": "Non-contiguous destination views produced by advanced indexing",
+        "device": "",
+        "execution_state": ""
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "The indexed assignment path may not follow correct dtype promotion semantics when advanced indexing produces a non-contiguous destination view, leading to writes that do not match cast-then-assign behavior."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary source and destination dtype pairs across floating, integer, and mixed precision categories",
+            "Vary advanced indexing shapes and positions, including list-based selection of rows, columns, or blocks",
+            "Vary source broadcasting shapes against the selected destination subset",
+            "Test non-contiguous or expanded source/destination views"
+        ],
+        "constraint_awareness": [
+            "Dtype promotion may occur implicitly during indexed assignment",
+            "Advanced list indexing can create non-contiguous destination views",
+            "Expected semantics should be equivalent to explicit cast-then-assign"
+        ],
+        "oracle_strategy": [
+            "Compare assigned values against a reference implementation that casts the source to destination dtype before assignment",
+            "Check for incorrect numerical values rather than relying only on crashes or exceptions"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "This principle applies to APIs that perform in-place indexed writes or scatter-like assignment with dtype promotion, including copy_, scatter_, and indexed_put. It may not apply to pure out-of-place arithmetic where dtype promotion is handled independently of destination memory layout."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe dtype promotion paths for in-place indexed assignment",
+            "Use advanced indexing forms that create non-contiguous destination selections",
+            "Verify results against explicit dtype conversion before assignment"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically explore dtype pairs, advanced indexing positions, and broadcast-compatible source shapes for in-place indexed assignment APIs. Compare in-place results with a reference implementation that performs an explicit cast to the destination dtype followed by the same indexed assignment."
+        ]
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "46242",
+        "title": "Assigning a parameter to an indexed tensor that was produced by DDP no longer works in torch nightly (1.7)"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.nn.parallel.DistributedDataParallel",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\nIn torch 1.6 assigning a parameter to an indexed tensor successfully create a new tensor which was part of forward graph, this behavior no long works using the latest torch 1.7 nightly",
+    "trigger_conditions": {
+        "category": "Gradient Boundary",
+        "pattern": "Parameter Mutation Through Differentiable Views",
+        "condition": "Modifying tensors through indexed or view-based in-place operations involving model Parameters during forward execution, followed by backward computation, causing autograd inconsistency.",
+        "operation_context": "In a DDP-wrapped model's forward, assign a Parameter to an advanced-indexed view of an input tensor (e.g., x[[True, False]] = self.token) and then perform backward."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "In a DDP-wrapped model's forward, assign a Parameter to an advanced-indexed view of an input tensor (e.g., x[[True, False]] = self.token) and then perform backward.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "Medium"
+    },
+    "raw_content_reference": "raw_reports/46242_summary_with_code.txt"
+}

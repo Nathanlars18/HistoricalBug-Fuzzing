@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.onnx.export",
+    "bug_category": "Dtype Boundary",
+    "trigger_condition": "Calling torch.onnx.export on a module that computes x ** 2 / torch.pow(x, 2) with a floating-point input tensor. The exporter records the exponent as an int64 tensor, producing an ONNX Pow node with an int64 exponent input.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is rooted in PyTorch's ONNX exporter preserving an integer dtype for the Pow exponent, which violates ONNX/Caffe2 Pow dtype constraints and triggers a clear type-mismatch exception. It is reproducible by generating simple modules that use integer-exponent pow and exporting them, making it a reusable dtype-boundary pattern.",
+    "confidence": "High",
+    "bug_id": "7650"
+}

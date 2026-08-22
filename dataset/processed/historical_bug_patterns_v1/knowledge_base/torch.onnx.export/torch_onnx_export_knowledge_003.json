@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_onnx_export_knowledge_003",
+        "source_pattern_id": "torch_onnx_export_pattern_003",
+        "source_report": "export_bug_003.json",
+        "api_name": "torch.onnx.export",
+        "original_issue": "61754",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Scalar in-place mutation during graph export",
+        "general_principle": "Graph export and transformation pipelines often assume constants are immutable once created. In-place mutation of scalar or constant tensors can violate this assumption and cause tracing/export failures or invalid graph representations.",
+        "risk_category": [
+            "Graph Transformation Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Zero-dimensional scalar tensors and degenerate shapes that may be treated as constants rather than dynamic tensors",
+        "dtype": "Different scalar dtypes may expose distinct constant folding and in-place mutation behaviors",
+        "memory": "Constant tensors that are embedded in graph initializers or attributes",
+        "device": "",
+        "execution_state": "In-place mutation of tensors that were created as constants before graph export"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "Graph export tracing can capture a scalar constant as an immutable value or initializer. A later in-place mutation introduces a stateful dependency that the export process cannot represent correctly, leading to exceptions or an invalid exported graph."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore zero-dimensional scalar tensors used as constants before in-place operations",
+            "Vary scalar constant creation strategies such as zeros, ones, empty, and full",
+            "Vary the kind of in-place operation that mutates the constant",
+            "Compare export behavior between scalar constants and small dynamic tensors"
+        ],
+        "constraint_awareness": [
+            "Constants may be treated as immutable during graph export",
+            "Tracing and scripting may capture in-place mutations differently",
+            "A scalar may be exported as an initializer/attribute rather than as a dynamic value"
+        ],
+        "oracle_strategy": [
+            "Monitor export exceptions caused by in-place mutation of constants",
+            "Validate exported graphs with checker or model validation tools",
+            "Compare exported model outputs against the original module to detect graph misrepresentation"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "This knowledge applies to graph export, tracing, scripting, or compilation paths in any framework that must convert mutable eager tensors into immutable graph constants or initializers. Similar risks can occur for APIs beyond ONNX export whenever constants are captured and later mutated."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe interactions between constant creation and in-place mutation before graph export",
+            "Include zero-dimensional scalars and boundary shapes in export-focused fuzzing",
+            "Check both exception-based failures and silent graph misrepresentation",
+            "Consider export-time constant folding and initializer construction behavior"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate export-focused harnesses that create constants with varied shapes and factories, apply different in-place mutations, and validate the exported graph or compare against eager execution rather than hardcoding the original issue."
+        ]
+    }
+}

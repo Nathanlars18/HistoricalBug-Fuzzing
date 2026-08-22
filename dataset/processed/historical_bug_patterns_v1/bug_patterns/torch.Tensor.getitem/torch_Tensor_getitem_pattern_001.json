@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_Tensor_getitem_pattern_001",
+        "api_name": "torch.Tensor.__getitem__",
+        "source_report": "getitem_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "7559",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_tensor_getitem_zero_length_slice_wrong_result_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Indexing a tensor with at least one zero-length slice, such as slice(0), especially when combined with non-empty slices or followed by further indexing on the resulting empty tensor."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Indexing a tensor with a zero-length slice may return incorrect results instead of the expected empty tensor or standard empty-slice semantics.",
+        "signal": "Incorrect Output",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate varied tensor shapes and mutate slice ranges to produce start==stop, empty ranges, and zero-length slice boundaries.",
+        "tensor_construction": "Construct tensors with dimensions that can become empty under slicing, including small or zero-length dimensions, and use both contiguous and view-based tensors.",
+        "constraint_injection": "Inject slicing constraints that force zero-length output along one or more axes while keeping other axes non-empty.",
+        "operation_sequence": "Apply torch.Tensor.__getitem__ with a zero-length slice, then perform further indexing, reshaping, or reduction operations on the resulting empty tensor.",
+        "oracle_construction": "Compare resulting tensor shape, dtype, and values against expected empty tensor behavior or explicit empty tensor construction such as torch.empty(0, ...)."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

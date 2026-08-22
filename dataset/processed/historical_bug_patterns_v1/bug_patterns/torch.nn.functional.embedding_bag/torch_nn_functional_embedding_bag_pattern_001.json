@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_nn_functional_embedding_bag_pattern_001",
+        "api_name": "torch.nn.functional.embedding_bag",
+        "source_report": "embedding_bag_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "7947",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": "Execution State Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "embedding_bag_max_norm_optional_parameter_path_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "max_norm parameter set to a non-None value",
+        "state_trigger": "Optional parameter max_norm enabled, activating an untested internal execution path",
+        "execution_trigger": "Call torch.nn.functional.embedding_bag with max_norm set to a non-None value",
+        "concrete_constraints": "All non-optional arguments must be valid for embedding_bag; max_norm should be a valid non-None float value. No unusual shape, dtype, or device constraint is required."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Call torch.nn.functional.embedding_bag with max_norm set to a non-None value triggers an implementation exception.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Toggle the optional max_norm parameter between None and non-None values across otherwise equivalent calls; vary max_norm numeric values including small positive floats.",
+        "tensor_construction": "Construct valid embedding weight, input indices, and offsets for torch.nn.functional.embedding_bag, keeping tensor shapes and dtypes within documented requirements.",
+        "constraint_injection": "Set max_norm to a non-None value while keeping other arguments valid; optionally combine with other optional parameters such as mode, padding_idx, and sparse to probe untested parameter paths.",
+        "operation_sequence": "Run torch.nn.functional.embedding_bag directly and compare behavior with and without max_norm; also compare nn.EmbeddingBag module behavior under the same parameter setting.",
+        "oracle_construction": "A valid call with non-None max_norm should either match the same call with max_norm disabled up to expected max_norm behavior, or raise a documented exception; unexpected exceptions are flagged as failures."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

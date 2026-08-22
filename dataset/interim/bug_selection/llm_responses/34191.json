@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.topk",
+    "bug_category": "Gradient Boundary",
+    "trigger_condition": "A CUDA tensor with requires_grad=True containing NaN values is passed to torch.topk, and the output is used for backward.",
+    "oracle_type": "Crash",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by feeding NaN values into torch.topk on CUDA and performing backward, triggering a CUDA assertion from invalid scatter indices. This generalizes to non-finite inputs causing invalid gradient behavior.",
+    "confidence": "High",
+    "bug_id": "34191"
+}

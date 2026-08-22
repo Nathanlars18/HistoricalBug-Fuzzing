@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_load_pattern_001",
+        "api_name": "torch.load",
+        "source_report": "load_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "8077",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Execution State Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_load_parameter_type_preservation_bug",
+        "general_category": "Execution State Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Serialized object contains torch.nn.Parameter attributes, including nested module parameters.",
+        "execution_trigger": "torch.save serializes a torch.nn.Module, then torch.load restores it and Parameter attributes are materialized as torch.Tensor.",
+        "concrete_constraints": "The saved object must be a torch.nn.Module containing torch.nn.Parameter attributes; torch.load is used for deserialization."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "After torch.load, attributes that were torch.nn.Parameter before saving are returned as torch.Tensor instances, losing their original semantic type.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate module structures by varying parameter placement, nesting depth, parameter names, shapes, dtypes, and requires_grad values.",
+        "tensor_construction": "Construct torch.nn.Module subclasses with torch.nn.Parameter attributes at top level and inside nested modules.",
+        "constraint_injection": "Inject framework-specific state wrappers such as torch.nn.Parameter into otherwise ordinary tensor attributes before serialization.",
+        "operation_sequence": "Serialize the constructed module with torch.save, deserialize with torch.load, and inspect the type of each restored parameter-bearing attribute.",
+        "oracle_construction": "Assert that every attribute that was torch.nn.Parameter before torch.save remains isinstance(attr, torch.nn.Parameter) after torch.load, and verify requires_grad and tensor values match."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

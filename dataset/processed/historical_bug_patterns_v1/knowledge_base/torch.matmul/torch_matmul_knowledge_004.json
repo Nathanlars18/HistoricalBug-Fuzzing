@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_matmul_knowledge_004",
+        "source_pattern_id": "torch_matmul_pattern_004",
+        "source_report": "matmul_bug_004.json",
+        "api_name": "torch.matmul",
+        "original_issue": "pytorch_170573",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Out-of-bounds write due to insufficient output storage in out= operations",
+        "general_principle": "Operations that accept an out= parameter may implicitly resize or assume the output tensor has sufficient storage; if the output is a view with smaller storage than the intended result shape, the resize may not reallocate the underlying buffer, leading to out-of-bounds writes and memory corruption.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Undersized output view shapes; mismatched between view shape and underlying storage size.",
+        "dtype": "Any dtype, but initially observed with float32; test various dtypes to uncover dtype-specific indexing or alignment issues.",
+        "memory": "View tensors with insufficient storage; non-contiguous views; storage offsets that reduce available capacity.",
+        "device": "CPU and GPU; out= operations on different devices may have different memory allocation and resize behaviors.",
+        "execution_state": "Operations that allow out= argument; state where output tensor is a view rather than a newly allocated tensor."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "Implicit view resizing of undersized output view does not validate underlying storage capacity before writing results, causing heap buffer overflow or memory corruption."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Construct output tensors as views with storage size smaller than the expected result shape.",
+            "Vary the degree of undersizing, including zero-size and negative-stride views.",
+            "Test with different dtypes to see if alignment or item size changes affect overflow.",
+            "Use output tensors that are non-contiguous or have storage offset."
+        ],
+        "constraint_awareness": [
+            "Output tensor must be passed via out= parameter to trigger the implicit resize path.",
+            "The operation must produce a result larger than the view's underlying storage.",
+            "The input tensors should be valid and produce a well-defined result shape."
+        ],
+        "oracle_strategy": [
+            "Run under memory sanitizers (e.g., ASan) or memory corruption detectors.",
+            "Compare against a reference execution where output is a normal allocated tensor of the correct shape.",
+            "Detect crashes, heap buffer overflows, or silent memory corruption via canary values."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The underlying issue arises from a common API contract where out= parameters may assume sufficient storage. Many ATen operations and higher-level APIs accept out=, and they may share similar resize or storage handling logic. Testing with view outputs and insufficient storage can uncover bugs across a wide range of operations."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on operations that accept out= and may perform implicit resizing.",
+            "Consider the relationship between output tensor's shape, strides, and storage size.",
+            "Be aware that views can share storage, so resize may not allocate new memory if the view's storage is deemed sufficient.",
+            "Test both CPU and GPU paths, as memory allocation behavior may differ."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary output tensor construction (views, small storage, non-contiguous) for a given out= operation. Use memory sanitizers to detect overflow. Generalize across multiple APIs that support out=, not just torch.matmul."
+        ]
+    }
+}

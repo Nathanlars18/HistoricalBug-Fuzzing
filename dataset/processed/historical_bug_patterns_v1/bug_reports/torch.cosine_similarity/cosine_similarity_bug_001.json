@@ -1,0 +1,40 @@
+{
+    "metadata": {
+        "bug_id": "66086",
+        "title": "Backwards compatibility is broken between 1.9.1 and nightly for `torch.cosine_similarity`"
+    },
+    "source_information": {
+        "repository": "PyTorch",
+        "source_type": "GitHub Issue"
+    },
+    "api_information": {
+        "primary_api": "torch.cosine_similarity",
+        "affected_apis": []
+    },
+    "bug_description": "## 🐛 Bug\n\n\n\n\n\n\n\nThe function `torch.cosine_similarity` allowed tensor input of differing shapes in torch 1.9.1. In the nightly version for 1.10, this does not seem to be allowed anymore. This breaks backwards compatibility - is this intended here?",
+    "trigger_conditions": {
+        "category": "Shape Boundary",
+        "pattern": "Tensor Rank Mismatch Handling Failure",
+        "condition": "Calling tensor operators with input tensors having incompatible ranks or dimension structures, such as passing tensors with different numbers of dimensions to torch.cosine_similarity.",
+        "operation_context": "Calling torch.cosine_similarity with two input tensors that have different numbers of dimensions, e.g., x1 shape [10, 2, 3, 4] and x2 shape [2, 3, 4], dim=-1."
+    },
+    "failure_behavior": {
+        "type": "Exception",
+        "description": "Calling torch.cosine_similarity with two input tensors that have different numbers of dimensions, e.g., x1 shape [10, 2, 3, 4] and x2 shape [2, 3, 4], dim=-1.",
+        "oracle": "Exception"
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": "unknown",
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "human_verified",
+        "confidence": "High"
+    },
+    "raw_content_reference": "raw_reports/66086_summary_with_code.txt"
+}

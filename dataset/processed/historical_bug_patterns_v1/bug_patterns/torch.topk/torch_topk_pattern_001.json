@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_topk_pattern_001",
+        "api_name": "torch.topk",
+        "source_report": "topk_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "34191",
+            "repository": "PyTorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Gradient State Boundary",
+        "secondary_category": "Numerical Edge Case"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_topk_nonfinite_gradient_backward_failure",
+        "general_category": "Gradient State Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "Floating-point dtype capable of representing NaN or Inf",
+        "device_trigger": "CUDA",
+        "memory_trigger": "",
+        "value_trigger": "Tensor contains NaN or Inf values",
+        "state_trigger": "requires_grad=True; backward computation is invoked",
+        "execution_trigger": "Differentiable operator torch.topk runs on CUDA tensor containing non-finite values, then backward is called",
+        "concrete_constraints": "CUDA tensor with requires_grad=True containing NaN or Inf values passed to torch.topk; output is used for backward."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Crash",
+        "description": "CUDA assert is triggered when backward is performed on topk output derived from non-finite input.",
+        "signal": "CUDA assert",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate floating-point tensor values to introduce NaN or Inf, especially for tensors that will require gradients.",
+        "tensor_construction": "Construct CUDA floating-point tensors with requires_grad=True and place non-finite values in varied positions.",
+        "constraint_injection": "Force execution on CUDA with requires_grad=True and non-finite floating-point inputs.",
+        "operation_sequence": "Execute a differentiable operator such as torch.topk on the constructed tensor, then invoke backward; optionally invoke backward more than once to exercise gradient state reuse.",
+        "oracle_construction": "Detect process termination or CUDA assert signals during the backward pass."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_max_knowledge_001",
+        "source_pattern_id": "torch_max_pattern_001",
+        "source_report": "max_bug_001.json",
+        "api_name": "torch.max",
+        "original_issue": "GitHub Issue #47090 (PyTorch)",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "API return type contract violation under tensor subclass dispatch",
+        "general_principle": "APIs that construct structured return objects may bypass their documented return-type wrapper when dispatch goes through a Tensor subclass, causing the returned object to violate the API contract.",
+        "risk_category": [
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Reduction paths with dim arguments, including edge/negative dim values and zero-sized or singleton dimensions",
+        "dtype": "Different tensor dtypes may influence dispatch and subclass behavior",
+        "memory": "Subclass wrappers can alter storage layout or metadata assumptions",
+        "device": "Different devices may expose distinct wrapper dispatch or structured return paths",
+        "execution_state": "Presence of Tensor subclass instances changes dispatch and may bypass standard API return-type construction"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The implementation constructs structured return values at the API boundary. When a Tensor subclass is involved, dispatch may take a path that returns a plain tuple or container instead of the documented structured object, exposing a contract mismatch."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Wrap base tensors with multiple Tensor subclass types, including lightweight and as_subclass wrappers",
+            "Vary shapes, dtypes, devices, and subclass identity while preserving the reduction-with-dim call path",
+            "Use dim arguments with positive, negative, and edge dimension values",
+            "Exercise both dim-provided and no-dim return paths to compare return-type behavior"
+        ],
+        "constraint_awareness": [
+            "Documented return types may differ for reduction-with-dim versus full-reduction calls",
+            "Tensor subclass dispatch can bypass API-level return-type wrappers",
+            "Return-type contracts should be checked under wrapper or proxy inputs, not only plain tensors"
+        ],
+        "oracle_strategy": [
+            "Check the returned object type against the documented structured return type",
+            "Verify expected named attributes or fields exist and are accessible on the result",
+            "Treat plain tuples, missing fields, or type mismatches as incorrect output"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies to any API that constructs structured return objects and may dispatch differently when tensor subclasses or proxy objects are used. Testing the documented return-type contract under subclass or wrapper inputs is broadly applicable beyond the original API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on API return-type contracts when Tensor subclasses or dispatch wrappers are involved. Vary subclass types and dim arguments to expose paths that may bypass structured return construction.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that wrap base tensors in subclasses, call reduction-style APIs with dim arguments, and assert the return object matches the documented structured type rather than a plain container. Avoid hard-coding the original API's named type; use type and attribute checks derived from the API documentation."
+        ]
+    }
+}

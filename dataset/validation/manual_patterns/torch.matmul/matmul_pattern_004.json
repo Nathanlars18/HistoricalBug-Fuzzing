@@ -1,0 +1,105 @@
+{
+  "id": "torch.matmul_pattern_004",
+
+  "api": "torch.matmul",
+
+  "source": {
+    "type": "GitHub Issue",
+    "id": "#170573",
+    "repository": "pytorch/pytorch"
+  },
+
+
+  "verification_status": {
+    "level": "official_triaged",
+    "fixed": false
+  },
+
+
+  "bug_category": [
+    "Shape Boundary",
+    "Memory Safety",
+    "Output Tensor Constraint"
+  ],
+  "pattern_abstraction": {
+
+    "api_specific_pattern":
+    "matmul_out_view_storage_boundary_bug",
+
+    "general_category":
+    "Memory Layout Boundary",
+
+    "transferability":
+    "high"
+  },
+
+  "trigger_condition": {
+
+    "shape": {
+      "condition": "Output tensor shape is smaller than required operation result"
+    },
+
+
+    "memory": {
+      "condition": "Output tensor is a view sharing storage with insufficient capacity"
+    },
+
+
+    "operation": {
+      "condition": "torch.matmul called with out argument"
+    }
+  },
+
+
+  "root_cause": {
+
+    "description":
+    "PyTorch allows implicit resizing of an undersized output view. The tensor metadata may be updated without reallocating the underlying storage, causing unsafe writes beyond the original view boundary."
+  },
+
+
+  "bug_oracle": {
+
+    "type": "Memory Corruption",
+
+    "description":
+    "Memory outside the valid output view region is modified after executing torch.matmul."
+  },
+
+
+  "harness_strategy": {
+
+
+    "tensor_construction": [
+
+      "Allocate a larger storage tensor",
+
+      "Create a smaller sliced view as output tensor",
+
+      "Use the view as torch.matmul out argument"
+    ],
+
+
+    "constraints": [
+
+      "out tensor must be a view",
+
+      "out.numel() < expected output numel()",
+
+      "operation=torch.matmul"
+    ],
+
+
+    "oracle_construction": [
+
+      "Place sentinel values after output storage",
+
+      "Check whether sentinel values are modified",
+
+      "Compare with safe reference execution"
+    ],
+
+
+    "operation": "torch.matmul"
+  }
+}

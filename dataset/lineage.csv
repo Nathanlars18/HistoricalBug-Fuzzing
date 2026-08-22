@@ -1,0 +1,6 @@
+source,intermediate,processed,notes
+dataset/raw/DLFrameBRCode_PyTorch/reports,dataset/interim/bug_selection,dataset/processed/historical_bug_patterns_v1/bug_reports,High-level lineage; a complete one-to-one mapping is not yet available
+dataset/raw/DLFrameBRCode_PyTorch/reproduction_code,dataset/interim/bug_selection,dataset/processed/historical_bug_patterns_v1/bug_reports,Reproduction code supports report selection and structuring; high-level lineage only
+dataset/processed/historical_bug_patterns_v1/bug_reports,dataset/schemas/report_to_pattern_mapping.md,dataset/processed/historical_bug_patterns_v1/bug_patterns,Transformation is documented by the report-to-pattern mapping rules
+dataset/processed/historical_bug_patterns_v1/bug_patterns,dataset/schemas/pattern_to_knowledge_rules.md,dataset/processed/historical_bug_patterns_v1/knowledge_base,Transformation is documented by the pattern-to-knowledge rules
+dataset/raw/exp006_matmul_reports,dataset/validation/manual_patterns,dataset/validation/manual_knowledge,Manual torch.matmul examples retained for validation

@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_matmul_knowledge_002",
+        "source_pattern_id": "torch_matmul_pattern_002",
+        "source_report": "matmul_bug_002.json",
+        "api_name": "torch.matmul",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/71774",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Zero-size reduction dimensions in linear algebra operations may produce uninitialized or inconsistent output",
+        "general_principle": "Backend implementations may not correctly initialize or compute outputs when a reduction dimension is zero, leading to nondeterministic results that depend on uninitialized memory state.",
+        "risk_category": [
+            "Shape Boundary",
+            "Dtype Boundary",
+            "Backend Dispatch Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Zero-size reduction dimensions and degenerate matrix dimensions",
+        "dtype": "Integer dtypes, particularly torch.long and other integer types",
+        "memory": "Output buffers may remain uninitialized when the reduction dimension is zero",
+        "device": "CPU backend dispatch may exercise backend-specific zero-size reduction handling",
+        "execution_state": "Repeated executions may reveal nondeterministic outputs"
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Backend linear algebra implementations may not correctly handle zero-size reduction dimensions, leaving output memory uninitialized or producing inconsistent results."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore operations with zero-size reduction dimensions",
+            "Vary outer dimensions while keeping one reduction dimension zero",
+            "Explore integer dtype combinations including long and other integer types",
+            "Test both left and right zero inner dimension cases"
+        ],
+        "constraint_awareness": [
+            "Integer dtype and CPU backend may follow specialized backend paths with weaker zero-size handling",
+            "Repeated execution is required to expose nondeterministic output from uninitialized memory",
+            "Zero-size dimensions are valid but often overlooked boundary conditions"
+        ],
+        "oracle_strategy": [
+            "Run the same operation multiple times and compare outputs for consistency",
+            "Compare against a reference implementation that explicitly handles zero-size reduction dimensions",
+            "Detect outputs that vary across repeated executions or match uninitialized memory patterns"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies broadly to linear algebra and reduction operations where a reduction dimension can be zero and backend kernels may rely on uninitialized output memory, including matmul, addmm, bmm, and similar APIs."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Treat zero-size reduction dimensions as a high-risk boundary condition",
+            "Combine zero dimensions with integer dtypes and CPU backend to exercise backend-specific paths",
+            "Check output determinism across repeated executions",
+            "Consider both matrix multiplication and related reduction-style operations"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate fuzzing harnesses that construct tensors with zero reduction dimensions, vary outer dimensions and integer dtypes, execute the target operation repeatedly, and compare outputs for nondeterminism or against explicit reference behavior. Avoid hard-coding the original issue's exact shapes or dtype constraints."
+        ]
+    }
+}

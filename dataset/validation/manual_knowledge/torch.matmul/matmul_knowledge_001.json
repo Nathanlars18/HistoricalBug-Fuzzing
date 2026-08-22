@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "knowledge_id": "torch.matmul_knowledge_001",
+    "source_pattern_id": "torch.matmul_pattern_001",
+    "api": "torch.matmul",
+    "original_issue": "#191238",
+    "verification_status": "official_triaged",
+    "confidence": "high"
+  },
+
+
+  "knowledge_abstraction": {
+
+    "bug_theme": 
+    "Memory layout assumption violation",
+
+    "general_principle":
+    "Backend implementations may rely on hidden tensor storage assumptions. Invalid memory layouts may cause failures when these assumptions are violated.",
+
+    "risk_category": [
+      "Memory Layout Boundary",
+      "Backend Dispatch Boundary"
+    ]
+
+  },
+
+
+  "risk_dimensions": {
+
+    "shape":
+    "Boundary matrix dimensions may expose backend-specific corner cases.",
+
+    "dtype":
+    "Floating point tensor types may trigger backend-specific execution paths.",
+
+    "memory":
+    "Unusual tensor storage layouts and abnormal memory alignment should be explored.",
+
+    "device":
+    "CPU backend execution paths should be considered.",
+
+    "execution_state":
+    "Backend dispatch behavior should be considered."
+  },
+
+
+  "failure_mechanism": {
+
+    "layer":
+    "Backend Layer",
+
+    "description":
+    "The backend assumes specific memory alignment properties but does not correctly handle abnormal tensor storage layouts."
+  },
+
+
+  "testing_insights": {
+
+    "input_exploration":
+    [
+      "Explore non-standard tensor memory layouts.",
+      "Generate tensors with unusual storage offsets or alignment conditions."
+    ],
+
+
+    "constraint_awareness":
+    [
+      "Consider backend-specific memory assumptions.",
+      "Consider tensor storage properties instead of only tensor values."
+    ],
+
+
+    "oracle_strategy":
+    [
+      "Monitor crashes and sanitizer failures.",
+      "Detect unexpected backend execution errors."
+    ]
+  },
+
+
+  "transferability": {
+
+    "level":
+    "medium"
+  },
+
+
+  "llm_reasoning_guidance": {
+
+    "important_considerations":
+    [
+      "Memory layout related corner cases may expose hidden backend assumptions.",
+      "Consider exploring abnormal tensor storage conditions."
+    ],
+
+
+    "avoid_literal_reproduction":
+    true,
+
+
+    "generation_strategy":
+    "Generate diverse memory layout variations instead of reproducing the exact historical bug input."
+  }
+}

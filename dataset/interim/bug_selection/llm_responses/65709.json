@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.normal",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Calling torch.normal with zero-sized mean and std tensors whose shapes require broadcasting, e.g. mean shape (0, 2) and std shape (0, 1).",
+    "oracle_type": "Exception",
+    "pattern_extractability": "Medium",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is triggered by empty tensor shapes in torch.normal broadcasting and produces a clear RuntimeError, making it reproducible via input generation and abstractable as a shape-boundary issue.",
+    "confidence": "High",
+    "bug_id": "65709"
+}

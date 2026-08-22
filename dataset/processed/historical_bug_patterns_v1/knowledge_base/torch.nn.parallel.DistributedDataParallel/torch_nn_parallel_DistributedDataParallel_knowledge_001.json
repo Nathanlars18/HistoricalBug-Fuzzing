@@ -1,0 +1,60 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_nn_parallel_DistributedDataParallel_knowledge_001",
+        "source_pattern_id": "torch_nn_parallel_DistributedDataParallel_pattern_001",
+        "source_report": "DistributedDataParallel_bug_001.json",
+        "api_name": "torch.nn.parallel.DistributedDataParallel",
+        "original_issue": "PyTorch GitHub Issue 46242",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Gradient state inconsistency from parameter assignment into indexed or view-based tensor positions",
+        "general_principle": "Gradient-stateful APIs may maintain hidden assumptions about parameter usage and autograd graph topology; assigning a Parameter into an indexed or view-based tensor can create alias mutations that desynchronize autograd metadata and cause failures during backward.",
+        "risk_category": [
+            "Gradient State Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Indexing or view shapes that alias only part of a tensor and participate in backward.",
+        "dtype": "",
+        "memory": "Shared or non-contiguous storage introduced by advanced indexing or view operations on parameters.",
+        "device": "",
+        "execution_state": "Forward pass under a gradient-stateful wrapper followed by a backward pass over mutated differentiable paths."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "Gradient-stateful wrappers assume standard parameter usage. When parameters are assigned into indexed or view-based tensor locations, the resulting aliases are not represented consistently in autograd's graph metadata, so backward can trigger exceptions or inconsistent gradient state."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Generate forward graphs where parameters are assigned into indexed or view-based tensor positions that later participate in backward.",
+            "Vary advanced indexing and view operators such as boolean masks, integer indices, slices, and transposes to expose alias mutation paths.",
+            "Create leaf tensors requiring gradients and compute losses through mutated views."
+        ],
+        "constraint_awareness": [
+            "Wrap the model or forward pass in a gradient-stateful API such as DistributedDataParallel.",
+            "Ensure parameter-involved assignments occur before loss computation and backward.",
+            "Use differentiable mutation paths rather than out-of-place data replacements."
+        ],
+        "oracle_strategy": [
+            "Treat any autograd exception or gradient state inconsistency during backward as a failure.",
+            "Compare backward results or parameter gradients against a fresh eager reference execution."
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "This knowledge applies to APIs that introduce gradient synchronization or stateful autograd wrappers, such as DistributedDataParallel, DataParallel, FSDP, checkpointing, or custom autograd functions. The underlying alias mutation issue can occur in many differentiated tensor operations, but the exact trigger depends on wrapper metadata assumptions and indexing/view semantics."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on interactions between model parameters, tensor views/indexing, and gradient-stateful execution.",
+            "Probe forward/backward boundaries where autograd metadata is created and consumed.",
+            "Consider both exception signals and silent gradient mismatches."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate diverse forward graphs that insert parameter assignments into indexed/view-based tensors, wrap the execution in gradient-stateful contexts, and compare backward behavior against eager references. Use the historical pattern as inspiration rather than copying exact indexing expressions or API calls."
+        ]
+    }
+}

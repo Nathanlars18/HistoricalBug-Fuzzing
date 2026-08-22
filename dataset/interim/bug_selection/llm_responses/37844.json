@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.nn.Conv2d",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Using nn.Conv2d with padding_mode='circular' and asymmetric padding tuple (h, w) where h != w, so padding is applied to the wrong spatial dimension.",
+    "oracle_type": "Incorrect Output",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is reproducible by constructing Conv2d with asymmetric circular padding and comparing output shape against zero-padding mode or expected shape. It generalizes to a shape-boundary/padding-dimension pattern.",
+    "confidence": "High",
+    "bug_id": "37844"
+}

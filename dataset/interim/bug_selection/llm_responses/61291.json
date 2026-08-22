@@ -1,0 +1,12 @@
+{
+    "target_api": "torch.mm",
+    "bug_category": "Shape Boundary",
+    "trigger_condition": "Passing CUDA tensors with incompatible shapes to torch.mm, e.g. shapes that do not satisfy (m,k) and (k,n), as occurs through nn.Linear when default tensor type is set to a CUDA type.",
+    "oracle_type": "Exception",
+    "pattern_extractability": "High",
+    "knowledge_generation_feasibility": "High",
+    "include": "Yes",
+    "reason": "The bug is a missing shape validation on GPU mm operations, leading to undefined behavior instead of a shape mismatch exception. It can be reproduced by generating mismatched CUDA tensor shapes and has a clear expected oracle: an exception.",
+    "confidence": "High",
+    "bug_id": "61291"
+}

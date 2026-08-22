@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_nn_Conv2d_knowledge_001",
+        "source_pattern_id": "torch_nn_Conv2d_pattern_001",
+        "source_report": "Conv2d_bug_001.json",
+        "api_name": "torch.nn.Conv2d",
+        "original_issue": "PyTorch GitHub Issue 37844",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Per-dimension spatial parameter mapping inconsistency under non-default padding modes",
+        "general_principle": "Operators that accept per-dimension spatial parameters may incorrectly map values to spatial axes when a non-default execution mode changes the underlying code path, causing a parameter to be applied along the wrong dimension.",
+        "risk_category": [
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Unequal height and width padding values; non-square spatial input shapes; degenerate or small spatial dimensions that can reveal dimension-specific padding effects.",
+        "dtype": "Floating-point and integer dtypes may expose shape or index calculation differences, but the primary risk is dimension mapping independent of dtype.",
+        "memory": "Non-contiguous or strided inputs may interact with padding logic; however, the core risk is parameter-to-axis mapping rather than memory layout.",
+        "device": "CPU and CUDA backends may have separate padding implementations with different dimension mapping behavior.",
+        "execution_state": "Forward execution with non-default padding modes such as circular or reflect can activate alternate padding code paths."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "A padding tuple interpreted in an inconsistent spatial axis order causes padding to be applied along the wrong spatial dimension for certain padding modes, leading to incorrect output shape or values."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore asymmetric multi-dimensional padding configurations where per-dimension values differ",
+            "Vary input spatial shapes so height and width effects can be distinguished",
+            "Swap height and width padding amounts to detect dimension-order confusion",
+            "Use multiple non-default padding modes with asymmetric padding parameters"
+        ],
+        "constraint_awareness": [
+            "Padding parameters are often required to be tuples with length matching the number of spatial dimensions",
+            "Non-default padding modes may use different code paths than zero padding",
+            "Output shape and padded regions should follow the documented dimension order"
+        ],
+        "oracle_strategy": [
+            "Compare against a reference implementation that applies padding explicitly along the intended spatial dimension",
+            "Check output spatial shape and padded boundary values for incorrect dimension ordering",
+            "Monitor for inconsistent behavior between equivalent dimension configurations after swapping height and width"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Many operators accept per-dimension spatial parameters such as padding, kernel size, stride, and dilation; dimension-order or axis-mapping inconsistencies can occur across APIs and backends, especially when alternate execution modes are involved."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe dimension-order handling for multi-dimensional padding parameters, not just whether padding produces a shape change",
+            "Use non-default padding modes because they may invoke separate code paths with different axis mapping",
+            "Separate height and width observations by using distinct spatial sizes and asymmetric padding amounts",
+            "Consider backend-specific differences in spatial parameter mapping"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate parameter combinations that vary per-dimension padding values and padding modes, and use reference-based oracles to verify that each dimension is padded according to the documented axis order."
+        ]
+    }
+}
