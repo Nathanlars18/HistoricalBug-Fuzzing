@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_softmax_knowledge_003",
+        "source_pattern_id": "torch_softmax_pattern_003",
+        "source_report": "softmax_bug_003.json",
+        "api_name": "torch.softmax",
+        "original_issue": "147284",
+        "verification_status": "official_triaged",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Vectorized reduction width boundary causes incorrect output for high-precision GPU reductions",
+        "general_principle": "Backend-specific vectorized kernels may have hidden width or alignment boundaries, and high-precision dtypes can expose incorrect partial vectorization or boundary indexing during reductions.",
+        "risk_category": [
+            "Numerical Edge Case",
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Reduction dimension widths near CUDA vectorization boundaries, especially with row count greater than one",
+        "dtype": "High-precision floating dtypes such as torch.float64",
+        "memory": "Contiguous and non-contiguous layouts may interact with vectorized kernel selection",
+        "device": "CUDA and other GPU backends with specialized reduction kernels",
+        "execution_state": "Reduction along a non-leading dimension with multiple rows"
+    },
+    "failure_mechanism": {
+        "layer": "Kernel Layer",
+        "description": "A vectorized high-precision reduction kernel on GPU mis-handles boundary widths, causing incorrect output or violation of reduction invariants such as row sums."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Sweep reduction dimension widths around vectorization boundaries and vary row counts",
+            "Test high-precision dtypes such as float64 on GPU backends",
+            "Explore shapes that may trigger partial vectorization in reduction kernels",
+            "Include contiguous and non-contiguous tensor layouts"
+        ],
+        "constraint_awareness": [
+            "Reduction dimension choice can select different kernel implementations",
+            "High-precision dtype behavior may differ between CPU and GPU",
+            "Backend kernel selection may depend on shape and dtype combinations"
+        ],
+        "oracle_strategy": [
+            "Compare GPU output against a CPU high-precision reference",
+            "Check that each output row sums to one within a small tolerance",
+            "Compare high-precision GPU output with lower-precision GPU output to isolate dtype-specific kernel issues"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "The underlying principle applies to other GPU reduction-like operations that use vectorized kernels and high-precision dtypes, such as log_softmax, normalized reductions, or attention score normalization, but the specific boundary conditions may vary by kernel implementation."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Target reduction-like GPU kernels with high-precision floating dtypes",
+            "Vary reduction dimension widths across vectorization boundaries",
+            "Combine shape and dtype conditions that may select specialized backend kernels"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that sweep reduction widths, dtypes, and memory layouts on GPU, compare results against CPU reference implementations, and verify mathematical invariants rather than hard-coding a specific triggering shape."
+        ]
+    }
+}

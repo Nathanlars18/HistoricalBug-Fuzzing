@@ -4,25 +4,25 @@
 ## Dataset
 
 Total generated knowledge:
-39
+71
 
 
 ## Manual Evaluation Progress
 
 Evaluated:
-10 / 39
+20 / 71
 
 
 ## Current Results
 
 Pass:
-10
+20
 
 Minor Issue:
-?
+0
 
 Major Issue:
-?
+0
 
 
 ## Evaluation Scope
@@ -43,3 +43,21 @@ The evaluation checks:
 2. Some generalized testing strategies may extend beyond original reports.
    - Considered acceptable because knowledge aims at transferable testing guidance.
 
+3. Newly generated knowledge entries occasionally contain broader
+transferability descriptions than the original issue scope.
+These cases were manually reviewed and accepted because the goal
+of knowledge generation is reusable fuzzing guidance rather than
+exact bug reproduction.
+
+
+## Additional Evaluation Results
+
+Nine newly generated knowledge entries from GitHub Issue based
+bug patterns were manually evaluated.
+
+All evaluated entries passed the quality criteria.
+
+The results indicate that the generated knowledge can:
+- preserve the semantics of source bug patterns,
+- provide reusable testing guidance,
+- support future harness generation.

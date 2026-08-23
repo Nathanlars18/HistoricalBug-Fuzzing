@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_mm_knowledge_003",
+        "source_pattern_id": "torch_mm_pattern_003",
+        "source_report": "mm_bug_003.json",
+        "api_name": "torch.mm",
+        "original_issue": "GitHub Issue #85852 (pytorch/pytorch)",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Out= parameter aliasing input storage produces incorrect results",
+        "general_principle": "Operators with out= parameters may assume output storage is distinct from input storage; when output aliases or overlaps an input, reads and writes can interfere and hidden backend assumptions may be violated, causing incorrect results.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Explore shapes where the output shape can match or overlap an input shape, including square matrices, degenerate dimensions, and view-compatible shapes.",
+        "dtype": "Vary floating-point and integer dtypes; aliasing handling and kernel behavior may differ by dtype.",
+        "memory": "Use out= tensors that alias input storage through the same tensor object, views, slices, or partial overlaps.",
+        "device": "Test CPU and accelerator backends; backend implementations may have different aliasing checks or memory copy behavior.",
+        "execution_state": "Exercise eager execution and graph/compiled execution paths, as aliasing behavior may differ."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The API accepts an out= parameter but may not reject or correctly handle output storage that aliases input storage, leading to overlapping reads and writes that corrupt the result."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore out= tensors that are the same object as an input tensor.",
+            "Explore out= tensors that are views or slices sharing storage with an input tensor.",
+            "Explore partially overlapping and fully overlapping output/input memory arrangements.",
+            "Vary shapes so the output shape matches or is compatible with an input view shape."
+        ],
+        "constraint_awareness": [
+            "Check API documentation and backend requirements for aliasing or overlap constraints on out= parameters.",
+            "Be aware that shape compatibility may determine whether output can alias an input in practice.",
+            "Hidden backend assumptions about input/output storage independence may not be validated."
+        ],
+        "oracle_strategy": [
+            "Compare the aliased out= result against a reference result computed with a fresh, non-aliased output tensor.",
+            "Monitor for crashes, sanitizer reports, or unexpected mutation of input tensors.",
+            "Flag any numerical mismatch or memory corruption as a potential bug."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any API that exposes an out= parameter or in-place/out-of-place variants may rely on independent output storage; the principle of aliasing or overlapping input/output memory is broadly applicable and not limited to a single operation."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Systematically alias out= with input tensors, including full aliasing and overlapping views.",
+            "Use a fresh output reference to detect silent incorrect results.",
+            "Vary shape, dtype, device, and execution state to expose backend-specific aliasing assumptions."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Apply the pattern to any API with an out= parameter or in-place/out-of-place behavior rather than hardcoding a specific operation.",
+            "Construct output tensors that intentionally share storage with inputs using the same tensor, views, slices, or expanded views when shape-compatible.",
+            "Use a fresh-output reference oracle to detect mismatches and include sanitizers to catch memory corruption."
+        ]
+    }
+}

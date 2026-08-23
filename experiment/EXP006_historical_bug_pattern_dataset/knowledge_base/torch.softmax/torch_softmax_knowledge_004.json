@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_softmax_knowledge_004",
+        "source_pattern_id": "torch_softmax_pattern_004",
+        "source_report": "softmax_bug_004.json",
+        "api_name": "torch.softmax",
+        "original_issue": "55056",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Normalization over fully masked or non-finite reduction slices",
+        "general_principle": "Reduction-normalization operations may assume at least one finite value in each reduction slice; when all values are masked to -inf, the max-subtraction and normalization denominator can become numerically invalid and produce NaN instead of a safe fallback.",
+        "risk_category": [
+            "Numerical Edge Case"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Reduction slices where all positions are masked out; zero effective valid length along the reduction dimension",
+        "dtype": "Floating-point dtypes that support -inf and NaN, such as float32, float16, and bfloat16",
+        "memory": "",
+        "device": "Different backends may implement masked softmax fallback inconsistently",
+        "execution_state": "Operation is applied to tensors containing one or more fully non-finite reduction slices"
+    },
+    "failure_mechanism": {
+        "layer": "Numerical Layer",
+        "description": "Softmax-style normalization computes exp(value - max) and divides by the sum of those exponentials. When a reduction slice contains only -inf, the adjusted values and normalization denominator become invalid, causing NaN outputs rather than a defined zero-probability fallback."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Generate tensors with entire reduction slices set to -inf",
+            "Mix fully non-finite slices with finite slices along the same reduction dimension",
+            "Introduce inf, -inf, and NaN values into reduction inputs",
+            "Vary floating-point dtypes and reduction dimensions"
+        ],
+        "constraint_awareness": [
+            "Softmax-style kernels may assume every reduction slice contains at least one finite value",
+            "Attention-like masks can produce fully masked rows before normalization",
+            "Safe implementations often need explicit handling for empty or fully masked slices"
+        ],
+        "oracle_strategy": [
+            "Detect NaN outputs with torch.isnan or equivalent",
+            "Compare fully non-finite slices against a safe fallback such as zero probability vectors",
+            "Check output invariants such as finite probabilities and row-wise sums equal to one"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any normalization or masked reduction over scores or weights can encounter fully invalid reduction slices, including log_softmax, attention weight computation, and masked loss reductions, so the principle generalizes beyond torch.softmax."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Target normalization and masked reduction APIs that consume score-like or weight-like inputs",
+            "Explore fully masked or fully non-finite reduction slices under different dtypes and devices",
+            "Verify fallback behavior when no finite value exists in a reduction slice"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Construct varied tensors where some reduction slices contain only -inf, inf, or NaN values",
+            "Apply masks that remove all valid positions for selected rows before normalization",
+            "Use invariant checks and safe fallback references to detect NaN or incorrect outputs"
+        ]
+    }
+}

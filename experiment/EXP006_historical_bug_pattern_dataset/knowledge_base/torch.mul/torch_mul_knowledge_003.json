@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_mul_knowledge_003",
+        "source_pattern_id": "torch_mul_pattern_003",
+        "source_report": "mul_bug_003.json",
+        "api_name": "torch.mul",
+        "original_issue": "Sparse-dense elementwise multiplication with broadcasting over a sparse singleton dimension returns an incorrect sparse result where only the first slice along the broadcast dimension is populated.",
+        "verification_status": "official_triaged",
+        "confidence": "high"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Sparse-dense broadcast shape normalization missing singleton expansion",
+        "general_principle": "When binary operators combine sparse and dense tensors, hidden shape normalization may skip explicit expansion of singleton sparse dimensions before sparse-dense intersection, leading to partial or incorrect index mapping.",
+        "risk_category": [
+            "Shape Boundary",
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Sparse operands with singleton dimensions that must broadcast against larger dense operand dimensions; varying the position and number of singleton dimensions.",
+        "dtype": "",
+        "memory": "Sparse COO layout used without explicit expansion before sparse-dense intersection; indexing assumptions tied to compressed sparse storage.",
+        "device": "",
+        "execution_state": "Broadcast state during sparse-dense elementwise execution where the sparse operand remains unexpanded."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "The sparse-dense binary operation path does not explicitly expand singleton dimensions in the sparse operand before sparse-dense intersection, causing the resulting sparse index mapping to cover only the first slice along the broadcast dimension."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore sparse COO tensors with singleton dimensions in different positions such as leading, middle, and trailing axes.",
+            "Vary dense operand dimensions that require singleton sparse dimensions to broadcast to larger sizes.",
+            "Explore sparse tensors with multiple singleton dimensions broadcast simultaneously.",
+            "Explore coalesced and uncoalesced sparse COO layouts under broadcast conditions."
+        ],
+        "constraint_awareness": [
+            "Sparse operands may require explicit broadcast expansion before layout intersection with dense operands.",
+            "Sparse-dense broadcasting rules differ from dense-only broadcasting rules.",
+            "Check all broadcast slices rather than assuming the first slice represents the full result."
+        ],
+        "oracle_strategy": [
+            "Convert the sparse result to dense and compare against a dense reference implementation.",
+            "Check for maximum absolute error across all slices of broadcast dimensions.",
+            "Detect silent partial population where only the first broadcast slice is non-zero."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies broadly to APIs that perform elementwise or binary operations between sparse and dense tensors with broadcasting. Any sparse-aware operator may skip hidden singleton expansion during layout normalization, so the risk extends to operations such as addition, subtraction, division, and similar sparse-dense intersections."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Include sparse and dense operands with broadcast singleton dimensions.",
+            "Check sparse layout normalization and expansion before elementwise computation.",
+            "Vary broadcast dimension position, size, and number of singleton axes."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that construct sparse COO tensors with one or more singleton dimensions and dense tensors that require those dimensions to broadcast to larger extents. Exercise elementwise operations without explicitly pre-expanding the sparse operand, then compare the result against a dense reference across all broadcast slices."
+        ]
+    }
+}

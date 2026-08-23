@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_index_select_knowledge_004",
+        "source_pattern_id": "torch_index_select_pattern_004",
+        "source_report": "index_select_bug_004.json",
+        "api_name": "torch.index_select",
+        "original_issue": "GitHub Issue 188756",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Integer overflow in backend memory offset calculation for large tensors",
+        "general_principle": "Backend kernels may calculate flattened memory offsets using integer types narrower than required by tensor numel or stride, causing silent overflow and incorrect output for very large tensors.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "Numerical Edge Case"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Very large source tensor dimensions where numel or row stride can make flattened offset arithmetic exceed signed 32-bit range",
+        "dtype": "Index and stride values whose product exceeds signed 32-bit integer range; backend kernels may assume narrower integer widths",
+        "memory": "Flattened memory offset for selected rows exceeding INT32_MAX",
+        "device": "Non-CPU backends such as MPS that may use 32-bit offset or address calculations without overflow detection",
+        "execution_state": "Forward execution of index selection or embedding lookup on large tensors with backend kernel dispatch"
+    },
+    "failure_mechanism": {
+        "layer": "Kernel Layer",
+        "description": "The backend kernel computes a selected row memory offset as index multiplied by stride using a 32-bit integer. For large tensors, this product overflows INT32_MAX and silently produces zero or incorrect rows instead of raising an error."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary index values around the boundary where index multiplied by row stride crosses INT32_MAX",
+            "Explore large source tensors or embedding tables with numel near or above 2^31",
+            "Select valid indices that target rows immediately before and after the offset overflow boundary",
+            "Test both direct index selection APIs and embedding-style lookups with large row sizes"
+        ],
+        "constraint_awareness": [
+            "Backend kernels may assume offset arithmetic fits in 32-bit signed integers",
+            "Overflow depends on the product of index and row stride or row size, not only total tensor size",
+            "Silent wrong output can occur without any crash or error signal",
+            "CPU reference implementations may handle wider offsets correctly, enabling differential detection"
+        ],
+        "oracle_strategy": [
+            "Compare backend output against CPU or reference output for the same large-tensor indexing operation",
+            "Flag all-zero or otherwise incorrect selected rows when the reference output is nonzero",
+            "Enable integer overflow sanitizers or backend debug checks where available"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The risk applies broadly to APIs that perform backend address or offset calculations for large tensors, such as gather, embedding, index_select, and slicing, where hidden integer width assumptions can cause overflow."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on combinations of large tensor numel, row size or stride, and valid indices that can overflow backend offset calculations",
+            "Use differential testing between backend and CPU reference as the main oracle",
+            "Do not limit exploration to total element count; row offset boundaries are critical",
+            "Consider backend-specific integer width assumptions in kernel implementations"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate large-tensor selection or embedding harnesses with boundary index and row-size combinations, run them on backend and CPU, and treat silent mismatches or zero rows as failure signals."
+        ]
+    }
+}

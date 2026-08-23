@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_cat_knowledge_004",
+        "source_pattern_id": "torch_cat_pattern_004",
+        "source_report": "cat_bug_004.json",
+        "api_name": "torch.cat",
+        "original_issue": "",
+        "verification_status": "official_triaged",
+        "confidence": "high"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Backend-dependent output memory format selection for preallocated out= operations",
+        "general_principle": "Backend implementations may compute or inherit output memory formats using different rules, so equivalent operations can produce inconsistent memory layout metadata for preallocated outputs when inputs have mixed memory formats.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "Backend Dispatch Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Preallocated out= tensor shapes that may differ from the operation's inferred output shape",
+        "dtype": "",
+        "memory": "Mixed input memory formats such as contiguous and channels_last, non-contiguous layouts, and unusual strides",
+        "device": "Cross-backend execution, especially CPU and CUDA",
+        "execution_state": "Use of out= variants with preallocated output tensors"
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Different backend implementations select output memory formats inconsistently: one backend may inherit from the first input, while another may recompute from all inputs. This can cause the same operation with mixed-format inputs to produce different output memory_format metadata across backends."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary input tensor memory formats among contiguous, channels_last, and other supported layouts",
+            "Explore out= tensors whose shapes differ from the inferred output shape",
+            "Execute the same operation across CPU and CUDA backends",
+            "Mix contiguous and non-contiguous input tensors in a single call"
+        ],
+        "constraint_awareness": [
+            "Output memory format selection may be backend-dependent",
+            "Mixed memory formats among inputs can expose hidden format inheritance or recomputation policies",
+            "Preallocated output tensors can affect layout propagation",
+            "Cross-backend consistency is not guaranteed even when numerical values match"
+        ],
+        "oracle_strategy": [
+            "Compare output memory_format metadata between CPU and CUDA executions for equivalent inputs",
+            "Assert the observed output memory_format against a documented or expected selection rule",
+            "Monitor for inconsistent layout metadata even when output values appear correct"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "This principle applies broadly to operators that accept preallocated out= tensors and propagate or compute memory formats, especially where multiple backends implement layout selection differently. It is not limited to concatenation and can guide testing of other shape-preserving or layout-propagating API variants."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe backend-dependent layout selection for out= and in-place API variants",
+            "Consider memory format propagation rules when inputs have mixed layouts",
+            "Compare metadata such as memory_format, strides, and contiguity across backends"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Use this knowledge to design harnesses that vary input memory formats and out= tensor shapes, run on multiple backends, and compare layout metadata or documented memory-format expectations rather than reproducing the original API-specific failure."
+        ]
+    }
+}

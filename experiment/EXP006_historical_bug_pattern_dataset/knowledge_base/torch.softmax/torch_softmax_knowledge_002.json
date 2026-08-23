@@ -1,0 +1,59 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_softmax_knowledge_002",
+        "source_pattern_id": "torch_softmax_pattern_002",
+        "source_report": "softmax_bug_002.json",
+        "api_name": "torch.softmax",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/139701",
+        "verification_status": "official_triaged",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Layout-dependent numerical inconsistency for reduction-style operators",
+        "general_principle": "Floating-point reduction operations can produce different rounding results when logically equivalent tensor layouts cause different memory traversal and accumulation orders.",
+        "risk_category": [
+            "Numerical Edge Case",
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Reduction dimensions that can be permuted or transposed while preserving logical semantics",
+        "dtype": "Floating-point dtypes where rounding error is observable, especially float32 and float64",
+        "memory": "Non-contiguous, permuted, or transposed tensor layouts",
+        "device": "CPU and other backends where reduction order may depend on memory layout",
+        "execution_state": ""
+    },
+    "failure_mechanism": {
+        "layer": "Numerical Layer",
+        "description": "Equivalent tensor layouts can change the order of floating-point accumulation in reduction kernels, leading to small numerical differences that violate strict correctness expectations."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore tensors with permuted, transposed, or otherwise non-contiguous memory layouts",
+            "Vary floating-point dtypes and value distributions, including large dynamic range and negative values",
+            "Compare results from logically equivalent layout transformations before and after reduction"
+        ],
+        "constraint_awareness": [
+            "Keep the logical reduction dimension and dtype identical across compared variants",
+            "Ensure identical input values are used for all layout transformations"
+        ],
+        "oracle_strategy": [
+            "Compare outputs from equivalent layout transformations using max absolute difference and flag differences above a strict tolerance"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies broadly to reduction and layout-sensitive operations where floating-point accumulation order may change with memory traversal order, not just to the original softmax API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Test operations whose results depend on reduction order and floating-point accumulation",
+            "Introduce permute, transpose, and inverse-permute layout variations",
+            "Compare logically equivalent computations with strict numerical oracles"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that create a base tensor, apply inverse layout transformations before and after an operation under test, and check whether outputs differ beyond a strict tolerance."
+        ]
+    }
+}

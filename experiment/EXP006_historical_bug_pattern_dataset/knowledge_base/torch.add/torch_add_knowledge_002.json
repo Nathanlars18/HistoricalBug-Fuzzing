@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_add_knowledge_002",
+        "source_pattern_id": "torch_add_pattern_002",
+        "source_report": "add_bug_002.json",
+        "api_name": "torch.add",
+        "original_issue": "GitHub Issue 154501",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Complex special-value arithmetic propagation error",
+        "general_principle": "Elementwise arithmetic on complex floating-point tensors may mishandle IEEE special values such as Inf and NaN in real or imaginary components, causing incorrect propagation of NaN or incorrect component preservation.",
+        "risk_category": [
+            "Numerical Edge Case"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "",
+        "dtype": "complex64 and complex128 floating-point complex dtypes",
+        "memory": "",
+        "device": "CPU and CUDA backends",
+        "execution_state": "Arithmetic operations on complex tensors whose real or imaginary components contain Inf or NaN"
+    },
+    "failure_mechanism": {
+        "layer": "Numerical Layer",
+        "description": "Complex floating-point arithmetic kernels may fail to follow IEEE 754 special-value propagation rules when infinite components are combined with finite or NaN components, leading to mathematically incorrect results."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Generate complex tensors with combinations of finite, positive Inf, negative Inf, and NaN in real and imaginary components",
+            "Vary complex dtype between complex64 and complex128",
+            "Cover cases where special values appear in different components across operands",
+            "Apply elementwise complex arithmetic operations such as addition and subtraction"
+        ],
+        "constraint_awareness": [
+            "IEEE 754 special-value propagation rules for complex arithmetic",
+            "NaN behavior for complex infinities and indeterminate forms",
+            "Backend consistency between CPU and CUDA",
+            "Reference behavior for complex special-value propagation"
+        ],
+        "oracle_strategy": [
+            "Compare outputs against a reference implementation such as NumPy or high-precision complex arithmetic",
+            "Detect unexpected NaN or incorrect preservation of finite and infinite components in complex results"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies to any API performing arithmetic on complex floating-point tensors where IEEE special-value propagation must be preserved. It is not limited to torch.add or torch.sub and can guide testing for other elementwise or reduction operations over complex dtypes."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on special-value propagation across real and imaginary components, vary complex dtype and backend, and compare against a precise reference implementation.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically combine finite, Inf, and NaN components across complex operands, apply multiple elementwise arithmetic operations, and validate results against a high-precision reference for IEEE special-value behavior. Generalize across APIs operating on complex dtypes rather than reproducing the original issue directly."
+        ]
+    }
+}

@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_index_select_knowledge_003",
+        "source_pattern_id": "torch_index_select_pattern_003",
+        "source_report": "index_select_bug_003.json",
+        "api_name": "torch.index_select",
+        "original_issue": "pytorch/pytorch#169779",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Compiled execution semantics diverge from eager API validation for invalid index inputs",
+        "general_principle": "Compiler transformations may replace strict API-level input validation with lower-level primitives that accept broader input semantics, causing eager and compiled modes to disagree.",
+        "risk_category": [
+            "API Contract Boundary",
+            "Graph Transformation Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Target dimension sizes where out-of-range or negative indices could alias valid positions under lower-level wrapping semantics",
+        "dtype": "Integer index tensors, especially int64, may expose code paths with different validation behavior",
+        "memory": "",
+        "device": "CPU, CUDA, and MPS backends may follow different decomposition or validation paths",
+        "execution_state": "Eager execution versus compiled/optimized execution modes"
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "A compiled backend can lower the API operation into a more permissive indexing primitive that accepts negative index values, bypassing the API-level validation that rejects them in eager mode."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary index values from valid non-negative values to negative boundary values near the negative dimension size",
+            "Mix positive and negative indices within the same index tensor",
+            "Vary input tensor shapes and the target dimension being indexed",
+            "Test dense and non-contiguous input tensors where applicable"
+        ],
+        "constraint_awareness": [
+            "Eager API validation may reject negative indices while compiled backends accept them",
+            "Index tensors usually require integer dtypes such as int64",
+            "Compiled-mode decompositions can differ across backends and devices",
+            "Identical inputs must be executed in both eager and compiled modes before comparing outcomes"
+        ],
+        "oracle_strategy": [
+            "Flag execution mismatches where eager mode raises an exception but compiled mode succeeds",
+            "Compare outputs between eager and compiled executions for identical inputs",
+            "Treat exception presence or absence and output inconsistency as contract violation signals"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle that compile-time decompositions can weaken or alter eager API input validation applies broadly to indexing, slicing, selection, and shape manipulation operations. Comparing eager and compiled behavior for boundary inputs is a general testing strategy across many tensor APIs."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Prioritize boundary index values that expose validation mismatches between eager and compiled execution",
+            "Cover multiple backends and devices when feasible because decomposition behavior may differ",
+            "Do not assume eager and compiled modes share identical input validation contracts",
+            "Target APIs whose decompositions may lower to more permissive indexing or data movement primitives"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that execute the same API call with boundary-condition inputs in both eager and compiled modes, then compare exceptions and outputs. Vary indices across valid and invalid ranges to reveal contract divergence without copying historical bug values."
+        ]
+    }
+}

@@ -1,0 +1,61 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_mm_knowledge_002",
+        "source_pattern_id": "torch_mm_pattern_002",
+        "source_report": "mm_bug_002.json",
+        "api_name": "torch.mm",
+        "original_issue": "GitHub Issue #191693 (pytorch/pytorch)",
+        "verification_status": "user_reported",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Backend dtype dispatch mismatch for unsupported tensor dtypes",
+        "general_principle": "Backend implementations may not support the same dtype/operation combinations as CPU, and unsupported dtype/backend pairs can surface as opaque dispatch-time runtime errors instead of clear validation failures.",
+        "risk_category": [
+            "Dtype Boundary",
+            "Backend Dispatch Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "2D matrix inputs with varied shapes, including small, large, square, and rectangular dimensions",
+        "dtype": "Boolean dtype and other non-default dtype combinations",
+        "memory": "",
+        "device": "Backend-specific devices such as MPS; device placement constraints for both operands",
+        "execution_state": ""
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Backend dispatch may lack proper dtype support validation for certain operations, causing unsupported dtype/backend combinations to fail with opaque function-state runtime errors rather than clear unsupported dtype messages."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Generate tensors with boolean and other non-default dtypes on backend devices to probe dispatch coverage",
+            "Vary 2D matrix shapes, including degenerate, square, and rectangular dimensions",
+            "Test the same operation across multiple backends to identify dtype support mismatches"
+        ],
+        "constraint_awareness": [
+            "Backend dtype coverage may be narrower than CPU coverage",
+            "Boolean tensors may be unsupported or may behave differently for linear algebra operations",
+            "Both operands must satisfy backend and dtype dispatch constraints"
+        ],
+        "oracle_strategy": [
+            "Monitor for opaque function-state RuntimeError signals",
+            "Compare behavior and results against CPU or another backend where the dtype is supported"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "This knowledge applies broadly to APIs where backend kernels may have narrower dtype coverage than CPU. It highlights the need to probe dtype/backend compatibility for tensor operations beyond the original API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe dtype support across available backends for common tensor operations",
+            "Check backend dispatch behavior for unsupported dtype/device combinations",
+            "Include boolean and other non-default dtypes in backend-specific fuzzing"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Create fuzzing harnesses that iterate over dtype and backend combinations for tensor operations, emphasizing non-standard dtypes such as bool. Treat opaque backend dispatch errors as signals and compare behavior against reference backends to detect coverage gaps."
+        ]
+    }
+}

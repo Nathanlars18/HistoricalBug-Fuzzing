@@ -4,13 +4,40 @@ import argparse
 import requests
 import time
 
-PATTERN_DIR = "bug_patterns"
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
 
-OUTPUT_DIR = "knowledge_base"
 
-SCHEMA_FILE = "knowledge_schema.md"
+EXP006_DIR = os.path.dirname(
+    BASE_DIR
+)
 
-RULE_FILE = "pattern_to_knowledge_rules.md"
+
+PATTERN_DIR=os.path.join(
+    EXP006_DIR,
+    "bug_patterns"
+)
+
+
+OUTPUT_DIR=os.path.join(
+    EXP006_DIR,
+    "knowledge_base"
+)
+
+
+SCHEMA_FILE=os.path.join(
+    EXP006_DIR,
+    "schemas",
+    "knowledge_schema.md"
+)
+
+
+RULE_FILE=os.path.join(
+    EXP006_DIR,
+    "schemas",
+    "pattern_to_knowledge_rules.md"
+)
 
 def load_file(path):
 
@@ -732,8 +759,15 @@ def process_api(api, api_key):
 
 
 
-        knowledge_id=f"{api.replace('.','_')}_knowledge_{existing_count+count+1:03d}"
+        pattern_id = filename.replace(
+            ".json",
+            ""
+        )
 
+        knowledge_id = pattern_id.replace(
+            "_pattern",
+            "_knowledge"
+        )
 
         knowledge["metadata"]["knowledge_id"]=knowledge_id
 

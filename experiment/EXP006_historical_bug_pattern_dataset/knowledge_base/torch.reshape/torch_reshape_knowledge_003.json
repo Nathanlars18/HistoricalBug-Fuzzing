@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_reshape_knowledge_003",
+        "source_pattern_id": "torch_reshape_pattern_003",
+        "source_report": "reshape_bug_003.json",
+        "api_name": "torch.view_copy",
+        "original_issue": "GitHub Issue #89068 (pytorch/pytorch)",
+        "verification_status": "official_triaged",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Zero-element output tensor resize failure in shape-changing out= variants",
+        "general_principle": "Out= variants of shape-changing operations may rely on preallocated output tensors already having compatible storage or element counts, and may skip or mishandle resizing when the output starts with zero elements.",
+        "risk_category": [
+            "Shape Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Zero-element to non-zero-element shape transitions; zero-dim versus zero-length shapes; shapes containing zero such as [0], [1,0], and [0,1]",
+        "dtype": "",
+        "memory": "Preallocated output tensor with empty storage or zero numel",
+        "device": "",
+        "execution_state": "Preallocated empty output tensor passed through out= while the requested target shape is non-empty"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The out= variant of a shape-changing operation does not correctly handle resizing when the provided output tensor has zero elements. The generated kernel or dispatch path may omit the required resize logic, causing a shape mismatch between the existing empty output and the requested non-empty target shape."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Mutate shapes across empty and non-empty boundaries, including zero-dim and zero-element layouts",
+            "Construct preallocated output tensors with zero elements and pass them to out= variants of shape-changing operations",
+            "Vary target shapes while keeping the preallocated output tensor initially empty or zero-sized"
+        ],
+        "constraint_awareness": [
+            "The output tensor may have zero elements while the requested target shape has non-zero elements",
+            "Preallocated out= tensors may need explicit resizing before use",
+            "Shape compatibility should be checked between the preallocated output state and the requested target shape"
+        ],
+        "oracle_strategy": [
+            "Compare out= behavior against the corresponding non-out= reference behavior or manually resized output",
+            "Flag unexpected RuntimeError or shape mismatch exceptions as possible resizing failures",
+            "Monitor whether zero-element output tensors are correctly resized to the target shape"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies broadly to shape-changing APIs with out= or in-place semantics, because many reshape, view, expand, and resize-like operations share similar output resizing and shape-compatibility logic. Any API that accepts preallocated output tensors may have hidden assumptions about zero-element or empty storage."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on preallocated empty or zero-element output tensors for shape-changing out= APIs. Mutate target shapes across zero/non-zero boundaries and verify whether automatic resizing semantics are honored.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate fuzz harnesses that allocate zero-element output tensors, invoke out= shape-changing operations with varied non-empty target shapes, and compare against reference behavior to detect resize or shape mismatch failures."
+        ]
+    }
+}

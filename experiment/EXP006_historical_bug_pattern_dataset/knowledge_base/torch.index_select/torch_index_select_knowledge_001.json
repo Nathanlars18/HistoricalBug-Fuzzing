@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_index_select_knowledge_001",
+        "source_pattern_id": "torch_index_select_pattern_001",
+        "source_report": "index_select_bug_001.json",
+        "api_name": "torch.index_select",
+        "original_issue": "121251",
+        "verification_status": "fixed",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Compiled execution mode omits input bounds validation that eager execution enforces",
+        "general_principle": "Optimizing compilers and graph transformations may remove or omit runtime input validation that eager execution performs, causing compiled execution to return incorrect results or perform out-of-bound reads instead of raising the same API-level error.",
+        "risk_category": [
+            "API Contract Boundary",
+            "Graph Transformation Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Selected dimension boundaries, small dimensions, and index values at or outside the valid range",
+        "dtype": "",
+        "memory": "Out-of-bound reads or invalid memory access caused by missing bounds checks in compiled kernels",
+        "device": "CPU and backend execution transitions between eager and compiled modes",
+        "execution_state": "Compiled execution state versus eager execution state"
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Backend-generated kernels may rely on compiler optimizations that remove runtime bounds checks or do not preserve eager-mode validation semantics, causing invalid indices to be accepted and processed."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore index tensors with values at the selected dimension boundary",
+            "Explore index tensors with values just outside the valid range, including negative out-of-range values",
+            "Vary selected dimension sizes, especially small dimensions where boundary violations are easier to trigger",
+            "Test indexing-like operations under both eager execution and optimized compiled execution"
+        ],
+        "constraint_awareness": [
+            "Eager execution defines the expected API contract for invalid inputs",
+            "Compiled execution should preserve validation and error semantics from eager execution",
+            "Out-of-range indices are invalid and should raise an error rather than silently returning data"
+        ],
+        "oracle_strategy": [
+            "Use eager execution as the reference oracle for exception behavior",
+            "If eager execution raises an error for invalid input, compiled execution must also raise an error",
+            "Monitor for incorrect output values or silent out-of-bound memory access when error parity is violated"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "description": "This knowledge applies broadly to index-selection, gather, slice, and similar data-access APIs that can be transformed by optimizing compilers. Any backend optimization that removes or reorders validation logic may break the API contract for invalid inputs, so the testing principle is not limited to torch.index_select."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on boundary and out-of-range indices for indexing and gather-style APIs",
+            "Compare eager execution semantics with compiled or optimized execution modes",
+            "Treat eager exception behavior and output correctness as the reference contract",
+            "Consider small selected dimensions to make invalid index cases easy to surface"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary selected dimension sizes, index values around valid boundaries, and execution modes such as eager and optimized compiled paths. Use eager execution as the oracle and validate that compiled execution preserves both error behavior and output correctness for invalid or boundary inputs."
+        ]
+    }
+}

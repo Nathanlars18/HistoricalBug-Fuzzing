@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_reshape_knowledge_002",
+        "source_pattern_id": "torch_reshape_pattern_002",
+        "source_report": "reshape_bug_002.json",
+        "api_name": "torch.reshape",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/194051",
+        "verification_status": "official_triaged",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Unchecked view metadata can make logical extents exceed the underlying storage",
+        "general_principle": "View or alias operations may trust caller-provided size and stride metadata without validating that the resulting logical range is contained within the actual storage. Subsequent materializing operations then iterate according to invalid metadata and access out-of-bounds memory.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Oversized or non-contiguous view shapes whose logical extents exceed the allocated input storage",
+        "dtype": "Different dtypes change element sizes and stride byte calculations, which can shift reachable memory boundaries",
+        "memory": "Custom size and stride metadata maps logical elements outside the allocated tensor storage",
+        "device": "CPU backend memory access behavior and sanitizer coverage",
+        "execution_state": "Metadata-only view or alias creation followed by a materializing iteration or reduction operation"
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "View or alias creation does not validate that user-controlled sizes and strides keep the accessible logical range within storage bounds. A later materializing kernel iterates according to the invalid view metadata and performs out-of-bounds reads."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary view sizes and stride values, especially oversized or non-contiguous strides",
+            "Explore small input storages combined with requested logical extents that exceed storage bounds",
+            "Test metadata-only view or alias operations followed by materializing operations"
+        ],
+        "constraint_awareness": [
+            "Storage offset plus stride times size minus one must stay within storage bounds",
+            "View and alias metadata may be untrusted and must be validated against actual storage",
+            "Materializing operations assume valid view metadata and may expose invalid accesses"
+        ],
+        "oracle_strategy": [
+            "Use AddressSanitizer or another memory sanitizer to detect heap-buffer-overflow",
+            "Monitor for out-of-bounds reads or crashes when the view is accessed",
+            "Compare against a reference implementation that derives view shapes from valid storage bounds"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle that view and alias APIs must validate size and stride metadata against actual storage applies broadly to reshape, expand, permute, slice, as_strided, and other metadata-changing operations in deep learning frameworks."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe view and alias operations with inconsistent size, stride, or storage_offset metadata",
+            "Follow metadata-only operations with materializing kernels to trigger latent invalid accesses",
+            "Consider element-size interactions for different dtypes when computing stride byte ranges"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that construct valid small tensors, then apply view or alias operations with mutated or user-controlled metadata and execute a downstream materializing operation. Rely on sanitizers to detect invalid accesses rather than copying the original issue parameters."
+        ]
+    }
+}

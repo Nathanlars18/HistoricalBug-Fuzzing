@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_cat_knowledge_003",
+        "source_pattern_id": "torch_cat_pattern_003",
+        "source_report": "cat_bug_003.json",
+        "api_name": "torch.cat",
+        "original_issue": "",
+        "verification_status": "official_triaged",
+        "confidence": "high"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Empty tensor container dispatch fallback missing",
+        "general_principle": "Functions accepting tensor containers may rely on tensor arguments for dispatcher-based dtype, device, and backend inference; empty containers can bypass such inference and expose missing fallback paths.",
+        "risk_category": [
+            "API Contract Boundary",
+            "Backend Dispatch Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Zero-length tensor list or degenerate/empty tensor elements inside the container",
+        "dtype": "Missing dtype inference when no tensor argument is available",
+        "memory": "Empty container with no tensor storage to provide layout or alignment hints",
+        "device": "Missing device/backend inference when no tensor argument is available",
+        "execution_state": "Dispatcher kernel selection before any tensor argument can be inspected"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer / Backend Layer",
+        "description": "The public API accepts an empty TensorList, but the underlying dispatcher/schema requires tensor arguments to select a backend kernel and no fallback is registered, causing failure before or during kernel selection."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary tensor container length from zero to many",
+            "Include empty, non-empty, and mixed tensor elements",
+            "Vary shape, dtype, device, and memory layout of contained tensors"
+        ],
+        "constraint_awareness": [
+            "Empty tensor containers may leave dtype, device, and backend underdetermined",
+            "Some APIs expect explicit validation or fallback for zero tensor arguments",
+            "Container-level dispatch can fail before individual tensor validation"
+        ],
+        "oracle_strategy": [
+            "Treat unexpected NotImplementedError or dispatcher fallback errors as failures",
+            "Distinguish clear validation errors from backend dispatch failures",
+            "Compare non-empty input behavior with empty input to detect contract gaps"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies to any API accepting TensorList or variadic tensor inputs where dispatch inference depends on at least one tensor argument; empty containers may expose missing fallback paths across PyTorch and similar frameworks."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Explore zero-length tensor containers and empty tensor elements",
+            "Consider whether dtype, device, and backend can be inferred without tensor arguments",
+            "Check API contracts for explicit error handling versus missing fallback"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary container length and contained tensor properties across APIs accepting tensor lists, and validate that empty or degenerate inputs produce either documented validation errors or correct behavior rather than internal dispatch failures."
+        ]
+    }
+}

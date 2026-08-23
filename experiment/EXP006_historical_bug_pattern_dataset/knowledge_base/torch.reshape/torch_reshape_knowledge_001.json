@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_reshape_knowledge_001",
+        "source_pattern_id": "torch_reshape_pattern_001",
+        "source_report": "reshape_bug_001.json",
+        "api_name": "aten::_reshape_alias_copy",
+        "original_issue": "pytorch/pytorch#194050",
+        "verification_status": "official_triaged",
+        "confidence": "high"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Unvalidated caller-provided tensor geometry causes out-of-bounds memory access during view/copy materialization",
+        "general_principle": "Operators that accept explicit size and stride metadata may trust that metadata to be consistent with the backing storage; when invoked with invalid geometry, downstream materialization can read or write outside allocated memory.",
+        "risk_category": [
+            "API Contract Boundary",
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Small logical shapes combined with custom size lists; size/stride mismatches",
+        "dtype": "Integer dtypes such as int64 that produce wide memory accesses",
+        "memory": "Small backing storage with stride values that exceed allocation; non-contiguous, zero, or negative stride layouts",
+        "device": "CPU",
+        "execution_state": "Direct operator invocation with caller-provided size/stride before materialization or copy"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The operator accepts caller-provided size and stride metadata without validating source storage bounds; downstream copy or materialization uses the resulting invalid geometry, causing out-of-bounds access at the kernel layer."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore size and stride combinations whose computed logical extents exceed the allocated backing storage",
+            "Mutate stride metadata across large, zero, negative, and sparse values",
+            "Construct tensors with small storage and custom size/stride mismatches",
+            "Force materialization of views or copies created from custom geometry"
+        ],
+        "constraint_awareness": [
+            "Stride-accepting operators may assume tensor geometry is consistent with storage allocation",
+            "Caller-provided metadata can bypass high-level tensor validation paths",
+            "Memory safety failures may only appear during actual materialization rather than metadata construction"
+        ],
+        "oracle_strategy": [
+            "Run under AddressSanitizer or comparable memory error detector",
+            "Monitor for heap-buffer-overflow, invalid reads, or process crashes during materialization"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The risk applies broadly to APIs that accept explicit size/stride metadata, view/copy operators, and kernels that materialize tensor geometry without independently validating storage bounds."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Inspect APIs that accept explicit size, stride, or storage offset metadata and then materialize or copy tensor data",
+            "Test small backing storage with inconsistent geometry to expose missing bounds checks",
+            "Consider both API and kernel layer validation gaps when generating inputs"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that create tensors with minimal storage and custom size/stride metadata, feed them to stride-accepting APIs, force materialization, and run under a memory sanitizer to detect invalid access."
+        ]
+    }
+}

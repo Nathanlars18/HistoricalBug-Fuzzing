@@ -1,0 +1,61 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_cat_knowledge_002",
+        "source_pattern_id": "torch_cat_pattern_002",
+        "source_report": "cat_bug_002.json",
+        "api_name": "torch.cat",
+        "original_issue": "pytorch/pytorch#139609",
+        "verification_status": "official_triaged",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Non-canonical dtype representation propagated through storage copy and concatenation",
+        "general_principle": "Operations that copy or combine tensors may preserve raw storage bytes without normalizing them to the logical dtype's canonical representation, especially for view-backed or reinterpreted tensors.",
+        "risk_category": [
+            "Dtype Boundary",
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Large, uneven, or non-aligned dimensions and odd concatenation axes may drive different copy-kernel paths and expose boundary bugs.",
+        "dtype": "Boolean tensors produced by reinterpreting integer storage may violate the canonical boolean storage invariant.",
+        "memory": "Views over raw integer storage can leave untyped_storage with non-canonical values that should not appear in a boolean tensor.",
+        "device": "CUDA and other backend copy paths may differ in whether they normalize or validate boolean storage during multi-tensor copies.",
+        "execution_state": "Tensors may enter an operation with non-standard boolean representation, making downstream operations receive invalid logical values."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer; ATen Layer",
+        "description": "Copy and concatenation logic may propagate raw storage bytes from bool-typed views without validating or normalizing them to the logical boolean representation, especially on backend-specific copy paths."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore boolean tensors backed by non-boolean integer storage created through dtype reinterpretation or views.",
+            "Vary tensor shapes with large, odd, or non-aligned inner dimensions and concatenation axes to trigger different copy kernels.",
+            "Exercise different device placements and backend copy paths."
+        ],
+        "constraint_awareness": [
+            "Check raw untyped storage before and after operations to detect non-canonical dtype representations.",
+            "Concatenation and copy operations may not normalize logical boolean values from view-backed tensors.",
+            "Backend copy behavior may differ; device placement is part of the risk."
+        ],
+        "oracle_strategy": [
+            "After the operation, inspect output untyped storage and verify all bytes match the canonical logical dtype domain, e.g. 0 or 1 for bool.",
+            "Compare against a reference that materializes logical values through a safe path, and flag mismatches."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "This principle applies to many APIs that copy, concatenate, or otherwise propagate tensor storage of view-backed or reinterpreted dtypes, because such operations may bypass canonical representation invariants across backends."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Consider dtype reinterpretation and view-backed tensors as a source of non-canonical storage.",
+            "Probe shape and memory layout combinations that affect copy kernel selection, especially on accelerator devices.",
+            "Combine dtype boundary checks with raw storage inspection rather than only logical tensor equality."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that create tensors with unusual backing storage and dtype reinterpretations, apply APIs that copy or concatenate tensors, and validate that output storage obeys canonical dtype invariants. Vary dimensions, axes, and devices to expose paths that may skip normalization."
+        ]
+    }
+}

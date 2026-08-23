@@ -1,0 +1,56 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_relu_knowledge_002",
+        "source_pattern_id": "torch_relu_pattern_002",
+        "source_report": "relu_bug_002.json",
+        "api_name": "torch.relu",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/49536",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Backend kernel dispatch calling-convention mismatch under boxed execution",
+        "general_principle": "Backend operator registrations may assume a specific invocation convention, while execution engines such as TorchScript interpreters or mobile runtimes may use boxed dispatch; mismatches between expected and actual calling conventions can cause assertion or runtime failures.",
+        "risk_category": [
+            "Backend Dispatch Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Vary tensor rank and dimensions, including zero-dim, 1D, and multi-dimensional tensors, to expose shape handling across different dispatch paths.",
+        "dtype": "Exercise supported floating-point and other dtypes accepted by the operator; backend kernels may only handle specific dtype combinations.",
+        "memory": "Explore different memory layouts and storage formats; non-standard layouts may interact with backend dispatch.",
+        "device": "Test multiple backends including CPU, Vulkan, and other accelerators; device and backend transitions can reveal backend-specific kernel registration gaps.",
+        "execution_state": "Exercise eager, TorchScript-traced/scripted, mobile, and boxed dispatch invocation states; execution state can change kernel calling conventions."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "The operator's backend kernel is registered in the ATen dispatch table such that it supports direct calls but not boxed calls; when a TorchScript interpreter or mobile runtime performs boxed dispatch, an internal assertion fails."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Generate tensors with varying shapes and values to exercise operator dispatch under different backends.",
+            "Wrap operations in TorchScript modules and execute them through mobile and interpreter paths to expose boxed dispatch failures.",
+            "Vary device placement and backend selection for the same computation to reveal registration or calling-convention mismatches."
+        ],
+        "constraint_awareness": [
+            "Backend kernel registration may support only direct calls, not boxed calls, while execution engines may require boxed dispatch.",
+            "Mobile or interpreter execution paths may invoke operators differently from eager execution."
+        ],
+        "oracle_strategy": [
+            "Compare execution across eager, TorchScript, and mobile backends; flag runtime errors or internal assertion failures that occur only in specific execution and backend combinations.",
+            "Monitor exceptions, internal assertion messages, or crashes during operator dispatch."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The underlying principle—backend kernels may not support all dispatch calling conventions—applies broadly to any operator dispatched through different execution paths, not just ReLU or Vulkan."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Consider execution mode and backend jointly; a single backend may work in eager mode but fail in traced, scripted, or mobile execution. Check dispatch calling conventions and boxed versus unboxed kernel registration.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that wrap candidate APIs in TorchScript modules and execute them across backends and execution paths, varying shapes and dtypes, and compare behavior for runtime errors or assertion failures."
+        ]
+    }
+}

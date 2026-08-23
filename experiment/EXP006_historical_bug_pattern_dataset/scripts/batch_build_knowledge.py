@@ -13,7 +13,20 @@ sys.path.append(
 from build_knowledge_json import process_api
 
 
-PATTERN_DIR="bug_patterns"
+BASE_DIR=os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+
+EXP006_DIR=os.path.dirname(
+    BASE_DIR
+)
+
+
+PATTERN_DIR=os.path.join(
+    EXP006_DIR,
+    "bug_patterns"
+)
 
 
 def main():

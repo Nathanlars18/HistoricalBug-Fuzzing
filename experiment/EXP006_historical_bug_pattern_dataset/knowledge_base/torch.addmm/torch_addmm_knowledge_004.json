@@ -1,0 +1,61 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_addmm_knowledge_004",
+        "source_pattern_id": "torch_addmm_pattern_004",
+        "source_report": "addmm_bug_004.json",
+        "api_name": "torch.addmm",
+        "original_issue": "GitHub Issue #48900",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Output parameter aliasing input tensor storage",
+        "general_principle": "Operations that accept an output tensor may assume the output storage is independent from input storage; when the output aliases an input, the kernel can overwrite data that is still needed for computation, producing incorrect results.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Compatible output and input shapes, especially shapes that allow the output to share storage with an input tensor through direct assignment or views.",
+        "dtype": "",
+        "memory": "The out tensor directly aliases one of the input tensors or overlaps its storage through a view, slice, transpose, or expanded view.",
+        "device": "",
+        "execution_state": "The out= parameter is explicitly provided, so the operation uses caller-managed storage instead of allocating a fresh output tensor."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "The out= implementation may not guard against input/output storage overlap. When the output buffer overlaps with input storage, intermediate reads and writes can interfere, causing silent incorrect output such as all-zero results."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore out= tensors that are exactly the same as one of the input tensors",
+            "Explore out= tensors that are views or slices sharing storage with an input tensor",
+            "Explore tensors with partially overlapping or non-contiguous storage relationships"
+        ],
+        "constraint_awareness": [
+            "The out= tensor shape must be compatible with the expected operation output shape",
+            "Aliasing can be introduced directly or through views, slices, and other storage-sharing mechanisms",
+            "Some operation paths may assume output storage is distinct from input storage"
+        ],
+        "oracle_strategy": [
+            "Compare the result of the aliased out= execution with a reference execution that does not use an aliased output tensor",
+            "Check for incorrect outputs such as zero tensors, partially overwritten values, or silent data corruption"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any operation that exposes an out= parameter or performs in-place computation can assume output storage is distinct from input storage. The aliasing-overlap principle applies broadly across linear algebra, elementwise, and reduction APIs, especially when views or shared storage are involved."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Test aliasing relationships between the output parameter and input tensors for operations that accept out= or in-place execution",
+            "Include direct aliases, views, slices, expanded views, and transposed views where applicable",
+            "Use reference execution without aliasing to detect silent incorrect results"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary out= storage overlap with input tensors while preserving shape compatibility, and compare aliased execution against a non-aliased reference call using the same inputs."
+        ]
+    }
+}

@@ -1,0 +1,57 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_index_select_knowledge_002",
+        "source_pattern_id": "torch_index_select_pattern_002",
+        "source_report": "index_select_bug_002.json",
+        "api_name": "torch.index_select",
+        "original_issue": "GitHub Issue #154235",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Backend-specific index validation gap in index-based selection and embedding lookup operations",
+        "general_principle": "Different backends may not enforce the same input validation rules as reference backends, causing invalid indices to succeed silently and return incorrect results instead of raising errors.",
+        "risk_category": [
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Index values at or beyond valid dimension boundaries; varying selected dimension sizes; degenerate or zero-size selected dimensions.",
+        "dtype": "Integer index tensor dtype variations may expose backend-specific validation or indexing behavior.",
+        "memory": "No explicit memory layout trigger identified; index tensor storage layout may vary across backends.",
+        "device": "MPS backend may diverge from CPU reference validation behavior for index-based operations.",
+        "execution_state": "Operation may succeed without exception for invalid indices depending on backend execution state."
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Backend-specific implementations may omit index bounds validation before performing lookup or selection, allowing invalid indices to produce invalid results without raising an exception."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore index values at and beyond valid boundaries, including maximum valid, maximum valid plus one, and negative out-of-range values.",
+            "Vary selected dimension sizes and embedding table row counts to change the valid index range.",
+            "Vary index tensor lengths and integer dtypes to expose backend validation differences."
+        ],
+        "constraint_awareness": [
+            "Run equivalent operations on a strict reference backend such as CPU to establish expected exception behavior.",
+            "Ensure index values are validated against the selected dimension size or embedding table range.",
+            "Account for backend-specific execution paths that may skip validation."
+        ],
+        "oracle_strategy": [
+            "Compare exception behavior between target backend and reference backend; flag cases where the reference raises an error but the target returns a tensor.",
+            "Compare output values against reference outputs for boundary and out-of-range indices.",
+            "Monitor for silent invalid results when no exception is raised by the target backend."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies broadly to index-based selection, gather, slice, and embedding lookup APIs across backends because backend validation gaps can occur wherever input validation is expected to be uniform but is implemented inconsistently."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Explore backend-specific validation gaps for index-based operations; include boundary and out-of-bound index values; compare against a CPU reference to detect missing exceptions and incorrect outputs.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that mutate index tensors across valid and invalid ranges, execute the target operation on multiple backends, and compare exception behavior and outputs against a reference backend without hardcoding historical bug values."
+        ]
+    }
+}

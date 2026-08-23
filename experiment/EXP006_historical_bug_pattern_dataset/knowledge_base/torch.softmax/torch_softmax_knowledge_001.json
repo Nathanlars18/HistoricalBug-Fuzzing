@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_softmax_knowledge_001",
+        "source_pattern_id": "torch_softmax_pattern_001",
+        "source_report": "softmax_bug_001.json",
+        "api_name": "torch.softmax",
+        "original_issue": "GitHub Issue #123911 (pytorch/pytorch)",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Low-precision dtype promotion numerical inconsistency",
+        "general_principle": "APIs that expose dtype or accumulation precision overrides may select different internal computation paths, causing numerically inconsistent results for low-precision inputs when explicit higher-precision computation is cast back.",
+        "risk_category": [
+            "Dtype Boundary",
+            "Numerical Edge Case"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Large reduction dimensions or attention-like shapes that amplify accumulation differences.",
+        "dtype": "Low-precision floating types such as float16 or bfloat16 and explicit higher-precision dtype arguments.",
+        "memory": "",
+        "device": "GPU/CUDA backend paths that may implement specialized low-precision kernels.",
+        "execution_state": "Default dtype computation versus explicit dtype promotion followed by cast-back comparison."
+    },
+    "failure_mechanism": {
+        "layer": "API Layer; Kernel Layer; Numerical Layer",
+        "description": "The API dtype argument can expose different internal precision and accumulation paths. For low-precision inputs, the default path and explicit higher-precision path may use different accumulation orders or intermediate precisions, producing small numerical differences when cast back to the original dtype."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary low-precision dtypes such as float16 and bfloat16",
+            "Vary reduction dimensions and tensor shapes, including large and attention-like dimensions",
+            "Use value distributions with normal random, large magnitude, and small differences"
+        ],
+        "constraint_awareness": [
+            "Explicit dtype arguments may change internal accumulation or precision paths",
+            "Low-precision outputs require dtype-appropriate comparison tolerances",
+            "Backend-specific kernel behavior may differ across CPU and GPU"
+        ],
+        "oracle_strategy": [
+            "Compare default dtype path against explicit higher-precision dtype path cast back to the original dtype",
+            "Use max absolute difference or allclose with dtype-appropriate tolerances",
+            "Fail when numerical difference exceeds threshold"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The underlying risk applies to many APIs with dtype overrides or reduction/accumulation behavior, such as normalization, attention, loss, and reduction operations, where low-precision inputs and explicit higher-precision computation can expose path-dependent numerical differences."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Explore APIs with dtype or accumulation precision parameters",
+            "Vary low-precision dtypes and reduction shapes",
+            "Compare default low-precision path with explicit higher-precision path cast back to original dtype",
+            "Use tolerances appropriate for the reduced precision"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that systematically vary low-precision dtypes, shapes, and value distributions; compute the operation both with and without explicit higher-precision dtype; and compare outputs using numerical tolerances."
+        ]
+    }
+}

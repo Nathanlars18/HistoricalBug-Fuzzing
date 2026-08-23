@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_mul_knowledge_002",
+        "source_pattern_id": "torch_mul_pattern_002",
+        "source_report": "mul_bug_002.json",
+        "api_name": "torch.mul",
+        "original_issue": "",
+        "verification_status": "fixed",
+        "confidence": "low"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Empty tensor handling in dtype-specialized binary element-wise kernels",
+        "general_principle": "Kernel implementations may assume non-empty buffers in dtype-specific code paths, leading to memory safety violations when an empty tensor is combined with a non-empty tensor.",
+        "risk_category": [
+            "Shape Boundary",
+            "Dtype Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Empty or zero-element tensor shapes combined with non-empty tensors in broadcasting element-wise operations.",
+        "dtype": "Half-precision and reduced-precision dtypes such as float16 and bfloat16, as well as dtype conversion paths that affect memory layout.",
+        "memory": "Empty tensor storage characteristics, including zero-size buffers, null data pointers, and construction through array conversion versus direct allocation.",
+        "device": "CPU backend dispatch and CPU-specific kernel assumptions; may also apply to other backends with specialized dtype kernels.",
+        "execution_state": "No gradient tracking and element-wise binary operation execution, including operand ordering and broadcasting state."
+    },
+    "failure_mechanism": {
+        "layer": "Kernel Layer",
+        "description": "CPU element-wise kernel incorrectly handles empty half-precision tensor inputs, potentially dereferencing invalid or empty storage because a dtype-specific path assumes a non-zero number of elements."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore empty, zero-element, scalar, and non-empty shape combinations for binary element-wise operations.",
+            "Vary dtypes around half precision including float16, bfloat16, float32, and integer types to isolate dtype-specific behavior.",
+            "Exercise multiple tensor construction paths for empty tensors, including direct allocation and array conversion.",
+            "Reverse operand order to test broadcasting and dispatch symmetry."
+        ],
+        "constraint_awareness": [
+            "Keep execution on CPU to exercise CPU kernel implementations.",
+            "Disable gradient tracking to isolate forward kernel behavior.",
+            "Maintain the boundary of one empty and one non-empty tensor under the target dtype.",
+            "Respect broadcasting semantics when empty tensors participate."
+        ],
+        "oracle_strategy": [
+            "Monitor process exit status and signals for hard crashes such as SIGSEGV or SIGBUS.",
+            "If the process survives, compare output shape and values against expected empty tensor broadcasting semantics.",
+            "Treat unexpected exceptions and nonzero exit codes as failures."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The underlying principle is not specific to torch.mul: any element-wise binary kernel with dtype-specialized implementations may assume non-empty buffers when handling empty tensors, so APIs such as arithmetic, comparison, and logical operations share this risk across frameworks and backends."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe interactions between shape boundaries and dtype-specific kernel dispatch for element-wise binary operations.",
+            "Generate empty tensors through multiple construction paths, especially array-conversion and direct allocation.",
+            "Combine empty and non-empty tensors across dtypes and operand orders.",
+            "Include crash monitoring and semantic validation for empty tensor broadcasting."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Use this knowledge to generate harnesses that systematically vary empty/non-empty shape combinations, dtype choices, construction paths, and operand order for binary element-wise APIs; avoid hardcoding the original float16/NumPy reproduction and instead explore the general class of empty tensor boundary conditions across related operations."
+        ]
+    }
+}

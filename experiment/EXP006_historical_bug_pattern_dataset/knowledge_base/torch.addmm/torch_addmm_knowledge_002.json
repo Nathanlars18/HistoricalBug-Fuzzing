@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_addmm_knowledge_002",
+        "source_pattern_id": "torch_addmm_pattern_002",
+        "source_report": "addmm_bug_002.json",
+        "api_name": "torch.addmm",
+        "original_issue": "GitHub Issue #183887: RuntimeError during torch.compile Inductor fake tensor execution on int64 addmm/in-place addmm comparison",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Fake tensor propagation and dtype constraint violation under graph compilation",
+        "general_principle": "Compiler backends and fake tensor propagation may make dtype-specific assumptions, causing runtime failures or eager/compiled divergence when uncommon integer dtypes or operation variants are used.",
+        "risk_category": [
+            "Graph Transformation Boundary",
+            "Dtype Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Unusual, non-contiguous, or expanded tensor shapes under compilation may interact with lowering and fake tensor propagation.",
+        "dtype": "Integer dtype boundary cases, especially int64 and int32, can expose incorrect fake tensor or backend handling.",
+        "memory": "Non-contiguous or expanded memory layouts may violate hidden assumptions during compiled lowering.",
+        "device": "Compiler backend lowering may behave differently across CPU and accelerator devices.",
+        "execution_state": "Compilation state with torch.compile and fake tensor execution path; eager versus compiled execution divergence, especially for in-place and out-of-place operation variants."
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Compiler backend lowering and fake tensor propagation may not correctly handle integer dtype constraints for in-place and out-of-place operations, leading to runtime exceptions or eager/compiled divergence."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary integer dtypes such as int32 and int64 across tensor operations",
+            "Include non-contiguous or expanded tensor variants where supported",
+            "Compare in-place and out-of-place operation analogs under identical logical data"
+        ],
+        "constraint_awareness": [
+            "Compilation with Inductor and fake tensor propagation can enforce stricter dtype or layout constraints than eager execution",
+            "In-place and out-of-place operations may diverge under graph lowering",
+            "Fake tensor validation can reject valid integer dtype cases during compiled execution"
+        ],
+        "oracle_strategy": [
+            "Use eager execution as the reference for numerical equivalence",
+            "Monitor for runtime exceptions during compilation or fake tensor propagation",
+            "Detect eager/compiled output mismatches"
+        ]
+    },
+    "transferability": {
+        "level": "medium",
+        "reason": "The underlying principle applies to compiled operators that rely on fake tensor propagation and backend lowering with integer dtype handling. It is not limited to one API, although the risk is most pronounced for operations with in-place/out-of-place variants and dtype-specific lowering paths."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Explore compiled versus eager consistency for integer dtype operations",
+            "Include both in-place and out-of-place operation variants",
+            "Exercise fake tensor propagation paths with compiler backends such as Inductor",
+            "Introduce non-contiguous or expanded tensor layouts"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate API-agnostic harnesses that compare eager and compiler-backed execution under varied integer dtypes, memory layouts, and in-place/out-of-place variants, using reference outputs and exception monitoring to expose graph transformation and dtype boundary issues."
+        ]
+    }
+}

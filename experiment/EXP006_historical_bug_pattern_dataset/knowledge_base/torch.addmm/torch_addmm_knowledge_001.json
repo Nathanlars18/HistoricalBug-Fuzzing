@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_addmm_knowledge_001",
+        "source_pattern_id": "torch_addmm_pattern_001",
+        "source_report": "addmm_bug_001.json",
+        "api_name": "torch.addmm",
+        "original_issue": "pytorch/pytorch#138906",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Out parameter aliasing an input operand leads to incorrect results",
+        "general_principle": "Operations with out= or in-place semantics may assume output storage is independent of input storage. When output aliases an input, hidden read/write ordering, accumulation, or kernel assumptions can be violated, causing silently incorrect values.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Compatible shapes where the output buffer can alias an input operand, including bias-like or broadcast-compatible operands",
+        "dtype": "Dtype combinations that select different kernels may have different aliasing behavior",
+        "memory": "Output tensor shares storage with an input tensor, through same object, view, or storage offset",
+        "device": "Backend-specific implementations such as CUDA may rely on non-aliased input/output buffers",
+        "execution_state": "Operation invoked with out= or in-place mode where the output buffer is an input operand"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The public API permits an out= buffer that aliases an input operand, but the underlying implementation may not isolate reads from writes, causing corrupted accumulation or incorrect output compared with a non-aliased reference."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Generate outputs that are the same object as each input operand",
+            "Generate outputs that are views or share storage with each input operand at different offsets",
+            "Vary shapes, contiguity, and dimensions to expose hidden aliasing assumptions",
+            "Compare behavior across CPU and accelerator backends"
+        ],
+        "constraint_awareness": [
+            "APIs with out= or in-place arguments often have undocumented non-aliasing assumptions",
+            "Aliasing may be more dangerous when an operand is both read and written in the same call",
+            "Backend kernel selection and memory layout can change aliasing behavior"
+        ],
+        "oracle_strategy": [
+            "Compute the same operation with an independent output buffer as a reference",
+            "Compare the aliased-output result against the reference result for exact or approximate equality",
+            "Monitor for sanitizer failures or memory corruption when output aliases input storage"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any API that exposes out= or in-place behavior can violate similar output/input aliasing assumptions, especially when the operation reads and writes memory with backend-specific kernels or fused optimizations."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Explore aliasing between the output and every input operand, not only the most obvious one",
+            "Use views and shared storage with offsets rather than only identical object aliases",
+            "Compare against an independent-buffer reference to detect wrong results, not just crashes",
+            "Test across devices and dtype/kernel selections"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses for APIs with out= or in-place parameters that create aliased output buffers from input operands, run both aliased and non-aliased versions, and assert equality of results while varying shapes, layouts, dtypes, and devices."
+        ]
+    }
+}

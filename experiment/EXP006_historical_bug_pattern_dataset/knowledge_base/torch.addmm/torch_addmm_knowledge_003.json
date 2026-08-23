@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_addmm_knowledge_003",
+        "source_pattern_id": "torch_addmm_pattern_003",
+        "source_report": "addmm_bug_003.json",
+        "api_name": "torch.addmm",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/183899",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Compiler shape validation diverges from eager semantics for zeroed-out optional operands",
+        "general_principle": "When an operation has coefficients that make an operand semantically unused, eager execution may skip shape validation for that operand, while graph compilers may still perform full shape validation and reject programs that eager execution accepts.",
+        "risk_category": [
+            "Graph Transformation Boundary",
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Optional or coefficient-disabled operand shapes that are not broadcastable to the operation output",
+        "dtype": "",
+        "memory": "",
+        "device": "Backend compilation paths that perform graph-level shape validation",
+        "execution_state": "Compiled execution with full graph tracing, especially when coefficients disable operand contributions"
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Graph compilers may enforce broadcasting or shape compatibility for all operands even when eager semantics would ignore an operand whose contribution is zeroed out by a coefficient, causing compilation failures for programs that are valid in eager mode."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary coefficients that may disable operand contributions, especially zero-valued coefficients",
+            "Explore operand shapes that are not broadcastable to the output shape",
+            "Vary matrix and tensor dimensions to cover mismatched broadcasting relationships",
+            "Exercise both eager and compiled execution paths with the same inputs"
+        ],
+        "constraint_awareness": [
+            "Eager execution may skip shape validation for semantically disabled operands, while compilers may not preserve this behavior",
+            "Full graph compilation can make compiler shape validation stricter than partial graph execution",
+            "Backend selection can change whether shape validation failures are raised"
+        ],
+        "oracle_strategy": [
+            "Compare eager execution against compiled execution and flag cases where eager succeeds but compilation raises an exception",
+            "Monitor for compiler shape broadcasting failures",
+            "Use differential execution as the primary correctness signal"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle that compilers may not preserve eager short-circuit semantics for coefficient-disabled or optional operands applies broadly to operations with optional tensor arguments or scaling coefficients, beyond the original API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on operations where optional or coefficient-disabled operands may be excluded at runtime",
+            "Vary compiler backends, full graph settings, and device types",
+            "Combine shape incompatibility with zero-valued coefficients to expose semantic mismatch"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that run the same operation under eager and compiled execution modes, create mismatched optional operand shapes, vary coefficients that can disable operand contributions, and compare success or failure without copying the original historical reproduction."
+        ]
+    }
+}

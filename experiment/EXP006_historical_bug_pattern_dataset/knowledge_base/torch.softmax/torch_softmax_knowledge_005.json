@@ -1,0 +1,61 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_softmax_knowledge_005",
+        "source_pattern_id": "torch_softmax_pattern_005",
+        "source_report": "softmax_bug_005.json",
+        "api_name": "torch._softmax",
+        "original_issue": "",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Non-contiguous output tensor memory handling failure",
+        "general_principle": "Operators with out= or destination buffer parameters may internally assume contiguous output memory. When a non-contiguous tensor is provided as the destination, writes can be misplaced, partial, or incorrect because the implementation does not properly follow the output tensor's strides.",
+        "risk_category": [
+            "Memory Layout Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Reduction dimension and output shape variations may expose incorrect stride handling for non-contiguous buffers.",
+        "dtype": "Output dtype compatibility with the input and operator may influence memory write behavior.",
+        "memory": "Non-contiguous output buffers created by transpose, slice, permute, narrow, or as_strided are the primary risk.",
+        "device": "CPU, CUDA, and other backend out= variants may have different stride handling and dispatch behavior.",
+        "execution_state": "Using out= variants instead of returning freshly allocated tensors changes memory ownership and layout expectations."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "ATen operator out= implementations may not correctly account for non-contiguous output strides, causing writes to incorrect memory locations, partial updates, or invalid values in the destination tensor."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore non-contiguous output buffers created by transpose, slice, permute, narrow, or as_strided.",
+            "Vary the dimension along which the operator reduces or computes.",
+            "Include contiguous output baselines and non-contiguous input layouts for comparison."
+        ],
+        "constraint_awareness": [
+            "The out tensor must match the required shape, dtype, and device for the operator.",
+            "Non-contiguous layouts may violate hidden backend or kernel memory assumptions.",
+            "Some operators may require contiguous out buffers even when the input can be non-contiguous."
+        ],
+        "oracle_strategy": [
+            "Compare out= results against a reference result computed without out= using allclose or similar assertions.",
+            "Detect partial writes, unchanged output positions, and invalid values that should not appear for the operator's domain.",
+            "Monitor for memory corruption or sanitizer failures when using non-contiguous out buffers."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Many deep learning framework operators expose out= or destination buffer parameters and may share similar hidden assumptions about output memory layout. Testing non-contiguous pre-allocated outputs can reveal general stride handling bugs across APIs beyond the original operator."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Inspect out= and destination buffer variants for hidden memory layout assumptions.",
+            "Consider non-contiguous output layouts and vary reduction or compute dimensions.",
+            "Test both contiguous and non-contiguous output buffers with matching shapes and dtypes."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate fuzz harnesses that systematically create non-contiguous output tensors with valid shapes, dtypes, and devices, invoke out= operator variants, and compare results against reference implementations while monitoring for partial writes, invalid values, and memory safety issues."
+        ]
+    }
+}

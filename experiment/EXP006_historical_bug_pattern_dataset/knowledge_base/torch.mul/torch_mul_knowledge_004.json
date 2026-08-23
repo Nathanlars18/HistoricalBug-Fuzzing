@@ -1,0 +1,65 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_mul_knowledge_004",
+        "source_pattern_id": "torch_mul_pattern_004",
+        "source_report": "mul_bug_004.json",
+        "api_name": "torch.mul",
+        "original_issue": "85053",
+        "verification_status": "fixed",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Binary elementwise operators with out= parameters may crash when the output tensor shape is broadcast-incompatible with the expected result.",
+        "general_principle": "Operators that write into caller-provided output tensors may not fully validate broadcast compatibility before kernel dispatch, leading to invalid memory access or process crashes when output metadata violates the operator contract.",
+        "risk_category": [
+            "API Contract Boundary",
+            "Shape Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Broadcast-incompatible out tensor shapes; higher-rank or expanded output dimensions that do not match the broadcast result.",
+        "dtype": "Out tensor dtype mismatch with the expected result dtype.",
+        "memory": "Non-contiguous, offset, or aliased output tensors.",
+        "device": "Out tensor placed on a different device or backend than the input tensors.",
+        "execution_state": "Kernel selection may depend on out tensor metadata before proper validation is performed."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "The ATen layer may dispatch a binary elementwise operation using an out tensor whose shape or metadata violates the broadcasting contract, causing the kernel to read or write outside valid memory bounds."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore binary elementwise operators with out= parameters using diverse input ranks and shapes.",
+            "Generate out tensors with broadcast-incompatible shapes and higher ranks than the broadcast result.",
+            "Use scalar and tensor operands with small, degenerate, or asymmetric shapes.",
+            "Vary out tensor memory layout, dtype, and device where supported."
+        ],
+        "constraint_awareness": [
+            "Out tensor shape must be broadcast-compatible with the computed result.",
+            "Out tensor dtype and device must match the expected result.",
+            "Operators may rely on caller-provided output buffers without full validation.",
+            "Aliasing or overlapping input and output tensors can expose hidden memory issues."
+        ],
+        "oracle_strategy": [
+            "Expect a RuntimeError or appropriate exception for invalid out shapes.",
+            "Treat SIGSEGV, process abort, or sanitizer-detected memory errors as failures.",
+            "Use reference implementations to validate outputs when no exception is raised."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "Any API that accepts pre-allocated output tensors can exhibit insufficient output shape or metadata validation. The testing principle generalizes beyond torch.mul to binary and unary operators with out= parameters across frameworks and backends."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Target APIs with out= or pre-allocated output parameters.",
+            "Systematically vary output tensor rank, shape, and broadcast compatibility.",
+            "Include dtype, device, and memory layout mismatches where supported.",
+            "Check for both fail-closed validation and memory safety under invalid metadata."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that create input and output tensors independently and intentionally violate shape or metadata contracts before invoking target operators with out= parameters. The harness should treat graceful exceptions as valid behavior and crashes or memory safety issues as bugs."
+        ]
+    }
+}

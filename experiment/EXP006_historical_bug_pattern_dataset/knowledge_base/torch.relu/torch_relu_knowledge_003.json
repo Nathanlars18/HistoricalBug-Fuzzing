@@ -1,0 +1,59 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_relu_knowledge_003",
+        "source_pattern_id": "torch_relu_pattern_003",
+        "source_report": "relu_bug_003.json",
+        "api_name": "torch.relu",
+        "original_issue": "",
+        "verification_status": "official_triaged",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "In-place mutation of autograd hook-produced views conflicts with gradient graph bookkeeping",
+        "general_principle": "When autograd wraps outputs through hooks, subsequent in-place operations on those outputs can create view-mutation cases that the autograd engine rejects or mishandles because the mutation would override the custom backward association.",
+        "risk_category": [
+            "Gradient State Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "",
+        "dtype": "",
+        "memory": "Aliased or view-based storage shared between forward output and in-place mutation path",
+        "device": "",
+        "execution_state": "Autograd enabled; full backward hooks registered; hooked output consumed by an in-place operation"
+    },
+    "failure_mechanism": {
+        "layer": "API Layer",
+        "description": "The autograd graph records a view produced inside a backward hook wrapper. An in-place modification of that view conflicts with the custom backward logic because handling view and in-place mutation together would override or invalidate the hook-associated backward function."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Build module graphs where a backward hook is registered on one module and its output is passed through operations that may mutate inputs in place",
+            "Vary the in-place operation types to include activation, normalization, and elementwise operations that offer in-place execution modes",
+            "Use input tensors that require gradients so autograd view tracking remains active",
+            "Test both simple and nested module structures to expose graph-state interactions"
+        ],
+        "constraint_awareness": [
+            "Backward hook registration changes the autograd node and output wrapper type",
+            "In-place operations on view outputs require autograd to reconcile view tracking with mutation",
+            "Gradient mode must remain enabled for the conflict to appear"
+        ],
+        "oracle_strategy": [
+            "Monitor for runtime errors reporting that a view created inside a custom Function or backward hook is being modified in place",
+            "Detect messages indicating that in-place view modification would override custom backward logic",
+            "Treat such exceptions as contract violations even when no numerical mismatch occurs"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The conflict arises from general autograd graph invariants involving backward hooks, view tracking, and in-place mutation, so it can apply to any differentiable API that exposes hooks and in-place operations, not only the original activation API."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": "Focus on combinations of autograd state changes, such as full backward hooks, with operations that mutate their inputs. Vary module types, hook placement, and in-place operation categories rather than fixing a single activation function.",
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that compose backward hooks with in-place operations on forward outputs under gradient mode. Let the framework track views and mutations, and use exception or oracle checks to detect autograd contract violations. Avoid hard-coding the original API-specific reproduction and instead explore the underlying hook plus in-place mutation pattern."
+        ]
+    }
+}

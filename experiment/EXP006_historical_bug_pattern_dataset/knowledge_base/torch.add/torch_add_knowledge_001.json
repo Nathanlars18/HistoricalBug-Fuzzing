@@ -1,0 +1,62 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_add_knowledge_001",
+        "source_pattern_id": "torch_add_pattern_001",
+        "source_report": "add_bug_001.json",
+        "api_name": "torch.add",
+        "original_issue": "pytorch/pytorch#152731",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Scalar modifier overflow causing backend dispatch inconsistency",
+        "general_principle": "Operations that convert scalar modifiers to low-precision tensor dtypes may produce backend-specific behavior when the scalar value falls outside the target dtype representable range.",
+        "risk_category": [
+            "Backend Dispatch Boundary",
+            "Dtype Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Not a primary dimension; arbitrary tensor shapes can be used to exercise scalar overload and broadcasting paths.",
+        "dtype": "Low-precision dtypes such as float16 where scalar modifier values can exceed representable range.",
+        "memory": "No specific memory layout risk identified.",
+        "device": "CPU and CUDA backend behavior differences; other backends may also diverge.",
+        "execution_state": "Operation with scalar modifier that forces dtype conversion during backend dispatch."
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Inconsistent handling of scalar-to-low-precision dtype conversion overflow between CPU and CUDA backends causes one backend to raise a runtime error while the other succeeds silently."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Vary scalar modifier values around low-precision dtype boundaries, including near maximum finite values and far overflow values",
+            "Use low-precision tensor dtypes and run identical operations across available backends",
+            "Vary tensor shapes, values, and broadcasting patterns to exercise scalar overload code paths"
+        ],
+        "constraint_awareness": [
+            "Scalar modifiers may be converted to the tensor dtype or promoted independently depending on backend implementation",
+            "Backends may differ in how they enforce dtype conversion overflow constraints",
+            "Identical inputs must be used when comparing behavior across backends"
+        ],
+        "oracle_strategy": [
+            "Compare exception presence and execution status across backends for the same input",
+            "Monitor for runtime overflow errors or silent success mismatches",
+            "Treat any backend behavior difference as a potential bug signal"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "This knowledge applies broadly to APIs that accept scalar modifiers or scaling factors and perform scalar-to-dtype conversion, especially under low-precision dtype and multi-backend execution."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Probe scalar modifier values around dtype conversion boundaries rather than only varying tensor values",
+            "Run identical inputs across multiple backends and compare execution outcomes",
+            "Include low-precision dtypes and extreme scalar values in generated harnesses"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate fuzzing harnesses that systematically vary scalar modifier values around dtype overflow boundaries, execute identical operations on multiple backends, and compare exception status and outputs rather than reproducing the original fp16 torch.add issue."
+        ]
+    }
+}

@@ -1,0 +1,63 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_relu_knowledge_001",
+        "source_pattern_id": "torch_relu_pattern_001",
+        "source_report": "relu_bug_001.json",
+        "api_name": "torch.relu",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/117544",
+        "verification_status": "fixed",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Compiler graph transformations can fail to preserve eager semantics for special floating-point values",
+        "general_principle": "Graph-level optimizations and backend code generation may assume ordinary finite inputs and therefore mishandle non-finite values or values that overflow to non-finite during lowered execution.",
+        "risk_category": [
+            "Graph Transformation Boundary",
+            "Numerical Edge Case"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Any shape; include scalar and multi-dimensional floating-point tensors",
+        "dtype": "Floating-point dtypes, especially float32 and dtypes prone to overflow to non-finite values",
+        "memory": "",
+        "device": "CPU and other backends reachable through compiler transformations",
+        "execution_state": "Compiled execution paths, optimization levels, and backend dispatch states"
+    },
+    "failure_mechanism": {
+        "layer": "Backend Layer",
+        "description": "Backend code generation may lower operations into kernels that do not correctly handle non-finite inputs, causing compiled outputs to diverge from eager reference outputs."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Explore floating-point tensors containing +inf, -inf, and NaN",
+            "Explore large finite values that may overflow to non-finite under preceding numerical operations",
+            "Vary shapes including scalar, 1D, and multi-dimensional tensors",
+            "Vary compiler optimization levels and backend configurations"
+        ],
+        "constraint_awareness": [
+            "Eager execution semantics serve as the reference for numerical outputs",
+            "Non-finite propagation and NaN locations must be preserved under graph transformations",
+            "Use NaN-aware comparison when expected outputs may contain NaN"
+        ],
+        "oracle_strategy": [
+            "Compare compiled outputs against eager outputs using exact or NaN-aware assertions",
+            "Flag mismatches in non-finite value presence or location"
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "This knowledge applies to any elementwise or activation API whose eager numerical semantics must be preserved by graph compilers, especially for special floating-point values."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Target activation and elementwise operations that may be fused or lowered by compilers",
+            "Inject special floating-point values and overflow-prone finite values",
+            "Run candidates under both eager and compiled execution paths",
+            "Check that non-finite output locations match the reference"
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Create a generic fuzzing harness that selects floating-point tensors, seeds them with special or overflow-prone values, applies an activation or elementwise operation under compiled execution, and compares against eager results with NaN-aware assertions."
+        ]
+    }
+}

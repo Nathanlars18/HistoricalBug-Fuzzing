@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "knowledge_id": "torch_add_knowledge_003",
+        "source_pattern_id": "torch_add_pattern_003",
+        "source_report": "add_bug_003.json",
+        "api_name": "torch.add",
+        "original_issue": "https://github.com/pytorch/pytorch/issues/170573",
+        "verification_status": "user_reported",
+        "confidence": "medium"
+    },
+    "knowledge_abstraction": {
+        "bug_theme": "Out= view resize without backing storage reallocation",
+        "general_principle": "Operators that accept out= tensors may modify output metadata such as shape and strides to match the computed result without ensuring the backing storage is large enough when the output is a view. This can lead to out-of-bounds writes.",
+        "risk_category": [
+            "Memory Layout Boundary",
+            "API Contract Boundary"
+        ]
+    },
+    "risk_dimensions": {
+        "shape": "Undersized output view shape relative to the required or broadcast output shape; implicit metadata-only resize.",
+        "dtype": "",
+        "memory": "Out tensor is a view with limited backing storage, offset, or non-contiguous layout; capacity smaller than the resized shape requires.",
+        "device": "",
+        "execution_state": "Out= path with implicit resize semantics where reallocation cannot happen for view tensors."
+    },
+    "failure_mechanism": {
+        "layer": "ATen Layer",
+        "description": "The out= variant resizes the output tensor metadata to the computed shape. If the out tensor is a view, resizing cannot allocate new storage, so the backing store remains undersized. The kernel then writes according to the resized metadata, overflowing the original allocation."
+    },
+    "testing_insights": {
+        "input_exploration": [
+            "Create out= views whose logical shape is smaller than the broadcast or computed result shape.",
+            "Vary view offsets, lengths, strides, and base storage capacities.",
+            "Use non-contiguous and zero-offset views derived from smaller base tensors.",
+            "Explore operators with out= parameters that perform implicit shape propagation."
+        ],
+        "constraint_awareness": [
+            "Out= views cannot be reallocated; resizing only changes metadata.",
+            "The required output shape may exceed the view's backing storage.",
+            "Shape compatibility checks may pass while storage capacity remains insufficient.",
+            "Backend kernels may assume allocation size matches tensor shape."
+        ],
+        "oracle_strategy": [
+            "Use AddressSanitizer or valgrind to detect heap-buffer-overflow.",
+            "Place guard or sentinel regions around the base storage to detect adjacent memory corruption.",
+            "Monitor for writes beyond the view's allocated storage.",
+            "Compare out= behavior against freshly allocated output tensors of the same shape."
+        ]
+    },
+    "transferability": {
+        "level": "high",
+        "reason": "The principle applies to any framework operator with an out= or destination tensor parameter that supports views and implicit metadata resizing. The risk is not specific to torch.add; similar memory layout and API contract assumptions can be violated in other binary, unary, or reduction operators."
+    },
+    "llm_reasoning_guidance": {
+        "important_considerations": [
+            "Focus on output or destination tensor parameters rather than only input tensors.",
+            "Consider view tensors created with offsets or non-contiguous layouts.",
+            "Trigger implicit resize paths without allowing reallocation.",
+            "Use memory safety oracles to detect out-of-bounds writes."
+        ],
+        "avoid_literal_reproduction": true,
+        "generation_strategy": [
+            "Generate harnesses that allocate a base storage, derive small or offset views, and pass those views as out= to operations whose broadcast or computed shape is larger. Vary shape, stride, offset, and storage capacity, and run under memory sanitizers to detect overwrites beyond the view allocation."
+        ]
+    }
+}

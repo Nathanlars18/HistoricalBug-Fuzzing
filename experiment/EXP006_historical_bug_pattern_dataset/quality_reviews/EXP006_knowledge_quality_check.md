@@ -32,3 +32,27 @@ The selection aims to evaluate whether generated knowledge can be abstracted bey
 |008|torch_nn_functional_grid_sample_knowledge_001|torch_nn_functional_grid_sample_pattern_001|torch.nn.functional.grid_sample|Representative neural network functional API; selected because option validation represents API contract boundary problems beyond tensor value mutation.|API Contract Boundary|Good|Good|High|Good|Pass|Successfully abstracts unsupported option validation bugs into a reusable parameter-contract testing strategy.|
 |009|torch_einsum_knowledge_001|torch_einsum_pattern_001|torch.einsum|Representative high-level tensor operation; selected because it exposes autograd state and mutation-related boundary issues.|Gradient State Boundary + API Contract Boundary|Good|Good|High|Good|Pass|Successfully generalizes an operation-specific autograd mutation issue into reusable gradient-state testing knowledge. Minor formatting issue: important_considerations should be normalized into an array.|
 |010|Tensor_setitem_knowledge_001|Tensor_setitem_pattern_001|Tensor.__setitem__|Representative tensor indexing API; selected because indexed assignment combines dtype conversion, broadcasting, and view semantics.|Dtype Boundary|Good|Good|Medium|Good|Pass|Correctly abstracts dtype promotion issues in indexed assignment into a reusable dtype-boundary testing strategy.|
+
+# Additional Evaluation for GitHub Issue Generated Knowledge
+
+The following knowledge entries are generated from newly collected
+PyTorch GitHub issue reports.
+
+The evaluation focuses on whether the generated knowledge:
+- correctly follows the source pattern,
+- provides reusable testing strategies,
+- avoids literal reproduction of historical bugs,
+- can guide future harness generation.
+
+
+|ID|Knowledge ID|Source Pattern|API|Risk Category|Pattern-Knowledge Alignment|Abstraction Quality|Transferability|Harness Guidance|Overall|Comment|
+|-|-|-|-|-|-|-|-|-|-|-|
+|011|torch_add_knowledge_001|torch_add_pattern_001|torch.add|Backend Dispatch Boundary + Dtype Boundary|Good|Good|High|Good|Pass|Correctly abstracts scalar overflow and backend inconsistency into a general dtype conversion and multi-backend testing strategy instead of reproducing the original fp16 torch.add case.|
+|012|torch_addmm_knowledge_001|torch_addmm_pattern_001|torch.addmm|Memory Layout Boundary + API Contract Boundary|Good|Good|High|Good|Pass|Successfully generalizes out parameter aliasing problems into reusable input-output storage alias testing guidance for APIs with out= or in-place semantics.|
+|013|torch_cat_knowledge_001|torch_cat_pattern_001|torch.cat|Shape Boundary + Gradient State Boundary|Good|Good|Medium|Good|Pass|Correctly extracts zero-sized tensor and accelerator autograd interaction risks into a transferable empty tensor testing strategy.|
+|014|torch_index_select_knowledge_001|torch_index_select_pattern_001|torch.index_select|API Contract Boundary + Graph Transformation Boundary|Good|Good|High|Good|Pass|Successfully abstracts missing validation differences between eager and compiled execution into general compiler semantic consistency testing.|
+|015|torch_mm_knowledge_002|torch_mm_pattern_002|torch.mm|Dtype Boundary + Backend Dispatch Boundary|Good|Good|Medium|Good|Pass|Correctly identifies backend-specific dtype support differences and converts them into reusable dtype/backend compatibility testing knowledge.|
+|016|torch_relu_knowledge_001|torch_relu_pattern_001|torch.relu|Graph Transformation Boundary + Numerical Edge Case|Good|Good|High|Good|Pass|Successfully generalizes compiler numerical inconsistencies involving special floating-point values into reusable activation and elementwise testing strategies.|
+|017|torch_reshape_knowledge_001|torch_reshape_pattern_001|aten::_reshape_alias_copy|API Contract Boundary + Memory Layout Boundary|Good|Good|High|Good|Pass|Correctly abstracts invalid size/stride metadata handling into general tensor geometry and memory safety testing guidance.|
+|018|torch_softmax_knowledge_001|torch_softmax_pattern_001|torch.softmax|Dtype Boundary + Numerical Edge Case|Good|Good|High|Good|Pass|Successfully transforms low-precision numerical inconsistency into a reusable precision-path comparison strategy.|
+|019|torch_mul_knowledge_003|torch_mul_pattern_003|torch.mul|Shape Boundary + Memory Layout Boundary|Good|Good|High|Good|Pass|Correctly abstracts sparse-dense broadcasting failure into a general sparse layout normalization and broadcasting testing strategy.|
