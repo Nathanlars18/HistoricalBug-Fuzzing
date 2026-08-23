@@ -1,0 +1,55 @@
+{
+    "metadata": {
+        "pattern_id": "torch_index_select_pattern_001",
+        "api_name": "torch.index_select",
+        "source_report": "index_select_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "121251",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "2024-05-29",
+        "severity": "high"
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": "Graph Transformation Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_index_select_compiled_missing_bounds_check_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Selected dimension size is small and the index value equals or exceeds that dimension size, causing an out-of-range index.",
+        "dtype_trigger": "",
+        "device_trigger": "CPU",
+        "memory_trigger": "Compiled Inductor kernel may perform an out-of-bound read when the bounds check is omitted.",
+        "value_trigger": "Index value equals the selected dimension size, outside the valid range [0, dim_size - 1].",
+        "state_trigger": "torch.compile with Inductor backend is used instead of eager execution.",
+        "execution_trigger": "Compiled forward pass executes torch.index_select with an invalid index tensor.",
+        "concrete_constraints": "x.shape=(2,2,2,2), dim=0, index=torch.tensor([2]); torch.compile(backend='inductor'); torch.no_grad() inference on CPU."
+    },
+    "root_cause": {
+        "layer": "Backend Layer",
+        "description": "Inductor-generated kernels may not perform the same index bounds checks as PyTorch eager mode; a constant propagation pass was fixed to preserve index validation semantics.",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Compiled execution returns a tensor with unexpected values instead of raising an IndexError for an out-of-range index.",
+        "signal": "Returned tensor contains invalid values while eager execution raises IndexError.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate index tensors with values at or beyond the selected dimension boundary, such as dim_size or -dim_size - 1, across different shapes.",
+        "tensor_construction": "Construct input tensors with small selected dimensions so out-of-range indices are easy to trigger and detect.",
+        "constraint_injection": "Run the same indexing operation in eager mode and torch.compile(backend='inductor') mode, enforcing error-behavior parity for invalid indices.",
+        "operation_sequence": "Wrap indexing operations such as torch.index_select in a torch.nn.Module and execute under torch.no_grad with both eager and compiled modes.",
+        "oracle_construction": "Use eager execution as the reference; if eager raises IndexError, the compiled execution must also raise, otherwise flag incorrect output or potential out-of-bound access."
+    },
+    "verification_status": {
+        "level": "fixed",
+        "fixed": true
+    }
+}

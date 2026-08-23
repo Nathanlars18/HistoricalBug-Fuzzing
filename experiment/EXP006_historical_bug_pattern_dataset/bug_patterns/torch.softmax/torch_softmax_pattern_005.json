@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "pattern_id": "torch_softmax_pattern_005",
+        "api_name": "torch._softmax",
+        "source_report": "softmax_bug_005.json",
+        "source": {},
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_softmax_noncontiguous_out_memory_bug",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "The output tensor passed via the out parameter is non-contiguous.",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "Using an out= variant of softmax, such as torch._softmax(..., out=out).",
+        "concrete_constraints": "Input tensor can be contiguous; output tensor has the same shape/dtype/device as the input but a non-contiguous memory layout; softmax is computed along a specified dimension."
+    },
+    "root_cause": {
+        "layer": "ATen Layer",
+        "description": "The aten::_softmax.out implementation does not correctly handle non-contiguous output tensors, causing partial writes to incorrect memory locations.",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "The output tensor contains invalid softmax values; some positions are not updated correctly and negative values may appear.",
+        "signal": "Mismatch between torch._softmax(input, dim, half_to_float=False, out=out) and the reference torch._softmax(input, dim, half_to_float=False); non-contiguous out contains incorrect or negative values.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate output tensors with diverse non-contiguous memory layouts using transpose, slice, permute, narrow, or as_strided; verify with is_contiguous().",
+        "tensor_construction": "Create input and output tensors of the same shape, dtype, and device; construct out tensors as non-contiguous variants, and include contiguous baselines for comparison.",
+        "constraint_injection": "Force softmax operations to use the out= parameter with a non-contiguous output buffer; vary the softmax dimension and input shape.",
+        "operation_sequence": "Call torch._softmax(input, dim, half_to_float=False, out=out) and compare with torch._softmax(input.contiguous(), dim, half_to_float=False) and torch._softmax(input, dim, half_to_float=False).",
+        "oracle_construction": "Compare out= results against reference softmax outputs using allclose; treat any mismatch, negative softmax value, or unchanged output position as a failure."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

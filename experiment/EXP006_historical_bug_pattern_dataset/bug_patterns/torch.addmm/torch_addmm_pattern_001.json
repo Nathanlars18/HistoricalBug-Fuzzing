@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_addmm_pattern_001",
+        "api_name": "torch.addmm",
+        "source_report": "addmm_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "138906",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_addmm_out_alias_incorrect_result",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Shapes compatible for torch.addmm",
+        "dtype_trigger": "",
+        "device_trigger": "CUDA",
+        "memory_trigger": "Output tensor shares storage with the input tensor",
+        "value_trigger": "",
+        "state_trigger": "out= argument is used and aliases the input tensor",
+        "execution_trigger": "torch.addmm called with out=input where input is the bias tensor",
+        "concrete_constraints": "The out tensor and input tensor alias or share storage; shapes allow addmm; operation completes but produces values different from the non-aliased reference."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.addmm with out= aliasing the input returns a tensor whose values differ from the non-aliased torch.addmm result.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate aliasing relationships where the out tensor is the same object or shares storage with the addmm bias input tensor.",
+        "tensor_construction": "Construct CUDA tensors with compatible shapes for torch.addmm and reuse the input tensor as the out argument.",
+        "constraint_injection": "Force the out= argument to alias the input tensor while keeping mat1 and mat2 independent.",
+        "operation_sequence": "Run torch.addmm(input, mat1, mat2, out=input) and compare it with torch.addmm(input, mat1, mat2).",
+        "oracle_construction": "Use the non-aliased torch.addmm result as the reference result; flag any mismatch as incorrect output."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

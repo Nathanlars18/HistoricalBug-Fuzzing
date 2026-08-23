@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_cat_pattern_001",
+        "api_name": "torch.cat",
+        "source_report": "cat_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "118970",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": "Gradient State Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_cat_empty_nonempty_cuda_memory_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "One input to torch.cat has a zero-sized dimension while another input is non-empty.",
+        "dtype_trigger": "",
+        "device_trigger": "CUDA device.",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Tensors require gradients and the graph is later executed through backward/optimizer step.",
+        "execution_trigger": "torch.cat on CUDA is followed by backward/optimizer step or synchronization, where an asynchronous CUDA illegal memory access is exposed.",
+        "concrete_constraints": "At least one empty tensor (e.g., shape (0, D)) and one non-empty tensor are concatenated along a non-zero dimension on CUDA; requires_grad=True; the resulting graph is differentiated and optimized."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "CUDA backend empty tensor handling during execution, exposed by autograd/optimizer flow.",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "CUDA illegal memory access is reported after concatenating empty and non-empty tensors and executing the graph.",
+        "signal": "CUDA error: illegal memory access encountered",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate concatenation inputs to include one or more zero-sized dimensions, varying which inputs are empty, concat dimension, and number of empty/non-empty tensors.",
+        "tensor_construction": "Construct CUDA tensors with requires_grad=True; create empty tensors with zero-sized dimensions and compatible non-empty tensors, including views or expanded parameters where relevant.",
+        "constraint_injection": "Keep non-concat dimensions compatible; require gradients and ensure the graph is executed after torch.cat.",
+        "operation_sequence": "Run forward torch.cat with empty and non-empty CUDA tensors, compute a scalar loss, call backward, and run optimizer.step() or synchronize to surface asynchronous CUDA errors.",
+        "oracle_construction": "Monitor for CUDA illegal memory access errors, compare with CPU or non-empty baseline behavior, and treat observed CUDA illegal memory access as a bug."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

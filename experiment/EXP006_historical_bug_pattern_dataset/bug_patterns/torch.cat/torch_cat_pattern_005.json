@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_cat_pattern_005",
+        "api_name": "torch.cat",
+        "source_report": "cat_bug_005.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "86918",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": "Shape Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_cat_empty_tensor_invalid_dim_validation_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Input tensors are empty tensors with shape (0,).",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "Concatenation dim argument is outside the valid range for the input tensor rank, e.g., dim=999 for rank-1 tensors.",
+        "state_trigger": "All input tensors are empty tensors.",
+        "execution_trigger": "torch.cat takes the legacy zero-element tensor path and may bypass normal dimension validation.",
+        "concrete_constraints": "All input tensors have shape (0,); dim < -rank or dim >= rank."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "torch.cat legacy handling for zero-element tensors bypasses normal dimension validation when all inputs are empty.",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "high"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Expected RuntimeError for invalid concatenation dimension, but torch.cat silently succeeds with empty input tensors.",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate concatenation dim across invalid values while keeping all input tensors empty.",
+        "tensor_construction": "Construct zero-element tensors, e.g., torch.randn([0]) or torch.empty([0]), to populate the input list.",
+        "constraint_injection": "Use dim values outside the valid range: dim >= tensor.ndim or dim < -tensor.ndim.",
+        "operation_sequence": "Create two or more empty tensors of the same shape, then call torch.cat([tensor1, tensor2], dim=invalid_dim).",
+        "oracle_construction": "Check API contract by expecting a RuntimeError for invalid dim. If torch.cat returns without raising, flag as a validation bypass."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

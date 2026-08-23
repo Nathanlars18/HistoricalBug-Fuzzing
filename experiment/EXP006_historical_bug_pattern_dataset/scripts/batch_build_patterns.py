@@ -2,9 +2,30 @@ import os
 import subprocess
 
 
-BUG_REPORT_DIR = "bug_reports"
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
 
-OUTPUT_DIR = "bug_patterns"
+
+EXP006_DIR = os.path.dirname(BASE_DIR)
+
+
+BUG_REPORT_DIR = os.path.join(
+    EXP006_DIR,
+    "bug_reports"
+)
+
+
+OUTPUT_DIR = os.path.join(
+    EXP006_DIR,
+    "bug_patterns"
+)
+
+
+BUILD_SCRIPT = os.path.join(
+    BASE_DIR,
+    "build_pattern_json.py"
+)
 
 
 def main():
@@ -21,19 +42,21 @@ def main():
     ]
 
 
-    print("Total APIs:", len(apis))
+    print(
+        "Total APIs:",
+        len(apis)
+    )
 
 
     for api in sorted(apis):
 
         print("="*50)
-
         print("Processing:", api)
 
 
         cmd = [
             "python3",
-            "scripts/build_pattern_json.py",
+            BUILD_SCRIPT,
             "--api",
             api,
             "--output",
@@ -58,5 +81,4 @@ def main():
 
 
 if __name__=="__main__":
-
     main()

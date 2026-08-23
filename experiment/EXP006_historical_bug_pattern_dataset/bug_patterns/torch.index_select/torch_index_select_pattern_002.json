@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_index_select_pattern_002",
+        "api_name": "torch.index_select",
+        "source_report": "index_select_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "154235",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": "Medium-High"
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_index_select_embedding_mps_index_validation_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Valid index range determined by num_embeddings or selected dimension size.",
+        "dtype_trigger": "",
+        "device_trigger": "MPS backend",
+        "memory_trigger": "",
+        "value_trigger": "Index tensor contains at least one value outside the valid range for the selected dimension, such as index >= num_embeddings or index outside [-dim_size, dim_size - 1].",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Run torch.index_select or nn.Embedding on MPS with index tensors containing out-of-bound values; compare against CPU reference behavior."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "MPS backend missing index bounds validation in index_select and embedding lookup.",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "MPS operation succeeds and may return invalid results for out-of-range indices, while CPU/reference raises IndexError.",
+        "signal": "CPU reference raises IndexError but MPS returns a tensor without exception.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate index tensors to include boundary values: maximum valid index, maximum valid index plus one, large positive invalid index, and negative out-of-range index.",
+        "tensor_construction": "Construct embedding tables or input tensors on MPS with varying num_embeddings, selected dimension sizes, and index lengths.",
+        "constraint_injection": "Force execution on MPS backend and run equivalent operation on CPU as a reference backend.",
+        "operation_sequence": "Execute torch.index_select or nn.Embedding.forward with mutated index tensors and record return values or exceptions.",
+        "oracle_construction": "Flag cases where the CPU reference raises IndexError but MPS succeeds or returns incorrect results, indicating missing index validation."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_add_pattern_003",
+        "api_name": "torch.add",
+        "source_report": "add_bug_003.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "170573",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": "High"
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_add_out_undersized_view_resize_memory_bug",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "out view shape smaller than computed output shape",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "out tensor is a view whose backing storage is smaller than the resized output requires",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "torch.add called with out= argument",
+        "concrete_constraints": "out must be an undersized view; required output shape larger than allocated view storage; implicit resize only changes metadata"
+    },
+    "root_cause": {
+        "layer": "ATen Layer",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Memory Error",
+        "description": "Kernel writes beyond the view's allocated storage and corrupts adjacent memory.",
+        "signal": "heap-buffer-overflow",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary output shape and view size so the out view is smaller than the required result shape.",
+        "tensor_construction": "Create base storage tensors and derive views with controlled offsets and lengths.",
+        "constraint_injection": "Pass out= views that require implicit resizing without being able to reallocate storage.",
+        "operation_sequence": "Allocate base storage -> create undersized view -> call torch.add(a, b, out=view) with output shape exceeding view storage.",
+        "oracle_construction": "Use ASan or guard/sentinel regions around storage to detect writes beyond the view allocation."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_softmax_pattern_004",
+        "api_name": "torch.softmax",
+        "source_report": "softmax_bug_004.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "55056",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Numerical Edge Case",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_softmax_fully_masked_negative_inf_nan_bug",
+        "general_category": "Numerical Edge Case",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "All elements along the softmax reduction dimension are -inf.",
+        "state_trigger": "",
+        "execution_trigger": "Softmax is called on a fully masked reduction slice with no finite values.",
+        "concrete_constraints": "Input tensor contains one or more rows or slices where all values are -inf, causing the softmax normalization denominator to become zero."
+    },
+    "root_cause": {
+        "layer": "Numerical Layer",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.softmax returns NaN values when an entire reduction dimension contains -inf; expected safe softmax behavior returns zeros.",
+        "signal": "torch.isnan(output).any() == True",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Replace random tensor elements with -inf, inf, and NaN; generate fully masked rows or slices.",
+        "tensor_construction": "Generate tensors such as torch.full((B, S), float('-inf')) and mixed tensors containing finite and -inf rows.",
+        "constraint_injection": "Apply attention-like masks that remove all valid positions for selected rows along the target softmax dimension.",
+        "operation_sequence": "Call torch.softmax on the constructed tensor along the target dimension.",
+        "oracle_construction": "Check outputs with torch.isnan and compare fully -inf slices against an expected zero-valued result."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

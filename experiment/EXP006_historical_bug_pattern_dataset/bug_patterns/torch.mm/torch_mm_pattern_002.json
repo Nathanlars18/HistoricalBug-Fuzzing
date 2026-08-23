@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_mm_pattern_002",
+        "api_name": "torch.mm",
+        "source_report": "mm_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "191693",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Dtype Boundary",
+        "secondary_category": "Backend Dispatch Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_mm_mps_bool_dtype_dispatch_error",
+        "general_category": "Dtype Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "2D matrix inputs",
+        "dtype_trigger": "bool",
+        "device_trigger": "MPS",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "torch.mm called with two 2D bool tensors on MPS device"
+    },
+    "root_cause": {
+        "layer": "Backend Layer",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "torch.mm on MPS with bool matrices raises an opaque function-state RuntimeError.",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate bool tensors with varied 2D shapes, including small and large matrix sizes.",
+        "tensor_construction": "Construct torch.bool tensors and move them to MPS device.",
+        "constraint_injection": "Set dtype=torch.bool and device='mps' for both inputs.",
+        "operation_sequence": "Call torch.mm(a, b) with both bool MPS tensors.",
+        "oracle_construction": "Treat opaque function-state RuntimeError as a bug signal; if bool mm is supported elsewhere, compare CPU/other-backend result to detect mismatch."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

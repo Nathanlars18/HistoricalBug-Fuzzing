@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_relu_pattern_001",
+        "api_name": "torch.relu",
+        "source_report": "relu_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "117544",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "2024-01-21",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Graph Transformation Boundary",
+        "secondary_category": "Numerical Edge Case"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_relu_inductor_special_value_codegen_bug",
+        "general_category": "Graph Transformation Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Any shape; scalar or tensor containing at least one negative infinity value.",
+        "dtype_trigger": "float32",
+        "device_trigger": "CPU",
+        "memory_trigger": "",
+        "value_trigger": "torch.relu input equal to negative infinity, or large negative finite values that overflow to negative infinity under preceding ops such as torch.sinh.",
+        "state_trigger": "",
+        "execution_trigger": "torch.compile with backend='inductor' or mode='max-autotune'.",
+        "concrete_constraints": "Input has at least one element that is -inf after a preceding op; model uses torch.relu under CPU Inductor."
+    },
+    "root_cause": {
+        "layer": "Backend Layer",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.compile CPU Inductor returns NaN for torch.relu(-inf) while eager returns 0, causing NaN location mismatch in comparisons.",
+        "signal": "AssertionError / nan location mismatch in assert_allclose(equal_nan=True)",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Inject or mutate floating point tensors to contain inf/-inf/NaN and finite values that overflow after activation functions.",
+        "tensor_construction": "Construct CPU float32 tensors of varying shapes with elements set to -inf or large negative values that become -inf after torch.sinh/torch.exp.",
+        "constraint_injection": "Force execution through torch.compile using backend='inductor' or mode='max-autotune'.",
+        "operation_sequence": "Apply preceding overflowable ops such as torch.sinh or torch.exp followed by torch.relu; also directly call torch.relu on special value tensors.",
+        "oracle_construction": "Compare compiled outputs against eager outputs using exact comparison or assert_allclose(equal_nan=True); flag any NaN/Inf location mismatch."
+    },
+    "verification_status": {
+        "level": "fixed",
+        "fixed": true
+    }
+}

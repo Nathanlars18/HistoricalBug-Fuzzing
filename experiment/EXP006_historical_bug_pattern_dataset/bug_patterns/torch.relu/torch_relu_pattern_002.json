@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_relu_pattern_002",
+        "api_name": "torch.relu",
+        "source_report": "relu_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "49536",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Backend Dispatch Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_relu_vulkan_kernel_dispatch_mismatch_bug",
+        "general_category": "Backend Dispatch Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "Vulkan backend on Android mobile",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "TorchScript-traced model executed through PyTorch Mobile",
+        "execution_trigger": "TorchScript interpreter invokes boxed dispatch for aten::relu on Vulkan backend",
+        "concrete_constraints": "Backend: Vulkan; Execution: PyTorch Mobile; Model format: TorchScript; Operator: aten::relu"
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "ATen/core/boxing/KernelFunction.cpp",
+        "kernel_layer": "aten::relu KernelFunction for Vulkan is registered such that it can only be called via call(), not callBoxed(), causing an internal assertion during boxed dispatch.",
+        "backend_layer": "Vulkan backend operator dispatch path",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "TorchScript interpreter fails with RuntimeError when executing aten::relu on Vulkan backend.",
+        "signal": "RuntimeError: false INTERNAL ASSERT FAILED at ATen/core/boxing/KernelFunction.cpp; Tried to call KernelFunction::callBoxed() on a KernelFunction that can only be called with KernelFunction::call().",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate variable-shaped float tensors as ReLU inputs while varying dimensions and values within valid ranges.",
+        "tensor_construction": "Construct TorchScript modules that contain torch.relu or torch.nn.ReLU.",
+        "constraint_injection": "Execute the same TorchScript model through PyTorch Mobile on CPU and Vulkan backends to expose backend-specific dispatch failures.",
+        "operation_sequence": "Trace or serialize model, load in PyTorch Mobile with Vulkan backend, then execute forward pass.",
+        "oracle_construction": "Compare runtime behavior across backends and flag RuntimeError or internal assertion failures that occur on Vulkan but not on CPU."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

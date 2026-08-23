@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_mul_pattern_004",
+        "api_name": "torch.mul",
+        "source_report": "mul_bug_004.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "85053",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": "high"
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": "Shape Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_binary_op_invalid_out_shape_crash_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Input tensor shape [1]; out tensor shape [5,1,1,1] is broadcast-incompatible with the expected result.",
+        "dtype_trigger": "",
+        "device_trigger": "CPU",
+        "memory_trigger": "",
+        "value_trigger": "Scalar other=1",
+        "state_trigger": "",
+        "execution_trigger": "Calling torch.mul, torch.div, or torch.remainder with an out= parameter and an invalid out tensor shape.",
+        "concrete_constraints": "Binary elementwise op with out= on CPU; input shape [1], scalar other 1, out shape [5,1,1,1]."
+    },
+    "root_cause": {
+        "layer": "ATen Layer",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Crash",
+        "description": "Segmentation fault (core dumped) when an incompatible out tensor shape is used with binary ops.",
+        "signal": "SIGSEGV",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Generate diverse input and out shape combinations for ops with out=, especially broadcast-incompatible shapes.",
+        "tensor_construction": "Create small input tensors and out tensors with mismatched broadcast dimensions, including higher-rank out tensors.",
+        "constraint_injection": "Target elementwise binary ops that support out= such as torch.mul, torch.div, and torch.remainder, using scalar or tensor operands.",
+        "operation_sequence": "Call the target op with input, other, and out=out where out shape is incompatible with the broadcast result.",
+        "oracle_construction": "Expect a RuntimeError or Exception for invalid out shape; treat SIGSEGV or process abort as a crash bug."
+    },
+    "verification_status": {
+        "level": "fixed",
+        "fixed": true
+    }
+}

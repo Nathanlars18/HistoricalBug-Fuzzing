@@ -1,0 +1,73 @@
+{
+    "metadata": {
+        "pattern_id": "torch_softmax_pattern_001",
+        "api_name": "torch.softmax",
+        "source_report": "softmax_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "123911",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Dtype Boundary",
+        "secondary_category": "Numerical Edge Case"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_softmax_fp16_dtype_cast_numerical_inconsistency_bug",
+        "general_category": "Dtype Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Large last dimension or transformer-like attention shapes, e.g., batch, heads, sequence_length, sequence_length",
+        "dtype_trigger": "float16 or bfloat16 input; comparing default low-precision softmax against explicit dtype=torch.float32 followed by cast to low precision",
+        "device_trigger": "CUDA GPU",
+        "memory_trigger": "",
+        "value_trigger": "Normal random values, large magnitude values, values with small differences",
+        "state_trigger": "",
+        "execution_trigger": "Compare torch.softmax(x, dim) with torch.softmax(x, dim, dtype=torch.float32).to(x.dtype)",
+        "concrete_constraints": {
+            "dtype": [
+                "torch.float16"
+            ],
+            "device": [
+                "cuda"
+            ],
+            "shape": [
+                "large reduction dimension",
+                "attention-like shape"
+            ],
+            "values": [
+                "normal random",
+                "large magnitude",
+                "small difference"
+            ]
+        }
+    },
+    "root_cause": {
+        "api_layer": "torch.softmax dtype argument exposes different internal precision paths for low-precision inputs",
+        "aten_layer": "",
+        "kernel_layer": "CUDA softmax kernel may use different accumulation paths for default float16 and explicit float32 dtype",
+        "numerical_layer": "float16 precision loss and accumulation order differences produce small numerical inconsistencies",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.softmax on fp16 input and torch.softmax with dtype=torch.float32 followed by cast to fp16 produce different results.",
+        "signal": "max absolute difference exceeds tolerance threshold",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate dtype between float16 and bfloat16; mutate reduction dimension and tensor shape; mutate values with normal random, large magnitude, and small-difference distributions.",
+        "tensor_construction": "Construct CUDA low-precision tensors with large reduction dimensions and transformer-like attention shapes, e.g., batch, heads, sequence_length, sequence_length.",
+        "constraint_injection": "Inject explicit dtype=torch.float32 softmax computation and cast back to the original low-precision dtype for comparison.",
+        "operation_sequence": "Compute y0 = torch.softmax(x, dim=-1); compute y1 = torch.softmax(x, dim=-1, dtype=torch.float32).to(x.dtype); compare y0 and y1.",
+        "oracle_construction": "Use max absolute difference or allclose with dtype-appropriate tolerances; fail when numerical difference exceeds threshold."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

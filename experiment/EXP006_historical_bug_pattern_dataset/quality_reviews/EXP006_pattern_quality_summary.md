@@ -1,24 +1,32 @@
 # EXP006 Pattern Quality Summary
 
+
 ## Dataset
 
-Total generated patterns:
-39
+Total Generated Patterns:
+
+75
 
 
-## Manual Evaluation Progress
+## Manual Evaluation
 
-Evaluated:
-10 / 39
+Evaluated Patterns:
+
+18
 
 
-Current Results:
+## Results
 
-Pass:
-8
 
-Minor Issue:
-2
+|Category|Count|
+|-|-|
+|Pass|12|
+|Minor Issue|4|
+|Major Issue|0|
 
-Major Issue:
-0
+
+## Major Observations
+
+- Most generated patterns correctly preserve API information and bug triggering conditions.
+- Minor issues mainly come from incomplete original GitHub issue descriptions or abstraction from Python API to underlying ATen operators.
+- No major pattern extraction failures were identified.

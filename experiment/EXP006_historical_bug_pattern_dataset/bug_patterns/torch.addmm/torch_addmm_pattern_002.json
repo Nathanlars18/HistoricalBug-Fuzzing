@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_addmm_pattern_002",
+        "api_name": "torch.addmm",
+        "source_report": "addmm_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "183887",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Graph Transformation Boundary",
+        "secondary_category": "Dtype Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_addmm_int64_fake_tensor_compile_consistency_bug",
+        "general_category": "Graph Transformation Boundary",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "int64",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "torch.compile enabled with Inductor backend; fake tensor execution path",
+        "execution_trigger": "compare out-of-place torch.addmm and in-place Tensor.addmm_ on int64 tensors under torch.compile",
+        "concrete_constraints": "int64 input, mat1, and mat2 tensors; torch.compile with Inductor backend; fake tensor execution; eager and compiled execution divergence; in-place and out-of-place addmm comparison"
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "RuntimeError when making fake tensor call during torch.compile Inductor execution on int64 addmm/addmm_ comparison.",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary integer dtypes such as int32 and int64, shapes, and input values while comparing in-place and out-of-place addmm behavior.",
+        "tensor_construction": "Construct int64 input, mat1, and mat2 tensors for addmm; include non-contiguous or expanded variants where applicable.",
+        "constraint_injection": "Run under torch.compile with the Inductor backend to trigger fake tensor propagation and fake tensor validation.",
+        "operation_sequence": "Execute out-of-place torch.addmm and in-place Tensor.addmm_ on equivalent data and compare compiled trace outcomes.",
+        "oracle_construction": "Use eager execution as the reference; detect RuntimeError exceptions or output mismatches under compiled execution."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

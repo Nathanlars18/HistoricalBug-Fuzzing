@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_reshape_pattern_001",
+        "api_name": "aten::_reshape_alias_copy",
+        "source_report": "reshape_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "194050",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": "Memory Layout Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_reshape_alias_copy_unchecked_stride_oob_read_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Small logical shape with caller-provided custom size list",
+        "dtype_trigger": "Integer dtype such as int64",
+        "device_trigger": "CPU",
+        "memory_trigger": "Small backing storage; custom stride values exceed allocated storage bounds",
+        "value_trigger": "Stride values cause logical source elements to point outside valid storage",
+        "state_trigger": "",
+        "execution_trigger": "Direct invocation of aten::_reshape_alias_copy with caller-provided size and stride on a tensor with insufficient storage; copy kernel materializes invalid layout",
+        "concrete_constraints": "Example: int64 tensor with 8-element storage, requested size [2] and stride [8]; more generally, size/stride metadata whose computed extents exceed allocated storage."
+    },
+    "root_cause": {
+        "api_layer": "aten::_reshape_alias_copy accepts caller-provided size and stride metadata without validating source storage bounds",
+        "aten_layer": "Source tensor geometry is constructed from caller-provided size and stride values before copy",
+        "kernel_layer": "Copy kernel reads from addresses derived from invalid geometry, causing out-of-bounds access",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "high"
+    },
+    "bug_oracle": {
+        "type": "Memory Error",
+        "description": "AddressSanitizer reports a heap-buffer-overflow read during materialization of the invalid layout; the invalid read occurs outside the source tensor storage.",
+        "signal": "heap-buffer-overflow (READ of size 8)",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate size and stride metadata, including large stride values, sparse layouts, zero or negative strides, and size/stride mismatches",
+        "tensor_construction": "Construct small CPU tensors with minimal backing storage, preferably integer dtypes such as int64",
+        "constraint_injection": "Inject invalid size/stride combinations whose computed logical extents exceed allocated storage",
+        "operation_sequence": "Call aten::_reshape_alias_copy or similar stride-accepting reshape/alias copy operators directly with crafted tensor and metadata, then force materialization",
+        "oracle_construction": "Run under AddressSanitizer or a similar memory checker; detect heap-buffer-overflow, invalid reads, or process crashes"
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

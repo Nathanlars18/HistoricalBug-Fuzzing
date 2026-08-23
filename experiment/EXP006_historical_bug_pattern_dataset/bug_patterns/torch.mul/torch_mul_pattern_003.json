@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_mul_pattern_003",
+        "api_name": "torch.mul",
+        "source_report": "mul_bug_003.json",
+        "source": {},
+        "date": "",
+        "severity": "high"
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": "Memory Layout Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_mul_sparse_singleton_broadcast_missing_expansion_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Sparse COO operand has at least one size-1 dimension that must be broadcast against a larger dense operand dimension.",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "Sparse COO layout is used and the sparse operand is not explicitly expanded before sparse-dense intersection.",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "Elementwise multiplication between a sparse COO tensor and a dense tensor with broadcasting.",
+        "concrete_constraints": "Sparse operand contains a singleton dimension; dense operand requires that singleton dimension to broadcast to a size greater than one."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "The sparse-dense multiplication path in torch.mul does not explicitly call sparse_broadcast_to for singleton dimensions in the sparse operand before intersection.",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "high"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.mul silently returns an incorrect sparse result: after converting to dense, only the index-0 slice along the broadcast dimension is populated, and all other slices are zero.",
+        "signal": "Maximum absolute error between the sparse multiplication result and a dense reference implementation is nonzero.",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary the position and size of singleton dimensions in sparse COO operands and vary the corresponding broadcast dimensions in dense operands.",
+        "tensor_construction": "Construct sparse COO tensors with one or more size-1 dimensions and dense tensors that require broadcasting those dimensions to larger sizes.",
+        "constraint_injection": "Ensure the sparse-dense elementwise operation uses the sparse operand without pre-expanding it, exposing missing sparse broadcast expansion.",
+        "operation_sequence": "Call torch.mul(sparse_tensor, dense_tensor), then convert the sparse result to dense for inspection.",
+        "oracle_construction": "Build a reference result by converting the sparse operand to dense, applying dense broadcasting rules, performing elementwise multiplication, and comparing all broadcast slices."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

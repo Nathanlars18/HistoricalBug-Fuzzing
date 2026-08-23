@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_softmax_pattern_002",
+        "api_name": "torch.softmax",
+        "source_report": "softmax_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "139701",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Numerical Edge Case",
+        "secondary_category": "Memory Layout Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_softmax_permute_layout_numerical_inconsistency",
+        "general_category": "Numerical Edge Case",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "floating point (float32, float64)",
+        "device_trigger": "cpu",
+        "memory_trigger": "permuted or transposed non-contiguous layout",
+        "value_trigger": "floating point values where rounding error is detectable",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Apply softmax before and after an inverse permute/transpose on the same floating-point tensor and compare outputs."
+    },
+    "root_cause": {
+        "layer": "Numerical Layer",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Softmax outputs before and after inverse permutation differ by a small floating-point amount.",
+        "signal": "max absolute difference > 0",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Randomly generate floating-point tensors and apply permute or transpose operations to create layout variations.",
+        "tensor_construction": "Use float32 and float64 tensors with values likely to expose rounding differences, such as large dynamic range or negative values.",
+        "constraint_injection": "Keep the same logical reduction dimension and dtype across permuted softmax variants.",
+        "operation_sequence": "Compare softmax(dim=d) followed by inverse permute/transpose versus permute/transpose followed by softmax(dim=0).",
+        "oracle_construction": "Compute max absolute difference between the two outputs and flag any non-zero difference or difference above a strict tolerance."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

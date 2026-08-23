@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_cat_pattern_003",
+        "api_name": "torch.cat",
+        "source_report": "cat_bug_003.json",
+        "source": {},
+        "date": "",
+        "severity": "Medium-High"
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": "Backend Dispatch Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_cat_empty_tensor_list_dispatch_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Empty Tensor list (zero tensor arguments)",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "torch.cat(()) with an empty tuple/list of tensors",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Pass an empty TensorList to torch.cat so no tensor arguments are available for dispatcher dtype/device/backend inference."
+    },
+    "root_cause": {
+        "api_layer": "torch.cat",
+        "aten_layer": "aten::_cat",
+        "kernel_layer": "",
+        "backend_layer": "Dispatcher requires tensor arguments to select a backend kernel; no fallback function is registered for empty TensorList schema aten::_cat.",
+        "numerical_layer": "",
+        "confidence": "high"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "NotImplementedError: There were no tensor arguments to this function (e.g., you passed an empty list of Tensors), but no fallback function is registered for schema aten::_cat.",
+        "signal": "NotImplementedError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary TensorList length: zero, one, multiple tensors; include empty and non-empty tensors in the list.",
+        "tensor_construction": "Generate Tensor lists of length 0, 1, and N; use valid tensors, empty tensors, and mixed empty/non-empty tensors.",
+        "constraint_injection": "Force container-level boundary conditions where no tensor argument supplies dtype, device, or dispatch key.",
+        "operation_sequence": "Call torch.cat with the generated TensorList directly, e.g., torch.cat([]), torch.cat([x]), torch.cat([empty_tensor, normal_tensor]).",
+        "oracle_construction": "Expect either a clear validation error for invalid empty input or correct output; treat NotImplementedError as missing API/dispatcher fallback."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

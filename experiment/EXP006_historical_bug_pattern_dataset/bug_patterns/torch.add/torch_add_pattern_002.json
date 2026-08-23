@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_add_pattern_002",
+        "api_name": "torch.add",
+        "source_report": "add_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "154501",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Numerical Edge Case",
+        "secondary_category": ""
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_add_complex_inf_arithmetic_bug",
+        "general_category": "Numerical Edge Case",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "complex64 or complex128",
+        "device_trigger": "CPU or CUDA",
+        "memory_trigger": "",
+        "value_trigger": "real or imaginary component contains Inf",
+        "state_trigger": "",
+        "execution_trigger": "torch.add or torch.sub on two complex tensors",
+        "concrete_constraints": "At least one input tensor contains an infinite real or imaginary component; complex addition/subtraction with infinite components can produce incorrect NaN propagation."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "",
+        "numerical_layer": "Complex floating-point special-value handling failure in torch.add/torch.sub when infinite components are present.",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.add or torch.sub returns an incorrect complex result, such as inf+nanj instead of the mathematically expected inf+3j.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Inject Inf and NaN into real and imaginary components of complex tensor values.",
+        "tensor_construction": "Construct complex64 and complex128 tensors covering combinations of finite, Inf, and NaN real/imaginary components.",
+        "constraint_injection": "Focus on pairs of complex tensors where both operands contain infinite components in the real or imaginary part.",
+        "operation_sequence": "Apply elementwise complex arithmetic operations such as torch.add and torch.sub to the generated tensor pairs.",
+        "oracle_construction": "Compare results against high-precision or NumPy complex arithmetic used as the reference for IEEE special-value propagation."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

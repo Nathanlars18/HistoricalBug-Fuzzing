@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_cat_pattern_002",
+        "api_name": "torch.cat",
+        "source_report": "cat_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "139609",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Dtype Boundary",
+        "secondary_category": "Memory Layout Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_cat_nonstandard_bool_storage_copy_bug",
+        "general_category": "Dtype Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Large tensor shapes, especially with odd or non-aligned inner dimensions, e.g. [1024, 1, 1024, 1023]; behavior can change with dimension parity.",
+        "dtype_trigger": "Input tensors are bool tensors created by viewing int8 storage as bool.",
+        "device_trigger": "CUDA device tensors are used.",
+        "memory_trigger": "Input tensors are views over raw int8 storage, so untyped_storage contains integer values rather than normalized boolean storage.",
+        "value_trigger": "Underlying int8 storage contains values outside the standard boolean set {0, 1}, such as values between 5 and 10.",
+        "state_trigger": "Tensors have non-standard boolean representation before concatenation.",
+        "execution_trigger": "torch.cat is called on a list of such non-standard boolean tensors along a dimension such as dim=1.",
+        "concrete_constraints": "Construct int8 tensors with non-boolean integer values, move them to CUDA, reinterpret as bool with .view(bool), then call torch.cat and inspect raw storage."
+    },
+    "root_cause": {
+        "api_layer": "torch.cat does not ensure that boolean output storage contains only valid boolean values when concatenating bool views over int8 storage.",
+        "aten_layer": "ATen concatenation logic for bool tensors may copy raw underlying int8 bytes as bool storage without normalization.",
+        "kernel_layer": "",
+        "backend_layer": "CUDA backend path is implicated because the issue is observed on CUDA tensors; exact backend-level root cause is not confirmed.",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "The output tensor's untyped_storage contains integer values outside {0, 1}, e.g. 5, 9, 6, 7, 9, instead of standard boolean storage values.",
+        "signal": "untyped_storage contains values not in {0, 1} after concatenation",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate tensor shapes, especially inner dimension parity and concatenation dimension size, to find copy-kernel boundaries.",
+        "tensor_construction": "Create int8 tensors from numpy or torch with values outside {0, 1}, move them to CUDA, and reinterpret them as bool tensors using .view(torch.bool).",
+        "constraint_injection": "Ensure bool inputs are views over raw int8 storage containing non-standard boolean values, and verify this via untyped_storage before the operation.",
+        "operation_sequence": "Create two or more such bool view tensors, place them in a list, and call torch.cat on the list; vary the concatenation dimension.",
+        "oracle_construction": "After torch.cat, inspect output.untyped_storage() and assert that every byte is 0 or 1; optionally compare against a reference implementation that materializes logical booleans."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

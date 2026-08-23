@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_add_pattern_001",
+        "api_name": "torch.add",
+        "source_report": "add_bug_001.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "152731",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": "medium"
+    },
+    "bug_category": {
+        "primary_category": "Backend Dispatch Boundary",
+        "secondary_category": "Dtype Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_add_fp16_scalar_overflow_backend_inconsistency_bug",
+        "general_category": "Backend Dispatch Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "float16 tensors",
+        "device_trigger": "CPU and CUDA",
+        "memory_trigger": "",
+        "value_trigger": "alpha scalar outside float16 representable range, e.g. ~1e32",
+        "state_trigger": "",
+        "execution_trigger": "torch.add(tensor1, tensor2, alpha=extreme_value)",
+        "concrete_constraints": "tensors dtype float16; scalar alpha > float16 max; run identical operation on CPU and CUDA"
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "Inconsistent backend handling of scalar-to-float16 overflow between CPU and CUDA",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "CPU raises RuntimeError for alpha conversion overflow to Half while CUDA succeeds silently. The oracle is a CPU/CUDA behavior mismatch for the same float16 input.",
+        "signal": "RuntimeError: value cannot be converted to type at::Half without overflow",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate alpha around float16 overflow boundaries, including values near max finite 65504 and far beyond it",
+        "tensor_construction": "Construct float16 tensors with arbitrary or random shapes and values",
+        "constraint_injection": "Force dtype=torch.float16 and inject alpha values that overflow float16",
+        "operation_sequence": "Run torch.add(tensor1, tensor2, alpha=extreme_scalar) on CPU and CUDA with identical inputs",
+        "oracle_construction": "Compare exception presence and execution status between CPU and CUDA; flag any mismatch"
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

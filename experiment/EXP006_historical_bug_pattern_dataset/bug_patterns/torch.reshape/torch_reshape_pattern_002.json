@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_reshape_pattern_002",
+        "api_name": "torch.reshape",
+        "source_report": "reshape_bug_002.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "194051",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "aten_reshape_alias_unchecked_stride_view_bug",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Small input storage combined with a requested view whose logical extents exceed that storage.",
+        "dtype_trigger": "",
+        "device_trigger": "CPU",
+        "memory_trigger": "Custom size and stride metadata maps logical elements outside the allocated input tensor storage.",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "A subsequent operation iterates over the malformed view, causing an out-of-bounds read.",
+        "concrete_constraints": "Call aten::_reshape_alias with user-controlled sizes and strides on a small CPU tensor; ensure storage_offset + stride * (size - 1) exceeds storage bounds; follow with a materializing op such as sum()."
+    },
+    "root_cause": {
+        "layer": "ATen Layer",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Memory Error",
+        "description": "AddressSanitizer reports heap-buffer-overflow READ when the invalid view is accessed.",
+        "signal": "heap-buffer-overflow",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary view sizes and stride values, especially oversized or non-contiguous strides.",
+        "tensor_construction": "Create small CPU tensors with known storage sizes and various dtypes; allocate storage exactly matching the input tensor boundaries.",
+        "constraint_injection": "Inject custom size and stride metadata that causes the reachable storage range of the view to exceed the input tensor storage.",
+        "operation_sequence": "Run aten::_reshape_alias or similar view/alias operations with mutated metadata, then invoke a follow-up iteration or reduction operation such as sum().",
+        "oracle_construction": "Use AddressSanitizer or another memory sanitizer to detect heap-buffer-overflow, out-of-bounds reads, or crashes."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_mul_pattern_002",
+        "api_name": "torch.mul",
+        "source_report": "mul_bug_002.json",
+        "source": {},
+        "date": "",
+        "severity": "High"
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": "Dtype Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_mul_empty_float16_cpu_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "One input tensor is empty and the other input tensor is non-empty.",
+        "dtype_trigger": "Both input tensors use float16 half precision.",
+        "device_trigger": "CPU backend.",
+        "memory_trigger": "The empty tensor is created from a NumPy array with float16 dtype.",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "An element-wise binary operation such as torch.mul or torch.div is called with the two tensors.",
+        "concrete_constraints": "a = torch.tensor([2], dtype=torch.float16); b = torch.tensor(np.array([], dtype='float16')); result = torch.mul(a, b) or torch.div(a, b); CPU execution, no gradient tracking."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "CPU element-wise kernel incorrectly handles empty float16 tensor inputs.",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Crash",
+        "description": "Process terminates with a segmentation fault when torch.mul or torch.div is called with a non-empty float16 tensor and an empty float16 tensor created from NumPy.",
+        "signal": "SIGSEGV",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary input tensor shapes across empty, zero-element, scalar, and non-empty sizes; vary dtypes near float16 such as float32 and bfloat16 to isolate half-precision-specific handling.",
+        "tensor_construction": "Build pairs of CPU float16 tensors where one tensor is non-empty and the other is empty; construct the empty tensor both directly with torch.empty and through torch.tensor(np.array([], dtype='float16')) to exercise the NumPy conversion path.",
+        "constraint_injection": "Force CPU execution and disable gradient tracking; keep tensors as float16 and create empty tensors via NumPy conversion to preserve the boundary condition.",
+        "operation_sequence": "Run element-wise binary operators such as torch.mul and torch.div with one non-empty and one empty float16 tensor; also test operand order reversal.",
+        "oracle_construction": "Detect hard crashes through subprocess monitoring for SIGSEGV/SIGBUS or nonzero crash exit codes. If the process survives, validate the output against expected empty tensor broadcasting semantics and treat unexpected exceptions as a secondary oracle."
+    },
+    "verification_status": {
+        "level": "fixed",
+        "fixed": true
+    }
+}

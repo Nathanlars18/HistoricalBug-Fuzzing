@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_reshape_pattern_003",
+        "api_name": "torch.view_copy",
+        "source_report": "reshape_bug_003.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "89068",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Shape Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_view_copy_out_zero_element_resize_bug",
+        "general_category": "Shape Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "out tensor has zero elements; requested target shape has non-zero elements",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "out tensor has empty storage / zero numel",
+        "value_trigger": "",
+        "state_trigger": "preallocated empty output tensor passed via out=",
+        "execution_trigger": "out= variant of torch.view_copy or reshape/view family",
+        "concrete_constraints": "out_tensor.numel() == 0 and target_shape.numel() > 0; operation is torch.view_copy(x, target_shape, out=out_tensor)"
+    },
+    "root_cause": {
+        "api_layer": "view_copy out= variant does not correctly handle resizing when the provided output tensor has zero elements",
+        "aten_layer": "",
+        "kernel_layer": "generated kernel path misses required resize handling logic for zero-element output",
+        "backend_layer": "",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "RuntimeError: The size of tensor a (0) must match the size of tensor b (3) at non-singleton dimension 0",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Mutate shapes across empty and non-empty boundaries: [], [0], [1,0], [0,1], reshape from empty to non-empty and between zero-element layouts.",
+        "tensor_construction": "Construct zero-element output tensors such as torch.tensor([]) or torch.empty(0) and pass them as out= arguments.",
+        "constraint_injection": "Force out= variants for view/reshape-like operations; require target shape to be non-zero while the output tensor has zero elements.",
+        "operation_sequence": "Create input tensor; call torch.view_copy or related reshape/view out= operation with a zero-element preallocated output tensor and a non-zero target shape.",
+        "oracle_construction": "Compare against reference behavior without out= or against expected automatic resize; flag unexpected RuntimeError or failure to resize empty out tensor."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

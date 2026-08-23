@@ -1,0 +1,50 @@
+{
+    "metadata": {
+        "pattern_id": "torch_relu_pattern_003",
+        "api_name": "torch.relu",
+        "source_report": "relu_bug_003.json",
+        "source": {},
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Gradient State Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_relu_inplace_backward_hook_view_mutation_bug",
+        "general_category": "Gradient State Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "Autograd is enabled and a module has a full backward hook registered.",
+        "execution_trigger": "Forward pass through a module where the hooked output is consumed by an in-place operation.",
+        "concrete_constraints": "Use nn.ReLU(inplace=True) after a module with register_full_backward_hook; input tensors require gradients."
+    },
+    "root_cause": {
+        "layer": "API Layer",
+        "confidence": "low"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "RuntimeError: Output 0 of BackwardHookFunctionBackward is a view and is being modified inplace. This view was created inside a custom Function and the autograd logic to handle view+inplace would override the custom backward associated with the custom Function.",
+        "signal": "RuntimeError",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Replace activations with in-place variants such as ReLU(inplace=True), LeakyReLU(inplace=True), or other in-place operations.",
+        "tensor_construction": "Create input tensors with requires_grad=True to keep autograd view tracking active.",
+        "constraint_injection": "Register full backward hooks on modules whose outputs will be passed to in-place operations.",
+        "operation_sequence": "Build sequential models where a full backward hook is registered on module k and module k+1 performs an in-place operation on that output, then run the forward pass under grad mode.",
+        "oracle_construction": "Catch RuntimeError messages indicating that a view created inside a custom Function is being modified inplace."
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

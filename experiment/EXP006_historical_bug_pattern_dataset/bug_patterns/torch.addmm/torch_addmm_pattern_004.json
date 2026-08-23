@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_addmm_pattern_004",
+        "api_name": "torch.addmm",
+        "source_report": "addmm_bug_004.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "48900",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": "API Contract Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_addmm_out_input_alias_memory_bug",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Compatible addmm shapes: mat1 [M, K], mat2 [K, N], bias/out [M, N].",
+        "dtype_trigger": "",
+        "device_trigger": "",
+        "memory_trigger": "out tensor aliases one of the input tensors, either directly or through a view sharing storage.",
+        "value_trigger": "",
+        "state_trigger": "out= parameter is provided.",
+        "execution_trigger": "Call torch.addmm(bias, mat1, mat2, out=<alias_of_input>).",
+        "concrete_constraints": "out shape must be compatible with addmm output, and out must alias an input tensor, e.g., torch.addmm(t, t, weight, out=t)."
+    },
+    "root_cause": {
+        "layer": "ATen Layer",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "torch.addmm returns an all-zero tensor when out= aliases an input tensor instead of the expected result from non-aliased execution.",
+        "signal": "",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Test aliasing relationships by assigning out= to input tensors, views, slices, or tensors sharing storage.",
+        "tensor_construction": "Construct small dense tensors with compatible addmm shapes using simple values such as ones, eye, and zeros.",
+        "constraint_injection": "Force out= to be one of the input tensors or a tensor that overlaps input storage.",
+        "operation_sequence": "Run torch.addmm with aliased out= and compare against a reference torch.addmm call without out= using the same inputs.",
+        "oracle_construction": "Expected output is the result of torch.addmm(bias, mat1, mat2) without aliasing; compare element-wise equality with the aliased result."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

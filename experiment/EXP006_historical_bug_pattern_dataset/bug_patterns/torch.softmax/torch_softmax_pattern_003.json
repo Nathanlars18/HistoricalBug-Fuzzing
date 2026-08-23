@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_softmax_pattern_003",
+        "api_name": "torch.softmax",
+        "source_report": "softmax_bug_003.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "147284",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Numerical Edge Case",
+        "secondary_category": "Shape Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_softmax_cuda_float64_vectorized_width_boundary_wrong_result",
+        "general_category": "Numerical Edge Case",
+        "transferability": "medium"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Reduction dimension width is exactly 781 with row count greater than 1",
+        "dtype_trigger": "torch.float64",
+        "device_trigger": "CUDA",
+        "memory_trigger": "",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "",
+        "concrete_constraints": "Input tensor on CUDA with dtype torch.float64 and shape (c, 781), where c > 1; softmax applied along dim=1."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "ATen native CUDA softmax implementation in aten/src/ATen/native/cuda/SoftMax.cu is suspected",
+        "kernel_layer": "CUDA vectorized float64 softmax kernel boundary condition",
+        "backend_layer": "CUDA float64 softmax backend-specific issue",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "Softmax produces incorrect output for CUDA float64 tensors with shape (c, 781) and c > 1.",
+        "signal": "Output rows differ from reference softmax or do not sum to 1 within tolerance",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Sweep reduction dimension widths around CUDA vectorization boundaries and vary row counts above 1",
+        "tensor_construction": "Construct CUDA float64 tensors with shapes such as (rows, width) and initialize with known values such as zeros or constant vectors",
+        "constraint_injection": "Force dtype=torch.float64, device='cuda', and softmax dim=1",
+        "operation_sequence": "Run torch.softmax(input, dim=1) and compare with CPU float64 reference and float32 CUDA reference",
+        "oracle_construction": "Verify that each output row sums to 1 within a small tolerance and matches the reference softmax distribution"
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

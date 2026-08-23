@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_index_select_pattern_003",
+        "api_name": "torch.index_select",
+        "source_report": "index_select_bug_003.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "169779",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": "medium-high"
+    },
+    "bug_category": {
+        "primary_category": "API Contract Boundary",
+        "secondary_category": "Graph Transformation Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_index_select_negative_index_compile_semantics_bug",
+        "general_category": "API Contract Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "Dense input tensor with arbitrary shape; index tensor contains one or more elements used to index a target dimension.",
+        "dtype_trigger": "Index tensor dtype int64; input tensor is a normal dense floating-point tensor.",
+        "device_trigger": "CPU, CUDA, or MPS device paths may expose the compiled-mode inconsistency.",
+        "memory_trigger": "",
+        "value_trigger": "Index tensor contains negative values, such as [-1], [-2], or values near -dimension_size.",
+        "state_trigger": "Execution mode differs between eager and torch.compile backend='inductor'.",
+        "execution_trigger": "Run torch.index_select under eager mode and under torch.compile(backend='inductor') and compare behavior.",
+        "concrete_constraints": "torch.index_select(x, dim, indices) with indices containing negative values; eager mode should raise, while Inductor compiled mode may incorrectly succeed."
+    },
+    "root_cause": {
+        "api_layer": "torch.index_select defines strict non-negative index semantics and should reject negative indices.",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "Inductor decomposition lowers index_select into an indexing operation that supports negative index wrapping, violating eager API semantics.",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "Behavior mismatch where eager mode raises an exception for negative indices but Inductor compiled mode executes successfully.",
+        "signal": "RuntimeError in eager mode; no error in Inductor compiled mode",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Replace valid indices with negative values; include boundary values near -dimension_size and mixed positive/negative index tensors.",
+        "tensor_construction": "Create dense input tensors with random shapes and int64 index tensors containing negative values.",
+        "constraint_injection": "Force execution under both eager mode and torch.compile(backend='inductor') for the same input.",
+        "operation_sequence": "Execute torch.index_select in eager mode and compiled Inductor mode on identical input tensors and indices.",
+        "oracle_construction": "Flag any case where eager mode raises an exception but compiled mode succeeds, or where both execute but return inconsistent results."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}

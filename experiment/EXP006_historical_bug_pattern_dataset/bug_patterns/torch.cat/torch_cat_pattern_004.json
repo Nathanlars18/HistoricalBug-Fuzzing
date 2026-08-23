@@ -1,0 +1,54 @@
+{
+    "metadata": {
+        "pattern_id": "torch_cat_pattern_004",
+        "api_name": "torch.cat",
+        "source_report": "cat_bug_004.json",
+        "source": {},
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Memory Layout Boundary",
+        "secondary_category": "Backend Dispatch Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_cat_out_memory_format_selection_inconsistency_bug",
+        "general_category": "Memory Layout Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "out= tensor shape may differ from the inferred torch.cat output shape",
+        "dtype_trigger": "",
+        "device_trigger": "CPU and CUDA backends are both used for comparison",
+        "memory_trigger": "Input tensors have mixed memory formats, such as contiguous and channels_last",
+        "value_trigger": "",
+        "state_trigger": "",
+        "execution_trigger": "torch.cat is called with the out= variant",
+        "concrete_constraints": "Use torch.cat([A, B], dim=d, out=output) with multiple input tensors, where at least one input uses channels_last and another uses contiguous memory format; run on CPU and CUDA and inspect output memory_format."
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "torch.cat out= CPU and CUDA variants use different strategies to determine output memory format",
+        "kernel_layer": "",
+        "backend_layer": "CPU inherits memory format from the first input tensor, while CUDA recomputes memory format using compute_output_memory_format over all inputs",
+        "numerical_layer": "",
+        "confidence": "high"
+    },
+    "bug_oracle": {
+        "type": "Incorrect Output",
+        "description": "The same torch.cat out= operation produces different output memory_format behavior on CPU and CUDA when inputs have mixed memory formats.",
+        "signal": "output.memory_format differs between CPU and CUDA",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary input tensor memory formats among contiguous, channels_last, and other supported layouts",
+        "tensor_construction": "Construct multiple input tensors with explicitly different memory formats and allocate an out= tensor whose shape may not match the inferred cat output shape",
+        "constraint_injection": "Ensure at least one input tensor is non-contiguous or channels_last while another is contiguous, and execute the same operation on CPU and CUDA",
+        "operation_sequence": "Create mixed-memory-format input tensors, call torch.cat(..., out=output), then inspect the output tensor memory_format",
+        "oracle_construction": "Assert that CPU and CUDA outputs have equivalent memory_format, or compare against a documented memory format selection rule"
+    },
+    "verification_status": {
+        "level": "official_triaged",
+        "fixed": false
+    }
+}

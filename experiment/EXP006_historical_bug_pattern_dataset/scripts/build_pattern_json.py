@@ -21,18 +21,20 @@ BUG_REPORT_DIR = os.path.join(
 
 OUTPUT_DIR = os.path.join(
     EXP006_DIR,
-    "bug_patterns_test"
+    "bug_patterns"
 )
 
 
 SCHEMA_FILE = os.path.join(
     EXP006_DIR,
+    "schemas",
     "pattern_schema.md"
 )
 
 
 MAPPING_FILE = os.path.join(
     EXP006_DIR,
+    "schemas",
     "report_to_pattern_mapping.md"
 )
 
@@ -41,7 +43,6 @@ MODEL = "deepseek-v4-pro"
 
 
 API_URL = "https://api.deepseek.com/chat/completions"
-
 
 
 def load_file(path):

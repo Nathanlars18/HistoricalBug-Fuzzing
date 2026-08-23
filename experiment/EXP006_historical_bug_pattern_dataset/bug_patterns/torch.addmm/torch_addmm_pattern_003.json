@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "pattern_id": "torch_addmm_pattern_003",
+        "api_name": "torch.addmm",
+        "source_report": "addmm_bug_003.json",
+        "source": {
+            "type": "GitHub Issue",
+            "id": "183899",
+            "repository": "pytorch/pytorch"
+        },
+        "date": "",
+        "severity": ""
+    },
+    "bug_category": {
+        "primary_category": "Graph Transformation Boundary",
+        "secondary_category": "Shape Boundary"
+    },
+    "pattern_abstraction": {
+        "api_specific_pattern": "torch_addmm_beta_zero_unbroadcastable_bias_compile_bug",
+        "general_category": "Graph Transformation Boundary",
+        "transferability": "high"
+    },
+    "trigger_condition": {
+        "shape_trigger": "bias tensor shape is not broadcastable to the matrix multiplication output shape",
+        "dtype_trigger": "",
+        "device_trigger": "CUDA execution observed",
+        "memory_trigger": "",
+        "value_trigger": "beta=0.0 causes the bias contribution to be ignored in eager mode",
+        "state_trigger": "torch.compile enabled with Inductor backend and fullgraph=True",
+        "execution_trigger": "compiled graph shape validation occurs during compilation",
+        "concrete_constraints": "torch.addmm bias shape not broadcastable to output while beta=0.0; backend='inductor'; fullgraph=True"
+    },
+    "root_cause": {
+        "api_layer": "",
+        "aten_layer": "",
+        "kernel_layer": "",
+        "backend_layer": "Inductor compiler performs shape validation that does not preserve eager beta=0 semantics for non-broadcastable bias",
+        "numerical_layer": "",
+        "confidence": "medium"
+    },
+    "bug_oracle": {
+        "type": "Exception",
+        "description": "torch.compile fails with BackendCompilerFailed and reports a broadcasting failure because the bias shape does not match the output matrix shape.",
+        "signal": "BackendCompilerFailed",
+        "exit_code": ""
+    },
+    "harness_strategy": {
+        "input_mutation": "Vary beta and alpha values, especially beta=0 and alpha=0, to change whether operands are effectively used.",
+        "tensor_construction": "Construct bias tensors with shapes that are not broadcastable to the matmul output; vary matrix dimensions and broadcasting relationships.",
+        "constraint_injection": "Run the same operation under eager execution and torch.compile with Inductor backend and fullgraph=True.",
+        "operation_sequence": "Call torch.addmm with incompatible bias shapes and transposed weights; extend to other functions with coefficient-disabled optional operands.",
+        "oracle_construction": "Compare eager and compiled execution; flag cases where eager succeeds but compiled execution raises a compiler exception, especially when an operand is semantically disabled."
+    },
+    "verification_status": {
+        "level": "user_reported",
+        "fixed": false
+    }
+}
