@@ -1,0 +1,84 @@
+API:
+torch.mm
+
+
+Title:
+torch.mm produces wrong result on cpu when using in-place computation
+
+
+Bug Summary:
+
+torch.mm produces incorrect output when
+the output tensor aliases the input tensor.
+
+
+Trigger Condition:
+
+API:
+torch.mm
+
+
+Device:
+CPU
+
+
+Condition:
+
+out tensor shares storage with input tensor.
+
+
+Example:
+
+A = torch.rand(50,50)
+
+C=A.clone()
+
+torch.mm(
+    C,
+    C,
+    out=C
+)
+
+
+Observed:
+
+Output differs from reference.
+
+
+Expected:
+
+Aliased output should either:
+1. produce correct result
+or
+2. reject unsupported aliasing.
+
+
+Potential Pattern:
+
+Memory Alias / In-place Operation
+
+
+Harness Strategy:
+
+Generate tensors where:
+
+out.data_ptr()
+==
+input.data_ptr()
+
+
+Execute mm with out parameter.
+
+
+Oracle:
+
+Compare result with non-alias reference output.
+
+
+Selection Decision:
+
+YES
+
+Reason:
+
+Represents a generalizable memory alias bug.

@@ -1,0 +1,196 @@
+==================================================
+PyTorch Historical Bug Issue Collection
+==================================================
+
+Issue ID:
+191693
+
+Repository:
+pytorch/pytorch
+
+URL:
+https://github.com/pytorch/pytorch/issues/191693
+
+
+--------------------------------------------------
+Basic Information
+--------------------------------------------------
+
+API:
+torch.mm
+
+
+Title:
+[MPS] torch.mm raises opaque function-state RuntimeError for bool matrices
+
+
+Status:
+Closed
+
+
+Created:
+2026-xx-xx
+
+
+Labels:
+module: mps
+module: error checking
+triaged
+
+
+--------------------------------------------------
+Bug Summary
+--------------------------------------------------
+
+torch.mm on MPS raises an internal RuntimeError when
+both input tensors are boolean dtype.
+
+CPU rejects this operation clearly, but MPS dispatches
+the operation into an unsupported matmul_bool kernel path.
+
+
+--------------------------------------------------
+Affected Environment
+--------------------------------------------------
+
+PyTorch Version:
+2.12.0
+
+Device:
+MPS (Apple Silicon)
+
+OS:
+macOS
+
+
+--------------------------------------------------
+Trigger Condition
+--------------------------------------------------
+
+API:
+torch.mm
+
+
+Input:
+2D tensors
+
+
+dtype:
+torch.bool
+
+
+device:
+mps
+
+
+Operation:
+
+torch.mm(input, mat2)
+
+
+--------------------------------------------------
+Reproduction
+--------------------------------------------------
+
+import torch
+
+a = torch.randint(
+    0,
+    2,
+    (4,4),
+    dtype=torch.bool,
+    device="mps"
+)
+
+b = torch.randint(
+    0,
+    2,
+    (4,4),
+    dtype=torch.bool,
+    device="mps"
+)
+
+torch.mm(a,b)
+
+
+--------------------------------------------------
+Observed Behavior
+--------------------------------------------------
+
+RuntimeError:
+
+Failed to create function state object for:
+matmul_bool
+
+
+--------------------------------------------------
+Expected Behavior
+--------------------------------------------------
+
+The operation should reject unsupported dtype
+with a clear error message, similar to CPU behavior.
+
+
+--------------------------------------------------
+Root Cause Hint
+--------------------------------------------------
+
+Backend dispatch lacks proper dtype validation
+before entering MPS matmul implementation.
+
+
+--------------------------------------------------
+Potential Bug Pattern
+--------------------------------------------------
+
+Category:
+
+Dtype Boundary / Backend Dispatch
+
+
+Pattern:
+
+Unsupported dtype reaches backend-specific kernel.
+
+
+--------------------------------------------------
+Potential Harness Strategy
+--------------------------------------------------
+
+Generate tensors with:
+
+- dtype=torch.bool
+- device=MPS
+- 2D matrix shapes
+
+
+Execute:
+
+torch.mm()
+
+
+Oracle:
+
+Detect unexpected RuntimeError
+or backend crash.
+
+
+--------------------------------------------------
+Selection Decision
+--------------------------------------------------
+
+Selected:
+
+YES
+
+
+Reason:
+
+This bug can be transformed into an executable
+harness strategy.
+
+It represents a generalizable dtype boundary
+bug pattern.
+
+
+==================================================
