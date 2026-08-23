@@ -1,0 +1,11 @@
+api,category,selection_reason,existing_harness,shape,dtype,memory_layout,broadcast,numerical,index,expected_bug_patterns,target_bug_num
+torch.matmul,Matrix Operation,"Representative matrix multiplication operator and pilot case for historical bug pattern validation",yes,1,1,1,0,0,0,"shape boundary,dtype mismatch,memory layout,backend dispatch",4
+torch.mm,Matrix Operation,"Basic matrix multiplication operator covering tensor dimension and dtype boundary conditions",yes,1,1,1,0,0,0,"shape mismatch,dtype boundary,stride",4
+torch.addmm,Matrix Operation,"Fused matrix operation involving matrix multiplication and broadcasting behavior",yes,1,1,0,1,0,0,"broadcasting,shape boundary,dtype",4
+torch.add,Elementwise Operation,"Common elementwise operator representing broadcasting and dtype interaction",yes,0,1,0,1,0,0,"broadcasting,dtype mismatch,scalar interaction",4
+torch.mul,Elementwise Operation,"Elementwise multiplication operator covering tensor type and scalar interaction bugs",yes,0,1,0,1,0,0,"dtype boundary,broadcasting,scalar tensor",4
+torch.relu,Activation Operation,"Simple activation operator providing baseline coverage for numerical and dtype issues",yes,0,1,0,0,1,0,"dtype,numerical edge case,empty tensor",4
+torch.softmax,Numerical Operation,"Numerical-sensitive operator with potential overflow, NaN and Inf related issues",yes,1,1,0,0,1,0,"NaN/Inf,numerical stability,dimension",4
+torch.cat,Tensor Manipulation,"Tensor concatenation operator representing dimension and shape manipulation bugs",no,1,0,1,0,0,0,"dimension boundary,shape mismatch,memory layout",4
+torch.reshape,Tensor View Operation,"Tensor view transformation operator targeting stride and memory layout bugs",no,1,0,1,0,0,0,"stride,memory layout,non-contiguous tensor",4
+torch.index_select,Index Operation,"Index based operator representing boundary and invalid indexing behaviors",no,1,0,0,0,0,1,"index boundary,invalid index,empty tensor",4

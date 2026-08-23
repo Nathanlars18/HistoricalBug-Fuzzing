@@ -1,0 +1,10 @@
+torch.matmul
+torch.mm
+torch.addmm
+torch.add
+torch.mul
+torch.relu
+torch.softmax
+torch.cat
+torch.reshape
+torch.index_select
