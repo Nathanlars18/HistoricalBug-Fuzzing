@@ -1,0 +1,158 @@
+Bug ID:
+#106665
+
+Title:
+Inconsistency between CPU and GPU for Linear() layer with input size 0
+
+
+API:
+torch.nn.Linear
+
+
+Bug Category:
+Shape Boundary / Empty Tensor / Backend Inconsistency
+
+
+Description:
+
+PyTorch Linear layer produces inconsistent output shapes between CPU and GPU
+when the input tensor has zero input features.
+
+The issue occurs when using Linear with in_features=0 and an empty feature
+dimension input tensor.
+
+
+Trigger Condition:
+
+1. Create Linear layer with zero input features:
+
+torch.nn.Linear(0, output_features)
+
+2. Provide tensor with shape:
+
+(batch_size, 0)
+
+3. Execute forward operation.
+
+Example:
+
+layer = torch.nn.Linear(0, 2)
+
+x = torch.randn(3, 0)
+
+y = layer(x)
+
+
+Observed Behavior:
+
+CPU backend:
+
+Input:
+shape = [3,0]
+
+Output:
+shape = [3,2]
+
+
+CUDA backend:
+
+Input:
+shape = [3,0]
+
+Output:
+shape = [2]
+
+
+The CUDA implementation incorrectly removes the batch dimension.
+
+
+Expected Behavior:
+
+CPU and CUDA should return identical output shapes.
+
+Linear should preserve batch dimensions and only transform the feature dimension.
+
+
+Root Cause:
+
+The CUDA implementation incorrectly handles the bias broadcasting path
+when the input feature dimension is zero.
+
+The operation performs incorrect shape handling after linear transformation,
+causing the batch dimension to be removed.
+
+
+Affected Conditions:
+
+- zero input feature dimension
+- empty tensor
+- Linear operation
+- CUDA backend
+
+
+Bug Pattern:
+
+Empty tensor dimensions may trigger backend-specific shape handling errors,
+causing inconsistent tensor metadata or output shapes.
+
+
+Harness Generation Strategy:
+
+Generate Linear layers with:
+
+- in_features = 0
+- random output_features
+
+Generate inputs:
+
+shape:
+(batch_size, 0)
+
+
+Test across:
+
+- CPU
+- CUDA
+
+
+Oracle:
+
+Compare:
+
+- output shape
+- output metadata
+
+A bug is detected when:
+
+same input and operation produce different output shapes across devices.
+
+
+Example Trigger:
+
+layer = torch.nn.Linear(0,2)
+
+x = torch.randn(3,0)
+
+CPU:
+torch.Size([3,2])
+
+CUDA:
+torch.Size([2])
+
+
+Severity:
+
+Medium
+
+
+Reason:
+
+No memory corruption occurs, but incorrect tensor shape metadata can cause
+silent correctness issues and downstream failures.
+
+
+Status:
+
+Fixed in later PyTorch versions.
+
+Current main branch no longer reproduces the mismatch.

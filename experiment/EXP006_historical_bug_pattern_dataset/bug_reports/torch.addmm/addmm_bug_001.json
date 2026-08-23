@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_138906",
+        "title": "RuntimeError: addmm with out= argument returns incorrect result",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "138906",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.addmm",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "The issue reports that torch.addmm produces incorrect results when\nthe output tensor specified by the out= argument aliases with the\ninput tensor.\n\nThe operation succeeds without raising an error, but the produced\nresult is incorrect.\n\n\nTrigger Condition:\n\nAPI:\ntorch.addmm\n\nInput condition:\n\n- output tensor shares storage with input tensor\n- out= argument is used\n- tensor shapes are compatible\n\nEnvironment:\n\nReported on PyTorch with CUDA.\n\n\nReproduction:\n\nExample:\n\n```python\nt = torch.ones(5,5)\n\nweight = ...\n\ntorch.addmm(t, input, weight, out=t)\nObserved Behavior:\nThe returned tensor contains incorrect values.\nExpected Behavior:\nThe result should match normal torch.addmm execution without aliasing.\nFailure Oracle:\nIncorrect output.\nCompare:\ntorch.addmm(input, mat1, mat2)\nwith:\ntorch.addmm(input, mat1, mat2, out=input)\nHarness Relevance:\nHigh.\nThis bug can be converted into a harness generation strategy:\nGenerate tensors where:\n- output tensor aliases input tensor\n- addmm is executed\n- result is compared with reference implementation\nPotential Bug Pattern:\nMemory aliasing in out= operations.\nPattern Keywords:\n- out argument\n- alias\n- shared storage\n- incorrect result",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.addmm/issue_138906_out_alias_addmm.txt"
+}

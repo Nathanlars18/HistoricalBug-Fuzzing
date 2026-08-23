@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_183899",
+        "title": "torch.compile fails on addmm with beta=0 and non-broadcastable bias shape",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "183899",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.addmm",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.compile with the Inductor backend fails when torch.addmm is called with\nbeta=0 and the input bias tensor has a shape that is not broadcastable to the\nmatrix multiplication output.\n\nEager execution succeeds because beta=0 causes the bias contribution to be ignored,\nwhile the compiled version performs shape validation during compilation and fails.\n\n\nMinimal Reproduction:\n\n```python\nimport torch\n\n\ndef f(bias, x, weight):\n\n    return torch.addmm(\n        bias,\n        x,\n        weight.t(),\n        beta=0.0,\n        alpha=0.25\n    )\n\n\nx = torch.randn(\n    3,\n    7,\n    device=\"cuda\"\n)\n\n\nweight = torch.randn(\n    11,\n    7,\n    device=\"cuda\"\n)\n\n\nbias = torch.zeros(\n    7,\n    device=\"cuda\"\n)\n\n\ncompiled_out = torch.compile(\n    f,\n    backend=\"inductor\",\n    fullgraph=True\n)(\n    bias,\n    x,\n    weight\n)\nObserved Behavior:\nEager execution:\nReturns:\nshape (3,11)\ntorch.compile execution:\nFails with:\nBackendCompilerFailed\nThe compiler reports broadcasting failure because the bias shape does not match\nthe output matrix shape.\nExpected Behavior:\ntorch.compile should preserve eager semantics.\nSince beta=0 means the bias contribution is unused,\nthe operation should successfully compile.\nEnvironment:\nPyTorch version:\n2.12.0.dev20260407+cu128\nOS:\nUbuntu 24.04.3 LTS\nPython:\n3.11.15\nCUDA:\n12.8\nGPU:\nNVIDIA RTX 6000 Ada Generation\nBug Category (Human Annotation):\nCorrectness:\ntrue\nCrash:\nfalse\nWrong Result:\nfalse\nException:\ntrue\nPerformance:\nfalse\nTrigger Conditions:\nAPI:\ntorch.addmm\nRequired conditions:\n- torch.compile enabled\n- Inductor backend\n- beta=0\n- bias tensor shape incompatible with output shape\n- CUDA execution\nPotential Fuzzing Value:\nHigh.\nThis issue represents a boundary condition involving operator parameters\nand shape validation.\nPotential harness generation directions:\n- generate unusual beta values\n- generate broadcast-incompatible bias tensors\n- compare eager and compiled execution\n- test parameter-dependent shape checking\nRelated Concepts:\n- shape boundary\n- broadcasting\n- compiler inconsistency\n- optional parameter semantics\nNotes:\nThis issue is retained because it represents a generalizable operator boundary\ncondition where execution behavior changes depending on compiler backend.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.addmm/issue_183899_beta0_shape_addmm.txt"
+}

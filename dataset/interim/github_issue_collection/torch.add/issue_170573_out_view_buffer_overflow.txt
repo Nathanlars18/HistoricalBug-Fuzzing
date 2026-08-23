@@ -1,0 +1,82 @@
+Issue ID:
+170573
+
+
+Title:
+Silent Heap Buffer Overflow in standard ops (add, pinv) via implicit view resizing
+
+
+API:
+torch.add
+
+
+Category:
+Memory Safety
+
+
+Labels:
+module: python frontend
+triaged
+
+
+Description:
+
+torch.add with out= argument may silently resize an undersized tensor view.
+
+Because views cannot reallocate storage, resizing only changes metadata while kernel writes beyond allocated storage.
+
+
+Reproduction:
+
+storage = torch.zeros(6)
+
+out_view = storage[:2]
+
+a = torch.full((4,),10.0)
+
+b = torch.full((4,),20.0)
+
+
+torch.add(
+    a,
+    b,
+    out=out_view
+)
+
+
+Observed:
+
+The operation overwrites adjacent storage.
+
+
+Trigger Condition:
+
+- API: torch.add
+- use out= argument
+- out tensor is undersized view
+- required output larger than allocated storage
+
+
+Bug Pattern Candidate:
+
+Out-parameter aliasing and insufficient storage validation.
+
+
+Potential Harness Strategy:
+
+Generate:
+- base storage
+- undersized tensor views
+- out operations
+
+
+Oracle:
+
+Memory corruption detection.
+
+
+Research Value:
+
+Very High.
+
+Represents memory safety vulnerabilities detectable by fuzzing.

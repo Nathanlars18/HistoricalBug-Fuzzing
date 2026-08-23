@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_",
+        "title": "torch.softmax(inp, dtype=torch.float32).to(torch.float16) is not equivalent to torch.softmax(inp) for fp16 input",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.softmax",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "The behavior of:\n\ntorch.softmax(inp, dtype=torch.float32).to(torch.float16)\n\nis not numerically equivalent to:\n\ntorch.softmax(inp)\n\nwhen the input tensor uses float16 precision.\n\nThe reporter investigated inconsistent outputs between SDPA and eager implementations.\nThe difference was traced to different softmax computation paths.\n\nAlthough the numerical difference is small for a single operation, the error can accumulate through multiple neural network layers and result in larger output deviations.\n\n\nTrigger Condition:\n\nInput tensor:\n- dtype: float16\n- device: CUDA GPU\n\nOperation:\n- Apply torch.softmax directly on fp16 tensor\n- Compare with torch.softmax using dtype=float32 followed by cast back to fp16\n\n\nMinimal Reproduction:\n\n```python\nimport torch\n\nsoftmax_inp = torch.randn(\n    1,\n    32,\n    1238,\n    1238,\n    device=\"cuda\",\n    dtype=torch.float16\n)\n\nres_softmax_0 = torch.softmax(\n    softmax_inp,\n    dim=-1\n)\n\nres_softmax_1 = torch.softmax(\n    softmax_inp,\n    dim=-1,\n    dtype=torch.float32\n).to(torch.float16)\n\nabsdiff = (res_softmax_0 - res_softmax_1).abs()\n\nprint(absdiff.max())\nObserved Behavior:\nThe two computation paths produce different results.\nExample:\nmax absdiff softmax:\ntensor(0.000488, device='cuda:0', dtype=torch.float16)\nThe difference can accumulate in deep transformer models and produce larger final output errors.\nExpected Behavior:\ntorch.softmax(inp, dtype=torch.float32).to(torch.float16)\nand\ntorch.softmax(inp)\nshould provide numerically equivalent results for float16 inputs.\nRoot Cause Category:\nNumerical Stability Boundary\nRelated factors:\n- float16 precision\n- dtype conversion\n- CUDA softmax kernel implementation\n- different accumulation paths\nBug Pattern:\nPattern Name:\nFP16 Softmax Numerical Inconsistency\nPattern Description:\nWhen a tensor uses low precision floating point formats (such as float16),\ndifferent internal computation paths of softmax may produce inconsistent numerical results.\nExplicit dtype casting to float32 before softmax and implicit internal casting may not be equivalent.\nFuzzing Relevance:\nHigh\nHarness Generation Guidance:\nGenerate tensors with:\ndtype:\n- torch.float16\ndevice:\n- CUDA\nShape:\n- large last dimension\n- transformer-like attention shapes\nExample:\n(batch, heads, sequence_length, sequence_length)\nValues:\n- normal random values\n- large magnitude values\n- values with small differences\nOracle:\nCompare:\ntorch.softmax(\n    x,\n    dim=-1\n)\nagainst:\ntorch.softmax(\n    x,\n    dim=-1,\n    dtype=torch.float32\n).to(torch.float16)\nFailure condition:\nmax absolute difference exceeds tolerance threshold.\nSuggested Mutation Strategy:\n1. Change tensor dtype:\n   - float16\n   - bfloat16\n2. Change tensor dimensions:\n   - small dimensions\n   - large reduction dimensions\n3. Generate extreme values:\n   - large positive values\n   - large negative values\n4. Combine with attention-like shapes.\nLabels:\nmodule:\n- nn\n- half\n- numerical-stability\n- sdpa\nBug Category:\n- dtype boundary\n- numerical inconsistency\n- precision issue\nSource:\nPyTorch GitHub Issue #123911",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.softmax/issue_123911_softmax_dtype_fp16_inconsistency.txt"
+}

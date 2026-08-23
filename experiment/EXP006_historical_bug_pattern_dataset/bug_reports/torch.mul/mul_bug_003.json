@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_158861",
+        "title": "",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "158861",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.mul",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "🐛 Describe the bug\n\nWhen two tensors are multiplied elementwise and the operand whose size-1 dimension must be broadcast up is a sparse COO tensor, torch.mul silently returns an incorrect result: only the index == 0 slice along the broadcast dimension is populated, and all other slices are zero.\n\nBroadcasting works correctly in every other direction (dense operand broadcast up against a full sparse tensor, equal shapes, scalar multiply). The bug is specific to expanding a singleton dimension of the sparse operand.\n\nNo error or warning is raised.\n\n\nMinimal reproducer:\n\n```python\nimport torch\n\ns = torch.tensor([[1., 2.], [3., 4.]]).to_sparse_coo()\n\n# sparse tensor with trailing singleton dimension\ns1 = s[:, :, None]\n\n# dense tensor which broadcasts the singleton dimension\nd = torch.ones(1, 1, 3)\n\nout = (s1 * d).to_dense()\n\nexpected = s.to_dense()[:, :, None] * d\n\nprint(out)\nprint(expected)\n\nprint(\"max abs err:\", (out - expected).abs().max().item())\nOutput:\nmax abs err: 4.0\nThe output along the first broadcast slice is correct:\nout[...,0] == expected[...,0]\nHowever:\nout[...,1:]\nis entirely zero.\nThe expected behavior is that broadcasting should replicate the sparse values along the expanded dimension.\nExpected Behavior:\nEither:\n1. Broadcast the sparse operand's singleton dimension correctly.\nThe sparse values should be replicated across the expanded dimension according to dense broadcasting semantics.\nor:\n2. Raise an explicit error if this sparse broadcasting pattern is unsupported.\nThe current behavior silently returns an incorrect tensor.\nReal-world Impact:\nThe bug was found while writing an MTTKRP kernel involving sparse tensors:\ntorch.sum(\n    B[:, :, :, None]\n    * D[None, None, :, :]\n    * C[None, :, None, :],\n    axis=(1, 2)\n)\nwhere:\n- B is a sparse COO tensor.\n- B[:, :, :, None] introduces a singleton rank dimension.\n- The singleton dimension should broadcast against dense factor matrices.\nThe result was silently incorrect:\n- the first rank column was correct.\n- all remaining rank columns were zero.\nNo warning or error indicated that the computation was wrong.\nEnvironment:\nPyTorch:\n2.12.1+cu130\nPython:\n3.10.14\nCUDA:\nAvailable\nThe bug reproduces on CPU tensors as well.\nLabels:\nmodule: sparse\nmodule: correctness (silent)\nbot-triaged\ntriaged\nhigh priority\nTechnical Discussion:\nleninathikam investigated the issue and identified the root cause.\nThe problem occurs in:\nintersection_binary_op_sparse_dense_out\ninside:\nSparseTensorMath.cpp\nCurrent behavior:\nThe sparse-dense multiplication path supports broadcasting when the dense tensor expands against a sparse tensor.\nHowever, when the sparse operand itself contains a size-1 dimension that needs broadcasting, the implementation does not explicitly expand the sparse tensor.\nAs a result:\n- sparse indices are used directly.\n- only index == 0 along the broadcast dimension receives values.\n- remaining broadcast slices stay zero.\nRoot Cause:\nThe sparse multiplication path is missing explicit sparse broadcasting.\nThe sparse operand should first be expanded using:\nat::sparse_broadcast_to\nbefore performing the intersection operation.\nProposed Fix:\nBefore sparse-dense intersection:\n1. Infer the broadcasted size.\n2. Apply:\nat::sparse_broadcast_to\nto the sparse operand.\n3. Continue with the existing multiplication logic.\nRegression tests should cover:\n- singleton sparse dimensions\n- sparse/dense broadcasting\n- MTTKRP-style workloads\nRelated Issue:\n#158861\nThe same root cause was previously discussed:\nExplicit sparse broadcasting through:\nsparse_broadcast_to\nfollowed by:\ncoalesce\nis required.\nReferences:\nIssue:\n#188900\nRelated PR:\n#189122\nAffected API:\ntorch.mul\nAffected Component:\nSparse COO Tensor\nSparse-Dense Broadcasting\nBug Category:\nSilent Incorrect Result\nPattern Category:\nSparse Layout / Broadcasting Boundary\nPotential Harness Pattern:\nInput:\n- sparse COO tensor\n- dimension with size 1\n- dense tensor requiring broadcast expansion\nOperation:\ntorch.mul(sparse_tensor, dense_tensor)\nOracle:\nCompare sparse result converted to dense against dense reference implementation.\nFailure Signature:\nIncorrect output without exception.\nOnly the first broadcast slice is populated.\nRemaining broadcasted slices become zero.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.mul/issue_188900_sparse_broadcast_mul.txt"
+}

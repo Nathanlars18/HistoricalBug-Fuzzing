@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_194051",
+        "title": "[CPU] aten::_reshape_alias creates out-of-storage views from unchecked strides",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "194051",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.reshape",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "aten::_reshape_alias can create a view whose logical elements extend beyond\nthe input storage.\n\nA normal tensor operation can then read outside the storage.\n\n\nAffected Operator:\n\naten::_reshape_alias\n\n\nPython Reproduction:\n\nimport torch\n\nbase = torch.arange(8, dtype=torch.int64)\n\nview = torch.ops.aten._reshape_alias(\n    base,\n    [2],\n    [8]\n)\n\nprint(view.sum())\n\n\nObserved Behavior:\n\nThe operator creates a tensor view with invalid size and stride metadata.\n\nThe logical elements of the created view exceed the valid input storage range.\n\nWhen a later tensor operation accesses the view, an out-of-bounds memory\nread occurs.\n\n\nCrash Information:\n\nAddressSanitizer reports:\n\nheap-buffer-overflow\n\nREAD of size 8\n\nThe invalid read happens immediately after the allocated input storage.\n\n\nExample:\n\nInput tensor:\n\ndtype:\nint64\n\n\nStorage:\n\n8 elements\n\n\nRequested view:\n\nsize:\n[2]\n\nstride:\n[8]\n\n\nThe second logical element starts outside the original storage boundary.\n\n\nBackend:\n\nCPU\n\n\nBug Category:\n\nMemory safety violation\n\nOut-of-bounds read\n\nInvalid tensor view\n\nUnchecked stride\n\n\nRoot Cause:\n\naten::_reshape_alias forwards the supplied sizes and strides directly to\nalias_with_sizes_and_strides.\n\nThe operation does not validate whether the reachable storage range of the\nnew view is inside the original tensor storage.\n\nThe malformed alias survives until a later operation reads the tensor.\n\n\nImportant Technical Detail:\n\nThe contract of alias_with_sizes_and_strides requires the caller to guarantee\nthat storage is sufficient.\n\nHowever, direct calls to aten::_reshape_alias do not enforce this condition.\n\n\nTrigger Conditions:\n\nA failure occurs when:\n\n1. The input tensor has limited storage.\n\n2. The reshape alias operation receives manually specified strides.\n\n3. The reachable memory region defined by:\n\nstorage_offset + stride * index\n\nextends beyond the allocated storage.\n\n\nRequired Input Features:\n\nTensor:\n\n- CPU tensor\n- small storage\n- int64 dtype\n\n\nMetadata:\n\n- custom size\n- custom stride\n- invalid storage mapping\n\n\nFollow-up Operation:\n\nA later tensor operation such as:\n\nsum()\n\nor other tensor iteration\n\ncauses the invalid memory access.\n\n\nExpected Behavior:\n\nThe operator should reject view metadata whose reachable elements exceed\nthe input storage.\n\nInvalid size and stride combinations should not create unsafe tensor views.\n\n\nRelevant Bug Pattern:\n\nPattern Name:\n\nUnchecked reshape stride creates out-of-storage view\n\n\nPattern Description:\n\nTensor view operations that accept user-controlled size and stride metadata\nmay create invalid views if storage boundary validation is missing.\n\n\nHarness Generation Guidance:\n\nGenerate tensors with:\n\n- small allocated storage\n- manually controlled stride values\n- unusual shape combinations\n- alias/view based operations\n\n\nRecommended Mutation Dimensions:\n\nShape:\n\n- small dimensions\n- large logical dimensions\n\nStride:\n\n- oversized stride\n- sparse stride\n- non-contiguous layout\n\n\nStorage:\n\n- insufficient backing storage\n- boundary-sized allocation\n\n\nOracle:\n\nDetect:\n\n- AddressSanitizer heap-buffer-overflow\n- crash\n- invalid memory access\n\n\nRelated Issues:\n\n#194050\n\naten::_reshape_alias_copy reads out of bounds with unchecked strides\n\n\n#84693\n\nUses invalid _reshape_alias metadata with different observed behavior.\n\n\nAffected Modules:\n\nmodule: crash\n\nmodule: viewing and reshaping\n\ntriage review\n\n\nVersions:\n\nPyTorch:\n\n2.11.0a0+git70d99e9\n\n\nOS:\n\nLinux x86_64\n\n\nBuild:\n\nAddressSanitizer enabled\n\n\nCPU:\n\nIntel Xeon Platinum 8368\n\n\nStatus:\n\nbot-triaged\n\ntriage review",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.reshape/issue_194051_reshape.txt"
+}

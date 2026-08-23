@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_121251",
+        "title": "[torch.compile] index_select out of bound read",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "121251",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.index_select",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "When using torch.compile, torch.index_select may perform an\nout-of-bound memory read instead of raising an indexing error.\n\nThe eager execution mode correctly detects invalid indices and\nraises an IndexError, but the compiled execution using Inductor\nbackend produces invalid output values.\n\n\nMinimal Reproduction:\n\nimport torch\n\n\ntorch.manual_seed(42)\n\n\nclass Model(torch.nn.Module):\n\n    def __init__(self):\n        super().__init__()\n\n\n    def forward(self, x1):\n        v = torch.index_select(x1, 0, torch.tensor([2]))\n        return v\n\n\nfunc = Model().to('cpu')\n\n\nx = torch.randn(2, 2, 2, 2)\n\n\nwith torch.no_grad():\n\n    func1 = torch.compile(func)\n\n    print(func1(x.clone()))\n\n    print(func(x.clone()))\n\n\n\nObserved Behavior:\n\nCompiled execution:\n\nfunc1(x.clone())\n\n\nreturns an invalid tensor:\n\ntensor([[[[1.0743e+23, 3.0618e-41],\n          [9.1084e-44, 0.0000e+00]],\n\n         [[3.2230e-44, 0.0000e+00],\n          [3.2230e-44, 0.0000e+00]]]])\n\n\nThe returned values are unexpected and indicate an\nout-of-bound memory read.\n\n\nEager execution:\n\nfunc(x.clone())\n\n\nraises:\n\nIndexError: index out of range in self\n\n\n\nExpected Behavior:\n\ntorch.compile should preserve the same index validation behavior\nas eager execution.\n\nInvalid indices passed to torch.index_select should raise an\nappropriate error instead of producing invalid memory reads or\nincorrect tensor values.\n\n\nTrigger Information:\n\nOperator:\n\ntorch.index_select\n\n\nExecution Modes:\n\nEager mode:\n- Correctly raises IndexError\n\n\nCompiled mode:\n- torch.compile\n- Inductor backend\n\n\nInput Condition:\n\nInput tensor dimension:\n\nx.shape = (2, 2, 2, 2)\n\n\nIndex tensor:\n\ntorch.tensor([2])\n\n\nThe selected dimension has size 2, therefore index 2 is invalid.\n\n\nEnvironment:\n\nPyTorch version:\n\n2.3.0.dev20240301+cu118\n\n\nCUDA:\n\nCUDA used to build PyTorch:\n11.8\n\n\nOS:\n\nUbuntu 22.04.1 LTS\n\n\nArchitecture:\n\nx86_64\n\n\nPython version:\n\n3.9.0\n\n\nCompiler:\n\nGCC 11.4.0\n\nClang 14.0.0\n\n\nRelated Libraries:\n\ntorch==2.3.0.dev20240301+cu118\n\npytorch-triton==3.0.0+901819d2b6\n\n\nHardware:\n\nCPU:\n\n12th Gen Intel(R) Core(TM) i9-12900K\n\n\nIssue Discussion Summary:\n\nThe issue was initially considered high priority because\ntorch.compile generated incorrect results instead of reporting\nan indexing error.\n\n\nThe problem was related to Inductor behavior.\n\nUnlike eager execution, Inductor-generated kernels may not\nperform the same index checks as PyTorch eager mode.\n\n\nMaintainers noted that:\n\n- backend=\"eager\" reproduces the same behavior as eager execution.\n- Inductor may not include index checks present in eager mode.\n- This behavior is mainly relevant for negative/fuzzer testing.\n\n\nResolution:\n\nThe issue was fixed by commit:\n\n8a21532\n\n\"Fix constant propagation pass\"\n\n\nClosed:\n\n2024-05-29\n\n\nReferences:\n\nPyTorch Issue #121251\n\ntorch.index_select\n\ntorch.compile\n\nInductor\n\ntopic: fuzzer",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.index_select/issue_121251_index_select.txt"
+}

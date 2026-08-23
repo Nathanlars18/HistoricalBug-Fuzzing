@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_194050",
+        "title": "[CPU] aten::_reshape_alias_copy reads out of bounds with unchecked strides",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "194050",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.reshape",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "aten::_reshape_alias_copy materializes tensor data using caller-provided size\nand stride values without checking that every source element is inside the\ninput storage.\n\nThe operation may read outside the original tensor storage during the copy\nprocess.\n\n\nAffected Operator:\n\naten::_reshape_alias_copy\n\n\nPython Reproduction:\n\nimport torch\n\nbase = torch.arange(8, dtype=torch.int64)\n\nout = torch.ops.aten._reshape_alias_copy(\n    base,\n    [2],\n    [8]\n)\n\nprint(out)\n\n\nObserved Behavior:\n\nThe operator accepts invalid size and stride metadata.\n\nDuring materialization, the copy kernel accesses memory outside the allocated\ninput storage.\n\nThis results in an out-of-bounds memory read.\n\n\nCrash Information:\n\nAddressSanitizer reports:\n\nheap-buffer-overflow\n\nREAD of size 8\n\n\nThe invalid read occurs directly after the source tensor storage.\n\n\nExample:\n\nInput:\n\ndtype:\nint64\n\n\nStorage:\n\n8 elements\n\n\nRequested layout:\n\nsize:\n[2]\n\nstride:\n[8]\n\n\nThe second logical element points outside the valid storage range.\n\n\nBackend:\n\nCPU\n\n\nBug Category:\n\nMemory safety violation\n\nOut-of-bounds read\n\nUnchecked stride\n\n\nRoot Cause:\n\naten::_reshape_alias_copy constructs the source tensor geometry using the\ncaller-provided size and stride values.\n\nThe operation does not verify that every source element accessed during the\ncopy belongs to the original storage.\n\n\nUnlike normal safe tensor operations, malformed metadata is accepted and\nforwarded to the copy kernel.\n\n\nImportant Technical Detail:\n\nThe operator shares the same underlying assumption as\nalias_with_sizes_and_strides:\n\nThe caller must guarantee that the storage is sufficient.\n\nHowever, direct invocation does not enforce this condition.\n\n\nTrigger Conditions:\n\nThe bug is triggered when:\n\n1. A tensor has limited backing storage.\n\n2. _reshape_alias_copy receives manually specified strides.\n\n3. The calculated source memory range exceeds the allocated storage.\n\n\nRequired Input Features:\n\nTensor:\n\n- CPU tensor\n- small storage\n- integer dtype\n\n\nMetadata:\n\n- custom shape\n- custom stride\n- invalid storage mapping\n\n\nExecution Path:\n\nInput tensor\n\n        |\n        v\n\n_reshape_alias_copy\n\n        |\n        v\n\ncopy kernel\n\n        |\n        v\n\nout-of-bounds read\n\n\nExpected Behavior:\n\nThe operator should validate source storage boundaries before copying.\n\nInvalid size and stride combinations should be rejected.\n\n\nRelevant Bug Pattern:\n\nPattern Name:\n\nUnchecked reshape stride causes out-of-bound copy\n\n\nPattern Description:\n\nTensor reshape operations that accept custom stride metadata may access\ninvalid memory when storage boundary checks are missing.\n\n\nHarness Generation Guidance:\n\nGenerate tests containing:\n\n- small tensors\n- manually controlled stride values\n- non-contiguous layouts\n- unusual shape combinations\n- reshape alias copy operations\n\n\nRecommended Mutation Dimensions:\n\nShape:\n\n- very small dimensions\n- mismatched logical size\n\n\nStride:\n\n- large stride values\n- sparse stride layouts\n- invalid stride combinations\n\n\nStorage:\n\n- minimal allocation\n- insufficient backing storage\n\n\nOracle:\n\nDetect:\n\n- AddressSanitizer heap-buffer-overflow\n- crash\n- invalid memory access\n\n\nRelated Issue:\n\n#194051\n\naten::_reshape_alias creates out-of-storage views from unchecked strides\n\n\nDifference from #194051:\n\n#194051:\n\nCreates invalid alias view.\n\nFailure occurs during later tensor access.\n\n\n#194050:\n\nImmediately materializes invalid layout.\n\nFailure occurs during copy operation.\n\n\nAffected Modules:\n\nmodule: crash\n\nmodule: viewing and reshaping\n\n\nVersions:\n\nPyTorch:\n\n2.11.0a0+git70d99e9\n\n\nOS:\n\nLinux x86_64\n\n\nBuild:\n\nAddressSanitizer enabled\n\n\nStatus:\n\nbot-triaged\n\ntriage review",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.reshape/issue_194050_reshape.txt"
+}

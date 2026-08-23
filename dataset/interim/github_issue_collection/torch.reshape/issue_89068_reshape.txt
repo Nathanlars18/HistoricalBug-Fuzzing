@@ -1,0 +1,204 @@
+Issue ID:
+#89068
+
+
+Title:
+view_copy out= does not reshape zero element tensors
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/89068
+
+
+Description:
+
+The view_copy operation does not correctly handle an empty output tensor when
+using the out parameter.
+
+According to PyTorch developer documentation, an output tensor with zero
+elements should be resized to match the shape, stride, and memory format of
+the operation result.
+
+However, view_copy fails when the output tensor is initially empty.
+
+
+Affected Operator:
+
+torch.view_copy
+
+
+Related Operation:
+
+reshape / view family
+
+
+Python Reproduction:
+
+import torch
+
+x = ...
+
+torch.view_copy(
+    x,
+    [3],
+    out=torch.tensor([])
+)
+
+
+Observed Behavior:
+
+The operation raises an error instead of resizing the empty output tensor.
+
+
+Error:
+
+RuntimeError:
+
+The size of tensor a (0) must match the size of tensor b (3) at
+non-singleton dimension 0
+
+
+Backend:
+
+CPU / CUDA environment reported
+
+
+Bug Category:
+
+Shape boundary handling
+
+Zero-element tensor handling
+
+Output tensor resizing
+
+
+Root Cause:
+
+The out variant of view_copy does not correctly handle resizing when the
+provided output tensor has zero elements.
+
+The generated kernel path misses required resize handling logic.
+
+
+Important Input Characteristics:
+
+Tensor:
+
+- empty output tensor
+- zero elements
+
+
+Operation:
+
+- view_copy
+- reshape-like transformation
+- out parameter
+
+
+Trigger Conditions:
+
+The bug occurs when:
+
+1. The out tensor contains zero elements.
+
+2. The requested output shape is non-zero.
+
+3. The operation should resize the output tensor.
+
+
+Expected Behavior:
+
+An empty out tensor should automatically resize to the required output shape,
+stride, and memory format.
+
+
+Relevant Bug Pattern:
+
+Pattern Name:
+
+Zero-element output tensor reshape handling
+
+
+Pattern Description:
+
+Operations involving reshape/view and out tensors may fail when empty tensors
+require implicit resizing.
+
+
+Harness Generation Guidance:
+
+Generate tests with:
+
+- empty tensors
+- zero-sized dimensions
+- reshape operations
+- view operations
+- out variants
+
+
+Recommended Mutation Dimensions:
+
+Shape:
+
+- []
+
+- [0]
+
+- [1,0]
+
+- [0,1]
+
+- reshape from empty to non-empty
+
+
+Tensor State:
+
+- empty storage
+- zero numel tensor
+- preallocated empty output
+
+
+Oracle:
+
+Detect:
+
+- unexpected RuntimeError
+- mismatch with expected resize behavior
+
+
+Related Concepts:
+
+empty tensor handling
+
+shape boundary testing
+
+out parameter correctness
+
+
+Affected Modules:
+
+module: functionalization
+
+module: viewing and reshaping
+
+
+Versions:
+
+PyTorch:
+
+1.14.0a0+gitcef13eb
+
+
+CUDA:
+
+11.7
+
+
+OS:
+
+Ubuntu 18.04.6
+
+
+Status:
+
+triaged

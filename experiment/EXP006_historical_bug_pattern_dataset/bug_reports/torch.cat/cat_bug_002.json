@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_139609",
+        "title": "There is a bug in torch.cat for non-standard boolean",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "139609",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.cat",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.cat has incorrect behavior when concatenating tensors with non-standard boolean representation.\n\nThe bug appears when tensors are created from int8 numpy arrays and then viewed as boolean tensors.\n\nThe output storage contains values that are not valid standard boolean values.\n\n\nEnvironment:\n\nPyTorch version:\n\n2.3.0\n\nCUDA:\n\ncu121\n\n\nBug Reproduction:\n\n\nimport torch\nimport numpy as np\n\n\nlower_value = 5\nupper_value = 10\n\n\ninput_shape = [\n    1024,\n    1,\n    1024,\n    1024\n]\n\n\n# create numpy arrays\n\ninput_array_0 = np.random.uniform(\n    lower_value,\n    upper_value,\n    input_shape\n).astype(dtype=\"int8\")\n\n\ninput_array_1 = np.random.uniform(\n    lower_value,\n    upper_value,\n    input_shape\n).astype(dtype=\"int8\")\n\n\n# convert to torch tensor\n\ninput_tensor_0 = (\n    torch.from_numpy(input_array_0)\n    .to(device=\"cuda\")\n    .view(bool)\n)\n\n\ninput_tensor_1 = (\n    torch.from_numpy(input_array_1)\n    .to(device=\"cuda\")\n    .view(bool)\n)\n\n\ninput_tensors = []\n\ninput_tensors.append(input_tensor_0)\ninput_tensors.append(input_tensor_1)\n\n\n# invoke torch.cat\n\nout = torch.cat(\n    input_tensors,\n    dim=1\n)\n\n\nprint(\n    input_tensor_0.untyped_storage()[0:5]\n)\n\nprint(\n    input_tensor_1.untyped_storage()[0:5]\n)\n\nprint(\n    out.untyped_storage()[0:5]\n)\n\n\n\nObserved Behavior:\n\nWhen:\n\ninput_shape =\n[\n1024,\n1,\n1024,\n1023\n]\n\n\nthe content of:\n\nout.untyped_storage()\n\n\ncontains values between:\n\n5 and 10\n\n\nThese values are non-standard boolean representations.\n\n\nExample:\n\ninput storage:\n\n5\n9\n6\n7\n9\n\n\noutput storage:\n\n5\n9\n6\n7\n9\n\n\nHowever, when:\n\n\ninput_shape =\n[\n1024,\n1,\n1024,\n1024\n]\n\n\nthe output storage contains only standard boolean values.\n\n\nExpected Behavior:\n\nBoolean tensors should only contain valid boolean storage values.\n\ntorch.cat should correctly handle boolean tensors regardless of memory layout or tensor size.\n\n\nRoot Cause Information:\n\nThe issue is related to boolean tensor handling.\n\nThe bug appears when:\n\n- int8 storage is reinterpreted as bool\n- tensors have non-standard boolean representation\n- torch.cat copies the underlying storage incorrectly\n\n\nAffected Components:\n\nOperator:\n\ntorch.cat\n\n\nRelated areas:\n\n- Boolean tensor\n- CUDA backend\n- Tensor storage\n- Memory representation\n\n\nBug Category:\n\nIncorrect output\n\nSilent correctness bug\n\nDtype boundary case\n\n\nImportant Input Characteristics:\n\nTensor properties:\n\n- dtype conversion through view(bool)\n- underlying int8 storage\n- CUDA device\n- large tensor shape\n- torch.cat operation\n\n\nPotential Fuzzing Value:\n\nThis issue indicates torch.cat should be tested with:\n\n- boolean tensors\n- unusual underlying storage values\n- view(dtype) transformations\n- dtype reinterpretation\n- CUDA backend\n- large tensor dimensions\n\n\nStatus:\n\ntriaged\n\n\nLabels:\n\nmodule: edge cases\n\nmodule: boolean tensor\n\nmodule: python frontend",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.cat/issue_139609_cat.txt"
+}

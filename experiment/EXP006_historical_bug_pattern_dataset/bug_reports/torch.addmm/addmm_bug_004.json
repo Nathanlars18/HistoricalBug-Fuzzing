@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_48900",
+        "title": "addmm with out= argument returns incorrect result",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "48900",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.addmm",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.addmm returns incorrect results when the out= parameter aliases one of the input tensors.\n\nThe issue occurs when the output tensor is the same tensor as an input tensor.\n\n\nMinimal Reproduction:\n\n```python\nimport torch\n\nt = torch.ones(5, 5)\nweight = torch.eye(5)\nbias = torch.zeros(5, 5)\n\nout = torch.addmm(bias, t, weight, out=t)\n\nprint(out)\nprint(t)\nObserved Behavior:\nThe returned tensor is all zeros:\ntensor([[0., 0., 0., 0., 0.],\n        ...\n        [0., 0., 0., 0., 0.]])\nExpected Behavior:\nThe result should be identical to the non-aliasing case:\ntorch.addmm(bias, t, weight)\nwhich returns a tensor of ones.\nRoot Cause / Technical Information:\nThe bug is caused by incorrect handling of input-output aliasing.\ntorch.addmm internally uses GEMM operations. The implementation correctly handles some in-place scenarios but does not correctly handle the case where the out tensor overlaps with an input tensor.\nThe issue is related to:\n- out= semantics\n- partial aliasing\n- structured kernel alias checking\nEnvironment:\nPyTorch version:\n1.7.0+cu110\nCUDA:\n11.0\nGPU:\nNVIDIA RTX 3080\nOS:\nArch Linux x86_64\nBug Category (Human Annotation):\nCorrectness:\ntrue\nCrash:\nfalse\nWrong Result:\ntrue\nException:\nfalse\nPerformance:\nfalse\nTrigger Conditions:\nAPI:\ntorch.addmm\nInput conditions:\n- out parameter is provided\n- output tensor aliases input tensor\n- tensor shapes are compatible\nExample trigger:\ntorch.addmm(input, mat1, mat2, out=input)\nPotential Fuzzing Value:\nHigh.\nThis issue represents an important tensor memory relationship edge case.\nA generated harness can explore:\n- out parameter aliasing\n- overlapping tensor storage\n- in-place versus out-of-place semantic differences\n- correctness comparison between normal and aliased execution\nRelated Concepts (Preliminary Only):\n- output aliasing\n- partial aliasing\n- out parameter semantics\n- correctness oracle\nNotes:\nThis issue is kept because it represents a realistic user-facing correctness bug.\nThe bug can potentially be generalized into a reusable harness generation rule involving output tensors sharing storage with input tensors.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.addmm/issue_48900_out_alias_addmm.txt"
+}

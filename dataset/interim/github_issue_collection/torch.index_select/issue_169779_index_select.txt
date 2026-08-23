@@ -1,0 +1,131 @@
+Title:
+[Inductor] Inconsistent handling of negative indices in index_select: CPU/CUDA/MPS
+
+Issue ID:
+169779
+
+API:
+torch.index_select
+
+Category:
+Semantic inconsistency
+Backend inconsistency
+Boundary input handling
+
+
+Description:
+
+torch.index_select has inconsistent behavior between eager mode and
+Inductor compiled mode when negative indices are provided.
+
+index_select does not support negative indices and should reject them.
+However, Inductor incorrectly decomposes index_select into an indexing
+operation that supports negative index wrapping semantics.
+
+As a result, invalid inputs can silently pass after compilation.
+
+
+Trigger Condition:
+
+Input tensor:
+- normal dense tensor
+
+Index tensor:
+- dtype: int64
+- contains negative values
+- example: [-1]
+
+Execution mode:
+- torch.compile backend="inductor"
+
+
+Minimal Reproduction:
+
+import torch
+
+device="cpu"
+
+def fn(x):
+    indices=torch.tensor([-1],dtype=torch.int64).to(device)
+    return torch.index_select(x,0,indices)
+
+x=torch.randn(5,10).to(device)
+
+# eager
+fn(x)
+
+# compiled
+opt_fn=torch.compile(fn,backend="inductor")
+opt_fn(x)
+
+
+Observed Behavior:
+
+Eager mode:
+RuntimeError:
+index out of range in self
+
+
+Inductor mode:
+Execution succeeds unexpectedly.
+
+
+Expected Behavior:
+
+Inductor should preserve torch.index_select semantics
+and reject negative indices.
+
+
+Root Cause:
+
+Inductor decomposes index_select into an indexing operation.
+The generated indexing operation supports negative index wrapping,
+which violates index_select strict non-negative index semantics.
+
+
+Bug Pattern:
+
+Pattern Type:
+Invalid boundary index
+
+Description:
+Negative indices may expose semantic inconsistencies between
+different execution backends or compilation paths.
+
+
+Harness Generation Guidance:
+
+Generate index_select inputs with:
+
+1. Random tensor shapes
+2. Negative index values:
+   [-1, -2, -tensor_size]
+3. Compare:
+   eager execution
+   torch.compile(inductor) execution
+
+Check whether:
+- eager raises exception
+- compiled execution succeeds
+
+
+Mutation Strategy:
+
+Index mutation:
+- replace valid indices with negative values
+- boundary values near -dimension_size
+- mixed positive and negative indices
+
+
+Oracle:
+
+Behavior mismatch between eager and compiled execution.
+
+
+Severity:
+
+Medium-High
+
+Reason:
+Invalid inputs may silently bypass validation and produce
+inconsistent program behavior.

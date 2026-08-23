@@ -1,0 +1,254 @@
+Title:
+
+[torch.compile] index_select out of bound read
+
+
+Issue ID:
+
+#121251
+
+
+Repository:
+
+pytorch/pytorch
+
+
+Status:
+
+Closed
+
+
+Opened:
+
+2024-03-06
+
+
+Author:
+
+YangChenyuan
+
+
+Labels:
+
+module: dynamo
+
+oncall: pt2
+
+topic: fuzzer
+
+triaged
+
+
+Description:
+
+When using torch.compile, torch.index_select may perform an
+out-of-bound memory read instead of raising an indexing error.
+
+The eager execution mode correctly detects invalid indices and
+raises an IndexError, but the compiled execution using Inductor
+backend produces invalid output values.
+
+
+Minimal Reproduction:
+
+import torch
+
+
+torch.manual_seed(42)
+
+
+class Model(torch.nn.Module):
+
+    def __init__(self):
+        super().__init__()
+
+
+    def forward(self, x1):
+        v = torch.index_select(x1, 0, torch.tensor([2]))
+        return v
+
+
+func = Model().to('cpu')
+
+
+x = torch.randn(2, 2, 2, 2)
+
+
+with torch.no_grad():
+
+    func1 = torch.compile(func)
+
+    print(func1(x.clone()))
+
+    print(func(x.clone()))
+
+
+
+Observed Behavior:
+
+Compiled execution:
+
+func1(x.clone())
+
+
+returns an invalid tensor:
+
+tensor([[[[1.0743e+23, 3.0618e-41],
+          [9.1084e-44, 0.0000e+00]],
+
+         [[3.2230e-44, 0.0000e+00],
+          [3.2230e-44, 0.0000e+00]]]])
+
+
+The returned values are unexpected and indicate an
+out-of-bound memory read.
+
+
+Eager execution:
+
+func(x.clone())
+
+
+raises:
+
+IndexError: index out of range in self
+
+
+
+Expected Behavior:
+
+torch.compile should preserve the same index validation behavior
+as eager execution.
+
+Invalid indices passed to torch.index_select should raise an
+appropriate error instead of producing invalid memory reads or
+incorrect tensor values.
+
+
+Trigger Information:
+
+Operator:
+
+torch.index_select
+
+
+Execution Modes:
+
+Eager mode:
+- Correctly raises IndexError
+
+
+Compiled mode:
+- torch.compile
+- Inductor backend
+
+
+Input Condition:
+
+Input tensor dimension:
+
+x.shape = (2, 2, 2, 2)
+
+
+Index tensor:
+
+torch.tensor([2])
+
+
+The selected dimension has size 2, therefore index 2 is invalid.
+
+
+Environment:
+
+PyTorch version:
+
+2.3.0.dev20240301+cu118
+
+
+CUDA:
+
+CUDA used to build PyTorch:
+11.8
+
+
+OS:
+
+Ubuntu 22.04.1 LTS
+
+
+Architecture:
+
+x86_64
+
+
+Python version:
+
+3.9.0
+
+
+Compiler:
+
+GCC 11.4.0
+
+Clang 14.0.0
+
+
+Related Libraries:
+
+torch==2.3.0.dev20240301+cu118
+
+pytorch-triton==3.0.0+901819d2b6
+
+
+Hardware:
+
+CPU:
+
+12th Gen Intel(R) Core(TM) i9-12900K
+
+
+Issue Discussion Summary:
+
+The issue was initially considered high priority because
+torch.compile generated incorrect results instead of reporting
+an indexing error.
+
+
+The problem was related to Inductor behavior.
+
+Unlike eager execution, Inductor-generated kernels may not
+perform the same index checks as PyTorch eager mode.
+
+
+Maintainers noted that:
+
+- backend="eager" reproduces the same behavior as eager execution.
+- Inductor may not include index checks present in eager mode.
+- This behavior is mainly relevant for negative/fuzzer testing.
+
+
+Resolution:
+
+The issue was fixed by commit:
+
+8a21532
+
+"Fix constant propagation pass"
+
+
+Closed:
+
+2024-05-29
+
+
+References:
+
+PyTorch Issue #121251
+
+torch.index_select
+
+torch.compile
+
+Inductor
+
+topic: fuzzer

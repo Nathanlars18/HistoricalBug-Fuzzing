@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_169779",
+        "title": "[Inductor] Inconsistent handling of negative indices in index_select: CPU/CUDA/MPS",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "169779",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.index_select",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.index_select has inconsistent behavior between eager mode and\nInductor compiled mode when negative indices are provided.\n\nindex_select does not support negative indices and should reject them.\nHowever, Inductor incorrectly decomposes index_select into an indexing\noperation that supports negative index wrapping semantics.\n\nAs a result, invalid inputs can silently pass after compilation.\n\n\nTrigger Condition:\n\nInput tensor:\n- normal dense tensor\n\nIndex tensor:\n- dtype: int64\n- contains negative values\n- example: [-1]\n\nExecution mode:\n- torch.compile backend=\"inductor\"\n\n\nMinimal Reproduction:\n\nimport torch\n\ndevice=\"cpu\"\n\ndef fn(x):\n    indices=torch.tensor([-1],dtype=torch.int64).to(device)\n    return torch.index_select(x,0,indices)\n\nx=torch.randn(5,10).to(device)\n\n# eager\nfn(x)\n\n# compiled\nopt_fn=torch.compile(fn,backend=\"inductor\")\nopt_fn(x)\n\n\nObserved Behavior:\n\nEager mode:\nRuntimeError:\nindex out of range in self\n\n\nInductor mode:\nExecution succeeds unexpectedly.\n\n\nExpected Behavior:\n\nInductor should preserve torch.index_select semantics\nand reject negative indices.\n\n\nRoot Cause:\n\nInductor decomposes index_select into an indexing operation.\nThe generated indexing operation supports negative index wrapping,\nwhich violates index_select strict non-negative index semantics.\n\n\nBug Pattern:\n\nPattern Type:\nInvalid boundary index\n\nDescription:\nNegative indices may expose semantic inconsistencies between\ndifferent execution backends or compilation paths.\n\n\nHarness Generation Guidance:\n\nGenerate index_select inputs with:\n\n1. Random tensor shapes\n2. Negative index values:\n   [-1, -2, -tensor_size]\n3. Compare:\n   eager execution\n   torch.compile(inductor) execution\n\nCheck whether:\n- eager raises exception\n- compiled execution succeeds\n\n\nMutation Strategy:\n\nIndex mutation:\n- replace valid indices with negative values\n- boundary values near -dimension_size\n- mixed positive and negative indices\n\n\nOracle:\n\nBehavior mismatch between eager and compiled execution.\n\n\nSeverity:\n\nMedium-High\n\nReason:\nInvalid inputs may silently bypass validation and produce\ninconsistent program behavior.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.index_select/issue_169779_index_select.txt"
+}

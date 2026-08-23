@@ -1,0 +1,116 @@
+PyTorch GitHub Issue #61519
+
+Title:
+Inplace ReLU incompatible with backward hook
+
+
+Status:
+Closed
+
+
+Opened:
+2021-07-12
+
+
+Author:
+frgfm
+
+
+Labels:
+module: autograd
+module: nn
+triaged
+
+
+Description:
+
+🐛 Inplace RELU issues with backward hooks
+
+
+I encountered a bug I cannot manage to handle with in place ReLUs.
+
+In my project, I use backward hooks to get intermediate feature maps and gradients.
+
+It used to be working fine up until a few versions ago where densenet was throwing warnings caused by the in place relu.
+
+After updating torch/torchvision versions, it turned into an error.
+
+I reproduced the bug with a simple sequential model that includes an in place ReLU.
+
+The gradient flows back properly, but the backward hook throws an error.
+
+
+Minimal Reproduction:
+
+```python
+import torch
+from torch import nn
+
+
+# Get the model
+mod = nn.Sequential(
+    nn.Conv2d(3, 8, 3, padding=1),
+    nn.ReLU(),
+    nn.Conv2d(8, 8, 3, padding=1),
+    nn.ReLU(inplace=True)
+)
+
+
+# Hook a module before the in-place ReLU
+def hook_g(m, input, output):
+    print(input.shape)
+
+
+mod[2].register_full_backward_hook(hook_g)
+
+
+# Inference
+out = mod(torch.rand((1, 3, 224, 224)))
+Error:
+RuntimeError:
+Output 0 of BackwardHookFunctionBackward is a view and is being modified inplace.
+This view was created inside a custom Function (or because an input was returned as-is) and the autograd logic to handle view+inplace would override the custom backward associated with the custom Function, leading to incorrect gradients.
+This behavior is forbidden.
+You can remove this warning by cloning the output of the custom Function.
+Expected Behavior:
+The code worked previously with warnings.
+After changing to register_full_backward_hook, inplace ReLU causes an error.
+The expected behavior is that backward hooks and ReLU operations should work correctly or provide a clear workaround.
+Environment:
+PyTorch Version:
+1.9.0
+Torchvision Version:
+0.10.0
+OS:
+Ubuntu 20.04.2 LTS
+Python:
+3.8
+CUDA:
+11.2.152
+cuDNN:
+8.2.0
+Additional Discussion:
+soulitzer:
+This is currently expected because registering a full backward hook attaches a dummy custom function that returns a view and in-place operations aren't allowed on views created in custom functions.
+However, it seems bad that registering a hook breaks existing behavior.
+albanD:
+This is an expected limitation.
+We don't actually want to allow this because here the input is modified inplace, so it is unclear what the grad_input given to the hook should be.
+Should it be the value before or after?
+Suggested Workaround:
+Use Tensor hooks instead of backward hooks.
+Example:
+def tensor_hook(grad):
+    print(grad.size())
+
+
+your_tensor.register_hook(tensor_hook)
+Related Context:
+The issue is caused by the interaction between:
+1. In-place ReLU operation
+2. Autograd view tracking
+3. Full backward hooks
+4. Custom autograd Function behavior
+Final Resolution:
+Closed as expected behavior.
+The recommended solution is avoiding inplace operations when using backward hooks.

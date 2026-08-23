@@ -1,0 +1,171 @@
+Title:
+Empty tensor with dtype float16 converted from numpy causes segmentation fault in torch.mul and torch.div
+
+
+Issue:
+#115731
+
+
+Repository:
+pytorch/pytorch
+
+
+Status:
+Closed
+
+
+Author:
+@AmazingCreator-lmx
+
+
+Opened:
+2023-12-13
+
+
+Labels:
+module: crash
+module: cpu
+module: half
+triaged
+
+
+Description:
+
+🐛 Describe the bug
+
+torch.mul causes segmentation fault when multiplying a normal float16 tensor with an empty float16 tensor converted from a NumPy array.
+
+Minimal reproducer:
+
+import numpy as np
+import torch
+
+a = torch.tensor([2], dtype=torch.float16)
+
+b = torch.tensor(np.array([], dtype='float16'))
+
+print(torch.mul(a, b))
+
+# print(torch.div(a, b))
+
+
+Observed behavior:
+
+The program crashes with segmentation fault:
+
+python[2444066]: segfault at 0 ip 00007f8c393f8fa0 sp 00007fff645121c0 error 4 in libtorch_cpu.so
+
+
+Expected behavior:
+
+torch.mul should correctly handle multiplication involving empty tensors.
+
+The operation should either:
+- return a valid empty tensor result
+- or raise an explicit runtime error
+
+It should not crash the process.
+
+
+Minimal Reproducer:
+
+import numpy as np
+import torch
+
+a = torch.tensor([2], dtype=torch.float16)
+
+b = torch.tensor(
+    np.array([], dtype='float16')
+)
+
+result = torch.mul(a, b)
+
+
+
+Environment:
+
+PyTorch version:
+2.1.1+cpu
+
+
+Python version:
+3.10.9
+
+
+OS:
+Ubuntu 20.04.5 LTS
+
+
+CUDA available:
+False
+
+
+Device:
+CPU
+
+
+Compiler:
+GCC 9.4.0
+
+
+CMake:
+3.16.3
+
+
+Relevant libraries:
+
+numpy==1.26.2
+
+torch==2.1.1+cpu
+
+torchvision==0.16.1+cpu
+
+
+Root cause information:
+
+The issue report does not provide detailed root cause analysis.
+
+The problem appears related to incorrect handling of empty float16 tensors in CPU element-wise operations.
+
+
+Fix information:
+
+The issue was fixed in a later PyTorch version.
+
+A contributor reported:
+
+"Fixed in latest torch."
+
+
+Pull Request:
+
+#115183
+
+
+Impact:
+
+This is a correctness and stability issue.
+
+An invalid tensor input can cause a hard crash instead of returning an error.
+
+The failure affects programs using:
+- empty tensors
+- float16 dtype
+- element-wise operators such as torch.mul
+
+
+Related operators:
+
+torch.mul
+
+torch.div
+
+
+Notes:
+
+This issue represents a tensor boundary case involving:
+- empty tensor
+- half precision dtype
+- CPU backend
+
+It is suitable for generating fuzzing cases targeting tensor shape and dtype boundary handling.

@@ -1,0 +1,121 @@
+Title:
+MPS index_select and embedding return incorrect zero rows for huge tensors
+
+Issue ID:
+188756
+
+
+API:
+torch.index_select
+
+Related APIs:
+torch.nn.functional.embedding
+torch.nn.Embedding
+
+
+Bug Type:
+
+Silent Incorrect Result
+Integer Overflow
+Backend-specific Kernel Bug
+
+
+Description:
+
+On the MPS backend, torch.index_select and embedding operations may silently
+return incorrect results when the source tensor contains more than 2^31 elements.
+
+The operation does not raise an error.
+Instead, some selected rows are returned as all-zero tensors.
+
+The corrupted rows correspond to indices whose flattened memory offset exceeds
+the INT32 address range.
+
+
+Trigger Condition:
+
+Backend:
+- MPS
+
+
+Tensor condition:
+- source tensor numel > 2^31
+
+
+Index condition:
+- index values are valid
+- selected row starting offset exceeds INT32_MAX
+
+
+Operation:
+
+torch.index_select
+torch.nn.functional.embedding
+
+
+Observed Behavior:
+
+Selected rows contain incorrect zero values.
+
+Example:
+
+A large embedding table with more than 2^31 elements:
+
+rows = 262144
+dim = 10752
+
+Some valid indices return all-zero rows,
+while smaller indices return correct values.
+
+
+Expected Behavior:
+
+index_select should return the correct rows consistently across backends.
+
+
+Root Cause Pattern:
+
+The backend kernel uses 32-bit offset calculation for large tensors.
+
+When index * stride exceeds INT32_MAX,
+the internal address calculation overflows.
+
+The invalid memory access is converted into zero values instead of raising
+an error.
+
+
+Harness Generation Guidance:
+
+Generate:
+
+1. Large tensors near or above INT32 boundary.
+
+2. Large embedding tables.
+
+3. index_select operations with boundary indices.
+
+
+Example strategy:
+
+- Create tensor with numel close to 2^31.
+- Select rows around:
+    ceil(2^31 / row_size)-1
+    ceil(2^31 / row_size)
+- Compare output with CPU reference.
+
+
+Oracle:
+
+Silent mismatch between MPS output and CPU/reference output.
+
+All-zero output for valid indices indicates a bug.
+
+
+Severity:
+
+High
+
+Reason:
+
+Silent incorrect results may corrupt downstream model behavior without any
+exception.

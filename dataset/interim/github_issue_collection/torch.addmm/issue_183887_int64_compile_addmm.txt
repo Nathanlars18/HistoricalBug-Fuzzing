@@ -1,0 +1,180 @@
+Issue ID:
+183887
+
+
+Title:
+torch.compile fails on int64 addmm/addmm_ comparison with fake tensor RuntimeError
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/183887
+
+
+API:
+torch.addmm
+Tensor.addmm_
+
+
+Status:
+open
+
+
+Created:
+2026-05-15
+
+
+Labels:
+module: inductor
+oncall: pt2
+topic: fuzzer
+triaged
+repro:agent:h100:repro_success:reproduced
+
+
+Description:
+
+torch.compile with the Inductor backend fails when compiling a model that compares
+the behavior of torch.addmm and in-place Tensor.addmm_ on int64 tensors.
+
+The same operation succeeds in eager execution but fails during fake tensor execution
+inside the compiled graph.
+
+
+Minimal Reproduction:
+
+```python
+import torch
+import torch.nn as nn
+
+
+class M(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.mat1 = torch.tensor(
+            [[1,2,3],
+             [4,5,6]],
+            dtype=torch.int64
+        )
+
+        self.mat2 = torch.tensor(
+            [[1,0,2],
+             [3,1,4],
+             [5,2,6]],
+            dtype=torch.int64
+        )
+
+
+    def forward(self, x):
+
+        try:
+            out_of_place = torch.addmm(
+                x,
+                self.mat1,
+                self.mat2
+            )
+
+        except Exception:
+            out_of_place = None
+
+
+        x_inplace = x.clone()
+
+
+        try:
+            x_inplace.addmm_(
+                self.mat1,
+                self.mat2
+            )
+
+            in_place = x_inplace
+
+        except Exception:
+            in_place = None
+
+
+        if out_of_place is None or in_place is None:
+            return torch.tensor(False)
+
+
+        return torch.equal(
+            out_of_place,
+            in_place
+        )
+
+
+model = M().eval()
+
+x = torch.tensor(
+    [[1,0,-1]],
+    dtype=torch.int64
+)
+
+
+torch.compile(model)(x)
+Observed Behavior:
+Eager execution:
+OK False
+torch.compile execution:
+Raises:
+TorchRuntimeError:
+RuntimeError when making fake tensor call
+The failure happens during fake tensor execution inside Inductor.
+Expected Behavior:
+torch.compile should correctly handle this valid addmm/addmm_ comparison,
+or provide consistent behavior with eager execution.
+Technical Information:
+The bug is related to:
+- torch.compile
+- Inductor backend
+- fake tensor propagation
+- in-place and out-of-place operator consistency
+Environment:
+PyTorch version:
+2.13.0.dev20260513+cpu
+OS:
+Ubuntu 24.04.3 LTS
+Python:
+3.11.15
+CUDA:
+Available
+GPU:
+NVIDIA RTX 6000 Ada Generation
+Bug Category (Human Annotation):
+Correctness:
+true
+Crash:
+false
+Wrong Result:
+false
+Exception:
+true
+Performance:
+false
+Trigger Conditions:
+API:
+torch.addmm
+Tensor.addmm_
+Required conditions:
+- torch.compile enabled
+- Inductor backend
+- int64 tensors
+- comparison between addmm and addmm_
+- fake tensor execution
+Potential Fuzzing Value:
+Medium-High.
+This issue represents compiler/runtime inconsistency rather than direct eager execution failure.
+Potential harness generation directions:
+- compare eager and compiled execution
+- compare out-of-place and in-place variants
+- test integer dtype support
+- test fake tensor compatibility
+Related Concepts:
+- compiler backend inconsistency
+- fake tensor
+- in-place operation
+- dtype boundary
+Notes:
+This issue is retained because it represents a realistic PyTorch compilation
+correctness problem and may reveal general patterns about operator semantic
+inconsistency across execution modes.

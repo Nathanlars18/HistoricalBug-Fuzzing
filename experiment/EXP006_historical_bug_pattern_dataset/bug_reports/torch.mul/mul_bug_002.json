@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_115731",
+        "title": "Empty tensor with dtype float16 converted from numpy causes segmentation fault in torch.mul and torch.div",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "115731",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.mul",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "🐛 Describe the bug\n\ntorch.mul causes segmentation fault when multiplying a normal float16 tensor with an empty float16 tensor converted from a NumPy array.\n\nMinimal reproducer:\n\nimport numpy as np\nimport torch\n\na = torch.tensor([2], dtype=torch.float16)\n\nb = torch.tensor(np.array([], dtype='float16'))\n\nprint(torch.mul(a, b))\n\n# print(torch.div(a, b))\n\n\nObserved behavior:\n\nThe program crashes with segmentation fault:\n\npython[2444066]: segfault at 0 ip 00007f8c393f8fa0 sp 00007fff645121c0 error 4 in libtorch_cpu.so\n\n\nExpected behavior:\n\ntorch.mul should correctly handle multiplication involving empty tensors.\n\nThe operation should either:\n- return a valid empty tensor result\n- or raise an explicit runtime error\n\nIt should not crash the process.\n\n\nMinimal Reproducer:\n\nimport numpy as np\nimport torch\n\na = torch.tensor([2], dtype=torch.float16)\n\nb = torch.tensor(\n    np.array([], dtype='float16')\n)\n\nresult = torch.mul(a, b)\n\n\n\nEnvironment:\n\nPyTorch version:\n2.1.1+cpu\n\n\nPython version:\n3.10.9\n\n\nOS:\nUbuntu 20.04.5 LTS\n\n\nCUDA available:\nFalse\n\n\nDevice:\nCPU\n\n\nCompiler:\nGCC 9.4.0\n\n\nCMake:\n3.16.3\n\n\nRelevant libraries:\n\nnumpy==1.26.2\n\ntorch==2.1.1+cpu\n\ntorchvision==0.16.1+cpu\n\n\nRoot cause information:\n\nThe issue report does not provide detailed root cause analysis.\n\nThe problem appears related to incorrect handling of empty float16 tensors in CPU element-wise operations.\n\n\nFix information:\n\nThe issue was fixed in a later PyTorch version.\n\nA contributor reported:\n\n\"Fixed in latest torch.\"\n\n\nPull Request:\n\n#115183\n\n\nImpact:\n\nThis is a correctness and stability issue.\n\nAn invalid tensor input can cause a hard crash instead of returning an error.\n\nThe failure affects programs using:\n- empty tensors\n- float16 dtype\n- element-wise operators such as torch.mul\n\n\nRelated operators:\n\ntorch.mul\n\ntorch.div\n\n\nNotes:\n\nThis issue represents a tensor boundary case involving:\n- empty tensor\n- half precision dtype\n- CPU backend\n\nIt is suitable for generating fuzzing cases targeting tensor shape and dtype boundary handling.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.mul/issue_115731_empty_float16_mul_crash.txt"
+}

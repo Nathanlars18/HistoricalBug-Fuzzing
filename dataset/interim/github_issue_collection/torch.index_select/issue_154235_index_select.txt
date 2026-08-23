@@ -1,0 +1,93 @@
+Title:
+MPS backend fails to detect out-of-range indices in index_select and embedding
+
+
+Issue ID:
+154235
+
+
+API:
+
+torch.index_select
+
+torch.nn.Embedding
+
+torch.nn.functional.embedding
+
+
+Bug Type:
+
+Missing Error Checking
+Invalid Boundary Input
+
+
+Description:
+
+On MPS backend, index_select and embedding operations fail to raise an error
+when the input index tensor contains values outside the valid range.
+
+Instead of reporting an IndexError, the operation may return invalid results.
+
+
+Trigger Condition:
+
+Backend:
+
+MPS
+
+
+Input:
+
+Index tensor contains:
+
+index >= number_of_embeddings
+
+
+Example:
+
+embedding = nn.Embedding(3,5)
+
+input_tensor = torch.tensor([0,1,2,3])
+
+Index 3 is invalid because valid range is [0,2].
+
+
+Observed Behavior:
+
+CPU raises:
+
+IndexError: index out of range
+
+
+MPS:
+
+operation completes without an exception.
+
+
+Expected Behavior:
+
+All backends should reject invalid indices consistently.
+
+
+Harness Generation Guidance:
+
+Generate:
+
+- embedding tables
+- index tensors containing:
+    maximum valid index
+    maximum valid index + 1
+    large invalid index
+
+
+Oracle:
+
+CPU/reference raises exception,
+while MPS succeeds.
+
+Unexpected success indicates missing validation.
+
+
+Severity:
+
+Medium-High

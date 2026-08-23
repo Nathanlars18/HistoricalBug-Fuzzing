@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_183887",
+        "title": "torch.compile fails on int64 addmm/addmm_ comparison with fake tensor RuntimeError",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "183887",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.addmm",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.compile with the Inductor backend fails when compiling a model that compares\nthe behavior of torch.addmm and in-place Tensor.addmm_ on int64 tensors.\n\nThe same operation succeeds in eager execution but fails during fake tensor execution\ninside the compiled graph.\n\n\nMinimal Reproduction:\n\n```python\nimport torch\nimport torch.nn as nn\n\n\nclass M(nn.Module):\n    def __init__(self):\n        super().__init__()\n\n        self.mat1 = torch.tensor(\n            [[1,2,3],\n             [4,5,6]],\n            dtype=torch.int64\n        )\n\n        self.mat2 = torch.tensor(\n            [[1,0,2],\n             [3,1,4],\n             [5,2,6]],\n            dtype=torch.int64\n        )\n\n\n    def forward(self, x):\n\n        try:\n            out_of_place = torch.addmm(\n                x,\n                self.mat1,\n                self.mat2\n            )\n\n        except Exception:\n            out_of_place = None\n\n\n        x_inplace = x.clone()\n\n\n        try:\n            x_inplace.addmm_(\n                self.mat1,\n                self.mat2\n            )\n\n            in_place = x_inplace\n\n        except Exception:\n            in_place = None\n\n\n        if out_of_place is None or in_place is None:\n            return torch.tensor(False)\n\n\n        return torch.equal(\n            out_of_place,\n            in_place\n        )\n\n\nmodel = M().eval()\n\nx = torch.tensor(\n    [[1,0,-1]],\n    dtype=torch.int64\n)\n\n\ntorch.compile(model)(x)\nObserved Behavior:\nEager execution:\nOK False\ntorch.compile execution:\nRaises:\nTorchRuntimeError:\nRuntimeError when making fake tensor call\nThe failure happens during fake tensor execution inside Inductor.\nExpected Behavior:\ntorch.compile should correctly handle this valid addmm/addmm_ comparison,\nor provide consistent behavior with eager execution.\nTechnical Information:\nThe bug is related to:\n- torch.compile\n- Inductor backend\n- fake tensor propagation\n- in-place and out-of-place operator consistency\nEnvironment:\nPyTorch version:\n2.13.0.dev20260513+cpu\nOS:\nUbuntu 24.04.3 LTS\nPython:\n3.11.15\nCUDA:\nAvailable\nGPU:\nNVIDIA RTX 6000 Ada Generation\nBug Category (Human Annotation):\nCorrectness:\ntrue\nCrash:\nfalse\nWrong Result:\nfalse\nException:\ntrue\nPerformance:\nfalse\nTrigger Conditions:\nAPI:\ntorch.addmm\nTensor.addmm_\nRequired conditions:\n- torch.compile enabled\n- Inductor backend\n- int64 tensors\n- comparison between addmm and addmm_\n- fake tensor execution\nPotential Fuzzing Value:\nMedium-High.\nThis issue represents compiler/runtime inconsistency rather than direct eager execution failure.\nPotential harness generation directions:\n- compare eager and compiled execution\n- compare out-of-place and in-place variants\n- test integer dtype support\n- test fake tensor compatibility\nRelated Concepts:\n- compiler backend inconsistency\n- fake tensor\n- in-place operation\n- dtype boundary\nNotes:\nThis issue is retained because it represents a realistic PyTorch compilation\ncorrectness problem and may reveal general patterns about operator semantic\ninconsistency across execution modes.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.addmm/issue_183887_int64_compile_addmm.txt"
+}

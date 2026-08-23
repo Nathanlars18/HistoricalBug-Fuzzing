@@ -1,0 +1,249 @@
+Issue ID:
+#139609
+
+
+Title:
+There is a bug in torch.cat for non-standard boolean
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/139609
+
+
+Description:
+
+torch.cat has incorrect behavior when concatenating tensors with non-standard boolean representation.
+
+The bug appears when tensors are created from int8 numpy arrays and then viewed as boolean tensors.
+
+The output storage contains values that are not valid standard boolean values.
+
+
+Environment:
+
+PyTorch version:
+
+2.3.0
+
+CUDA:
+
+cu121
+
+
+Bug Reproduction:
+
+
+import torch
+import numpy as np
+
+
+lower_value = 5
+upper_value = 10
+
+
+input_shape = [
+    1024,
+    1,
+    1024,
+    1024
+]
+
+
+# create numpy arrays
+
+input_array_0 = np.random.uniform(
+    lower_value,
+    upper_value,
+    input_shape
+).astype(dtype="int8")
+
+
+input_array_1 = np.random.uniform(
+    lower_value,
+    upper_value,
+    input_shape
+).astype(dtype="int8")
+
+
+# convert to torch tensor
+
+input_tensor_0 = (
+    torch.from_numpy(input_array_0)
+    .to(device="cuda")
+    .view(bool)
+)
+
+
+input_tensor_1 = (
+    torch.from_numpy(input_array_1)
+    .to(device="cuda")
+    .view(bool)
+)
+
+
+input_tensors = []
+
+input_tensors.append(input_tensor_0)
+input_tensors.append(input_tensor_1)
+
+
+# invoke torch.cat
+
+out = torch.cat(
+    input_tensors,
+    dim=1
+)
+
+
+print(
+    input_tensor_0.untyped_storage()[0:5]
+)
+
+print(
+    input_tensor_1.untyped_storage()[0:5]
+)
+
+print(
+    out.untyped_storage()[0:5]
+)
+
+
+
+Observed Behavior:
+
+When:
+
+input_shape =
+[
+1024,
+1,
+1024,
+1023
+]
+
+
+the content of:
+
+out.untyped_storage()
+
+
+contains values between:
+
+5 and 10
+
+
+These values are non-standard boolean representations.
+
+
+Example:
+
+input storage:
+
+5
+9
+6
+7
+9
+
+
+output storage:
+
+5
+9
+6
+7
+9
+
+
+However, when:
+
+
+input_shape =
+[
+1024,
+1,
+1024,
+1024
+]
+
+
+the output storage contains only standard boolean values.
+
+
+Expected Behavior:
+
+Boolean tensors should only contain valid boolean storage values.
+
+torch.cat should correctly handle boolean tensors regardless of memory layout or tensor size.
+
+
+Root Cause Information:
+
+The issue is related to boolean tensor handling.
+
+The bug appears when:
+
+- int8 storage is reinterpreted as bool
+- tensors have non-standard boolean representation
+- torch.cat copies the underlying storage incorrectly
+
+
+Affected Components:
+
+Operator:
+
+torch.cat
+
+
+Related areas:
+
+- Boolean tensor
+- CUDA backend
+- Tensor storage
+- Memory representation
+
+
+Bug Category:
+
+Incorrect output
+
+Silent correctness bug
+
+Dtype boundary case
+
+
+Important Input Characteristics:
+
+Tensor properties:
+
+- dtype conversion through view(bool)
+- underlying int8 storage
+- CUDA device
+- large tensor shape
+- torch.cat operation
+
+
+Potential Fuzzing Value:
+
+This issue indicates torch.cat should be tested with:
+
+- boolean tensors
+- unusual underlying storage values
+- view(dtype) transformations
+- dtype reinterpretation
+- CUDA backend
+- large tensor dimensions
+
+
+Status:
+
+triaged
+
+
+Labels:
+
+module: edge cases
+
+module: boolean tensor
+
+module: python frontend

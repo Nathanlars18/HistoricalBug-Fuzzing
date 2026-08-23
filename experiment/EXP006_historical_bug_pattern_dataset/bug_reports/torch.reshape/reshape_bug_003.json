@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_89068",
+        "title": "view_copy out= does not reshape zero element tensors",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "89068",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.reshape",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "The view_copy operation does not correctly handle an empty output tensor when\nusing the out parameter.\n\nAccording to PyTorch developer documentation, an output tensor with zero\nelements should be resized to match the shape, stride, and memory format of\nthe operation result.\n\nHowever, view_copy fails when the output tensor is initially empty.\n\n\nAffected Operator:\n\ntorch.view_copy\n\n\nRelated Operation:\n\nreshape / view family\n\n\nPython Reproduction:\n\nimport torch\n\nx = ...\n\ntorch.view_copy(\n    x,\n    [3],\n    out=torch.tensor([])\n)\n\n\nObserved Behavior:\n\nThe operation raises an error instead of resizing the empty output tensor.\n\n\nError:\n\nRuntimeError:\n\nThe size of tensor a (0) must match the size of tensor b (3) at\nnon-singleton dimension 0\n\n\nBackend:\n\nCPU / CUDA environment reported\n\n\nBug Category:\n\nShape boundary handling\n\nZero-element tensor handling\n\nOutput tensor resizing\n\n\nRoot Cause:\n\nThe out variant of view_copy does not correctly handle resizing when the\nprovided output tensor has zero elements.\n\nThe generated kernel path misses required resize handling logic.\n\n\nImportant Input Characteristics:\n\nTensor:\n\n- empty output tensor\n- zero elements\n\n\nOperation:\n\n- view_copy\n- reshape-like transformation\n- out parameter\n\n\nTrigger Conditions:\n\nThe bug occurs when:\n\n1. The out tensor contains zero elements.\n\n2. The requested output shape is non-zero.\n\n3. The operation should resize the output tensor.\n\n\nExpected Behavior:\n\nAn empty out tensor should automatically resize to the required output shape,\nstride, and memory format.\n\n\nRelevant Bug Pattern:\n\nPattern Name:\n\nZero-element output tensor reshape handling\n\n\nPattern Description:\n\nOperations involving reshape/view and out tensors may fail when empty tensors\nrequire implicit resizing.\n\n\nHarness Generation Guidance:\n\nGenerate tests with:\n\n- empty tensors\n- zero-sized dimensions\n- reshape operations\n- view operations\n- out variants\n\n\nRecommended Mutation Dimensions:\n\nShape:\n\n- []\n\n- [0]\n\n- [1,0]\n\n- [0,1]\n\n- reshape from empty to non-empty\n\n\nTensor State:\n\n- empty storage\n- zero numel tensor\n- preallocated empty output\n\n\nOracle:\n\nDetect:\n\n- unexpected RuntimeError\n- mismatch with expected resize behavior\n\n\nRelated Concepts:\n\nempty tensor handling\n\nshape boundary testing\n\nout parameter correctness\n\n\nAffected Modules:\n\nmodule: functionalization\n\nmodule: viewing and reshaping\n\n\nVersions:\n\nPyTorch:\n\n1.14.0a0+gitcef13eb\n\n\nCUDA:\n\n11.7\n\n\nOS:\n\nUbuntu 18.04.6\n\n\nStatus:\n\ntriaged",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.reshape/issue_89068_reshape.txt"
+}

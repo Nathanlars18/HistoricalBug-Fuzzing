@@ -1,0 +1,150 @@
+Issue ID:
+183899
+
+
+Title:
+torch.compile fails on addmm with beta=0 and non-broadcastable bias shape
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/183899
+
+
+API:
+torch.addmm
+
+
+Status:
+open
+
+
+Created:
+2026-05-15
+
+
+Labels:
+
+module: inductor
+module: linear algebra
+oncall: pt2
+triaged
+repro:agent:h100:repro_success:reproduced
+
+
+Description:
+
+torch.compile with the Inductor backend fails when torch.addmm is called with
+beta=0 and the input bias tensor has a shape that is not broadcastable to the
+matrix multiplication output.
+
+Eager execution succeeds because beta=0 causes the bias contribution to be ignored,
+while the compiled version performs shape validation during compilation and fails.
+
+
+Minimal Reproduction:
+
+```python
+import torch
+
+
+def f(bias, x, weight):
+
+    return torch.addmm(
+        bias,
+        x,
+        weight.t(),
+        beta=0.0,
+        alpha=0.25
+    )
+
+
+x = torch.randn(
+    3,
+    7,
+    device="cuda"
+)
+
+
+weight = torch.randn(
+    11,
+    7,
+    device="cuda"
+)
+
+
+bias = torch.zeros(
+    7,
+    device="cuda"
+)
+
+
+compiled_out = torch.compile(
+    f,
+    backend="inductor",
+    fullgraph=True
+)(
+    bias,
+    x,
+    weight
+)
+Observed Behavior:
+Eager execution:
+Returns:
+shape (3,11)
+torch.compile execution:
+Fails with:
+BackendCompilerFailed
+The compiler reports broadcasting failure because the bias shape does not match
+the output matrix shape.
+Expected Behavior:
+torch.compile should preserve eager semantics.
+Since beta=0 means the bias contribution is unused,
+the operation should successfully compile.
+Environment:
+PyTorch version:
+2.12.0.dev20260407+cu128
+OS:
+Ubuntu 24.04.3 LTS
+Python:
+3.11.15
+CUDA:
+12.8
+GPU:
+NVIDIA RTX 6000 Ada Generation
+Bug Category (Human Annotation):
+Correctness:
+true
+Crash:
+false
+Wrong Result:
+false
+Exception:
+true
+Performance:
+false
+Trigger Conditions:
+API:
+torch.addmm
+Required conditions:
+- torch.compile enabled
+- Inductor backend
+- beta=0
+- bias tensor shape incompatible with output shape
+- CUDA execution
+Potential Fuzzing Value:
+High.
+This issue represents a boundary condition involving operator parameters
+and shape validation.
+Potential harness generation directions:
+- generate unusual beta values
+- generate broadcast-incompatible bias tensors
+- compare eager and compiled execution
+- test parameter-dependent shape checking
+Related Concepts:
+- shape boundary
+- broadcasting
+- compiler inconsistency
+- optional parameter semantics
+Notes:
+This issue is retained because it represents a generalizable operator boundary
+condition where execution behavior changes depending on compiler backend.

@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_49536",
+        "title": "Pytorch mobile Vulkan API bug during call to ReLU",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "49536",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.relu",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.relu works correctly on CPU backend but crashes when executed using Vulkan backend on Android mobile.\n\n\nThe model contains a ReLU operation:\n\ntorch.nn.ReLU()\n\nwhich is traced using TorchScript and executed through PyTorch Mobile.\n\n\nReproduction:\n\nModel:\n\nclass reluwrapper(nn.Module):\n    def __init__(self):\n        super().__init__()\n        self.r1=torch.nn.ReLU()\n\n    def forward(self, x):\n        outputs=self.r1(x)\n        return outputs\n\n\nInput:\n\ninputs=torch.randn(1,192,4,4)\n\n\nThe traced model is executed on Android using Vulkan backend.\n\n\nObserved behavior:\n\nExecution fails with:\n\nRuntimeError:\nThe following operation failed in the TorchScript interpreter.\n\n\nRuntimeError:\nfalse INTERNAL ASSERT FAILED at\n\"ATen/core/boxing/KernelFunction.cpp\"\n\nTried to call KernelFunction::callBoxed()\non a KernelFunction that can only be called with KernelFunction::call().\n\nopname:\naten::relu\n\n\nExpected behavior:\n\nThe ReLU operation should execute successfully on Vulkan backend without crashing.\n\n\nTrigger Condition:\n\n- API: torch.relu\n- Backend: Vulkan\n- Execution environment: PyTorch Mobile\n- Model format: TorchScript\n- Operator: aten::relu\n\n\nBug Pattern Candidate:\n\nBackend-specific operator implementation failure.\n\n\nPotential Harness Strategy:\n\nGenerate TorchScript models containing torch.relu.\n\nExecute generated models under different backends:\n\n- CPU\n- Vulkan\n\nCompare execution results and runtime failures.\n\n\nOracle:\n\nRuntime error / internal assertion failure.\n\n\nResearch Value:\n\nHigh.\n\nThis issue represents a backend-specific failure of a common tensor operator.\nIt can provide guidance for generating backend-aware fuzzing harnesses.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.relu/issue_49536_relu_vulkan_backend_crash.txt"
+}

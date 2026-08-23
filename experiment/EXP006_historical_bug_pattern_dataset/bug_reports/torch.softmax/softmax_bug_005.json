@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_",
+        "title": "aten::_softmax.out doesn't work with non-contiguous Tensors",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.softmax",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "The internal aten::_softmax.out implementation produces incorrect results\nwhen the output tensor provided through the out parameter is non-contiguous.\n\nThe generated output is partially written into incorrect memory locations,\ncausing some elements to remain unchanged.\n\nThe resulting tensor contains invalid softmax values,\nincluding negative values that should never appear in softmax output.\n\n\nTrigger Condition:\n\nOperation:\n\naten::_softmax.out\n\n\nRequired conditions:\n\n1. Use the out parameter.\n\n2. The output tensor is non-contiguous.\n\n3. Perform softmax computation.\n\n\nTrigger example:\n\n```python\ninp = torch.rand(2,3)\n\nout = create_non_contiguous_tensor()\n\ntorch._softmax(\n    inp,\n    0,\n    half_to_float=False,\n    out=out\n)\nMinimal Reproduction:\nimport torch\nfrom torch.testing import make_tensor\n\n\ninp = torch.rand(2,3)\n\n\nout = make_tensor(\n    inp.shape,\n    dtype=inp.dtype,\n    device=inp.device,\n    noncontiguous=True\n)\n\n\ntorch._softmax(\n    inp,\n    0,\n    half_to_float=False,\n    out=out\n)\n\n\nexpected = torch._softmax(\n    inp,\n    0,\n    half_to_float=False\n)\n\n\nprint(\"Actual:\")\nprint(out)\n\nprint(\"Expected:\")\nprint(expected)\nObserved Behavior:\nThe output tensor is incorrect.\nExample:\nActual:\ntensor([\n    [0.5257, 0.4881, 0.3627],\n    [-2.9375, 8.6783, 7.0183]\n])\nExpected:\ntensor([\n    [0.5257, 0.6373, 0.4881],\n    [0.4743, 0.3627, 0.5119]\n])\nSome output positions are not updated correctly.\nExpected Behavior:\nSoftmax should produce identical correct results regardless of\nwhether the output tensor storage is contiguous or non-contiguous.\nRoot Cause Category:\nMemory Layout Boundary\nRelated Factors:\n- non-contiguous tensor\n- tensor stride\n- output buffer\n- out parameter\n- memory indexing\nBug Pattern:\nPattern Name:\nSoftmax Non-Contiguous Output Tensor Failure\nPattern Description:\nOperations writing results into user-provided output tensors may fail\nwhen tensor memory layout is non-contiguous.\nSoftmax implementations must correctly handle arbitrary tensor strides.\nFuzzing Relevance:\nHigh\nHarness Generation Guidance:\nGenerate tensors with different memory layouts.\nInput mutations:\n1. Transpose:\nx = x.transpose(0,1)\n2. Slice:\nx = x[:, ::2]\n3. Permute:\nx = x.permute(...)\nCheck:\nx.is_contiguous()\nGenerate both:\n- contiguous tensors\n- non-contiguous tensors\nOracle:\nCompare:\ntorch.softmax(x, dim)\nwith:\ntorch.softmax(x.contiguous(), dim)\nFor out variants:\nCompare output tensor with reference result.\nFailure Condition:\n- Different numerical result\n- Incorrect memory update\n- Unexpected negative values\n- Mismatch between contiguous and non-contiguous execution\nLabels:\nmodule:\n- nn\ncategory:\n- memory-layout\n- tensor-stride\n- correctness\nBug Category:\n- non-contiguous tensor handling\n- incorrect memory write\n- layout boundary\nSource:\nPyTorch GitHub Issue #75923",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.softmax/issue_75923_softmax_non_contiguous_out.txt"
+}

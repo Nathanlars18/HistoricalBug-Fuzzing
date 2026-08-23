@@ -1,0 +1,286 @@
+Issue ID:
+#194050
+
+
+Title:
+[CPU] aten::_reshape_alias_copy reads out of bounds with unchecked strides
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/194050
+
+
+Description:
+
+aten::_reshape_alias_copy materializes tensor data using caller-provided size
+and stride values without checking that every source element is inside the
+input storage.
+
+The operation may read outside the original tensor storage during the copy
+process.
+
+
+Affected Operator:
+
+aten::_reshape_alias_copy
+
+
+Python Reproduction:
+
+import torch
+
+base = torch.arange(8, dtype=torch.int64)
+
+out = torch.ops.aten._reshape_alias_copy(
+    base,
+    [2],
+    [8]
+)
+
+print(out)
+
+
+Observed Behavior:
+
+The operator accepts invalid size and stride metadata.
+
+During materialization, the copy kernel accesses memory outside the allocated
+input storage.
+
+This results in an out-of-bounds memory read.
+
+
+Crash Information:
+
+AddressSanitizer reports:
+
+heap-buffer-overflow
+
+READ of size 8
+
+
+The invalid read occurs directly after the source tensor storage.
+
+
+Example:
+
+Input:
+
+dtype:
+int64
+
+
+Storage:
+
+8 elements
+
+
+Requested layout:
+
+size:
+[2]
+
+stride:
+[8]
+
+
+The second logical element points outside the valid storage range.
+
+
+Backend:
+
+CPU
+
+
+Bug Category:
+
+Memory safety violation
+
+Out-of-bounds read
+
+Unchecked stride
+
+
+Root Cause:
+
+aten::_reshape_alias_copy constructs the source tensor geometry using the
+caller-provided size and stride values.
+
+The operation does not verify that every source element accessed during the
+copy belongs to the original storage.
+
+
+Unlike normal safe tensor operations, malformed metadata is accepted and
+forwarded to the copy kernel.
+
+
+Important Technical Detail:
+
+The operator shares the same underlying assumption as
+alias_with_sizes_and_strides:
+
+The caller must guarantee that the storage is sufficient.
+
+However, direct invocation does not enforce this condition.
+
+
+Trigger Conditions:
+
+The bug is triggered when:
+
+1. A tensor has limited backing storage.
+
+2. _reshape_alias_copy receives manually specified strides.
+
+3. The calculated source memory range exceeds the allocated storage.
+
+
+Required Input Features:
+
+Tensor:
+
+- CPU tensor
+- small storage
+- integer dtype
+
+
+Metadata:
+
+- custom shape
+- custom stride
+- invalid storage mapping
+
+
+Execution Path:
+
+Input tensor
+
+        |
+        v
+
+_reshape_alias_copy
+
+        |
+        v
+
+copy kernel
+
+        |
+        v
+
+out-of-bounds read
+
+
+Expected Behavior:
+
+The operator should validate source storage boundaries before copying.
+
+Invalid size and stride combinations should be rejected.
+
+
+Relevant Bug Pattern:
+
+Pattern Name:
+
+Unchecked reshape stride causes out-of-bound copy
+
+
+Pattern Description:
+
+Tensor reshape operations that accept custom stride metadata may access
+invalid memory when storage boundary checks are missing.
+
+
+Harness Generation Guidance:
+
+Generate tests containing:
+
+- small tensors
+- manually controlled stride values
+- non-contiguous layouts
+- unusual shape combinations
+- reshape alias copy operations
+
+
+Recommended Mutation Dimensions:
+
+Shape:
+
+- very small dimensions
+- mismatched logical size
+
+
+Stride:
+
+- large stride values
+- sparse stride layouts
+- invalid stride combinations
+
+
+Storage:
+
+- minimal allocation
+- insufficient backing storage
+
+
+Oracle:
+
+Detect:
+
+- AddressSanitizer heap-buffer-overflow
+- crash
+- invalid memory access
+
+
+Related Issue:
+
+#194051
+
+aten::_reshape_alias creates out-of-storage views from unchecked strides
+
+
+Difference from #194051:
+
+#194051:
+
+Creates invalid alias view.
+
+Failure occurs during later tensor access.
+
+
+#194050:
+
+Immediately materializes invalid layout.
+
+Failure occurs during copy operation.
+
+
+Affected Modules:
+
+module: crash
+
+module: viewing and reshaping
+
+
+Versions:
+
+PyTorch:
+
+2.11.0a0+git70d99e9
+
+
+OS:
+
+Linux x86_64
+
+
+Build:
+
+AddressSanitizer enabled
+
+
+Status:
+
+bot-triaged
+
+triage review

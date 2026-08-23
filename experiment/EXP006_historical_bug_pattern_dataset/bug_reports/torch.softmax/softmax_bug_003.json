@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_147284",
+        "title": "torch.softmax gives wierd result under specific condition on cuda double tensors with multiple rows and 781 columns.",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "147284",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.softmax",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "🐛 Describe the bug\n\ntorch.softmax(torch.zeros(c,781, dtype=torch.float64, device='cuda'),dim=1) gives wrong answer for c > 1.\n\n\nReproduction:\n\n```python\nimport torch\n\nprint(torch.softmax(torch.zeros(1,781, dtype=torch.float64, device='cuda'),dim=1)) # correct\n\nprint(torch.softmax(torch.zeros(2,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong\n\nprint(torch.softmax(torch.zeros(3,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong\n\nprint(torch.softmax(torch.zeros(4,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong\n\nprint(torch.softmax(torch.zeros(5,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong\n\nprint(torch.softmax(torch.zeros(2,780, dtype=torch.float64, device='cuda'),dim=1)) # correct\n\nprint(torch.softmax(torch.zeros(2,782, dtype=torch.float64, device='cuda'),dim=1)) # correct\nObserved behavior:\nThe output values are incorrect when:\n- device is CUDA\n- dtype is float64\n- number of rows is greater than 1\n- dimension size is 781\nExpected behavior:\nThe output of softmax should be a valid probability distribution where each row sums to 1.\nAdditional investigation:\nThe issue appears to be CUDA-specific and related to the float64 implementation of softmax.\nWorkarounds:\n1. Use float32 instead of float64:\ntensor = torch.zeros(c, 781, dtype=torch.float32, device=\"cuda\")\n2. Compute softmax on CPU:\nresult = torch.softmax(tensor.cpu(), dim=1).cuda()\n3. Pad the dimension:\ntensor = torch.zeros(c, 782, dtype=torch.float64, device=\"cuda\")\nresult = torch.softmax(tensor, dim=1)\nEnvironment:\nPyTorch version:\n2.5.1+cu124\nCUDA used to build PyTorch:\n12.4\nOS:\nUbuntu 22.04.5 LTS\nPython:\n3.12.8\nCUDA available:\nTrue\nGPU:\nNVIDIA GeForce RTX 4060 Laptop GPU\nRelevant libraries:\ntorch==2.5.1\ntriton==3.2.0\nActivity:\nThe issue was reproduced by multiple users.\nA workaround investigation suggested that the problem is likely related to CUDA softmax kernel implementation:\naten/src/ATen/native/cuda/SoftMax.cu\nFurther reproduction showed that the failure occurs for specific tensor widths and is related to boundary conditions in the CUDA vectorized softmax implementation.\nLabels:\nmodule: nn\nmodule: cuda\ntriaged",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.softmax/issue_147284_softmax_cuda_double_wrong_result.txt"
+}

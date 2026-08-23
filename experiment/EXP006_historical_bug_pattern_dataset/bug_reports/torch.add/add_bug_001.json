@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_152731",
+        "title": "Inconsistent float16 overflow behavior between CPU and CUDA devices",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "152731",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.add",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.add behaves inconsistently between CPU and CUDA when using float16 tensors with extremely large alpha values.\n\n\nCPU implementation raises overflow error.\n\nCUDA silently completes the operation.\n\n\nReproduction:\n\nimport torch\n\n\ntensor1 = torch.randn(\n    (8,1,1,1),\n    dtype=torch.float16\n)\n\ntensor2 = torch.randn(\n    (8,1,1,1),\n    dtype=torch.float16\n)\n\n\nalpha = 1.04119e32\n\n\ntorch.add(\n    tensor1,\n    tensor2,\n    alpha=alpha\n)\n\n\nObserved:\n\nCPU:\n\nRuntimeError:\nvalue cannot be converted to type at::Half without overflow\n\n\nCUDA:\n\nOperation succeeds silently.\n\n\nTrigger Condition:\n\n- API: torch.add\n- dtype: float16\n- extremely large alpha scalar\n- device difference CPU vs CUDA\n\n\nBug Pattern Candidate:\n\nBackend-dependent dtype overflow handling inconsistency.\n\n\nPotential Harness Strategy:\n\nRun identical torch.add inputs on CPU and CUDA.\n\nCompare:\n- exception behavior\n- output validity\n\n\nOracle:\n\nCPU/CUDA behavior mismatch.\n\n\nResearch Value:\n\nMedium-High.\n\nRepresents backend inconsistency bugs.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.add/issue_152731_float16_overflow_cpu_cuda.txt"
+}

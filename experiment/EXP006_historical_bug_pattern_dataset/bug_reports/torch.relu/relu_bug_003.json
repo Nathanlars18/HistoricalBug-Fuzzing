@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_",
+        "title": "Inplace ReLU incompatible with backward hook",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.relu",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "🐛 Inplace RELU issues with backward hooks\n\n\nI encountered a bug I cannot manage to handle with in place ReLUs.\n\nIn my project, I use backward hooks to get intermediate feature maps and gradients.\n\nIt used to be working fine up until a few versions ago where densenet was throwing warnings caused by the in place relu.\n\nAfter updating torch/torchvision versions, it turned into an error.\n\nI reproduced the bug with a simple sequential model that includes an in place ReLU.\n\nThe gradient flows back properly, but the backward hook throws an error.\n\n\nMinimal Reproduction:\n\n```python\nimport torch\nfrom torch import nn\n\n\n# Get the model\nmod = nn.Sequential(\n    nn.Conv2d(3, 8, 3, padding=1),\n    nn.ReLU(),\n    nn.Conv2d(8, 8, 3, padding=1),\n    nn.ReLU(inplace=True)\n)\n\n\n# Hook a module before the in-place ReLU\ndef hook_g(m, input, output):\n    print(input.shape)\n\n\nmod[2].register_full_backward_hook(hook_g)\n\n\n# Inference\nout = mod(torch.rand((1, 3, 224, 224)))\nError:\nRuntimeError:\nOutput 0 of BackwardHookFunctionBackward is a view and is being modified inplace.\nThis view was created inside a custom Function (or because an input was returned as-is) and the autograd logic to handle view+inplace would override the custom backward associated with the custom Function, leading to incorrect gradients.\nThis behavior is forbidden.\nYou can remove this warning by cloning the output of the custom Function.\nExpected Behavior:\nThe code worked previously with warnings.\nAfter changing to register_full_backward_hook, inplace ReLU causes an error.\nThe expected behavior is that backward hooks and ReLU operations should work correctly or provide a clear workaround.\nEnvironment:\nPyTorch Version:\n1.9.0\nTorchvision Version:\n0.10.0\nOS:\nUbuntu 20.04.2 LTS\nPython:\n3.8\nCUDA:\n11.2.152\ncuDNN:\n8.2.0\nAdditional Discussion:\nsoulitzer:\nThis is currently expected because registering a full backward hook attaches a dummy custom function that returns a view and in-place operations aren't allowed on views created in custom functions.\nHowever, it seems bad that registering a hook breaks existing behavior.\nalbanD:\nThis is an expected limitation.\nWe don't actually want to allow this because here the input is modified inplace, so it is unclear what the grad_input given to the hook should be.\nShould it be the value before or after?\nSuggested Workaround:\nUse Tensor hooks instead of backward hooks.\nExample:\ndef tensor_hook(grad):\n    print(grad.size())\n\n\nyour_tensor.register_hook(tensor_hook)\nRelated Context:\nThe issue is caused by the interaction between:\n1. In-place ReLU operation\n2. Autograd view tracking\n3. Full backward hooks\n4. Custom autograd Function behavior\nFinal Resolution:\nClosed as expected behavior.\nThe recommended solution is avoiding inplace operations when using backward hooks.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.relu/issue_61519_relu_inplace_backward_hook.txt"
+}

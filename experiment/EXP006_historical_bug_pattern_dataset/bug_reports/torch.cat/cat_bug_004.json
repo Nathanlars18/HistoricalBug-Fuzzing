@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_63998",
+        "title": "cat out= variant memory_format inconsistent for cpu and cuda",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "63998",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.cat",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "The memory_format behavior of torch.cat with the out= variant is inconsistent between CPU and CUDA implementations.\n\nThe same torch.cat operation may produce different output memory layouts depending on the backend.\n\n\nBug Details:\n\nFor cat_out_cpu:\n\nIf the output tensor has incorrect shape,\nthe memory format is inherited from the first input tensor.\n\n\nFor cat_out_cuda:\n\nIf the output tensor has incorrect shape,\nthe implementation recomputes the output memory format using\ncompute_output_memory_format.\n\nTherefore CPU and CUDA follow different rules.\n\n\nReproduction:\n\nUse torch.cat with:\n\n- out= tensor\n- input tensors with different memory formats\n- CPU and CUDA backend comparison\n\n\nExample Scenario:\n\nInput tensors:\n\nTensor A:\n- channels_last memory format\n\nTensor B:\n- contiguous memory format\n\n\nExecute:\n\ntorch.cat([A, B], dim=..., out=output)\n\n\nObserved Behavior:\n\nCPU and CUDA produce different output memory_format behavior.\n\n\nExpected Behavior:\n\nCPU and CUDA implementations should follow the same memory_format selection logic.\n\n\nRoot Cause:\n\nThe CPU and CUDA cat_out implementations use different strategies\nfor determining output memory format.\n\nCPU:\n\nUses the first tensor's memory format.\n\n\nCUDA:\n\nUses compute_output_memory_format,\nwhich considers all input tensors.\n\n\nTrigger Condition:\n\nOperator:\n\ntorch.cat\n\n\nVariant:\n\ntorch.cat(..., out=output)\n\n\nInput Properties:\n\n- Multiple tensors\n- Different memory formats\n- Backend difference between CPU and CUDA\n\n\nImportant Cases:\n\n- contiguous tensor\n- channels_last tensor\n- mixed memory formats\n- cat_out variant\n\n\nFailure Type:\n\nBackend inconsistent behavior\n\n\nCategory:\n\nMemory layout inconsistency\n\nBackend dispatch difference\n\n\nAffected Component:\n\nATen cat_out implementation\n\nModules:\n\ncuda\n\nmemory format\n\n\nHarness Relevance:\n\nGenerate tensors with different memory layouts.\n\nTest torch.cat with out= argument.\n\nCompare behavior between CPU and CUDA backends.\n\n\nSuggested Input Mutation:\n\n1. Generate contiguous tensors.\n\n2. Convert tensors to channels_last format.\n\n3. Mix tensors with different memory layouts.\n\n4. Execute cat_out.\n\n5. Check output memory format consistency.\n\n\nExpected Oracle:\n\nCPU and CUDA should produce equivalent memory format behavior.\n\n\nIssue Labels:\n\nmodule: cuda\n\nmodule: memory format\n\ntriaged\n\n\nAdditional Context:\n\nThe suggested fix was to make CPU behavior consistent with CUDA behavior\nby using compute_output_memory_format.\n\nThis may be a backward compatibility change,\nbut the inconsistent behavior was considered undesirable.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.cat/issue_63998_cat.txt"
+}

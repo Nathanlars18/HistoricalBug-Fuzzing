@@ -1,0 +1,126 @@
+Issue ID:
+49536
+
+
+Title:
+Pytorch mobile Vulkan API bug during call to ReLU
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/49536
+
+
+API:
+torch.relu
+
+
+Category:
+Backend-specific Runtime Failure
+
+
+Labels:
+module: mobile
+oncall: java
+
+
+Environment:
+PyTorch 1.8.0a0+bdf360f
+Android Mobile
+Vulkan backend
+
+
+Description:
+
+torch.relu works correctly on CPU backend but crashes when executed using Vulkan backend on Android mobile.
+
+
+The model contains a ReLU operation:
+
+torch.nn.ReLU()
+
+which is traced using TorchScript and executed through PyTorch Mobile.
+
+
+Reproduction:
+
+Model:
+
+class reluwrapper(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.r1=torch.nn.ReLU()
+
+    def forward(self, x):
+        outputs=self.r1(x)
+        return outputs
+
+
+Input:
+
+inputs=torch.randn(1,192,4,4)
+
+
+The traced model is executed on Android using Vulkan backend.
+
+
+Observed behavior:
+
+Execution fails with:
+
+RuntimeError:
+The following operation failed in the TorchScript interpreter.
+
+
+RuntimeError:
+false INTERNAL ASSERT FAILED at
+"ATen/core/boxing/KernelFunction.cpp"
+
+Tried to call KernelFunction::callBoxed()
+on a KernelFunction that can only be called with KernelFunction::call().
+
+opname:
+aten::relu
+
+
+Expected behavior:
+
+The ReLU operation should execute successfully on Vulkan backend without crashing.
+
+
+Trigger Condition:
+
+- API: torch.relu
+- Backend: Vulkan
+- Execution environment: PyTorch Mobile
+- Model format: TorchScript
+- Operator: aten::relu
+
+
+Bug Pattern Candidate:
+
+Backend-specific operator implementation failure.
+
+
+Potential Harness Strategy:
+
+Generate TorchScript models containing torch.relu.
+
+Execute generated models under different backends:
+
+- CPU
+- Vulkan
+
+Compare execution results and runtime failures.
+
+
+Oracle:
+
+Runtime error / internal assertion failure.
+
+
+Research Value:
+
+High.
+
+This issue represents a backend-specific failure of a common tensor operator.
+It can provide guidance for generating backend-aware fuzzing harnesses.

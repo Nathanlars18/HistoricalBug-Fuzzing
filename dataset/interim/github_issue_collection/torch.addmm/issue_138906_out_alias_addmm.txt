@@ -1,0 +1,84 @@
+Title:
+RuntimeError: addmm with out= argument returns incorrect result
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/138906
+
+
+Issue ID:
+138906
+
+
+API:
+torch.addmm
+
+
+Bug Type:
+Correctness Bug
+
+
+Category:
+Memory Alias / Output Aliasing
+
+
+Description:
+
+The issue reports that torch.addmm produces incorrect results when
+the output tensor specified by the out= argument aliases with the
+input tensor.
+
+The operation succeeds without raising an error, but the produced
+result is incorrect.
+
+
+Trigger Condition:
+
+API:
+torch.addmm
+
+Input condition:
+
+- output tensor shares storage with input tensor
+- out= argument is used
+- tensor shapes are compatible
+
+Environment:
+
+Reported on PyTorch with CUDA.
+
+
+Reproduction:
+
+Example:
+
+```python
+t = torch.ones(5,5)
+
+weight = ...
+
+torch.addmm(t, input, weight, out=t)
+Observed Behavior:
+The returned tensor contains incorrect values.
+Expected Behavior:
+The result should match normal torch.addmm execution without aliasing.
+Failure Oracle:
+Incorrect output.
+Compare:
+torch.addmm(input, mat1, mat2)
+with:
+torch.addmm(input, mat1, mat2, out=input)
+Harness Relevance:
+High.
+This bug can be converted into a harness generation strategy:
+Generate tensors where:
+- output tensor aliases input tensor
+- addmm is executed
+- result is compared with reference implementation
+Potential Bug Pattern:
+Memory aliasing in out= operations.
+Pattern Keywords:
+- out argument
+- alias
+- shared storage
+- incorrect result

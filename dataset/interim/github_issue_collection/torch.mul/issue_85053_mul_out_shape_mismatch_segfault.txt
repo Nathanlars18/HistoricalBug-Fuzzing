@@ -1,0 +1,164 @@
+Issue ID:
+85053
+
+Title:
+torch.div crash with segmentation fault
+
+Repository:
+pytorch/pytorch
+
+URL:
+https://github.com/pytorch/pytorch/issues/85053
+
+
+Created:
+2022-09-15
+
+
+Description:
+
+The issue reports that torch.div crashes with segmentation fault when using an incompatible out tensor shape.
+
+The same behavior is also observed in torch.mul and torch.remainder.
+
+
+Reproducer:
+
+import torch
+
+torch.div(
+    input=torch.ones([1]),
+    other=1,
+    out=torch.ones([5,1,1,1])
+)
+
+
+torch.mul(
+    input=torch.ones([1]),
+    other=1,
+    out=torch.ones([5,1,1,1])
+)
+
+
+torch.remainder(
+    input=torch.ones([1]),
+    other=1,
+    out=torch.ones([5,1,1,1])
+)
+
+
+Observed Behavior:
+
+Execution terminates with:
+
+Segmentation fault (core dumped)
+
+
+Affected API:
+
+torch.mul
+
+
+Bug Category:
+
+Crash
+
+
+Trigger Condition:
+
+Operation uses torch.mul with the out parameter.
+
+Input tensor shape:
+[1]
+
+Scalar multiplier:
+1
+
+Output tensor shape:
+[5,1,1,1]
+
+The provided out tensor has an incompatible shape compared with the expected broadcasted output.
+
+
+Backend:
+
+CPU
+
+
+PyTorch Version:
+
+PyTorch 1.13.0.dev20220913+cpu
+
+
+Environment:
+
+OS:
+Ubuntu 18.04.4 LTS
+
+Python:
+3.7.6
+
+
+CUDA:
+Not available
+
+
+Root Cause:
+
+The issue was related to missing or incorrect error checking in TensorIterator handling.
+
+The problem was fixed by PR #85294.
+
+
+Oracle:
+
+Crash
+
+Expected:
+PyTorch should raise a proper error for invalid out tensor shape.
+
+Actual:
+Process crashes with segmentation fault.
+
+
+Harness Idea:
+
+Construct a valid input tensor and provide an incompatible out tensor.
+
+Example:
+
+input:
+torch.ones([1])
+
+other:
+1
+
+out:
+torch.ones([5,1,1,1])
+
+
+Execute:
+
+torch.mul(input, other, out=out)
+
+
+Detect:
+
+SIGSEGV or abnormal process termination.
+
+
+Labels:
+
+module:
+error checking
+
+module:
+TensorIterator
+
+status:
+fixed
+
+
+Related PR:
+
+#85294

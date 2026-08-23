@@ -1,0 +1,113 @@
+Issue ID:
+48900
+
+
+Title:
+addmm with out= argument returns incorrect result
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/48900
+
+
+API:
+torch.addmm
+
+
+Status:
+closed
+
+
+Created:
+2020-12-07
+
+
+Labels:
+module: correctness (silent)
+module: linear algebra
+module: partial aliasing
+module: structured kernels
+module: docs
+triaged
+
+
+Description:
+torch.addmm returns incorrect results when the out= parameter aliases one of the input tensors.
+
+The issue occurs when the output tensor is the same tensor as an input tensor.
+
+
+Minimal Reproduction:
+
+```python
+import torch
+
+t = torch.ones(5, 5)
+weight = torch.eye(5)
+bias = torch.zeros(5, 5)
+
+out = torch.addmm(bias, t, weight, out=t)
+
+print(out)
+print(t)
+Observed Behavior:
+The returned tensor is all zeros:
+tensor([[0., 0., 0., 0., 0.],
+        ...
+        [0., 0., 0., 0., 0.]])
+Expected Behavior:
+The result should be identical to the non-aliasing case:
+torch.addmm(bias, t, weight)
+which returns a tensor of ones.
+Root Cause / Technical Information:
+The bug is caused by incorrect handling of input-output aliasing.
+torch.addmm internally uses GEMM operations. The implementation correctly handles some in-place scenarios but does not correctly handle the case where the out tensor overlaps with an input tensor.
+The issue is related to:
+- out= semantics
+- partial aliasing
+- structured kernel alias checking
+Environment:
+PyTorch version:
+1.7.0+cu110
+CUDA:
+11.0
+GPU:
+NVIDIA RTX 3080
+OS:
+Arch Linux x86_64
+Bug Category (Human Annotation):
+Correctness:
+true
+Crash:
+false
+Wrong Result:
+true
+Exception:
+false
+Performance:
+false
+Trigger Conditions:
+API:
+torch.addmm
+Input conditions:
+- out parameter is provided
+- output tensor aliases input tensor
+- tensor shapes are compatible
+Example trigger:
+torch.addmm(input, mat1, mat2, out=input)
+Potential Fuzzing Value:
+High.
+This issue represents an important tensor memory relationship edge case.
+A generated harness can explore:
+- out parameter aliasing
+- overlapping tensor storage
+- in-place versus out-of-place semantic differences
+- correctness comparison between normal and aliased execution
+Related Concepts (Preliminary Only):
+- output aliasing
+- partial aliasing
+- out parameter semantics
+- correctness oracle
+Notes:
+This issue is kept because it represents a realistic user-facing correctness bug.
+The bug can potentially be generalized into a reusable harness generation rule involving output tensors sharing storage with input tensors.

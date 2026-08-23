@@ -1,0 +1,203 @@
+Bug ID:
+#55056
+
+
+Title:
+[FR] Safe softmax
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/55056
+
+
+Project:
+pytorch/pytorch
+
+
+API:
+torch.softmax
+
+
+Related APIs:
+torch.nn.functional.softmax
+torch.nn.Softmax
+torch.nn.MultiheadAttention
+
+
+Bug Type:
+Numerical stability issue
+
+
+Severity:
+Medium
+
+
+Status:
+Triaged
+
+
+Reported Date:
+2021-03-31
+
+
+Environment:
+PyTorch version:
+Not explicitly specified
+
+Device:
+CPU/GPU independent
+
+Related module:
+torch.nn
+
+
+Description:
+
+When softmax is applied to an input tensor where all values are negative infinity,
+the output contains NaN values.
+
+The reason is that softmax internally performs exponential normalization.
+
+For an input:
+
+[-inf, -inf, -inf]
+
+the computation becomes:
+
+exp(-inf) = 0
+
+and:
+
+0 / (0 + 0 + 0)
+
+which results in NaN.
+
+This behavior can occur in transformer attention mechanisms where attention masks
+remove all valid positions for a query.
+
+The issue proposes a safer softmax behavior where fully masked rows return zeros
+instead of NaN.
+
+
+Trigger Condition:
+
+Operation:
+torch.softmax
+
+Input condition:
+
+All elements along the softmax dimension are:
+
+-inf
+
+
+Example:
+
+Input:
+
+tensor([
+    -inf,
+    -inf,
+    -inf
+])
+
+
+Expected:
+
+tensor([
+    0,
+    0,
+    0
+])
+
+
+Observed:
+
+tensor([
+    nan,
+    nan,
+    nan
+])
+
+
+Minimal Reproduction:
+
+```python
+import torch
+
+x = torch.tensor(
+    [
+        float("-inf"),
+        float("-inf"),
+        float("-inf")
+    ]
+)
+
+y = torch.softmax(x, dim=0)
+
+print(y)
+print(torch.isnan(y))
+Observed Behavior:
+torch.softmax produces NaN values when the entire reduction dimension
+contains -inf values.
+Expected Behavior:
+Softmax should return zero values for completely masked inputs instead of NaN.
+Root Cause Category:
+Numerical Stability Boundary
+Related Factors:
+- all negative infinity input
+- attention masking
+- transformer models
+- softmax normalization
+- NaN propagation
+Bug Pattern:
+Pattern Name:
+All Negative Infinity Softmax Input Produces NaN
+Pattern Description:
+When all values in a softmax reduction dimension are -inf,
+the normalization denominator becomes zero and produces NaN output.
+This represents an important numerical boundary condition.
+Fuzzing Relevance:
+High
+Harness Generation Guidance:
+Generate tensors containing:
+Value patterns:
+- all -inf
+- partially -inf
+- mixture of finite values and -inf
+Example:
+x = torch.full(
+    (batch_size, sequence_length),
+    float("-inf")
+)
+
+torch.softmax(
+    x,
+    dim=-1
+)
+Mutation Strategy:
+1. Replace random tensor values with:
+   - inf
+   - -inf
+   - NaN
+2. Generate masked attention-like inputs.
+3. Generate rows where:
+number of valid values = 0
+Oracle:
+Check whether output contains NaN:
+torch.isnan(output).any()
+Failure Condition:
+Softmax output contains NaN when the input row is fully masked.
+Labels:
+module:
+- nn
+category:
+- numerical-stability
+- boundary-value
+- special-floating-value
+Bug Category:
+- NaN generation
+- invalid normalization
+- edge case input
+Source:
+PyTorch GitHub Issue #55056

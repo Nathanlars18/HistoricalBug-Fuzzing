@@ -1,0 +1,271 @@
+Issue ID:
+#194051
+
+
+Title:
+[CPU] aten::_reshape_alias creates out-of-storage views from unchecked strides
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/194051
+
+
+Description:
+
+aten::_reshape_alias can create a view whose logical elements extend beyond
+the input storage.
+
+A normal tensor operation can then read outside the storage.
+
+
+Affected Operator:
+
+aten::_reshape_alias
+
+
+Python Reproduction:
+
+import torch
+
+base = torch.arange(8, dtype=torch.int64)
+
+view = torch.ops.aten._reshape_alias(
+    base,
+    [2],
+    [8]
+)
+
+print(view.sum())
+
+
+Observed Behavior:
+
+The operator creates a tensor view with invalid size and stride metadata.
+
+The logical elements of the created view exceed the valid input storage range.
+
+When a later tensor operation accesses the view, an out-of-bounds memory
+read occurs.
+
+
+Crash Information:
+
+AddressSanitizer reports:
+
+heap-buffer-overflow
+
+READ of size 8
+
+The invalid read happens immediately after the allocated input storage.
+
+
+Example:
+
+Input tensor:
+
+dtype:
+int64
+
+
+Storage:
+
+8 elements
+
+
+Requested view:
+
+size:
+[2]
+
+stride:
+[8]
+
+
+The second logical element starts outside the original storage boundary.
+
+
+Backend:
+
+CPU
+
+
+Bug Category:
+
+Memory safety violation
+
+Out-of-bounds read
+
+Invalid tensor view
+
+Unchecked stride
+
+
+Root Cause:
+
+aten::_reshape_alias forwards the supplied sizes and strides directly to
+alias_with_sizes_and_strides.
+
+The operation does not validate whether the reachable storage range of the
+new view is inside the original tensor storage.
+
+The malformed alias survives until a later operation reads the tensor.
+
+
+Important Technical Detail:
+
+The contract of alias_with_sizes_and_strides requires the caller to guarantee
+that storage is sufficient.
+
+However, direct calls to aten::_reshape_alias do not enforce this condition.
+
+
+Trigger Conditions:
+
+A failure occurs when:
+
+1. The input tensor has limited storage.
+
+2. The reshape alias operation receives manually specified strides.
+
+3. The reachable memory region defined by:
+
+storage_offset + stride * index
+
+extends beyond the allocated storage.
+
+
+Required Input Features:
+
+Tensor:
+
+- CPU tensor
+- small storage
+- int64 dtype
+
+
+Metadata:
+
+- custom size
+- custom stride
+- invalid storage mapping
+
+
+Follow-up Operation:
+
+A later tensor operation such as:
+
+sum()
+
+or other tensor iteration
+
+causes the invalid memory access.
+
+
+Expected Behavior:
+
+The operator should reject view metadata whose reachable elements exceed
+the input storage.
+
+Invalid size and stride combinations should not create unsafe tensor views.
+
+
+Relevant Bug Pattern:
+
+Pattern Name:
+
+Unchecked reshape stride creates out-of-storage view
+
+
+Pattern Description:
+
+Tensor view operations that accept user-controlled size and stride metadata
+may create invalid views if storage boundary validation is missing.
+
+
+Harness Generation Guidance:
+
+Generate tensors with:
+
+- small allocated storage
+- manually controlled stride values
+- unusual shape combinations
+- alias/view based operations
+
+
+Recommended Mutation Dimensions:
+
+Shape:
+
+- small dimensions
+- large logical dimensions
+
+Stride:
+
+- oversized stride
+- sparse stride
+- non-contiguous layout
+
+
+Storage:
+
+- insufficient backing storage
+- boundary-sized allocation
+
+
+Oracle:
+
+Detect:
+
+- AddressSanitizer heap-buffer-overflow
+- crash
+- invalid memory access
+
+
+Related Issues:
+
+#194050
+
+aten::_reshape_alias_copy reads out of bounds with unchecked strides
+
+
+#84693
+
+Uses invalid _reshape_alias metadata with different observed behavior.
+
+
+Affected Modules:
+
+module: crash
+
+module: viewing and reshaping
+
+triage review
+
+
+Versions:
+
+PyTorch:
+
+2.11.0a0+git70d99e9
+
+
+OS:
+
+Linux x86_64
+
+
+Build:
+
+AddressSanitizer enabled
+
+
+CPU:
+
+Intel Xeon Platinum 8368
+
+
+Status:
+
+bot-triaged
+
+triage review

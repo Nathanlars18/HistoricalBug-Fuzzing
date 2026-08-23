@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_86918",
+        "title": "torch.cat on empty tensor is bogus",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "86918",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.cat",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.cat on tensors of shape (0,) ignores the dim argument to cat.\n\nThe operation accepts invalid concatenation dimensions when all input tensors are empty tensors.\n\nThis causes incorrect behavior because invalid inputs are silently accepted instead of raising an error.\n\n\nReproduction:\n\nimport torch\n\nx = torch.randn([0])\n\nresult = torch.cat([x, x], dim=999)\n\n\nObserved Behavior:\n\ntorch.cat succeeds even though dim=999 is invalid for the input tensor.\n\nNo exception is raised.\n\n\nExpected Behavior:\n\ntorch.cat should validate the dimension argument.\n\nFor invalid dimensions, torch.cat should raise a RuntimeError such as:\n\nDimension out of range\n\n\nRoot Cause:\n\nThe cat implementation contains legacy handling for zero-element tensors.\n\nWhen tensors with shape (0,) are concatenated, the special empty tensor path can bypass normal dimension validation.\n\nAs a result, invalid dim values may not be checked.\n\n\nTrigger Condition:\n\nOperator:\ntorch.cat\n\nInput Tensor:\n- Shape: (0,)\n- Number of elements: 0\n\nOperation:\ntorch.cat([tensor1, tensor2], dim)\n\nBoundary Condition:\n- All input tensors are empty tensors\n- Concatenation dimension is outside valid range\n\n\nFailure Type:\n\nSilent incorrect behavior\n\nCategory:\n\nInput validation failure\nEmpty tensor edge case\n\n\nAffected Component:\n\nATen cat implementation\n\nModule:\nedge cases\n\n\nHarness Relevance:\n\nGenerate empty tensors as input.\n\nMutate concatenation dimension into invalid ranges.\n\nImportant boundary cases:\n\n- shape=(0,)\n- zero-element tensors\n- dim > tensor dimension\n- dim < -tensor dimension\n\nExpected oracle:\n\nInvalid dimension should raise an exception.\n\n\nIssue Labels:\n\nmodule: edge cases\n\ntriaged\n\n\nAdditional Discussion:\n\nThe issue was identified as a legacy exception behavior.\n\nMaintainers noted that tensors with shape (0,) historically have special behavior in cat,\nand when only these tensors are present, further validation checks may not execute.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.cat/issue_86918_cat.txt"
+}

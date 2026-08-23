@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_170573",
+        "title": "Silent Heap Buffer Overflow in standard ops (add, pinv) via implicit view resizing",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "170573",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.add",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.add with out= argument may silently resize an undersized tensor view.\n\nBecause views cannot reallocate storage, resizing only changes metadata while kernel writes beyond allocated storage.\n\n\nReproduction:\n\nstorage = torch.zeros(6)\n\nout_view = storage[:2]\n\na = torch.full((4,),10.0)\n\nb = torch.full((4,),20.0)\n\n\ntorch.add(\n    a,\n    b,\n    out=out_view\n)\n\n\nObserved:\n\nThe operation overwrites adjacent storage.\n\n\nTrigger Condition:\n\n- API: torch.add\n- use out= argument\n- out tensor is undersized view\n- required output larger than allocated storage\n\n\nBug Pattern Candidate:\n\nOut-parameter aliasing and insufficient storage validation.\n\n\nPotential Harness Strategy:\n\nGenerate:\n- base storage\n- undersized tensor views\n- out operations\n\n\nOracle:\n\nMemory corruption detection.\n\n\nResearch Value:\n\nVery High.\n\nRepresents memory safety vulnerabilities detectable by fuzzing.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.add/issue_170573_out_view_buffer_overflow.txt"
+}

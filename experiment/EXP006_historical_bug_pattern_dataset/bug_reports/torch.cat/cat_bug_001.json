@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_118970",
+        "title": "When concatenating empty variable with non-empty variable, I get CUDA error: illegal memory access encounter",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "118970",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.cat",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "A CUDA illegal memory access error occurs when concatenating an empty tensor with a non-empty tensor.\n\nThe issue appears during optimizer.step() after performing torch.cat on tensors where one tensor has zero size.\n\n\nEnvironment:\n\nPyTorch version:\n2.0.1\n\n\nBug Reproduction:\n\nimport torch\nimport torch.nn as nn\n\n\nclass Model(nn.Module):\n    def __init__(self, n):\n        super().__init__()\n        a = torch.randn(n, 5)\n        self.a = nn.Parameter(a, requires_grad=True)\n\n\n    def forward(self, x):\n        B, D = x.shape\n\n        expanded_a = self.a.unsqueeze(0).expand(B, -1, -1)\n\n        ab = torch.cat(\n            [expanded_a, x],\n            dim=1\n        )\n\n        return ab\n\n\nWhen constructing the model with:\n\nn = 0\n\n\nthe parameter tensor has an empty dimension:\n\nself.a.shape = (0, 5)\n\n\nThe concatenation operation:\n\ntorch.cat(\n[\nexpanded_a,\nx\n],\ndim=1\n)\n\ncauses CUDA illegal memory access during optimizer.step().\n\n\nObserved Behavior:\n\nRuntime error:\n\nCUDA error: illegal memory access encountered\n\n\nThe error happens when the concatenated tensors contain an empty tensor.\n\nThe same model works correctly when n is not zero.\n\n\nRoot Cause Information:\n\nThe issue is related to handling empty tensors during CUDA execution.\n\nThe forward torch.cat operation itself may not immediately fail.\n\nThe illegal memory access appears later during optimization/backward execution.\n\n\nAffected Components:\n\nOperator:\ntorch.cat\n\nRelated areas:\n\n- CUDA backend\n- Empty tensor handling\n- Autograd\n- Memory safety\n\n\nBug Category:\n\nCUDA memory error\n\nEmpty tensor edge case\n\nAutograd interaction\n\n\nImportant Input Characteristics:\n\nTensor properties:\n\n- One input tensor contains a zero-sized dimension\n- Another input tensor is non-empty\n- Tensors are concatenated using torch.cat\n- CUDA device is used\n- requires_grad=True\n\n\nPotential Fuzzing Value:\n\nThis issue indicates that torch.cat should be tested with:\n\n- empty tensors\n- zero-sized dimensions\n- empty + non-empty tensor combinations\n- CUDA tensors\n- tensors requiring gradients\n- backward execution\n- optimizer step after cat\n\n\nStatus:\n\ntriaged\n\nRelated module:\n\nNo module label provided in issue summary.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.cat/issue_118970_cat.txt"
+}

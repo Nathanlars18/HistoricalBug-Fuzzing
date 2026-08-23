@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_154235",
+        "title": "MPS backend fails to detect out-of-range indices in index_select and embedding",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "154235",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.index_select",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "On MPS backend, index_select and embedding operations fail to raise an error\nwhen the input index tensor contains values outside the valid range.\n\nInstead of reporting an IndexError, the operation may return invalid results.\n\n\nTrigger Condition:\n\nBackend:\n\nMPS\n\n\nInput:\n\nIndex tensor contains:\n\nindex >= number_of_embeddings\n\n\nExample:\n\nembedding = nn.Embedding(3,5)\n\ninput_tensor = torch.tensor([0,1,2,3])\n\nIndex 3 is invalid because valid range is [0,2].\n\n\nObserved Behavior:\n\nCPU raises:\n\nIndexError: index out of range\n\n\nMPS:\n\noperation completes without an exception.\n\n\nExpected Behavior:\n\nAll backends should reject invalid indices consistently.\n\n\nHarness Generation Guidance:\n\nGenerate:\n\n- embedding tables\n- index tensors containing:\n    maximum valid index\n    maximum valid index + 1\n    large invalid index\n\n\nOracle:\n\nCPU/reference raises exception,\nwhile MPS succeeds.\n\nUnexpected success indicates missing validation.\n\n\nSeverity:\n\nMedium-High",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.index_select/issue_154235_index_select.txt"
+}

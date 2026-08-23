@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_154501",
+        "title": "torch.add and torch.sub return incorrect results when computing complex numbers containing inf on both CPU and GPU",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "154501",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.add",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "torch.add produces incorrect results when adding complex tensors containing infinite values.\n\nExample:\n(inf+1j) + (inf+2j)\n\nExpected:\ninf+3j\n\nActual:\ninf+nanj\n\n\nReproduction:\n\nimport torch\n\na = torch.tensor(\n    complex(float(\"inf\"),1),\n    dtype=torch.complex128\n)\n\nb = torch.tensor(\n    complex(float(\"inf\"),2),\n    dtype=torch.complex128\n)\n\nresult = torch.add(a,b)\n\n\nObserved:\n\nCPU:\ntensor(inf+nanj)\n\nCUDA:\ntensor(inf+nanj)\n\n\nTrigger Condition:\n\n- API: torch.add\n- dtype: complex128\n- input contains Inf values\n- CPU or CUDA backend\n\n\nBug Pattern Candidate:\n\nComplex floating point special-value handling failure.\n\nPotential Harness Strategy:\n\nGenerate complex tensors containing:\n- inf real component\n- inf imaginary component\n- combinations of finite and infinite values\n\nCompare output against mathematically expected complex arithmetic.\n\n\nOracle:\n\nIncorrect result comparison.\n\n\nResearch Value:\n\nHigh.\n\nThis bug represents numerical correctness failures caused by special floating point values.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.add/issue_154501_complex_inf_add.txt"
+}

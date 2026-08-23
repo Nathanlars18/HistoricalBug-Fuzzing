@@ -1,0 +1,147 @@
+Issue ID:
+#118970
+
+Title:
+When concatenating empty variable with non-empty variable, I get CUDA error: illegal memory access encounter
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/118970
+
+
+Description:
+
+A CUDA illegal memory access error occurs when concatenating an empty tensor with a non-empty tensor.
+
+The issue appears during optimizer.step() after performing torch.cat on tensors where one tensor has zero size.
+
+
+Environment:
+
+PyTorch version:
+2.0.1
+
+
+Bug Reproduction:
+
+import torch
+import torch.nn as nn
+
+
+class Model(nn.Module):
+    def __init__(self, n):
+        super().__init__()
+        a = torch.randn(n, 5)
+        self.a = nn.Parameter(a, requires_grad=True)
+
+
+    def forward(self, x):
+        B, D = x.shape
+
+        expanded_a = self.a.unsqueeze(0).expand(B, -1, -1)
+
+        ab = torch.cat(
+            [expanded_a, x],
+            dim=1
+        )
+
+        return ab
+
+
+When constructing the model with:
+
+n = 0
+
+
+the parameter tensor has an empty dimension:
+
+self.a.shape = (0, 5)
+
+
+The concatenation operation:
+
+torch.cat(
+[
+expanded_a,
+x
+],
+dim=1
+)
+
+causes CUDA illegal memory access during optimizer.step().
+
+
+Observed Behavior:
+
+Runtime error:
+
+CUDA error: illegal memory access encountered
+
+
+The error happens when the concatenated tensors contain an empty tensor.
+
+The same model works correctly when n is not zero.
+
+
+Root Cause Information:
+
+The issue is related to handling empty tensors during CUDA execution.
+
+The forward torch.cat operation itself may not immediately fail.
+
+The illegal memory access appears later during optimization/backward execution.
+
+
+Affected Components:
+
+Operator:
+torch.cat
+
+Related areas:
+
+- CUDA backend
+- Empty tensor handling
+- Autograd
+- Memory safety
+
+
+Bug Category:
+
+CUDA memory error
+
+Empty tensor edge case
+
+Autograd interaction
+
+
+Important Input Characteristics:
+
+Tensor properties:
+
+- One input tensor contains a zero-sized dimension
+- Another input tensor is non-empty
+- Tensors are concatenated using torch.cat
+- CUDA device is used
+- requires_grad=True
+
+
+Potential Fuzzing Value:
+
+This issue indicates that torch.cat should be tested with:
+
+- empty tensors
+- zero-sized dimensions
+- empty + non-empty tensor combinations
+- CUDA tensors
+- tensors requiring gradients
+- backward execution
+- optimizer step after cat
+
+
+Status:
+
+triaged
+
+Related module:
+
+No module label provided in issue summary.

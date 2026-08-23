@@ -1,0 +1,78 @@
+Title:
+torch.softmax gives wierd result under specific condition on cuda double tensors with multiple rows and 781 columns.
+
+Issue:
+#147284
+
+URL:
+https://github.com/pytorch/pytorch/issues/147284
+
+
+Description:
+
+🐛 Describe the bug
+
+torch.softmax(torch.zeros(c,781, dtype=torch.float64, device='cuda'),dim=1) gives wrong answer for c > 1.
+
+
+Reproduction:
+
+```python
+import torch
+
+print(torch.softmax(torch.zeros(1,781, dtype=torch.float64, device='cuda'),dim=1)) # correct
+
+print(torch.softmax(torch.zeros(2,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong
+
+print(torch.softmax(torch.zeros(3,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong
+
+print(torch.softmax(torch.zeros(4,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong
+
+print(torch.softmax(torch.zeros(5,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong
+
+print(torch.softmax(torch.zeros(2,780, dtype=torch.float64, device='cuda'),dim=1)) # correct
+
+print(torch.softmax(torch.zeros(2,782, dtype=torch.float64, device='cuda'),dim=1)) # correct
+Observed behavior:
+The output values are incorrect when:
+- device is CUDA
+- dtype is float64
+- number of rows is greater than 1
+- dimension size is 781
+Expected behavior:
+The output of softmax should be a valid probability distribution where each row sums to 1.
+Additional investigation:
+The issue appears to be CUDA-specific and related to the float64 implementation of softmax.
+Workarounds:
+1. Use float32 instead of float64:
+tensor = torch.zeros(c, 781, dtype=torch.float32, device="cuda")
+2. Compute softmax on CPU:
+result = torch.softmax(tensor.cpu(), dim=1).cuda()
+3. Pad the dimension:
+tensor = torch.zeros(c, 782, dtype=torch.float64, device="cuda")
+result = torch.softmax(tensor, dim=1)
+Environment:
+PyTorch version:
+2.5.1+cu124
+CUDA used to build PyTorch:
+12.4
+OS:
+Ubuntu 22.04.5 LTS
+Python:
+3.12.8
+CUDA available:
+True
+GPU:
+NVIDIA GeForce RTX 4060 Laptop GPU
+Relevant libraries:
+torch==2.5.1
+triton==3.2.0
+Activity:
+The issue was reproduced by multiple users.
+A workaround investigation suggested that the problem is likely related to CUDA softmax kernel implementation:
+aten/src/ATen/native/cuda/SoftMax.cu
+Further reproduction showed that the failure occurs for specific tensor widths and is related to boundary conditions in the CUDA vectorized softmax implementation.
+Labels:
+module: nn
+module: cuda
+triaged

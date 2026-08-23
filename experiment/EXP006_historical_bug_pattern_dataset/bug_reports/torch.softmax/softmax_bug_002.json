@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_139701",
+        "title": "softmax fails to commute with permute / transpose",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "139701",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.softmax",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "🐛 Describe the bug\n\nThe result of applying softmax before and after an inverse permutation should be mathematically equivalent.\n\nHowever, torch.softmax produces slightly different results when using permute or transpose operations.\n\n\nReproduction:\n\n```python\nimport torch\n\nval = torch.tensor(\n    [[7.76308536529541015625,\n      7.17303562164306640625,\n      5.13778305053710937500]],\n    dtype=torch.float32,\n    device='cpu'\n)\n\nval1 = val.softmax(dim=1, dtype=torch.float32).permute(1, 0)\n\nval2 = val.permute(1, 0).softmax(dim=0, dtype=torch.float32)\n\nprint(val1)\n\nprint(val2)\n\nprint((val1 - val2).abs().max())\nObserved output:\ntensor(2.9802e-08)\nExpected behavior:\nThe following two computations should produce identical results:\ntensor.softmax(dim=d)\n\ntensor.permute(...).softmax(dim=0).permute(...)\nAdditional example:\nThe issue also appears with float64:\ntorch.tensor(\n    [[0, -0.5, float.fromhex('-0x1.205p+1')]],\n    dtype=torch.float64,\n    device='cpu'\n)\nAffected conditions:\n- softmax operation\n- permute / transpose tensor layout changes\n- floating point tensors\nEnvironment:\nPyTorch version:\n2.4.1\nCUDA:\nNot available\nOS:\nmacOS 15.0.1\nPython:\n3.11.9\nHardware:\nApple M3 Pro\nRelevant libraries:\ntorch==2.4.1\ntorchvision==0.19.1\nInvestigation:\nThe issue is related to numerical differences caused by tensor layout transformations.\nThe same computation using scipy.special.softmax does not show the discrepancy.\nLabels:\nmodule: nn\ntriaged",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.softmax/issue_139701_softmax_permute_transpose_inconsistency.txt"
+}

@@ -1,0 +1,102 @@
+Issue ID:
+154501
+
+Title:
+torch.add and torch.sub return incorrect results when computing complex numbers containing inf on both CPU and GPU
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/154501
+
+
+API:
+torch.add
+torch.sub
+
+
+Category:
+Numerical Correctness
+
+
+Labels:
+module: complex
+module: NaNs and Infs
+triaged
+
+
+Environment:
+PyTorch 2.5.1
+
+
+Description:
+
+torch.add produces incorrect results when adding complex tensors containing infinite values.
+
+Example:
+(inf+1j) + (inf+2j)
+
+Expected:
+inf+3j
+
+Actual:
+inf+nanj
+
+
+Reproduction:
+
+import torch
+
+a = torch.tensor(
+    complex(float("inf"),1),
+    dtype=torch.complex128
+)
+
+b = torch.tensor(
+    complex(float("inf"),2),
+    dtype=torch.complex128
+)
+
+result = torch.add(a,b)
+
+
+Observed:
+
+CPU:
+tensor(inf+nanj)
+
+CUDA:
+tensor(inf+nanj)
+
+
+Trigger Condition:
+
+- API: torch.add
+- dtype: complex128
+- input contains Inf values
+- CPU or CUDA backend
+
+
+Bug Pattern Candidate:
+
+Complex floating point special-value handling failure.
+
+Potential Harness Strategy:
+
+Generate complex tensors containing:
+- inf real component
+- inf imaginary component
+- combinations of finite and infinite values
+
+Compare output against mathematically expected complex arithmetic.
+
+
+Oracle:
+
+Incorrect result comparison.
+
+
+Research Value:
+
+High.
+
+This bug represents numerical correctness failures caused by special floating point values.

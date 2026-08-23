@@ -1,0 +1,79 @@
+Title:
+softmax fails to commute with permute / transpose
+
+Issue:
+#139701
+
+URL:
+https://github.com/pytorch/pytorch/issues/139701
+
+
+Description:
+
+🐛 Describe the bug
+
+The result of applying softmax before and after an inverse permutation should be mathematically equivalent.
+
+However, torch.softmax produces slightly different results when using permute or transpose operations.
+
+
+Reproduction:
+
+```python
+import torch
+
+val = torch.tensor(
+    [[7.76308536529541015625,
+      7.17303562164306640625,
+      5.13778305053710937500]],
+    dtype=torch.float32,
+    device='cpu'
+)
+
+val1 = val.softmax(dim=1, dtype=torch.float32).permute(1, 0)
+
+val2 = val.permute(1, 0).softmax(dim=0, dtype=torch.float32)
+
+print(val1)
+
+print(val2)
+
+print((val1 - val2).abs().max())
+Observed output:
+tensor(2.9802e-08)
+Expected behavior:
+The following two computations should produce identical results:
+tensor.softmax(dim=d)
+
+tensor.permute(...).softmax(dim=0).permute(...)
+Additional example:
+The issue also appears with float64:
+torch.tensor(
+    [[0, -0.5, float.fromhex('-0x1.205p+1')]],
+    dtype=torch.float64,
+    device='cpu'
+)
+Affected conditions:
+- softmax operation
+- permute / transpose tensor layout changes
+- floating point tensors
+Environment:
+PyTorch version:
+2.4.1
+CUDA:
+Not available
+OS:
+macOS 15.0.1
+Python:
+3.11.9
+Hardware:
+Apple M3 Pro
+Relevant libraries:
+torch==2.4.1
+torchvision==0.19.1
+Investigation:
+The issue is related to numerical differences caused by tensor layout transformations.
+The same computation using scipy.special.softmax does not show the discrepancy.
+Labels:
+module: nn
+triaged

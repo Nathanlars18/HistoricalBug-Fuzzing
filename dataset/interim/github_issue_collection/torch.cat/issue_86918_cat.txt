@@ -1,0 +1,125 @@
+API:
+torch.cat
+
+Issue ID:
+#86918
+
+Title:
+torch.cat on empty tensor is bogus
+
+URL:
+https://github.com/pytorch/pytorch/issues/86918
+
+Reported Date:
+2022-10-14
+
+
+Description:
+
+torch.cat on tensors of shape (0,) ignores the dim argument to cat.
+
+The operation accepts invalid concatenation dimensions when all input tensors are empty tensors.
+
+This causes incorrect behavior because invalid inputs are silently accepted instead of raising an error.
+
+
+Reproduction:
+
+import torch
+
+x = torch.randn([0])
+
+result = torch.cat([x, x], dim=999)
+
+
+Observed Behavior:
+
+torch.cat succeeds even though dim=999 is invalid for the input tensor.
+
+No exception is raised.
+
+
+Expected Behavior:
+
+torch.cat should validate the dimension argument.
+
+For invalid dimensions, torch.cat should raise a RuntimeError such as:
+
+Dimension out of range
+
+
+Root Cause:
+
+The cat implementation contains legacy handling for zero-element tensors.
+
+When tensors with shape (0,) are concatenated, the special empty tensor path can bypass normal dimension validation.
+
+As a result, invalid dim values may not be checked.
+
+
+Trigger Condition:
+
+Operator:
+torch.cat
+
+Input Tensor:
+- Shape: (0,)
+- Number of elements: 0
+
+Operation:
+torch.cat([tensor1, tensor2], dim)
+
+Boundary Condition:
+- All input tensors are empty tensors
+- Concatenation dimension is outside valid range
+
+
+Failure Type:
+
+Silent incorrect behavior
+
+Category:
+
+Input validation failure
+Empty tensor edge case
+
+
+Affected Component:
+
+ATen cat implementation
+
+Module:
+edge cases
+
+
+Harness Relevance:
+
+Generate empty tensors as input.
+
+Mutate concatenation dimension into invalid ranges.
+
+Important boundary cases:
+
+- shape=(0,)
+- zero-element tensors
+- dim > tensor dimension
+- dim < -tensor dimension
+
+Expected oracle:
+
+Invalid dimension should raise an exception.
+
+
+Issue Labels:
+
+module: edge cases
+
+triaged
+
+
+Additional Discussion:
+
+The issue was identified as a legacy exception behavior.
+
+Maintainers noted that tensors with shape (0,) historically have special behavior in cat,
+and when only these tensors are present, further validation checks may not execute.

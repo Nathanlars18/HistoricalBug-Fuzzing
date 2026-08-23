@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_85053",
+        "title": "torch.div crash with segmentation fault",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "85053",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.mul",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "The issue reports that torch.div crashes with segmentation fault when using an incompatible out tensor shape.\n\nThe same behavior is also observed in torch.mul and torch.remainder.\n\n\nReproducer:\n\nimport torch\n\ntorch.div(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n\ntorch.mul(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n\ntorch.remainder(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n\nObserved Behavior:\n\nExecution terminates with:\n\nSegmentation fault (core dumped)\n\n\nAffected API:\n\ntorch.mul\n\n\nBug Category:\n\nCrash\n\n\nTrigger Condition:\n\nOperation uses torch.mul with the out parameter.\n\nInput tensor shape:\n[1]\n\nScalar multiplier:\n1\n\nOutput tensor shape:\n[5,1,1,1]\n\nThe provided out tensor has an incompatible shape compared with the expected broadcasted output.\n\n\nBackend:\n\nCPU\n\n\nPyTorch Version:\n\nPyTorch 1.13.0.dev20220913+cpu\n\n\nEnvironment:\n\nOS:\nUbuntu 18.04.4 LTS\n\nPython:\n3.7.6\n\n\nCUDA:\nNot available\n\n\nRoot Cause:\n\nThe issue was related to missing or incorrect error checking in TensorIterator handling.\n\nThe problem was fixed by PR #85294.\n\n\nOracle:\n\nCrash\n\nExpected:\nPyTorch should raise a proper error for invalid out tensor shape.\n\nActual:\nProcess crashes with segmentation fault.\n\n\nHarness Idea:\n\nConstruct a valid input tensor and provide an incompatible out tensor.\n\nExample:\n\ninput:\ntorch.ones([1])\n\nother:\n1\n\nout:\ntorch.ones([5,1,1,1])\n\n\nExecute:\n\ntorch.mul(input, other, out=out)\n\n\nDetect:\n\nSIGSEGV or abnormal process termination.\n\n\nLabels:\n\nmodule:\nerror checking\n\nmodule:\nTensorIterator\n\nstatus:\nfixed\n\n\nRelated PR:\n\n#85294",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.mul/issue_85053_mul_out_shape_mismatch_segfault.txt"
+}

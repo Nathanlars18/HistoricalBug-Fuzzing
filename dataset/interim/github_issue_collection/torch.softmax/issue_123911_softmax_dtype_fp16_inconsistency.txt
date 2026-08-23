@@ -1,0 +1,192 @@
+Bug ID:
+#123911
+
+Title:
+torch.softmax(inp, dtype=torch.float32).to(torch.float16) is not equivalent to torch.softmax(inp) for fp16 input
+
+URL:
+https://github.com/pytorch/pytorch/issues/123911
+
+
+Project:
+pytorch/pytorch
+
+
+API:
+torch.softmax
+
+
+Related APIs:
+torch.nn.functional.softmax
+torch.nn.functional.scaled_dot_product_attention
+
+
+Bug Type:
+Numerical correctness issue
+
+
+Severity:
+Medium
+
+
+Status:
+Triaged
+
+
+Reported Date:
+2024-04-12
+
+
+Environment:
+PyTorch version:
+2.2.2
+
+CUDA:
+12.1
+
+GPU:
+NVIDIA A100-SXM4-80GB
+
+OS:
+Ubuntu 20.04.6 LTS
+
+Python:
+3.9.13
+
+
+Description:
+
+The behavior of:
+
+torch.softmax(inp, dtype=torch.float32).to(torch.float16)
+
+is not numerically equivalent to:
+
+torch.softmax(inp)
+
+when the input tensor uses float16 precision.
+
+The reporter investigated inconsistent outputs between SDPA and eager implementations.
+The difference was traced to different softmax computation paths.
+
+Although the numerical difference is small for a single operation, the error can accumulate through multiple neural network layers and result in larger output deviations.
+
+
+Trigger Condition:
+
+Input tensor:
+- dtype: float16
+- device: CUDA GPU
+
+Operation:
+- Apply torch.softmax directly on fp16 tensor
+- Compare with torch.softmax using dtype=float32 followed by cast back to fp16
+
+
+Minimal Reproduction:
+
+```python
+import torch
+
+softmax_inp = torch.randn(
+    1,
+    32,
+    1238,
+    1238,
+    device="cuda",
+    dtype=torch.float16
+)
+
+res_softmax_0 = torch.softmax(
+    softmax_inp,
+    dim=-1
+)
+
+res_softmax_1 = torch.softmax(
+    softmax_inp,
+    dim=-1,
+    dtype=torch.float32
+).to(torch.float16)
+
+absdiff = (res_softmax_0 - res_softmax_1).abs()
+
+print(absdiff.max())
+Observed Behavior:
+The two computation paths produce different results.
+Example:
+max absdiff softmax:
+tensor(0.000488, device='cuda:0', dtype=torch.float16)
+The difference can accumulate in deep transformer models and produce larger final output errors.
+Expected Behavior:
+torch.softmax(inp, dtype=torch.float32).to(torch.float16)
+and
+torch.softmax(inp)
+should provide numerically equivalent results for float16 inputs.
+Root Cause Category:
+Numerical Stability Boundary
+Related factors:
+- float16 precision
+- dtype conversion
+- CUDA softmax kernel implementation
+- different accumulation paths
+Bug Pattern:
+Pattern Name:
+FP16 Softmax Numerical Inconsistency
+Pattern Description:
+When a tensor uses low precision floating point formats (such as float16),
+different internal computation paths of softmax may produce inconsistent numerical results.
+Explicit dtype casting to float32 before softmax and implicit internal casting may not be equivalent.
+Fuzzing Relevance:
+High
+Harness Generation Guidance:
+Generate tensors with:
+dtype:
+- torch.float16
+device:
+- CUDA
+Shape:
+- large last dimension
+- transformer-like attention shapes
+Example:
+(batch, heads, sequence_length, sequence_length)
+Values:
+- normal random values
+- large magnitude values
+- values with small differences
+Oracle:
+Compare:
+torch.softmax(
+    x,
+    dim=-1
+)
+against:
+torch.softmax(
+    x,
+    dim=-1,
+    dtype=torch.float32
+).to(torch.float16)
+Failure condition:
+max absolute difference exceeds tolerance threshold.
+Suggested Mutation Strategy:
+1. Change tensor dtype:
+   - float16
+   - bfloat16
+2. Change tensor dimensions:
+   - small dimensions
+   - large reduction dimensions
+3. Generate extreme values:
+   - large positive values
+   - large negative values
+4. Combine with attention-like shapes.
+Labels:
+module:
+- nn
+- half
+- numerical-stability
+- sdpa
+Bug Category:
+- dtype boundary
+- numerical inconsistency
+- precision issue
+Source:
+PyTorch GitHub Issue #123911

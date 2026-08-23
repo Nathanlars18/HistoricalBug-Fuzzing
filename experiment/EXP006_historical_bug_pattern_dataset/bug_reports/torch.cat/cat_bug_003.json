@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_60997",
+        "title": "Dispatcher doesn't handle ops with an empty list of tensors (e.g. torch.cat())",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "60997",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.cat",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "While working on another issue (#60993), the PyTorch developers found that torch.cat() does not handle an empty list of tensors gracefully.\n\nThe problem is related to the dispatcher mechanism rather than torch.cat implementation itself.\n\nWhen torch.cat() receives an empty Tensor list, the dispatcher cannot determine which backend kernel should be selected because there are no Tensor arguments available to provide dispatch information such as device type or dispatch key.\n\n\nAffected API:\n\ntorch.cat()\n\n\nTrigger Condition:\n\nCalling torch.cat() with an empty Tensor list.\n\nExample:\n\nimport torch\n\ntorch.cat(())\n\n\nObserved Behavior:\n\nThe operation fails with a NotImplementedError.\n\nExample error:\n\nNotImplementedError:\nThere were no tensor arguments to this function\n(e.g., you passed an empty list of Tensors),\nbut no fallback function is registered for schema aten::_cat.\n\n\nExpected Behavior:\n\nThe API should handle the invalid empty Tensor list input gracefully.\n\nThe developers discussed that torch.cat() with an empty list is not a well-defined mathematical operation because:\n\n1. The result tensor shape cannot be determined.\n2. The dtype cannot be inferred.\n3. The device cannot be inferred.\n\nTherefore, raising a clear error is preferable.\n\n\nRoot Cause:\n\nPyTorch dispatcher requires Tensor arguments to determine the correct dispatch kernel.\n\nFor torch.cat():\n\nInput:\nTensor[]\n\nNormally:\n\nTensor arguments provide:\n- device information\n- dtype information\n- dispatch key\n\n\nHowever:\n\ntorch.cat([])\n\ncontains no Tensor objects.\n\nTherefore, the dispatcher cannot select an appropriate backend implementation.\n\n\nBug Pattern Category:\n\nInput Container Boundary\n\nSub-category:\n\nEmpty TensorList\n\n\nAffected Components:\n\n- PyTorch Dispatcher\n- aten::_cat\n- TensorList argument handling\n\n\nFuzzing Relevance:\n\nThis bug demonstrates that Tensor container arguments are important fuzzing targets.\n\nTraditional tensor mutation strategies usually modify:\n\n- tensor shape\n- dtype\n- device\n- memory layout\n\nbut may miss container-level edge cases.\n\nImportant generated cases:\n\n1. Empty Tensor list\n\nExample:\n\ntorch.cat([])\n\n\n2. Single Tensor list\n\nExample:\n\ntorch.cat([x])\n\n\n3. Multiple Tensor list with boundary tensors\n\nExample:\n\ntorch.cat([empty_tensor, normal_tensor])\n\n\nRecommended Harness Generation Guidance:\n\nWhen generating torch.cat() test cases, include:\n\n- random Tensor list length\n- zero-length Tensor lists\n- single-element Tensor lists\n- combinations of empty and non-empty tensors\n\n\nRelated Issues:\n\n#86918:\ntorch.cat on empty tensor ignores invalid dimension checks.\n\n#63998:\ncat_out memory_format behavior differs between CPU and CUDA.\n\n\nImportance:\n\nMedium-High\n\nReason:\n\nAlthough this issue is relatively simple, it exposes an important class of API boundary failures caused by invalid container inputs.\n\nIt provides useful guidance for LLM-based harness generation by showing that fuzzers should mutate not only tensor properties but also the structure of Tensor arguments.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.cat/issue_60997_cat.txt"
+}

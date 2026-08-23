@@ -1,0 +1,203 @@
+Bug ID:
+#75923
+
+
+Title:
+aten::_softmax.out doesn't work with non-contiguous Tensors
+
+
+URL:
+https://github.com/pytorch/pytorch/issues/75923
+
+
+Project:
+pytorch/pytorch
+
+
+API:
+aten::_softmax.out
+
+
+Related APIs:
+torch.softmax
+torch.nn.functional.softmax
+
+
+Bug Type:
+Memory layout correctness issue
+
+
+Severity:
+Medium
+
+
+Status:
+Triaged
+
+
+Reported Date:
+2022-04-16
+
+
+Environment:
+
+PyTorch version:
+1.12.0a0+gitfab098d
+
+Device:
+CPU
+
+Debug build:
+True
+
+
+Description:
+
+The internal aten::_softmax.out implementation produces incorrect results
+when the output tensor provided through the out parameter is non-contiguous.
+
+The generated output is partially written into incorrect memory locations,
+causing some elements to remain unchanged.
+
+The resulting tensor contains invalid softmax values,
+including negative values that should never appear in softmax output.
+
+
+Trigger Condition:
+
+Operation:
+
+aten::_softmax.out
+
+
+Required conditions:
+
+1. Use the out parameter.
+
+2. The output tensor is non-contiguous.
+
+3. Perform softmax computation.
+
+
+Trigger example:
+
+```python
+inp = torch.rand(2,3)
+
+out = create_non_contiguous_tensor()
+
+torch._softmax(
+    inp,
+    0,
+    half_to_float=False,
+    out=out
+)
+Minimal Reproduction:
+import torch
+from torch.testing import make_tensor
+
+
+inp = torch.rand(2,3)
+
+
+out = make_tensor(
+    inp.shape,
+    dtype=inp.dtype,
+    device=inp.device,
+    noncontiguous=True
+)
+
+
+torch._softmax(
+    inp,
+    0,
+    half_to_float=False,
+    out=out
+)
+
+
+expected = torch._softmax(
+    inp,
+    0,
+    half_to_float=False
+)
+
+
+print("Actual:")
+print(out)
+
+print("Expected:")
+print(expected)
+Observed Behavior:
+The output tensor is incorrect.
+Example:
+Actual:
+tensor([
+    [0.5257, 0.4881, 0.3627],
+    [-2.9375, 8.6783, 7.0183]
+])
+Expected:
+tensor([
+    [0.5257, 0.6373, 0.4881],
+    [0.4743, 0.3627, 0.5119]
+])
+Some output positions are not updated correctly.
+Expected Behavior:
+Softmax should produce identical correct results regardless of
+whether the output tensor storage is contiguous or non-contiguous.
+Root Cause Category:
+Memory Layout Boundary
+Related Factors:
+- non-contiguous tensor
+- tensor stride
+- output buffer
+- out parameter
+- memory indexing
+Bug Pattern:
+Pattern Name:
+Softmax Non-Contiguous Output Tensor Failure
+Pattern Description:
+Operations writing results into user-provided output tensors may fail
+when tensor memory layout is non-contiguous.
+Softmax implementations must correctly handle arbitrary tensor strides.
+Fuzzing Relevance:
+High
+Harness Generation Guidance:
+Generate tensors with different memory layouts.
+Input mutations:
+1. Transpose:
+x = x.transpose(0,1)
+2. Slice:
+x = x[:, ::2]
+3. Permute:
+x = x.permute(...)
+Check:
+x.is_contiguous()
+Generate both:
+- contiguous tensors
+- non-contiguous tensors
+Oracle:
+Compare:
+torch.softmax(x, dim)
+with:
+torch.softmax(x.contiguous(), dim)
+For out variants:
+Compare output tensor with reference result.
+Failure Condition:
+- Different numerical result
+- Incorrect memory update
+- Unexpected negative values
+- Mismatch between contiguous and non-contiguous execution
+Labels:
+module:
+- nn
+category:
+- memory-layout
+- tensor-stride
+- correctness
+Bug Category:
+- non-contiguous tensor handling
+- incorrect memory write
+- layout boundary
+Source:
+PyTorch GitHub Issue #75923

@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "bug_id": "pytorch_188756",
+        "title": "MPS index_select and embedding return incorrect zero rows for huge tensors",
+        "date": ""
+    },
+    "source_information": {
+        "repository": "pytorch/pytorch",
+        "issue_id": "188756",
+        "source_type": "GitHub Issue",
+        "issue_url": "",
+        "pr_id": "",
+        "commit_id": ""
+    },
+    "api_information": {
+        "primary_api": "torch.index_select",
+        "affected_apis": [],
+        "operator": "",
+        "module": ""
+    },
+    "bug_description": "On the MPS backend, torch.index_select and embedding operations may silently\nreturn incorrect results when the source tensor contains more than 2^31 elements.\n\nThe operation does not raise an error.\nInstead, some selected rows are returned as all-zero tensors.\n\nThe corrupted rows correspond to indices whose flattened memory offset exceeds\nthe INT32 address range.\n\n\nTrigger Condition:\n\nBackend:\n- MPS\n\n\nTensor condition:\n- source tensor numel > 2^31\n\n\nIndex condition:\n- index values are valid\n- selected row starting offset exceeds INT32_MAX\n\n\nOperation:\n\ntorch.index_select\ntorch.nn.functional.embedding\n\n\nObserved Behavior:\n\nSelected rows contain incorrect zero values.\n\nExample:\n\nA large embedding table with more than 2^31 elements:\n\nrows = 262144\ndim = 10752\n\nSome valid indices return all-zero rows,\nwhile smaller indices return correct values.\n\n\nExpected Behavior:\n\nindex_select should return the correct rows consistently across backends.\n\n\nRoot Cause Pattern:\n\nThe backend kernel uses 32-bit offset calculation for large tensors.\n\nWhen index * stride exceeds INT32_MAX,\nthe internal address calculation overflows.\n\nThe invalid memory access is converted into zero values instead of raising\nan error.\n\n\nHarness Generation Guidance:\n\nGenerate:\n\n1. Large tensors near or above INT32 boundary.\n\n2. Large embedding tables.\n\n3. index_select operations with boundary indices.\n\n\nExample strategy:\n\n- Create tensor with numel close to 2^31.\n- Select rows around:\n    ceil(2^31 / row_size)-1\n    ceil(2^31 / row_size)\n- Compare output with CPU reference.\n\n\nOracle:\n\nSilent mismatch between MPS output and CPU/reference output.\n\nAll-zero output for valid indices indicates a bug.\n\n\nSeverity:\n\nHigh\n\nReason:\n\nSilent incorrect results may corrupt downstream model behavior without any\nexception.",
+    "trigger_conditions": {
+        "shape": [],
+        "dtype": [],
+        "device": [],
+        "backend": [],
+        "layout": [],
+        "memory": [],
+        "state": [],
+        "operation_context": ""
+    },
+    "failure_behavior": {
+        "type": "",
+        "description": "",
+        "oracle": ""
+    },
+    "root_cause_information": {
+        "layer": "",
+        "description": ""
+    },
+    "fix_information": {
+        "fixed": false,
+        "fix_description": "",
+        "commit": ""
+    },
+    "verification_information": {
+        "status": "",
+        "confidence": ""
+    },
+    "raw_content_reference": "dataset/interim/github_issue_collection/torch.index_select/issue_188756_index_select.txt"
+}
