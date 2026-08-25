@@ -37,10 +37,9 @@ sys.path.append(
 # Paths
 # ==========================
 
-DEFAULT_API_FILE = "api.txt"
+DEFAULT_API_FILE = "../../configs/pytorch_api_list.txt"
 
-HELPER_DIR = "../../testharness_generation/torch_cpu/torch_cpu_helper"
-
+HELPER_DIR = "../../../third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper"
 
 def here(*parts: str):
     return os.path.join(

@@ -14,3 +14,29 @@
 DEEPSEEK_API_KEY
 token*
 secret*
+# fuzz results
+results/raw/
+results/smoke_test/
+
+# flashfuzz generated results
+third_party/FlashFuzz/_fuzz_result/
+third_party/FlashFuzz/_cov_result/
+
+# coverage files
+*.profraw
+*.profdata
+
+# logs
+*.log
+
+# python cache
+__pycache__/
+*.pyc
+
+# temporary
+*.tmp
+third_party/FlashFuzz/
+results/raw/
+results/smoke_test/
+*.profraw
+*.log

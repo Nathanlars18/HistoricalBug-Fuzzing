@@ -2,7 +2,32 @@ import os
 import subprocess
 
 
-BASE = "/root/FlashFuzz/experiment/EXP007_pattern_prompt_injection/coverage/torch.matmul"
+import argparse
+
+parser=argparse.ArgumentParser()
+
+parser.add_argument(
+    "--api",
+    required=True
+)
+
+parser.add_argument(
+    "--mode",
+    required=True,
+    choices=[
+        "baseline",
+        "pattern"
+    ]
+)
+
+args=parser.parse_args()
+
+
+BASE=os.path.join(
+    "coverage",
+    args.api,
+    args.mode
+)
 
 
 MODES = [

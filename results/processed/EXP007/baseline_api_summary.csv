@@ -1,0 +1,11 @@
+api,avg_branch_coverage,max_branch_coverage,avg_covered_branches,total_crashes,total_unique_crashes
+torch.add,0.87,0.87,263.0,0,0
+torch.addmm,0.45,0.45,134.0,0,0
+torch.cat,1.18,1.18,355.0,0,0
+torch.index_select,1.09,1.09,329.0,0,0
+torch.matmul,2.16,2.16,650.0,0,0
+torch.mm,0.53,0.53,160.0,0,0
+torch.mul,0.89,0.89,268.0,0,0
+torch.relu,0.5,0.5,151.0,0,0
+torch.reshape,0.0,0.0,0.0,21,21
+torch.softmax,0.92,0.92,278.0,0,0
