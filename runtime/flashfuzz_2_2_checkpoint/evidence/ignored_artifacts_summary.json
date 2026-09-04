@@ -1,0 +1,77 @@
+{
+  "captured_at": "2026-09-04T17:38:11+08:00",
+  "policy": "summary_and_unique_crash_inputs_only",
+  "trees": [
+    {
+      "path": "third_party/FlashFuzz/_fuzz_result",
+      "file_count": 70,
+      "total_bytes": 10923083673,
+      "categories": {
+        "crash_input": {
+          "count": 10,
+          "bytes": 1280
+        },
+        "log": {
+          "count": 40,
+          "bytes": 10923080771
+        },
+        "other": {
+          "count": 20,
+          "bytes": 1622
+        }
+      }
+    },
+    {
+      "path": "third_party/FlashFuzz/_cov_result",
+      "file_count": 15137,
+      "total_bytes": 6931704311,
+      "categories": {
+        "coverage_html": {
+          "count": 15100,
+          "bytes": 3391969907
+        },
+        "other": {
+          "count": 6,
+          "bytes": 65852
+        },
+        "profraw": {
+          "count": 31,
+          "bytes": 3539668552
+        }
+      }
+    },
+    {
+      "path": "third_party/FlashFuzz/testharness",
+      "file_count": 25745,
+      "total_bytes": 12891780657,
+      "categories": {
+        "crash_input": {
+          "count": 9,
+          "bytes": 1152
+        },
+        "fuzz_binary": {
+          "count": 15,
+          "bytes": 30155472
+        },
+        "log": {
+          "count": 39,
+          "bytes": 10527354460
+        },
+        "other": {
+          "count": 24921,
+          "bytes": 68100749
+        },
+        "profraw": {
+          "count": 11,
+          "bytes": 2265793824
+        },
+        "seed_or_binary_input": {
+          "count": 750,
+          "bytes": 375000
+        }
+      }
+    }
+  ],
+  "preserved_unique_crash_inputs": 9,
+  "note": "Large logs, coverage outputs, binaries, seeds, and generated helpers are excluded from the checkpoint."
+}

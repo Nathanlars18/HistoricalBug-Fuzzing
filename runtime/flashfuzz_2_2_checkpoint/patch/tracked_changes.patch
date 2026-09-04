@@ -1,0 +1,1983 @@
+diff --git a/expmanager.py b/expmanager.py
+index 6865430f87012f0fb39ed095830917527a478943..6fde5f03cd3d4463ab48806240295a3477bc877b 100644
+--- a/expmanager.py
++++ b/expmanager.py
+@@ -42,6 +42,7 @@ class Experiment():
+         self.mode = mode
+         self.ver = ver
+         self.api = api
++        self.apis = api
+         self.cpus = cpus
+         self.mem = mem
+         self.check_valid = check_valid
+@@ -49,9 +50,9 @@ class Experiment():
+         self.status = Status.NOT_STARTED
+         self.vs = vs
+         self.image_name = (
+-            f"ncsuswat/flashfuzz:{self.dll}{self.ver}-{self.mode}-{self.vs}"
+-            if self.vs
+-            else f"ncsuswat/flashfuzz:{self.dll}{self.ver}-{self.mode}{'-gpu' if gpu else ''}"
++            f"ncsuswat/flashfuzz:{self.dll}{self.ver}-{self.mode}"
++            if not self.vs
++            else f"ncsuswat/flashfuzz:{self.dll}{self.ver}-{self.mode}-{self.vs}"
+         )
+         self.gpu = gpu
+         # include vs tag in container name if provided
+@@ -217,7 +218,20 @@ class Experiment():
+ 
+     def start_docker_container(self):
+         # Build docker run command with optional SLURM-aware CPU pinning
+-        base_cmd = f"docker run -itd --name {self.container_name}"
++        harness_path = os.path.abspath(
++            os.path.join(
++                os.path.dirname(__file__),
++                "testharness",
++                "torch_cpu"
++            )
++        )
++
++
++        base_cmd = (
++            f"docker run -itd "
++            f"--name {self.container_name} "
++            f"-v {harness_path}:/root/fuzz/torch_cpu"
++        )
+         extra = []
+         if self.slurm:
+             cpus_list = self._get_allowed_cpus_list()
+@@ -347,7 +361,12 @@ class Experiment():
+             self.start_docker_container()
+             self.execute_command(f"cd /root/tensorflow/fuzz/ && python3 build_test_harness.py --dll {self.dll} --mode {self.mode} --ver {self.ver} --time_budget {self.time_budget} --no-compile")
+             self.execute_command(f"mkdir -p /root/tensorflow/fuzz/{self.api}/artifacts")
+-            self.execute_command(f"cd /root/tensorflow/fuzz/{self.api} && bash fuzz.sh > execution.log")
++            self.execute_command(
++                f"cd /root/fuzz && "
++                f"ln -sf torch_cpu/{self.api} {self.api} && "
++                f"cd /root/fuzz/{self.api} && "
++                f"bash fuzz.sh > execution.log"
++            )
+             self.copy_results_from_container(f"/root/tensorflow/fuzz/{self.api}/execution.log", self.result_dir)
+             self.copy_results_from_container(f"/root/tensorflow/fuzz/{self.api}/fuzz-0.log", self.result_dir)
+             self.copy_results_from_container(f"/root/tensorflow/fuzz/{self.api}/artifacts/", self.result_dir)
+@@ -399,7 +418,18 @@ class Experiment():
+         try:
+             self.check_image()
+             self.start_docker_container()
+-            self.execute_command(f"cd /root/fuzz/ && python3 build_test_harness.py --dll {self.dll} --mode {self.mode} --ver {self.ver} --time_budget {self.time_budget} --no-compile")
++            self.execute_command(
++                f"cd /root/fuzz/ && python3 build_test_harness.py "
++                f"--dll {self.dll} "
++                f"--mode {self.mode} "
++                f"--ver {self.ver} "
++                f"--time_budget {self.time_budget} "
++                f"--apis {self.apis}"
++            )
++            self.execute_command(
++                 f"cd /root/fuzz && "
++                 f"ln -sf torch_cpu/{self.api} {self.api}"
++            )
+             self.execute_command(f"mkdir -p /root/fuzz/{self.api}/artifacts")
+             self.execute_command(f"cd /root/fuzz/{self.api} && bash fuzz.sh > execution.log")
+             self.copy_results_from_container(f"/root/fuzz/{self.api}/execution.log", self.result_dir)
+diff --git a/scripts/build_test_harness.py b/scripts/build_test_harness.py
+index 6bf84040acfe75fe53346d246869f77afd1889be..905ff6b4550af236b46319f8d6088eb5c820e0d7 100644
+--- a/scripts/build_test_harness.py
++++ b/scripts/build_test_harness.py
+@@ -158,13 +158,18 @@ def check_torch_build() -> None:
+ 
+ 
+ 
+-def build_tf_fuzz(time_budget: int=180, no_compile: bool=False, ver: Optional[str]=None) -> None:
++def build_tf_fuzz(
++    time_budget: int=180,
++    no_compile: bool=False,
++    ver: Optional[str]=None,
++    mode: str="fuzz"
++) -> None:
+     print("Building TensorFlow fuzz harness...")
+     if ver:
+         os.system(f"cp -r template/tf_cpu_{ver}/* .") # Copy all files from the template directory
+     else:
+         os.system("cp -r template/tf_cpu/* .") # Copy all files from the template directory
+-    os.system(f"python3 -u copy.py --time_budget {time_budget}") # Copy the fuzz.sh and build.sh files with proper settings
++    os.system(f"python3 -u copy.py --time_budget {time_budget} --mode {mode}") # Copy the fuzz.sh and build.sh files with proper settings
+     if not no_compile:
+         build_tf()
+     check_tf_build()
+@@ -173,7 +178,9 @@ def build_tf_fuzz(time_budget: int=180, no_compile: bool=False, ver: Optional[st
+ def build_tf_cov(time_budget: int=180, no_compile: bool=False) -> None:
+     print("Building TensorFlow coverage harness...")
+     os.system("cp -r template/tf_cpu_cov/* .") # Copy all files from the template directory
+-    os.system(f"python3 -u copy.py --time_budget {time_budget}") # Copy the fuzz.sh and build.sh files with proper settings
++    os.system(
++        f"python3 -u copy.py --time_budget {time_budget} --mode {mode}"
++    ) # Copy the fuzz.sh and build.sh files with proper settings
+     if not no_compile:
+         build_tf()
+     check_tf_build()
+@@ -221,28 +228,74 @@ def build_torch(apis=None) -> None:
+     print(f"Built {success_count}/{total_dirs} PyTorch APIs successfully.")
+ 
+ 
++def create_torch_symlinks():
++    """
++    Create top-level torch API symlinks.
++
++    FlashFuzz execution expects:
++        /root/fuzz/torch.xxx
++
++    while harnesses are stored in:
++        /root/fuzz/torch_cpu/torch.xxx
++    """
++
++    torch_dirs = glob.glob("torch_cpu/torch.*")
++
++    for d in torch_dirs:
++        api = os.path.basename(d)
++
++        link = api
++
++        if os.path.exists(link):
++            continue
++
++        os.symlink(
++            d,
++            link
++        )
++
++        print(f"Created symlink {link} -> {d}")
++
+ def build_torch_fuzz(
+-    time_budget: int=180,
+-    no_compile: bool=False,
+-    apis=None
++    time_budget: int = 180,
++    no_compile: bool = False,
++    apis=None,
++    mode: str = "fuzz"
+ ) -> None:
+-
+     print("Building PyTorch fuzz harness...")
+ 
+     os.system("cp -r template/torch_cpu/* .")
+-    os.system(f"python3 -u copy.py --time_budget {time_budget}")
+-
++    os.system(
++        f"python3 -u copy.py --time_budget {time_budget} --mode {mode}"
++    )
++    # Create API symlinks required by experiment runner
++    torch_dirs = glob.glob("torch_cpu/torch.*")
++    for torch_dir in torch_dirs:
++        api_name = os.path.basename(torch_dir)
++        if not os.path.exists(api_name):
++            os.symlink(torch_dir, api_name)
++            print(f"Created symlink: {api_name} -> {torch_dir}")
+     if not no_compile:
+         build_torch(apis)
++    
++    create_torch_symlinks()
+ 
+     check_torch_build()
+ 
+-def build_torch_cov(time_budget: int=180, no_compile: bool=False) -> None:
++def build_torch_cov(
++    no_compile: bool=False,
++    time_budget: int=180,
++    apis=None,
++    mode: str="cov"
++):
+     print("Building PyTorch coverage harness...")
+     os.system("cp -r template/torch_cpu_cov/* .") # Copy all files from the template directory
+-    os.system(f"python3 -u copy.py --time_budget {time_budget}") # Copy the fuzz.sh and build.sh files with proper settings
++    os.system(f"python3 -u copy.py --time_budget {time_budget} --mode {mode}") # Copy the fuzz.sh and build.sh files with proper settings
+     if not no_compile:
+-        build_torch()
++        build_torch(apis)
++    
++    create_torch_symlinks()
++
+     check_torch_build()
+     
+ 
+@@ -313,12 +366,17 @@ def main():
+         if args.check_build:
+             check_torch_build()
+         else:
+-            build_torch_fuzz(time_budget=args.time_budget,no_compile=args.no_compile,apis=args.apis)
++            build_torch_fuzz(time_budget=args.time_budget,no_compile=args.no_compile,apis=args.apis,mode=args.mode)
+     elif args.dll == "torch" and args.mode == "cov":
+         if args.check_build:
+             check_torch_build()
+         else:
+-            build_torch_cov(no_compile=args.no_compile, time_budget=args.time_budget)
++            build_torch_cov(
++                no_compile=args.no_compile,
++                time_budget=args.time_budget,
++                apis=args.apis,
++                mode=args.mode
++            )
+ 
+ if __name__ == "__main__":
+     main()
+diff --git a/scripts/coverage_fuzzing.py b/scripts/coverage_fuzzing.py
+index 2ae007ee517a1cbf5c35966436fca4ecb2ff2bf8..4f768e90c8c4f5c05edbd83441555a2a4ad2f928 100644
+--- a/scripts/coverage_fuzzing.py
++++ b/scripts/coverage_fuzzing.py
+@@ -150,6 +150,11 @@ class IntervalFuzzRunner:
+         if profraw_path.is_file() and profraw_path.stat().st_size > 0:
+             shutil.move(str(profraw_path), interval_dir / f"{self.api_name}.profraw")
+             moved_count = 1
++        else:
++            print(
++                f"WARNING: No profraw generated for {self.api_name} "
++                f"in interval {interval_name}. The target may have crashed."
++            )
+ 
+         try:
+             tmp_dir.rmdir()
+diff --git a/testharness/torch_cpu/torch.add/main.cpp b/testharness/torch_cpu/torch.add/main.cpp
+old mode 100644
+new mode 100755
+index cae179b5dbb03ce597048f2ed8f868b5cedd30b4..2018a452373aca9e6bfca058da36d074a24880f6
+--- a/testharness/torch_cpu/torch.add/main.cpp
++++ b/testharness/torch_cpu/torch.add/main.cpp
+@@ -1,141 +1,177 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include <torch/torch.h>
++#include "fuzzer_utils.h"
++#include <cstdint>
++#include <cstring>
++#include <iostream>
++#include <complex>
++#include <vector>
+ 
+-// --- Fuzzer Entry Point ---
+-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
++namespace {
++
++// Helper to read a double from fuzz data; if insufficient bytes, return default_val.
++double readDouble(const uint8_t* data, size_t size, size_t& offset, double default_val) {
++    if (offset + sizeof(double) <= size) {
++        double val;
++        std::memcpy(&val, data + offset, sizeof(val));
++        offset += sizeof(val);
++        return val;
++    }
++    return default_val;
++}
++
++// Helper to read an int64 from fuzz data; if insufficient, return default_val.
++int64_t readInt64(const uint8_t* data, size_t size, size_t& offset, int64_t default_val) {
++    if (offset + sizeof(int64_t) <= size) {
++        int64_t val;
++        std::memcpy(&val, data + offset, sizeof(val));
++        offset += sizeof(val);
++        return val;
++    }
++    return default_val;
++}
++
++// Helper to read a complex<double> from fuzz data; if insufficient, return default_val.
++c10::complex<double> readComplex(
++    const uint8_t* data,
++    size_t size,
++    size_t& offset,
++    c10::complex<double> default_val
++)
+ {
+-    std::cout << "Start Fuzzing" << std::endl;
+-    try
+-    {
++    if (offset + 2 * sizeof(double) <= size) {
++
++        double real, imag;
++
++        std::memcpy(&real, data + offset, sizeof(real));
++        offset += sizeof(real);
++
++        std::memcpy(&imag, data + offset, sizeof(imag));
++        offset += sizeof(imag);
++
++        return c10::complex<double>(real, imag);
++    }
++
++    return default_val;
++}
++} // anonymous namespace
++
++extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
++    try {
+         size_t offset = 0;
+-        
+-        // Need at least some data to create tensors
+-        if (Size < 4) {
+-            return 0;
+-        }
+-        
+-        // Create first tensor
+-        torch::Tensor tensor1 = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Create second tensor or scalar
+-        bool use_scalar = false;
++
++        // --------------------- Parse first tensor (input) ---------------------
++        auto input = fuzzer_utils::createTensor(Data, Size, offset);
++
++        // -------------------- Determine other operand type --------------------
++        bool has_tensor_other = false;
++        torch::Tensor other_tensor;
++        torch::Scalar scalar_other(0.0);
++
+         if (offset < Size) {
+-            use_scalar = Data[offset++] % 2 == 0;
+-        }
+-        
+-        if (use_scalar) {
+-            // Use a scalar value for the second argument
+-            double scalar_value = 0.0;
+-            if (offset + sizeof(double) <= Size) {
+-                std::memcpy(&scalar_value, Data + offset, sizeof(double));
+-                offset += sizeof(double);
+-            }
+-            
+-            // Test torch::add with scalar
+-            torch::Tensor result = torch::add(tensor1, scalar_value);
+-            
+-            // Try with alpha parameter if we have more data
+-            if (offset + sizeof(double) <= Size) {
+-                double alpha;
+-                std::memcpy(&alpha, Data + offset, sizeof(double));
+-                offset += sizeof(double);
+-                
+-                torch::Tensor result_with_alpha = torch::add(tensor1, scalar_value, alpha);
+-            }
+-        } else {
+-            // Create a second tensor for tensor-tensor addition
+-            torch::Tensor tensor2;
+-            if (offset < Size) {
+-                tensor2 = fuzzer_utils::createTensor(Data, Size, offset);
+-                
+-                // Try tensor-tensor addition
+-                try {
+-                    torch::Tensor result = torch::add(tensor1, tensor2);
+-                } catch (const std::exception&) {
+-                    // Shapes might be incompatible, that's expected in some cases
+-                }
+-                
+-                // Try with alpha parameter if we have more data
+-                if (offset + sizeof(double) <= Size) {
+-                    double alpha;
+-                    std::memcpy(&alpha, Data + offset, sizeof(double));
+-                    offset += sizeof(double);
+-                    
+-                    try {
+-                        torch::Tensor result_with_alpha = torch::add(tensor1, tensor2, alpha);
+-                    } catch (const std::exception&) {
+-                        // Shapes might be incompatible, that's expected in some cases
+-                    }
+-                }
+-                
+-                // Try in-place addition if we have more data
+-                if (offset < Size && Data[offset++] % 2 == 0) {
+-                    try {
+-                        tensor1.add_(tensor2);
+-                    } catch (const std::exception&) {
+-                        // Shapes might be incompatible, that's expected in some cases
+-                    }
+-                    
+-                    // Try with alpha
+-                    if (offset + sizeof(double) <= Size) {
+-                        double alpha;
+-                        std::memcpy(&alpha, Data + offset, sizeof(double));
+-                        offset += sizeof(double);
+-                        
+-                        try {
+-                            tensor1.add_(tensor2, alpha);
+-                        } catch (const std::exception&) {
+-                            // Shapes might be incompatible, that's expected in some cases
++            uint8_t mode = Data[offset++];
++            if (mode % 2 == 0) {
++                // other is a tensor
++                other_tensor = fuzzer_utils::createTensor(Data, Size, offset);
++                has_tensor_other = true;
++            } else {
++                // other is a scalar
++                has_tensor_other = false;
++                if (offset < Size) {
++                    uint8_t scalar_kind = Data[offset++];
++                    switch (scalar_kind % 3) {
++                        case 0: { // double
++                            double val = readDouble(Data, Size, offset, 0.0);
++                            scalar_other = torch::Scalar(val);
++                            break;
++                        }
++                        case 1: { // int64
++                            int64_t val = readInt64(Data, Size, offset, 0);
++                            scalar_other = torch::Scalar(val);
++                            break;
++                        }
++                        case 2: { // complex<double>
++                            auto val = readComplex(Data, Size, offset, {0.0, 0.0});
++                            scalar_other = torch::Scalar(val);
++                            break;
+                         }
+                     }
++                } else {
++                    scalar_other = torch::Scalar(0.0);
+                 }
+             }
++        } else {
++            // No data left for other; use scalar zero
++            has_tensor_other = false;
++            scalar_other = torch::Scalar(0.0);
+         }
+-        
+-        // Try in-place addition with scalar if we have more data
+-        if (offset + sizeof(double) <= Size) {
+-            double scalar_value;
+-            std::memcpy(&scalar_value, Data + offset, sizeof(double));
+-            offset += sizeof(double);
+-            
+-            tensor1.add_(scalar_value);
+-            
+-            // Try with alpha
+-            if (offset + sizeof(double) <= Size) {
+-                double alpha;
+-                std::memcpy(&alpha, Data + offset, sizeof(double));
+-                offset += sizeof(double);
+-                
+-                tensor1.add_(scalar_value, alpha);
+-            }
++
++        // ----------------------------- Parse alpha -----------------------------
++        double alpha = readDouble(Data, Size, offset, 1.0);
++
++        // ----------------------------- Parse out flag --------------------------
++        bool use_out = false;
++        if (offset < Size) {
++            uint8_t out_flag = Data[offset++];
++            use_out = (out_flag % 2 == 1);
+         }
+-        
+-        // Try out_variant if we have more data
+-        if (offset < Size && Data[offset++] % 2 == 0) {
+-            torch::Tensor out = torch::empty_like(tensor1);
+-            
+-            if (use_scalar && offset + sizeof(double) <= Size) {
+-                double scalar_value;
+-                std::memcpy(&scalar_value, Data + offset, sizeof(double));
+-                offset += sizeof(double);
+-                
+-                torch::add_out(out, tensor1, scalar_value);
+-            } else if (!use_scalar && offset < Size) {
+-                torch::Tensor tensor2 = fuzzer_utils::createTensor(Data, Size, offset);
+-                
+-                try {
+-                    torch::add_out(out, tensor1, tensor2);
+-                } catch (const std::exception&) {
+-                    // Shapes might be incompatible, that's expected in some cases
++
++        // ------------------- Attempt operation with out if desired ------------
++        if (use_out) {
++            try {
++                std::vector<int64_t> out_shape;
++                torch::ScalarType out_dtype;
++
++                if (has_tensor_other) {
++                    // Compute broadcast shape and promoted dtype
++                    out_shape = at::infer_size(input.sizes(), other_tensor.sizes());
++                    out_dtype = torch::promote_types(
++                        input.scalar_type(),
++                        other_tensor.scalar_type()
++                    );
++                } else {
++                    // Scalar other: result shape is same as input
++                    out_shape = input.sizes().vec();
++                    out_dtype = torch::promote_types(input.scalar_type(),scalar_other.type());
++                }
++
++                auto out = torch::empty(out_shape, torch::TensorOptions().dtype(out_dtype));
++
++                if (has_tensor_other) {
++                    torch::add_out(out, input, other_tensor, alpha);
++                } else {
++                    torch::add_out(out, input, scalar_other, alpha);
+                 }
++                // Success with out
++                return 0;
++            } catch (const std::exception& e) {
++                // If out computation or add_out failed (e.g., shape/dtype mismatch,
++                // unsupported promotion), fallback to regular add without out.
++                // We deliberately ignore the exception here to keep fuzzing.
+             }
+         }
++
++        // ------------------------------ Regular add ----------------------------
++        if (has_tensor_other) {
++            auto result = torch::add(input, other_tensor, alpha);
++        } else {
++            auto result = torch::add(input, scalar_other, alpha);
++        }
++
++        return 0;
++    }
++    catch (const c10::Error& e) {
++        // Expected runtime error: shape mismatch, dtype mismatch, invalid args, etc.
++        // Print only for debugging; return 0 to keep the input in the corpus.
++        std::cout << "Exception caught (c10::Error): " << e.what() << std::endl;
++        return 0;
++    }
++    catch (const std::exception& e) {
++        // Expected std::exception from parse helpers or PyTorch API.
++        std::cout << "Exception caught: " << e.what() << std::endl;
++        return 0;
+     }
+-    catch (const std::exception &e)
+-    {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++    catch (...) {
++        // Catch any other exceptions to avoid crashing. Sanitizer traps are not exceptions.
++        return 0;
+     }
+-    return 0; // keep the input
+ }
+diff --git a/testharness/torch_cpu/torch.addmm/main.cpp b/testharness/torch_cpu/torch.addmm/main.cpp
+old mode 100644
+new mode 100755
+index e9ed274e9c2d423f2fd01c65e7cf7978688d44da..0bbc06dd66078d89322e9cd2ac002496bdddea3b
+--- a/testharness/torch_cpu/torch.addmm/main.cpp
++++ b/testharness/torch_cpu/torch.addmm/main.cpp
+@@ -1,112 +1,76 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include "fuzzer_utils.h"
++#include <torch/torch.h>
++#include <cstdint>
++#include <cstring>
++#include <iostream>
++#include <exception>
+ 
+-// --- Fuzzer Entry Point ---
+ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+ {
+-    std::cout << "Start Fuzzing" << std::endl;
+     try
+     {
+         size_t offset = 0;
+-        
+-        // Need at least 3 tensors for addmm: input, mat1, mat2
+-        if (Size < 6) // Minimum bytes needed for basic tensor creation
+-            return 0;
+-        
+-        // Create input tensor
++
++        // Create three tensors: input, mat1, mat2
+         torch::Tensor input = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Create mat1 tensor
+-        if (offset >= Size)
+-            return 0;
+         torch::Tensor mat1 = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Create mat2 tensor
+-        if (offset >= Size)
+-            return 0;
+         torch::Tensor mat2 = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Get scalar values for beta and alpha if there's data left
++
++        // Parse beta and alpha as double if enough bytes remain, otherwise default to 1.0
+         double beta = 1.0;
+         double alpha = 1.0;
+-        
+-        if (offset + sizeof(double) <= Size) {
+-            std::memcpy(&beta, Data + offset, sizeof(double));
++
++        if (offset + sizeof(double) <= Size)
++        {
++            double beta_raw;
++            std::memcpy(&beta_raw, Data + offset, sizeof(double));
++            beta = beta_raw;
+             offset += sizeof(double);
+         }
+-        
+-        if (offset + sizeof(double) <= Size) {
+-            std::memcpy(&alpha, Data + offset, sizeof(double));
++
++        if (offset + sizeof(double) <= Size)
++        {
++            double alpha_raw;
++            std::memcpy(&alpha_raw, Data + offset, sizeof(double));
++            alpha = alpha_raw;
+             offset += sizeof(double);
+         }
+-        
+-        // Try different variants of addmm
+-        try {
+-            // Variant 1: Basic addmm
+-            auto result1 = torch::addmm(input, mat1, mat2);
+-        } catch (const std::exception&) {
+-            // Continue to next variant
+-        }
+-        
+-        try {
+-            // Variant 2: With beta and alpha
+-            auto result2 = torch::addmm(input, mat1, mat2, beta, alpha);
+-        } catch (const std::exception&) {
+-            // Continue to next variant
+-        }
+-        
+-        try {
+-            // Variant 3: Out variant
+-            torch::Tensor out = torch::empty_like(input);
+-            torch::addmm_out(out, input, mat1, mat2);
+-        } catch (const std::exception&) {
+-            // Continue to next variant
+-        }
+-        
+-        try {
+-            // Variant 4: Out variant with beta and alpha
+-            torch::Tensor out = torch::empty_like(input);
+-            torch::addmm_out(out, input, mat1, mat2, beta, alpha);
+-        } catch (const std::exception&) {
+-            // Continue
+-        }
+-        
+-        try {
+-            // Variant 5: Method variant
+-            auto result5 = input.addmm(mat1, mat2);
+-        } catch (const std::exception&) {
+-            // Continue
+-        }
+-        
+-        try {
+-            // Variant 6: Method variant with beta and alpha
+-            auto result6 = input.addmm(mat1, mat2, beta, alpha);
+-        } catch (const std::exception&) {
+-            // Continue
+-        }
+-        
+-        // Try in-place variant if input has appropriate type
+-        try {
+-            // Make a copy to avoid modifying the original input
+-            torch::Tensor input_copy = input.clone();
+-            input_copy.addmm_(mat1, mat2);
+-        } catch (const std::exception&) {
+-            // Continue
+-        }
+-        
+-        try {
+-            // In-place with beta and alpha
+-            torch::Tensor input_copy = input.clone();
+-            input_copy.addmm_(mat1, mat2, beta, alpha);
+-        } catch (const std::exception&) {
+-            // Continue
+-        }
++
++        // Call torch::addmm with the parsed tensors and scalars.
++        // This may throw exceptions if shapes/dtypes are invalid, but those
++        // are expected for fuzzing and should not be treated as crashes.
++        auto result = torch::addmm(input, mat1, mat2, beta, alpha);
++
++        // Force the result to be materialized (eager execution already computes it,
++        // but touching the data ensures any lazy errors surface here).
++        // We use .defined() to avoid unused variable warnings.
++        (void)result.defined();
++
++        // Optionally, we could also exercise the default beta/alpha overload
++        // by calling torch::addmm(input, mat1, mat2), but that would require
++        // duplicating the call and potentially causing extra exceptions.
++        // For simplicity, we only use the explicit scalars.
++    }
++    catch (const c10::Error &e)
++    {
++        // Expected PyTorch runtime errors (shape mismatch, dtype mismatch, etc.)
++        // These are not bugs and should be ignored.
++        // Uncomment the following line if detailed logging is needed:
++        // std::cout << "PyTorch error: " << e.what() << std::endl;
++        return 0;
+     }
+     catch (const std::exception &e)
+     {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++        // Other exceptions (e.g., from fuzzer_utils due to insufficient input)
++        // are also expected and should be ignored.
++        // std::cout << "Exception caught: " << e.what() << std::endl;
++        return 0;
+     }
+-    return 0; // keep the input
+-}
++    catch (...)
++    {
++        // Catch any other unexpected exceptions to keep the fuzzer running.
++        return 0;
++    }
++
++    return 0;
++}
+\ No newline at end of file
+diff --git a/testharness/torch_cpu/torch.cat/main.cpp b/testharness/torch_cpu/torch.cat/main.cpp
+old mode 100644
+new mode 100755
+index 869e4f3c7c74ec397d4b551258af1154c1984598..373b310f4a88da605eed463199dbc8bbb1b26b4d
+--- a/testharness/torch_cpu/torch.cat/main.cpp
++++ b/testharness/torch_cpu/torch.cat/main.cpp
+@@ -1,115 +1,54 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include "fuzzer_utils.h"
++#include <torch/torch.h>
++#include <cstdint>
++#include <vector>
++#include <iostream>
+ 
+-// --- Fuzzer Entry Point ---
+ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+ {
+-    std::cout << "Start Fuzzing" << std::endl;
+     try
+     {
+         size_t offset = 0;
+-        
+-        // Need at least 1 byte to determine number of tensors
+-        if (Size < 1) {
++
++        // Need at least two bytes: one for number of tensors, one for dim.
++        if (Size < 2)
++        {
+             return 0;
+         }
+-        
+-        // Determine number of tensors to concatenate (1-8)
+-        uint8_t num_tensors = (Data[offset++] % 8) + 1;
+-        
+-        // Create a vector to hold our tensors
++
++        // Parse number of tensors (0..8). This includes the edge case of an empty list.
++        uint8_t num_tensors_raw = Data[offset++];
++        size_t num_tensors = static_cast<size_t>(num_tensors_raw % 9);
++
++        // Parse dim and map it to a reasonable range [-4, 4]. This covers
++        // both valid and invalid dimensions for tensors with rank up to 4.
++        uint8_t dim_raw = Data[offset++];
++        int64_t dim = static_cast<int64_t>(dim_raw % 9) - 4;
++
+         std::vector<torch::Tensor> tensors;
+-        
+-        // Create tensors with various properties
+-        for (uint8_t i = 0; i < num_tensors && offset < Size; ++i) {
+-            try {
+-                torch::Tensor tensor = fuzzer_utils::createTensor(Data, Size, offset);
+-                tensors.push_back(tensor);
+-            } catch (const std::exception& e) {
+-                // If we can't create a tensor, just continue with what we have
+-                break;
+-            }
+-        }
+-        
+-        // Need at least one tensor to proceed
+-        if (tensors.empty()) {
+-            return 0;
+-        }
+-        
+-        // Determine dimension to concatenate along
+-        int64_t dim = 0;
+-        if (offset < Size) {
+-            // Get a dimension value from the input data
+-            // Allow negative dimensions to test edge cases
+-            int8_t dim_value;
+-            std::memcpy(&dim_value, Data + offset, sizeof(int8_t));
+-            offset += sizeof(int8_t);
+-            
+-            // If the tensor has dimensions, use the input to select one
+-            if (!tensors[0].sizes().empty()) {
+-                // Allow negative indexing (e.g., -1 for last dimension)
+-                dim = dim_value;
+-            }
+-        }
+-        
+-        // Apply torch.cat operation
+-        try {
+-            torch::Tensor result = torch::cat(tensors, dim);
+-        } catch (const c10::Error& e) {
+-            // PyTorch specific exceptions are expected for invalid inputs
+-            return 0;
+-        }
+-        
+-        // Try another variant with named arguments
+-        try {
+-            torch::Tensor result = torch::cat({tensors}, dim);
+-        } catch (const c10::Error& e) {
+-            return 0;
+-        }
+-        
+-        // Try with empty tensor list if we have enough data
+-        if (offset < Size) {
+-            try {
+-                std::vector<torch::Tensor> empty_tensors;
+-                torch::Tensor result = torch::cat(empty_tensors, 0);
+-            } catch (const c10::Error& e) {
+-                // Expected to fail
+-            }
+-        }
+-        
+-        // Try with tensors of different dtypes if we have multiple tensors
+-        if (tensors.size() > 1 && offset < Size) {
+-            try {
+-                // Convert the second tensor to a different dtype
+-                uint8_t dtype_selector = Data[offset++];
+-                auto dtype = fuzzer_utils::parseDataType(dtype_selector);
+-                tensors[1] = tensors[1].to(dtype);
+-                
+-                torch::Tensor result = torch::cat(tensors, dim);
+-            } catch (const c10::Error& e) {
+-                // Expected to fail in some cases
+-            }
+-        }
+-        
+-        // Try with out parameter if we have enough data
+-        if (offset < Size && !tensors.empty()) {
+-            try {
+-                // Create an output tensor with the same dtype as the first tensor
+-                auto options = torch::TensorOptions().dtype(tensors[0].dtype());
+-                torch::Tensor out = torch::empty({1}, options);
+-                
+-                // Use the out variant of cat
+-                torch::cat_out(out, tensors, dim);
+-            } catch (const c10::Error& e) {
+-                // Expected to fail in some cases
+-            }
++        tensors.reserve(num_tensors);
++
++        for (size_t i = 0; i < num_tensors; ++i)
++        {
++            // createTensor parses dtype, rank, shape, and data from the fuzz input.
++            // It may throw if the input is exhausted or contains invalid metadata.
++            // Such exceptions are expected and handled in the outer catch block.
++            tensors.push_back(fuzzer_utils::createTensor(Data, Size, offset));
+         }
++
++        // Perform the torch.cat operation. Any shape mismatch, dtype mismatch,
++        // invalid dim, or other runtime errors are caught below and treated
++        // as expected (non-crashing) behavior.
++        auto result = torch::cat(tensors, dim);
++
++        // Prevent compiler from optimizing away the result (optional).
++        (void)result;
+     }
+     catch (const std::exception &e)
+     {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++        // Log the exception message for debugging, but do not treat it as a crash.
++        std::cout << "Exception caught: " << e.what() << std::endl;
++        return 0; // Expected runtime exception from invalid fuzz input; not a bug.
+     }
+-    return 0; // keep the input
+-}
++    return 0; // Input processed successfully.
++}
+\ No newline at end of file
+diff --git a/testharness/torch_cpu/torch.index_select/main.cpp b/testharness/torch_cpu/torch.index_select/main.cpp
+old mode 100644
+new mode 100755
+index bed3f69877c53f7b5f1d091e7e8a4bd1c5150dc5..743041bfb1c504c0006087da344d157c4f8e2c6e
+--- a/testharness/torch_cpu/torch.index_select/main.cpp
++++ b/testharness/torch_cpu/torch.index_select/main.cpp
+@@ -1,103 +1,66 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include "fuzzer_utils.h"
++#include <torch/torch.h>
++#include <cstdint>
++#include <cstring>
++#include <vector>
++#include <algorithm>
+ 
+-// --- Fuzzer Entry Point ---
+ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+ {
+-    std::cout << "Start Fuzzing" << std::endl;
+     try
+     {
+         size_t offset = 0;
+-        
+-        // Need at least a few bytes for basic operations
+-        if (Size < 4) {
+-            return 0;
+-        }
+-        
+-        // Create input tensor
+-        torch::Tensor input_tensor = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Get a dimension to select along
++
++        // ----- Create input tensor using provided utilities -----
++        torch::Tensor input = fuzzer_utils::createTensor(Data, Size, offset);
++
++        // ----- Parse dim (int64_t) from remaining bytes -----
+         int64_t dim = 0;
+-        if (offset + sizeof(int64_t) <= Size) {
++        if (offset + sizeof(int64_t) <= Size)
++        {
+             std::memcpy(&dim, Data + offset, sizeof(int64_t));
+-            offset += sizeof(int64_t);
+         }
+-        
+-        // Create index tensor
+-        torch::Tensor index_tensor;
+-        
+-        // Decide how to create the index tensor
+-        if (offset < Size) {
+-            uint8_t index_type = Data[offset++];
+-            
+-            // If tensor has dimensions, select a valid dimension
+-            if (input_tensor.dim() > 0) {
+-                dim = dim % input_tensor.dim();
+-                
+-                // Create indices based on the dimension size
+-                int64_t dim_size = input_tensor.size(dim);
+-                
+-                if (index_type % 3 == 0) {
+-                    // Create a tensor with a single index
+-                    int64_t idx = 0;
+-                    if (offset + sizeof(int64_t) <= Size) {
+-                        std::memcpy(&idx, Data + offset, sizeof(int64_t));
+-                        offset += sizeof(int64_t);
+-                    }
+-                    
+-                    // Let PyTorch handle out-of-bounds indices
+-                    index_tensor = torch::tensor({idx}, torch::kInt64);
+-                }
+-                else if (index_type % 3 == 1) {
+-                    // Create a tensor with multiple indices
+-                    std::vector<int64_t> indices;
+-                    int64_t num_indices = 1 + (index_type % 5); // 1-5 indices
+-                    
+-                    for (int64_t i = 0; i < num_indices; i++) {
+-                        int64_t idx = 0;
+-                        if (offset + sizeof(int64_t) <= Size) {
+-                            std::memcpy(&idx, Data + offset, sizeof(int64_t));
+-                            offset += sizeof(int64_t);
+-                        }
+-                        indices.push_back(idx);
+-                    }
+-                    
+-                    index_tensor = torch::tensor(indices, torch::kInt64);
+-                }
+-                else {
+-                    // Create an empty index tensor
+-                    index_tensor = torch::tensor({}, torch::kInt64);
+-                }
+-            }
+-            else {
+-                // For scalar tensors, use a simple index
+-                index_tensor = torch::tensor({0}, torch::kInt64);
+-            }
+-        }
+-        else {
+-            // Default index if we don't have enough data
+-            index_tensor = torch::tensor({0}, torch::kInt64);
++        offset += sizeof(int64_t); // advance regardless
++
++        // ----- Build 1-D LongTensor index from remaining bytes -----
++        const size_t max_index_count = 1024; // cap to avoid excessive allocations
++        size_t remaining = (offset < Size) ? (Size - offset) : 0;
++        size_t num_indices = std::min(remaining / sizeof(int64_t), max_index_count);
++
++        torch::Tensor index;
++        if (num_indices == 0)
++        {
++            // No complete int64 available -> empty index tensor (valid input)
++            index = torch::empty({0}, torch::TensorOptions().dtype(torch::kLong));
+         }
+-        
+-        // Apply index_select operation
+-        torch::Tensor result = torch::index_select(input_tensor, dim, index_tensor);
+-        
+-        // Perform some operations on the result to ensure it's used
+-        auto sum = result.sum().item<float>();
+-        
+-        // Try another variant with named parameters
+-        if (input_tensor.dim() > 0) {
+-            result = torch::index_select(input_tensor, dim, index_tensor);
++        else
++        {
++            std::vector<int64_t> indices(num_indices);
++            std::memcpy(indices.data(), Data + offset, num_indices * sizeof(int64_t));
++            // Create tensor from vector and clone to manage memory safely
++            index = torch::from_blob(
++                        indices.data(),
++                        {static_cast<int64_t>(num_indices)},
++                        torch::TensorOptions().dtype(torch::kLong))
++                        .clone();
+         }
+-        
+-        return 0;
++
++        // ----- Call the target operator -----
++        // Any invalid arguments (dtype mismatch, out-of-range dim, index out of bounds,
++        // shape issues) will throw a c10::Error or std::exception, which we catch below.
++        auto result = torch::index_select(input, dim, index);
++
++        // The result is not used, but the operation has been fully executed.
++        // To guarantee kernel execution even for lazy cases, explicitly materialize.
++        (void)result.contiguous();
+     }
+     catch (const std::exception &e)
+     {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++        // Expected runtime errors from invalid fuzz inputs.
++        // This includes c10::Error, std::runtime_error from tensor parsing, etc.
++        // Returning 0 tells libFuzzer this is not a crash.
++        return 0;
+     }
+-    return 0; // keep the input
+-}
++
++    return 0;
++}
+\ No newline at end of file
+diff --git a/testharness/torch_cpu/torch.matmul/main.cpp b/testharness/torch_cpu/torch.matmul/main.cpp
+old mode 100644
+new mode 100755
+index b55b1aad331d94c9650d57b11f698fab56d55f71..ad0fdb3d0187a689e057eda0464a22d4ee934dbc
+--- a/testharness/torch_cpu/torch.matmul/main.cpp
++++ b/testharness/torch_cpu/torch.matmul/main.cpp
+@@ -1,72 +1,36 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include "fuzzer_utils.h"
++#include <torch/torch.h>
++#include <cstdint>
++#include <iostream>
+ 
+-// --- Fuzzer Entry Point ---
+-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+-{
+-    std::cout << "Start Fuzzing" << std::endl;
+-    try
+-    {
++extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
++    try {
+         size_t offset = 0;
+-        
+-        // Need at least 2 bytes for each tensor (dtype and rank)
+-        if (Size < 4) {
+-            return 0;
+-        }
+-        
+-        // Create first tensor
+-        torch::Tensor tensor1 = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Create second tensor if there's data left
+-        if (offset < Size) {
+-            torch::Tensor tensor2 = fuzzer_utils::createTensor(Data, Size, offset);
+-            
+-            // Try to perform matmul operation
+-            torch::Tensor result = torch::matmul(tensor1, tensor2);
+-            
+-            // Optional: do something with the result to ensure it's computed
+-            if (result.defined()) {
+-                volatile float sum = result.sum().item<float>();
+-            }
+-        } else {
+-            // If only one tensor was created, try matmul with itself
+-            torch::Tensor result = torch::matmul(tensor1, tensor1);
+-            
+-            // Optional: do something with the result to ensure it's computed
+-            if (result.defined()) {
+-                volatile float sum = result.sum().item<float>();
+-            }
+-        }
+-        
+-        // Try some edge cases if we have enough data
+-        if (Size > 8 && offset < Size - 4) {
+-            // Try with a 1D tensor
+-            std::vector<int64_t> shape1 = {3};
+-            torch::Tensor vec1 = torch::ones(shape1);
+-            
+-            // Try matmul with our fuzzed tensor
+-            try {
+-                torch::Tensor result = torch::matmul(vec1, tensor1);
+-            } catch (...) {
+-                // Ignore exceptions from this edge case
+-            }
+-            
+-            // Try matmul with transposed tensor
+-            try {
+-                if (tensor1.dim() >= 2) {
+-                    torch::Tensor transposed = tensor1.transpose(0, tensor1.dim()-1);
+-                    torch::Tensor result = torch::matmul(tensor1, transposed);
+-                }
+-            } catch (...) {
+-                // Ignore exceptions from this edge case
+-            }
+-        }
+-    }
+-    catch (const std::exception &e)
+-    {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++
++        // Parse first tensor from the fuzz input
++        auto tensor1 = fuzzer_utils::createTensor(Data, Size, offset);
++
++        // Parse second tensor from the remaining input
++        auto tensor2 = fuzzer_utils::createTensor(Data, Size, offset);
++
++        // Invoke torch.matmul. PyTorch will validate shapes, dtypes, and
++        // other constraints internally. If the operation fails due to an
++        // invalid input (e.g., incompatible shapes, unsupported dtype), an
++        // exception is thrown and caught below.
++        auto result = torch::matmul(tensor1, tensor2);
++
++        // The result is intentionally unused; the computation has side effects
++        // and is not optimized away by the compiler.
++        (void)result;
++    } catch (const std::exception &e) {
++        // Expected runtime errors caused by random fuzz inputs (shape mismatch,
++        // dtype mismatch, invalid arguments) are not considered crashes.
++        // Returning 0 tells libFuzzer to continue with the next input.
++        return 0;
++    } catch (...) {
++        // Catch any other exceptions (e.g., c10::Error not derived from std::exception)
++        // to prevent the fuzzer from crashing on expected invalid inputs.
++        return 0;
+     }
+-    return 0; // keep the input
+-}
++    return 0;
++}
+\ No newline at end of file
+diff --git a/testharness/torch_cpu/torch.mm/main.cpp b/testharness/torch_cpu/torch.mm/main.cpp
+old mode 100644
+new mode 100755
+index 70a1faafaadda8eb91e5feba37bb9fa18acd5d70..d155bd6f35e1de0711febe08d790a215aab17b20
+--- a/testharness/torch_cpu/torch.mm/main.cpp
++++ b/testharness/torch_cpu/torch.mm/main.cpp
+@@ -1,48 +1,67 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
+-
+-// --- Fuzzer Entry Point ---
+-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+-{
+-    std::cout << "Start Fuzzing" << std::endl;
+-    try
+-    {
+-        size_t offset = 0;
+-        
+-        // Need at least some data to create tensors
+-        if (Size < 4) {
+-            return 0;
+-        }
+-        
+-        // Create first input tensor for matrix multiplication
+-        torch::Tensor mat1 = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Create second input tensor for matrix multiplication
+-        if (offset < Size) {
+-            torch::Tensor mat2 = fuzzer_utils::createTensor(Data, Size, offset);
+-            
+-            // Attempt to perform matrix multiplication
+-            // torch.mm performs matrix multiplication between two 2D tensors
+-            // If tensors are not 2D, we'll let PyTorch handle the error
+-            torch::Tensor result = torch::mm(mat1, mat2);
+-            
+-            // Optional: Try to access result to ensure computation is performed
+-            if (result.defined()) {
+-                auto sizes = result.sizes();
+-                auto numel = result.numel();
+-                
+-                // Force evaluation of the tensor
+-                if (numel > 0) {
+-                    auto item = result.item();
+-                }
+-            }
+-        }
++#include "fuzzer_utils.h"
++#include <iostream>
++#include <cstdint>
++#include <vector>
++
++using namespace fuzzer_utils;
++
++// Helper to create a 2D tensor from fuzz input bytes
++torch::Tensor create2DTensor(const uint8_t* data, size_t size, size_t& offset) {
++    // Need at least 1 byte for dtype
++    if (offset + 1 > size) {
++        throw std::runtime_error("Not enough data for dtype");
+     }
+-    catch (const std::exception &e)
+-    {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++
++    // Parse dtype
++    uint8_t dtype_selector = data[offset++];
++    auto dtype = fuzzer_utils::parseDataType(dtype_selector);
++    size_t dtypeSize = c10::elementSize(dtype);
++
++    // Parse 2D shape (rank = 2)
++    const uint8_t rank = 2;
++    auto shape = fuzzer_utils::parseShape(data, offset, size, rank);
++
++    // shape has exactly 2 elements (bounded 0..16 each), product <= 256, no overflow
++    int64_t numElements = shape[0] * shape[1];
++
++    // Parse raw bytes for tensor data
++    auto inputBytes = fuzzer_utils::parseTensorData(data, offset, size, numElements, dtypeSize);
++
++    auto options = torch::TensorOptions().dtype(dtype);
++
++    if (numElements == 0) {
++        // Empty tensor: no data needed
++        return torch::empty(shape, options);
++    } else {
++        // inputBytes has size totalBytesNeeded (initialized with zeros),
++        // so from_blob + clone is safe.
++        return torch::from_blob(inputBytes.data(), shape, options).clone();
+     }
+-    return 0; // keep the input
+ }
++
++extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
++    try {
++        size_t offset = 0;
++
++        // Create two 2D tensors from the input bytes
++        auto t1 = create2DTensor(data, size, offset);
++        auto t2 = create2DTensor(data, size, offset);
++
++        // Main operation: matrix multiplication
++        auto result = torch::mm(t1, t2);
++
++        // Optionally test the out variant if shapes are compatible
++        if (t1.size(1) == t2.size(0)) {
++            auto out = torch::empty({t1.size(0), t2.size(1)}, t1.options());
++            torch::mm_out(out, t1, t2);
++        }
++    } catch (const c10::Error& e) {
++        // Expected PyTorch runtime error (shape mismatch, unsupported dtype, etc.)
++        return 0;
++    } catch (const std::exception& e) {
++        // Other standard exceptions from parsing or invalid inputs
++        return 0;
++    }
++
++    return 0;
++}
+\ No newline at end of file
+diff --git a/testharness/torch_cpu/torch.mul/main.cpp b/testharness/torch_cpu/torch.mul/main.cpp
+old mode 100644
+new mode 100755
+index 6ca27ba674e2b4528e139e37b36f71953370b774..16a4e39934ff01177b00eeb8f50a1ee8d96859e0
+--- a/testharness/torch_cpu/torch.mul/main.cpp
++++ b/testharness/torch_cpu/torch.mul/main.cpp
+@@ -1,121 +1,132 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include "fuzzer_utils.h"
++#include <torch/torch.h>
++#include <iostream>
++#include <cstring>
++#include <cstdint>
++#include <vector>
++#include <complex>
++#include <limits>
+ 
+-// --- Fuzzer Entry Point ---
+-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+-{
+-    std::cout << "Start Fuzzing" << std::endl;
+-    try
+-    {
+-        size_t offset = 0;
+-        
+-        // Need at least some data to create tensors
+-        if (Size < 4) {
+-            return 0;
++namespace {
++
++// Helper to parse a scalar from fuzz data
++at::Scalar parseScalar(const uint8_t* data, size_t& offset, size_t size) {
++    if (offset >= size) {
++        return at::Scalar(1.0);
++    }
++    uint8_t type_selector = data[offset++];
++    switch (type_selector % 4) {
++        case 0: { // double
++            double val = 0.0;
++            if (offset + sizeof(double) <= size) {
++                std::memcpy(&val, data + offset, sizeof(double));
++                offset += sizeof(double);
++            }
++            return at::Scalar(val);
+         }
+-        
+-        // Create first tensor
+-        torch::Tensor tensor1 = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Decide how to create the second tensor based on remaining data
+-        torch::Tensor tensor2;
+-        if (offset < Size) {
+-            // Create second tensor from remaining data
+-            tensor2 = fuzzer_utils::createTensor(Data, Size, offset);
+-        } else {
+-            // Not enough data for second tensor, use scalar multiplication
+-            // Use first byte as scalar value
+-            double scalar_value = Data[0] / 255.0;
+-            tensor2 = torch::scalar_tensor(scalar_value, tensor1.options());
++        case 1: { // int64_t
++            int64_t val = 0;
++            if (offset + sizeof(int64_t) <= size) {
++                std::memcpy(&val, data + offset, sizeof(int64_t));
++                offset += sizeof(int64_t);
++            }
++            return at::Scalar(val);
+         }
+-        
+-        // Try different variants of multiplication
+-        try {
+-            // Variant 1: Using torch::mul directly
+-            torch::Tensor result1 = torch::mul(tensor1, tensor2);
+-        } catch (const std::exception&) {
+-            // Continue to next variant
++        case 2: { // bool
++            bool val = false;
++            if (offset + sizeof(uint8_t) <= size) {
++                val = data[offset] != 0;
++                offset += 1;
++            }
++            return at::Scalar(val);
+         }
+-        
+-        try {
+-            // Variant 2: Using operator*
+-            torch::Tensor result2 = tensor1 * tensor2;
+-        } catch (const std::exception&) {
+-            // Continue to next variant
++        case 3: { // complex<double>
++            double re = 0.0, im = 0.0;
++            if (offset + 2 * sizeof(double) <= size) {
++                std::memcpy(&re, data + offset, sizeof(double));
++                offset += sizeof(double);
++                std::memcpy(&im, data + offset, sizeof(double));
++                offset += sizeof(double);
++            }
++            return at::Scalar(c10::complex<double>(re, im));
+         }
+-        
+-        try {
+-            // Variant 3: Using in-place multiplication
+-            torch::Tensor result3 = tensor1.clone();
+-            result3.mul_(tensor2);
+-        } catch (const std::exception&) {
+-            // Continue to next variant
++    }
++    return at::Scalar(1.0);
++}
++
++} // anonymous namespace
++
++extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
++    // Minimum data: 1 byte for mode, and at least 2 bytes for tensor metadata
++    if (Size < 3) {
++        return 0;
++    }
++
++    size_t offset = 0;
++    try {
++        // Read operation mode (0: tensor*tensor, 1: tensor*scalar, 2: scalar*tensor)
++        uint8_t mode = Data[offset++] % 3;
++
++        // Inputs
++        torch::Tensor t1, t2;
++        at::Scalar scalar;
++
++        // Create tensor(s) and/or scalar based on mode
++        if (mode == 0) {
++            t1 = fuzzer_utils::createTensor(Data, Size, offset);
++            t2 = fuzzer_utils::createTensor(Data, Size, offset);
++        } else if (mode == 1) {
++            t1 = fuzzer_utils::createTensor(Data, Size, offset);
++            scalar = parseScalar(Data, offset, Size);
++        } else { // mode == 2
++            scalar = parseScalar(Data, offset, Size);
++            t1 = fuzzer_utils::createTensor(Data, Size, offset);
+         }
+-        
+-        try {
+-            // Variant 4: Using out variant
+-            torch::Tensor result4 = torch::empty_like(tensor1);
+-            torch::mul_out(result4, tensor1, tensor2);
+-        } catch (const std::exception&) {
+-            // Continue
++
++        // Perform the main multiplication (without out)
++        if (mode == 0) {
++            auto result = at::mul(t1, t2);
++            (void)result; // suppress unused warning
++        } else if (mode == 1) {
++            auto result = at::mul(t1, scalar);
++            (void)result;
+         }
+-        
+-        // Try broadcasting with different shapes
+-        if (offset + 2 < Size) {
+-            try {
+-                // Create a tensor with different shape for broadcasting
+-                uint8_t rank_byte = Data[offset++];
+-                uint8_t rank = fuzzer_utils::parseRank(rank_byte);
+-                std::vector<int64_t> shape;
+-                
+-                // Create a shape that might be broadcastable
+-                for (uint8_t i = 0; i < rank; i++) {
+-                    if (offset < Size) {
+-                        shape.push_back(Data[offset++] % 5); // Small dimensions for broadcasting
+-                    } else {
+-                        shape.push_back(1); // Default to 1 for broadcasting
++
++        // Optionally test the out= variant using remaining fuzz data
++        if (offset < Size) {
++            uint8_t use_out_flag = Data[offset++];
++            bool use_out = (use_out_flag % 2) != 0;
++            if (use_out && offset + 2 <= Size) {
++                // Try to create an out tensor; if this fails (e.g., not enough data),
++                // we simply skip the out variant.
++                try {
++                    torch::Tensor out = fuzzer_utils::createTensor(Data, Size, offset);
++                    // Call the out variant inside a nested try to catch shape/dtype errors
++                    try {
++                        if (mode == 0) {
++                            at::mul_out(out, t1, t2);
++                        } else if (mode == 1) {
++                            at::mul_out(out, t1, scalar);
++                        }
++                    } catch (const c10::Error&) {
++                        // Expected: shape/dtype mismatch, invalid argument, etc.
++                    } catch (const std::exception&) {
++                        // Expected runtime error
+                     }
++                } catch (const std::exception&) {
++                    // createTensor failed due to insufficient data; ignore
+                 }
+-                
+-                torch::Tensor broadcast_tensor = torch::ones(shape, tensor1.options());
+-                torch::Tensor broadcast_result = torch::mul(tensor1, broadcast_tensor);
+-            } catch (const std::exception&) {
+-                // Continue
+-            }
+-        }
+-        
+-        // Try scalar multiplication with different scalar types
+-        if (offset < Size) {
+-            try {
+-                // Integer scalar
+-                int64_t int_scalar = static_cast<int64_t>(Data[offset++]);
+-                torch::Tensor int_result = torch::mul(tensor1, int_scalar);
+-            } catch (const std::exception&) {
+-                // Continue
+-            }
+-            
+-            try {
+-                // Float scalar
+-                float float_scalar = static_cast<float>(Data[offset % Size]) / 255.0f;
+-                torch::Tensor float_result = torch::mul(tensor1, float_scalar);
+-            } catch (const std::exception&) {
+-                // Continue
+-            }
+-            
+-            try {
+-                // Boolean scalar
+-                bool bool_scalar = (Data[offset % Size] > 127);
+-                torch::Tensor bool_result = torch::mul(tensor1, bool_scalar);
+-            } catch (const std::exception&) {
+-                // Continue
+             }
+         }
++    } catch (const c10::Error& e) {
++        // Expected PyTorch error (shape mismatch, type promotion, etc.)
++        std::cout << "Exception caught: " << e.what() << std::endl;
++        return 0;
++    } catch (const std::exception& e) {
++        // Expected generic runtime error from parsing or API
++        std::cout << "Exception caught: " << e.what() << std::endl;
++        return 0;
+     }
+-    catch (const std::exception &e)
+-    {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
+-    }
+-    return 0; // keep the input
++
++    return 0;
+ }
+diff --git a/testharness/torch_cpu/torch.relu/main.cpp b/testharness/torch_cpu/torch.relu/main.cpp
+old mode 100644
+new mode 100755
+index 5c4245c97ba231f9660eebbc8437be32953c2a9e..1f013540543db2c3277d3a067dfa99f04f189bb1
+--- a/testharness/torch_cpu/torch.relu/main.cpp
++++ b/testharness/torch_cpu/torch.relu/main.cpp
+@@ -1,53 +1,56 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include "fuzzer_utils.h"
++#include <iostream>
++#include <cstdint>
++#include <cstddef>
++#include <exception>
+ 
+-// --- Fuzzer Entry Point ---
+-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
++extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+ {
+-    std::cout << "Start Fuzzing" << std::endl;
+     try
+     {
+         size_t offset = 0;
+-        
+-        // Skip if there's not enough data
+-        if (Size < 2) {
+-            return 0;
+-        }
+-        
+-        // Create input tensor
+-        torch::Tensor input = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Apply ReLU operation
+-        torch::Tensor output = torch::relu(input);
+-        
+-        // Try inplace version as well if there's enough data left
+-        if (offset < Size) {
+-            torch::Tensor input_copy = input.clone();
+-            torch::relu_(input_copy);
++        torch::Tensor input = fuzzer_utils::createTensor(data, size, offset);
++
++        // Optional input-driven transformations to explore non-contiguous and
++        // in-place paths as well as basic out-of-place relu.
++        bool use_inplace = false;
++        if (offset < size)
++        {
++            uint8_t flags = data[offset++];
++            // If bit 0 set and tensor has at least 2 dimensions, make it
++            // non-contiguous by transposing the last two dimensions.
++            if ((flags & 0x01) && input.dim() >= 2)
++            {
++                int64_t ndim = input.dim();
++                input = input.transpose(ndim - 1, ndim - 2);
++            }
++            use_inplace = (flags & 0x02) != 0;
+         }
+-        
+-        // Try functional version with additional options if there's enough data left
+-        if (offset + 1 < Size) {
+-            bool inplace = Data[offset++] & 0x1;
+-            torch::Tensor input_copy = input.clone();
+-            torch::nn::functional::ReLUFuncOptions options;
+-            options.inplace(inplace);
+-            torch::Tensor output_func = torch::nn::functional::relu(input_copy, options);
++
++        if (use_inplace)
++        {
++            // In-place ReLU may fail for non-contiguous views or unsupported
++            // dtypes. Such failures are expected for invalid/unsupported
++            // fuzz inputs and are swallowed below.
++            torch::relu_(input);
+         }
+-        
+-        // Try nn::ReLU module if there's enough data left
+-        if (offset < Size) {
+-            bool inplace = Data[offset++] & 0x1;
+-            torch::nn::ReLU relu_module(torch::nn::ReLUOptions().inplace(inplace));
+-            torch::Tensor input_copy = input.clone();
+-            torch::Tensor output_module = relu_module->forward(input_copy);
++        else
++        {
++            torch::Tensor output = torch::relu(input);
++            // Ensure output is computed. Avoid unused-variable warnings.
++            (void)output;
+         }
++
++        return 0;
+     }
+     catch (const std::exception &e)
+     {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++        std::cout << "Exception caught: " << e.what() << std::endl; // do not change this, I need to know the exception.
++        return 0; // expected runtime error for invalid/unsupported PyTorch input
++    }
++    catch (...)
++    {
++        std::cout << "Unknown exception caught" << std::endl;
++        return 0;
+     }
+-    return 0; // keep the input
+-}
++}
+\ No newline at end of file
+diff --git a/testharness/torch_cpu/torch.reshape/main.cpp b/testharness/torch_cpu/torch.reshape/main.cpp
+old mode 100644
+new mode 100755
+index 7ef22123a7a1f6c98ce102f07b5ef1e0e84f1bee..abb7e29e8a5346315388223172e463eaa25d40c2
+--- a/testharness/torch_cpu/torch.reshape/main.cpp
++++ b/testharness/torch_cpu/torch.reshape/main.cpp
+@@ -1,126 +1,105 @@
+ #include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include <torch/torch.h>
++#include <cstdint>
++#include <cstring>
++#include <cstdlib>
++#include <vector>
++#include <iostream>
++#include <exception>
++#include <algorithm>
++
++// Constants for target shape parsing
++constexpr uint8_t MAX_TARGET_RANK = 4;
++constexpr int64_t MAX_TARGET_DIM = 16; // Inclusive, dims will be in [0, 16]
++
++// Parse a shape for torch.reshape from remaining fuzz data.
++// Allows -1 dimensions (with ~20% probability) and dimensions in [0, MAX_TARGET_DIM].
++// Updates offset to consume bytes read. If insufficient data, uses safe defaults.
++static std::vector<int64_t> parseTargetShape(const uint8_t* data, size_t size, size_t& offset) {
++    if (offset >= size) {
++        // No data for shape, fallback to single -1 to test inference
++        return {-1};
++    }
++
++    // Read rank (0..MAX_TARGET_RANK)
++    uint8_t rank_byte = data[offset++];
++    uint8_t rank = rank_byte % (MAX_TARGET_RANK + 1);
++
++    std::vector<int64_t> shape;
++    shape.reserve(rank);
++
++    for (uint8_t i = 0; i < rank; ++i) {
++        if (offset + sizeof(int64_t) <= size) {
++            int64_t raw;
++            std::memcpy(&raw, data + offset, sizeof(raw));
++            offset += sizeof(raw);
++
++            if (raw % 5 == 0) {
++                // 20% chance to set dimension to -1
++                shape.push_back(-1);
++            } else {
++                uint64_t abs_raw = static_cast<uint64_t>(std::abs(raw));
++                int64_t dim = static_cast<int64_t>(abs_raw % (MAX_TARGET_DIM + 1));
++                shape.push_back(dim);
++            }
++        } else {
++            // Not enough data for this dimension, use safe default 1
++            shape.push_back(1);
++            // Prevent further reads by marking offset as exhausted
++            offset = size;
++        }
++    }
++
++    return shape;
++}
+ 
+ // --- Fuzzer Entry Point ---
+ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+ {
+-    std::cout << "Start Fuzzing" << std::endl;
+     try
+     {
+         size_t offset = 0;
+-        
+-        // Skip if we don't have enough data
+-        if (Size < 4) {
+-            return 0;
+-        }
+-        
+-        // Create input tensor
+-        torch::Tensor input_tensor = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        // Extract reshape parameters from the remaining data
+-        std::vector<int64_t> new_shape;
+-        
+-        // Determine number of dimensions for reshape
+-        if (offset < Size) {
+-            uint8_t num_dims = Data[offset++] % 6; // 0-5 dimensions
+-            
+-            // Parse each dimension
+-            for (uint8_t i = 0; i < num_dims && offset + sizeof(int64_t) <= Size; ++i) {
+-                int64_t dim_value;
+-                std::memcpy(&dim_value, Data + offset, sizeof(int64_t));
+-                offset += sizeof(int64_t);
+-                
+-                // Allow negative dimensions for reshape (which have special meaning)
+-                new_shape.push_back(dim_value);
+-            }
+-            
+-            // If we have at least one dimension left, use it for the special -1 value
+-            if (offset < Size && new_shape.size() > 0) {
+-                uint8_t use_special = Data[offset++] % 2;
+-                if (use_special) {
+-                    // Replace a random dimension with -1 (auto-infer)
+-                    size_t idx = Data[offset % new_shape.size()];
+-                    new_shape[idx] = -1;
+-                }
+-            }
+-        }
+-        
+-        // If we couldn't extract any shape, use some defaults
+-        if (new_shape.empty() && input_tensor.numel() > 0) {
+-            // Try some common reshape patterns
+-            if (offset < Size) {
+-                uint8_t pattern = Data[offset++] % 4;
+-                switch (pattern) {
+-                    case 0: // Flatten
+-                        new_shape.push_back(-1);
+-                        break;
+-                    case 1: // Make 2D
+-                        new_shape.push_back(-1);
+-                        new_shape.push_back(1);
+-                        break;
+-                    case 2: // Make 3D
+-                        new_shape.push_back(-1);
+-                        new_shape.push_back(1);
+-                        new_shape.push_back(1);
+-                        break;
+-                    case 3: // Empty tensor
+-                        if (input_tensor.numel() == 0) {
+-                            new_shape.push_back(0);
+-                        } else {
+-                            new_shape.push_back(-1);
+-                        }
+-                        break;
+-                }
+-            } else {
+-                // Default to flatten
+-                new_shape.push_back(-1);
+-            }
++
++        // Create an input tensor from fuzz data
++        torch::Tensor input = fuzzer_utils::createTensor(Data, Size, offset);
++
++        // Parse a target shape from the remaining data
++        std::vector<int64_t> target_shape = parseTargetShape(Data, Size, offset);
++
++        // Call torch.reshape (the operator under test)
++        torch::Tensor output = torch::reshape(input, target_shape);
++
++        // --- Sanity checks to catch implementation bugs ---
++        // reshape must preserve number of elements
++        if (output.numel() != input.numel()) {
++            std::cerr << "BUG: reshape changed number of elements: "
++                      << input.numel() << " -> " << output.numel() << std::endl;
++            std::abort();
+         }
+-        
+-        // Apply reshape operation
+-        torch::Tensor output;
+-        
+-        // Try different reshape variants
+-        if (offset < Size) {
+-            uint8_t variant = Data[offset++] % 3;
+-            
+-            switch (variant) {
+-                case 0:
+-                    // Standard reshape
+-                    output = input_tensor.reshape(new_shape);
+-                    break;
+-                case 1:
+-                    // View (when possible)
+-                    try {
+-                        output = input_tensor.view(new_shape);
+-                    } catch (const std::exception&) {
+-                        // Fallback to reshape if view fails
+-                        output = input_tensor.reshape(new_shape);
+-                    }
+-                    break;
+-                case 2:
+-                    // Functional API
+-                    output = torch::reshape(input_tensor, new_shape);
+-                    break;
+-            }
+-        } else {
+-            // Default to standard reshape
+-            output = input_tensor.reshape(new_shape);
++
++        // reshape must preserve dtype
++        if (output.dtype() != input.dtype()) {
++            std::cerr << "BUG: reshape changed dtype: "
++                      << input.dtype() << " -> " << output.dtype() << std::endl;
++            std::abort();
+         }
+-        
+-        // Basic validation - number of elements should match
+-        if (input_tensor.numel() != output.numel()) {
+-            throw std::runtime_error("Element count mismatch after reshape");
++
++        // reshape must preserve the underlying data values (same order after flattening)
++        auto flat_input = input.flatten();
++        auto flat_output = output.flatten();
++        if (!torch::equal(flat_input, flat_output)) {
++            std::cerr << "BUG: reshape corrupted tensor data" << std::endl;
++            std::abort();
+         }
+-        
+-        // Force evaluation
+-        output.sum().item<float>();
++
++        // If we reach here, everything is consistent
+     }
+     catch (const std::exception &e)
+     {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++        // Expected runtime exceptions from invalid fuzz inputs (shape mismatch, invalid -1 count, etc.)
++        // are not treated as crashes.
++        std::cout << "Exception caught: " << e.what() << std::endl; // do not change this, I need to know the exception.
++        return 0; // keep the input, no crash
+     }
+-    return 0; // keep the input
+-}
++    return 0; // normal execution
++}
+\ No newline at end of file
+diff --git a/testharness/torch_cpu/torch.softmax/main.cpp b/testharness/torch_cpu/torch.softmax/main.cpp
+old mode 100644
+new mode 100755
+index 97e8dd8c387fc6d28050d27470f590fa0cce05cb..50c20008b537c5a3f62e923a618273c96e4c61e4
+--- a/testharness/torch_cpu/torch.softmax/main.cpp
++++ b/testharness/torch_cpu/torch.softmax/main.cpp
+@@ -1,57 +1,76 @@
+-#include "fuzzer_utils.h" // General fuzzing utilities
+-#include <iostream>       // For cerr
+-#include <tuple>          // For std::get with lu_unpack result
++#include "fuzzer_utils.h"
++#include <iostream>
++#include <cstring>
++#include <vector>
++#include <torch/torch.h>
+ 
+ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
+ {
+-    std::cout << "Start Fuzzing" << std::endl;
+     try
+     {
+         size_t offset = 0;
+-        
+-        if (Size < 2) {
+-            return 0;
+-        }
+-        
++
++        // Create a tensor from the fuzz input
+         torch::Tensor input = fuzzer_utils::createTensor(Data, Size, offset);
+-        
+-        if (offset >= Size) {
+-            return 0;
++
++        // Parse the `dim` argument from remaining bytes
++        int64_t dim;
++        if (offset + sizeof(int64_t) <= Size)
++        {
++            std::memcpy(&dim, Data + offset, sizeof(int64_t));
++            offset += sizeof(int64_t);
+         }
+-        
+-        int64_t dim = 0;
+-        if (input.dim() > 0) {
+-            uint8_t dim_byte = Data[offset++];
+-            dim = static_cast<int64_t>(dim_byte) % (input.dim() + 1) - 1;  // Allow -1 as a dimension
++        else if (offset < Size)
++        {
++            int8_t small_dim;
++            std::memcpy(&small_dim, Data + offset, sizeof(int8_t));
++            dim = static_cast<int64_t>(small_dim);
++            offset += sizeof(int8_t);
+         }
+-        
+-        if (offset < Size) {
+-            bool dim_is_name = (Data[offset++] % 2) == 1;
+-            
+-            torch::Tensor output;
+-            if (dim_is_name) {
+-                at::Dimname dimname = at::Dimname::fromSymbol(c10::Symbol::dimname("dim"));
+-                output = torch::softmax(input, dimname);
+-            } else {
+-                output = torch::softmax(input, dim);
+-            }
+-            
+-            if (offset < Size) {
+-                double dtype_selector = Data[offset++] % 3;
+-                if (dtype_selector == 0) {
+-                    output = torch::softmax(input, dim, torch::kFloat);
+-                } else if (dtype_selector == 1) {
+-                    output = torch::softmax(input, dim, torch::kDouble);
+-                } else {
+-                    output = torch::softmax(input, dim, torch::kHalf);
+-                }
++        else
++        {
++            dim = 0;
++        }
++
++        // Parse optional `dtype` argument for the output
++        c10::optional<torch::ScalarType> dtype_opt = c10::nullopt;
++        if (offset < Size)
++        {
++            uint8_t use_dtype = Data[offset++];
++            if (use_dtype != 0 && offset < Size)
++            {
++                uint8_t dtype_selector = Data[offset++];
++                static const std::vector<torch::ScalarType> float_dtypes = {
++                    torch::kFloat,
++                    torch::kDouble,
++                    torch::kHalf,
++                    torch::kBFloat16
++                };
++                dtype_opt = float_dtypes[dtype_selector % float_dtypes.size()];
+             }
+         }
++
++        // Call the operator under test
++        torch::Tensor output = torch::softmax(input, dim, dtype_opt);
++
++        // Force materialization (eager execution already computed it, but just in case)
++        (void)output;
++    }
++    catch (const c10::Error &e)
++    {
++        // PyTorch-specific exceptions (invalid dim, dtype, shape, etc.) are expected
++        std::cout << "Exception caught: " << e.what() << std::endl;
++        return 0;
+     }
+     catch (const std::exception &e)
+     {
+-        std::cerr << "Exception caught: " << e.what() << std::endl;
+-        return -1; // discard the input
++        std::cout << "Exception caught: " << e.what() << std::endl;
++        return 0;
++    }
++    catch (...)
++    {
++        std::cout << "Unknown exception caught" << std::endl;
++        return 0;
+     }
+-    return 0; // keep the input
+-}
++    return 0;
++}
+\ No newline at end of file

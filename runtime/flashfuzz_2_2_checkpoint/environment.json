@@ -1,0 +1,43 @@
+{
+  "captured_at": "2026-09-04T17:38:13+08:00",
+  "flashfuzz": {
+    "repository": "git@github.com:Nathanlars18/FlashFuzz-HistoricalBug.git",
+    "submodule_path": "third_party/FlashFuzz",
+    "base_commit": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "working_branch_at_capture": "runtime-cleanup",
+    "describe_at_capture": "EXP005-baseline-v1-15-gc1c75296-dirty"
+  },
+  "pytorch": {
+    "tag": "v2.2.0",
+    "tag_commit": "8ac9b20d4b090c213799e81acf48a55ea8d437d6",
+    "recorded_runtime_version": "2.2.0a0+git8ac9b20"
+  },
+  "recorded_experiment_environment": {
+    "os": "Ubuntu 22.04 (WSL2)",
+    "hardware": "RTX 4060 Laptop GPU",
+    "compiler": "clang 14.0.0",
+    "docker_image": "ncsuswat/flashfuzz:torch2.2-fuzz",
+    "docker_image_digest": null,
+    "source": "experiment/EXP007_pattern_prompt_injection/experiment_log.md:54-86"
+  },
+  "capture_host": {
+    "clang": "Ubuntu clang version 14.0.0-1ubuntu1.1",
+    "g++": "11.4.0",
+    "docker_cli_available": false,
+    "docker_note": "Docker CLI is not connected in this WSL environment; image digest was not inferred."
+  },
+  "dockerfiles": [
+    {
+      "path": "evidence/docker/torch-2.2-base.Dockerfile",
+      "source": "third_party/FlashFuzz/docker/torch-2.2-base.Dockerfile"
+    },
+    {
+      "path": "evidence/docker/torch-2.2-fuzz.Dockerfile",
+      "source": "third_party/FlashFuzz/docker/torch-2.2-fuzz.Dockerfile"
+    },
+    {
+      "path": "evidence/docker/torch-2.2-cov.Dockerfile",
+      "source": "third_party/FlashFuzz/docker/torch-2.2-cov.Dockerfile"
+    }
+  ]
+}

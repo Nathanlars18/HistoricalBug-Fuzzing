@@ -3,13 +3,15 @@ project: HistoricalBug-Fuzzing
 flashfuzz:
   role: "third-party fuzzing and harness execution backend"
   submodule_path: "third_party/FlashFuzz"
-  repository: ""
-  commit: ""
+  repository: "git@github.com:Nathanlars18/FlashFuzz-HistoricalBug.git"
+  commit: "c1c752963596528e4752360cdaeac77a80f7e07d"
+  recovery_checkpoint: "runtime/flashfuzz_2_2_checkpoint"
 
 framework:
   name: "PyTorch"
-  version: "2.2"
-  commit: "8ac9b20"
+  tag: "v2.2.0"
+  recorded_runtime_version: "2.2.0a0+git8ac9b20"
+  commit: "8ac9b20d4b090c213799e81acf48a55ea8d437d6"
 
 fuzzer:
   name: "libFuzzer"
@@ -17,6 +19,11 @@ fuzzer:
 compiler:
   clang: "14"
 
+container:
+  fuzz_image: "ncsuswat/flashfuzz:torch2.2-fuzz"
+  image_digest: null
+  digest_status: "unavailable: Docker CLI is not connected in the current WSL environment"
+
 notes:
-  - "FlashFuzz will be added later as a pinned third-party dependency."
   - "This file records dependency versions for reproducibility."
+  - "Large generated runtime results are excluded from Git."

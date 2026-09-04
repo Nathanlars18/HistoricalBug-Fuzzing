@@ -1,0 +1,192 @@
+{
+  "manifest_version": "1.0",
+  "checkpoint_id": "flashfuzz-pytorch-2.2-pre-clean",
+  "source": {
+    "root_repository_commit": "36727c38c726fd696eed35e81eb2d91c4e520cd4",
+    "flashfuzz_base_commit": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "flashfuzz_working_branch": "runtime-cleanup",
+    "pytorch_commit": "8ac9b20d4b090c213799e81acf48a55ea8d437d6"
+  },
+  "recovery_method": "checkout base, apply patch/tracked_changes.patch, then copy overlay contents",
+  "recovery_status": {
+    "tracked_modified_count": 13,
+    "required_untracked_count": 1
+  },
+  "recovery_files": [
+    {
+      "path": "expmanager.py",
+      "role": "runtime_file",
+      "source_state": "tracked_modified",
+      "size_bytes": 36305,
+      "sha256": "7272a209eaa1a736e00df5c163dfdccd9ae68638640b8c2b1bc66feace1ef44a"
+    },
+    {
+      "path": "scripts/build_test_harness.py",
+      "role": "runtime_file",
+      "source_state": "tracked_modified",
+      "size_bytes": 12472,
+      "sha256": "03592f9f663f078ca16577f1fa995b9fbd962b5fefbf8b93afe34fdd47460713"
+    },
+    {
+      "path": "scripts/copy.py",
+      "role": "runtime_file",
+      "source_state": "required_untracked",
+      "size_bytes": 4008,
+      "sha256": "f7ec95075b47b88cf995d8d055bea5a02841ece712e24289f93948e2b5990d48"
+    },
+    {
+      "path": "scripts/coverage_fuzzing.py",
+      "role": "runtime_file",
+      "source_state": "tracked_modified",
+      "size_bytes": 8917,
+      "sha256": "1b1e2a1922d7be8007032a63b5d2225b066a289094e13ec33b80e36af4eb8d22"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.add/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 6382,
+      "sha256": "ffb793649f55e026c75e072922b56f1e44d5afa1848c664d9cc38a91352dd869"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.addmm/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 2721,
+      "sha256": "d425748544e295c5fa17ed42a582be54397ac51545c07119b47a7feb735d0cd3"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.cat/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 2001,
+      "sha256": "3f821ee7fe7c3fe918f937c0054375e16b5c3809b082428fa9716855334258b2"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.index_select/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 2487,
+      "sha256": "a379d12b00624f86ab690b41f0e34fd1ab550de5124d8ee45ce3d461f4bebdc1"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.matmul/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 1446,
+      "sha256": "cc96a47d6bb36cd2720ced0f21c5958bea2d952930832230d820eb11ebd60127"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.mm/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 2234,
+      "sha256": "2a8ffe3c10630c99414546cdaf75216cc29d82ccb806c307fd19c02e984682f7"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.mul/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 4654,
+      "sha256": "d2ad58d4ce4009e3f144591f16d1f8bad4102be48c6c784d3c7bdee99a943dfd"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.relu/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 1798,
+      "sha256": "8bae8b7df99fe62b78a5734ae256a900cb3ccfc23336590e4068e16fef2b3121"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.reshape/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 3774,
+      "sha256": "a9330446d396ac31dcd235dff0ef171fcbd33ef8801e77bbee51a5f45ad97deb"
+    },
+    {
+      "path": "testharness/torch_cpu/torch.softmax/main.cpp",
+      "role": "harness",
+      "source_state": "tracked_modified",
+      "size_bytes": 2265,
+      "sha256": "a73552a50ee82508e99df8b84513558c80afe16a63e4b2d270776ced33082686"
+    }
+  ],
+  "harnesses": [
+    {
+      "api": "torch.add",
+      "path": "testharness/torch_cpu/torch.add/main.cpp",
+      "sha256": "ffb793649f55e026c75e072922b56f1e44d5afa1848c664d9cc38a91352dd869",
+      "exact_exp007_baseline_copy": false
+    },
+    {
+      "api": "torch.addmm",
+      "path": "testharness/torch_cpu/torch.addmm/main.cpp",
+      "sha256": "d425748544e295c5fa17ed42a582be54397ac51545c07119b47a7feb735d0cd3",
+      "exact_exp007_baseline_copy": true
+    },
+    {
+      "api": "torch.cat",
+      "path": "testharness/torch_cpu/torch.cat/main.cpp",
+      "sha256": "3f821ee7fe7c3fe918f937c0054375e16b5c3809b082428fa9716855334258b2",
+      "exact_exp007_baseline_copy": true
+    },
+    {
+      "api": "torch.index_select",
+      "path": "testharness/torch_cpu/torch.index_select/main.cpp",
+      "sha256": "a379d12b00624f86ab690b41f0e34fd1ab550de5124d8ee45ce3d461f4bebdc1",
+      "exact_exp007_baseline_copy": true
+    },
+    {
+      "api": "torch.matmul",
+      "path": "testharness/torch_cpu/torch.matmul/main.cpp",
+      "sha256": "cc96a47d6bb36cd2720ced0f21c5958bea2d952930832230d820eb11ebd60127",
+      "exact_exp007_baseline_copy": true
+    },
+    {
+      "api": "torch.mm",
+      "path": "testharness/torch_cpu/torch.mm/main.cpp",
+      "sha256": "2a8ffe3c10630c99414546cdaf75216cc29d82ccb806c307fd19c02e984682f7",
+      "exact_exp007_baseline_copy": true
+    },
+    {
+      "api": "torch.mul",
+      "path": "testharness/torch_cpu/torch.mul/main.cpp",
+      "sha256": "d2ad58d4ce4009e3f144591f16d1f8bad4102be48c6c784d3c7bdee99a943dfd",
+      "exact_exp007_baseline_copy": false
+    },
+    {
+      "api": "torch.relu",
+      "path": "testharness/torch_cpu/torch.relu/main.cpp",
+      "sha256": "8bae8b7df99fe62b78a5734ae256a900cb3ccfc23336590e4068e16fef2b3121",
+      "exact_exp007_baseline_copy": true
+    },
+    {
+      "api": "torch.reshape",
+      "path": "testharness/torch_cpu/torch.reshape/main.cpp",
+      "sha256": "a9330446d396ac31dcd235dff0ef171fcbd33ef8801e77bbee51a5f45ad97deb",
+      "exact_exp007_baseline_copy": true
+    },
+    {
+      "api": "torch.softmax",
+      "path": "testharness/torch_cpu/torch.softmax/main.cpp",
+      "sha256": "a73552a50ee82508e99df8b84513558c80afe16a63e4b2d270776ced33082686",
+      "exact_exp007_baseline_copy": true
+    }
+  ],
+  "evidence": {
+    "preclean_untracked_count": 9493,
+    "preserved_unique_crash_inputs": 9,
+    "untracked_inventory": "evidence/untracked_inventory.tsv",
+    "ignored_artifact_summary": "evidence/ignored_artifacts_summary.json",
+    "tracked_numstat": "evidence/tracked_numstat.tsv"
+  },
+  "exclusions": [
+    "generated per-API helper copies and symlinks",
+    "large fuzz and execution logs",
+    "coverage HTML and profraw data",
+    "fuzz binaries and seed corpora",
+    "editor swap files",
+    "full PyTorch source and Docker image export"
+  ]
+}

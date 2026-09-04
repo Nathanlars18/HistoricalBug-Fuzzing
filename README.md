@@ -35,8 +35,8 @@ extensions are maintained separately under `runtime/`.
 - `scripts/`: repository-level utilities that are not owned by a single
   experiment.
 - `third_party/`: location reserved for external execution dependencies.
-- `runtime/`: project-owned overlays and runtime integration for third-party
-  execution dependencies.
+- `runtime/flashfuzz_2_2_checkpoint/`: versioned FlashFuzz/PyTorch 2.2 patch,
+  exact overlay, recovery manifest, hashes, and environment evidence.
 
 ## Current migration status
 
