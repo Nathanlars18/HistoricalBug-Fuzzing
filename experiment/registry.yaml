@@ -34,6 +34,17 @@ experiments:
       - EXP008
       - EXP009
 
+  EXP011:
+    role: static bug-aware HarnessSpec and harness synthesis
+    depends_on:
+      - EXP006
+    outputs:
+      - experiment/EXP011_bug_aware_harness_synthesis/api_profiles
+      - experiment/EXP011_bug_aware_harness_synthesis/helper_profiles
+      - experiment/EXP011_bug_aware_harness_synthesis/harness_specs
+      - experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives
+      - experiment/EXP011_bug_aware_harness_synthesis/harnesses
+
 archive:
   EXP001-EXP004:
     location: research_notes/archive/baseline_experiments

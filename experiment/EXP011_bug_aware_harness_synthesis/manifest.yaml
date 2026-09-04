@@ -1,0 +1,20 @@
+experiment_id: EXP011
+name: bug_aware_harness_synthesis
+title: Bug-Aware Harness Synthesis
+status: planning
+
+objective: >-
+  Build and validate the static pipeline from historical bug knowledge to
+  HarnessSpec, Strategy Primitives, and executable fuzzing harnesses.
+
+depends_on:
+  - EXP006_historical_bug_pattern_dataset
+
+related_pilot_experiments:
+  - EXP007_pattern_prompt_injection
+  - EXP008_matmul_multi_pattern
+  - EXP009_pattern_reasoning
+
+out_of_scope:
+  - adaptive_feedback_optimization
+  - large_scale_effectiveness_evaluation

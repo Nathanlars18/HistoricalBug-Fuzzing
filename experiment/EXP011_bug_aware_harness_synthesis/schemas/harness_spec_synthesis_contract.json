@@ -1,0 +1,353 @@
+{
+  "contract_version": "1.1",
+  "contract_name": "historical_bug_aware_harness_spec_synthesis",
+  "target_schema_version": "1.1",
+  "input_unit": "one target API bundle containing an API Profile, a Helper Capability Profile, a Candidate Manifest, and the referenced API-specific Knowledge records",
+
+  "response_requirements": {
+    "output_format": "json_only",
+    "root_object_keys": [
+      "knowledge_plan",
+      "validity_constraints",
+      "exploration_plan"
+    ],
+    "script_owned_fields_not_to_emit": [
+      "schema_version",
+      "identity",
+      "revision_information",
+      "target_context",
+      "knowledge_plan.candidate_manifest_ref",
+      "exploration_plan.default_branch_id",
+      "exploration_plan.branches[].budget_share",
+      "provenance",
+      "review"
+    ]
+  },
+
+  "response_template": {
+    "knowledge_plan": {
+      "candidate_decisions": [],
+      "resolution_records": []
+    },
+    "validity_constraints": {
+      "global_constraints": []
+    },
+    "exploration_plan": {
+      "branches": []
+    }
+  },
+
+  "item_templates": {
+    "semantic_requirement": {
+      "requirement_type": null,
+      "parameters": {},
+      "description": null
+    },
+    "source_ref": {
+      "source_type": null,
+      "source_id": null
+    },
+    "candidate_decision": {
+      "knowledge_id": null,
+      "selection_status": null,
+      "applicability_status": null,
+      "capability_status": null,
+      "reason_codes": [],
+      "decision_summary": null,
+      "decision_confidence": null
+    },
+    "resolution_effect": {
+      "effect_id": null,
+      "effect_type": null,
+      "target_knowledge_ids": [],
+      "result_branch_ids": []
+    },
+    "resolution_record": {
+      "resolution_id": null,
+      "involved_knowledge_ids": [],
+      "relationship_type": null,
+      "interaction_dimensions": [],
+      "resolution_effects": [],
+      "resolution_summary": null
+    },
+    "constraint": {
+      "constraint_id": null,
+      "constraint_kind": null,
+      "constraint_role": null,
+      "subjects": [],
+      "semantic_requirement": null,
+      "source_refs": [],
+      "verification_status": null
+    },
+    "target_property": {
+      "target_property_id": null,
+      "subject": null,
+      "property_name": null,
+      "desired_state": null,
+      "source_refs": []
+    },
+    "branch_precondition": {
+      "precondition_id": null,
+      "semantic_requirement": null,
+      "source_refs": [],
+      "verification_status": null
+    },
+    "activation_target": {
+      "activation_target_id": null,
+      "activation_kind": null,
+      "target_property_ids": [],
+      "observation_point": null
+    },
+    "oracle_requirement": {
+      "oracle_requirement_id": null,
+      "oracle_type": null,
+      "observation_subjects": [],
+      "oracle_preconditions": [],
+      "expected_behavior": null,
+      "source_refs": [],
+      "requirement_level": null
+    },
+    "exploration_branch": {
+      "branch_id": null,
+      "branch_kind": null,
+      "input_validity_intent": null,
+      "source_knowledge_ids": [],
+      "exploration_goal": null,
+      "risk_dimensions": [],
+      "target_properties": [],
+      "branch_preconditions": [],
+      "branch_constraints": [],
+      "activation_targets": [],
+      "activation_logic": null,
+      "oracle_requirements": []
+    }
+  },
+
+  "array_item_mapping": {
+    "knowledge_plan.candidate_decisions[]": "candidate_decision",
+    "knowledge_plan.resolution_records[]": "resolution_record",
+    "resolution_record.interaction_dimensions[]": "interaction_dimension",
+    "resolution_record.resolution_effects[]": "resolution_effect",
+    "candidate_decision.reason_codes[]": "reason_code",
+    "validity_constraints.global_constraints[]": "constraint",
+    "constraint.source_refs[]": "source_ref",
+    "target_property.source_refs[]": "source_ref",
+    "branch_precondition.source_refs[]": "source_ref",
+    "oracle_requirement.oracle_preconditions[]": "semantic_requirement",
+    "oracle_requirement.source_refs[]": "source_ref",
+    "exploration_plan.branches[]": "exploration_branch",
+    "exploration_branch.risk_dimensions[]": "risk_dimension",
+    "exploration_branch.target_properties[]": "target_property",
+    "exploration_branch.branch_preconditions[]": "branch_precondition",
+    "exploration_branch.branch_constraints[]": "constraint",
+    "exploration_branch.activation_targets[]": "activation_target",
+    "exploration_branch.oracle_requirements[]": "oracle_requirement"
+  },
+
+  "object_mapping": {
+    "constraint.semantic_requirement": "semantic_requirement",
+    "branch_precondition.semantic_requirement": "semantic_requirement",
+    "oracle_requirement.expected_behavior": "semantic_requirement"
+  },
+
+  "allowed_values": {
+    "source_type": [
+      "api_profile",
+      "helper_profile",
+      "knowledge"
+    ],
+    "selection_status": [
+      "selected",
+      "deferred",
+      "rejected"
+    ],
+    "applicability_status": [
+      "applicable",
+      "partially_applicable",
+      "not_applicable",
+      "unknown"
+    ],
+    "capability_status": [
+      "supported",
+      "partially_supported",
+      "unsupported",
+      "unknown"
+    ],
+    "decision_confidence": [
+      "high",
+      "medium",
+      "low",
+      null
+    ],
+    "reason_code": [
+      "direct_api_evidence",
+      "distinct_risk_contribution",
+      "complementary_goal",
+      "complementary_oracle",
+      "target_api_mismatch",
+      "exclusion_condition_matched",
+      "insufficient_applicability_evidence",
+      "semantic_duplicate",
+      "subsumed_by_other_knowledge",
+      "lineage_duplicate",
+      "incompatible_constraints",
+      "mutually_exclusive_goal",
+      "helper_capability_gap",
+      "backend_mismatch",
+      "safety_restriction",
+      "unresolved_interaction"
+    ],
+    "relationship_type": [
+      "duplicate",
+      "subsumption",
+      "partial_overlap",
+      "complementary",
+      "conflicting"
+    ],
+    "interaction_dimension": [
+      "lineage",
+      "applicability",
+      "validity_constraint",
+      "exploration_goal",
+      "target_property",
+      "helper_capability",
+      "backend_scope",
+      "activation_requirement",
+      "oracle_requirement"
+    ],
+    "effect_type": [
+      "merge_into_branch",
+      "separate_into_branches",
+      "keep_separate",
+      "prefer_candidates",
+      "deduplicate_contribution",
+      "defer_candidates",
+      "reject_candidates"
+    ],
+    "constraint_kind": [
+      "shape_relation",
+      "rank",
+      "dtype",
+      "device",
+      "layout",
+      "argument_relation",
+      "backend",
+      "resource",
+      "api_precondition"
+    ],
+    "constraint_role": [
+      "api_validity",
+      "safety_guardrail",
+      "environment_requirement"
+    ],
+    "verification_status": [
+      "confirmed",
+      "inferred",
+      "unresolved"
+    ],
+    "branch_kind": [
+      "default",
+      "generic_exploration",
+      "knowledge_directed"
+    ],
+    "input_validity_intent": [
+      "expected_valid",
+      "boundary_valid",
+      "intentionally_invalid"
+    ],
+    "risk_dimension": [
+      "shape",
+      "dtype",
+      "value",
+      "device",
+      "backend",
+      "layout",
+      "memory",
+      "aliasing",
+      "output_tensor",
+      "state",
+      "execution",
+      "graph",
+      "concurrency",
+      "api_contract"
+    ],
+    "requirement_type": [
+      "value_comparison",
+      "set_membership",
+      "range_constraint",
+      "cross_subject_relation",
+      "property_state",
+      "state_transition",
+      "availability",
+      "reachability",
+      "no_crash",
+      "no_sanitizer_violation",
+      "expected_exception",
+      "result_equivalence",
+      "output_property",
+      "termination",
+      "resource_bound"
+    ],
+    "activation_kind": [
+      "property_state",
+      "target_api_reached"
+    ],
+    "observation_point": [
+      "before_target_api_call",
+      "at_target_api_call",
+      "after_target_api_call"
+    ],
+    "activation_logic": [
+      "all_required",
+      "any_required"
+    ],
+    "oracle_type": [
+      "crash",
+      "exception",
+      "sanitizer",
+      "timeout",
+      "output_property",
+      "differential",
+      "metamorphic",
+      "state_consistency",
+      "determinism",
+      "resource_usage"
+    ],
+    "requirement_level": [
+      "required",
+      "preferred"
+    ]
+  },
+
+  "value_formats": {
+    "branch_id": "br_default, br_generic_<nnn>, or br_knowledge_<nnn>",
+    "resolution_id": "res_<nnn>",
+    "effect_id": "eff_<resolution_number>_<nn>",
+    "global_constraint_id": "gc_<nnn>",
+    "branch_local_id": "<bc|tp|pre|act|orc>_<branch_id>_<nn>"
+  },
+
+  "builder_materialization": {
+    "candidate_decision.knowledge_id": "Replace with the exact Knowledge Reference from the Candidate Manifest.",
+    "source_ref": "Attach the exact source revision or version and content hash.",
+    "exploration_plan.default_branch_id": "Set to the branch_id of the unique branch whose branch_kind is default.",
+    "exploration_plan.branches[].budget_share": "Assign deterministically from config budget_policy and normalize all branch shares to 1.",
+    "local_identifiers": "Normalize identifier prefixes and numbering, rewrite internal references, and preserve unchanged identifiers across revisions."
+  },
+
+  "placeholder_policy": {
+    "null_placeholders": "Null values in templates are not default decisions. Replace them unless the final HarnessSpec Schema permits null.",
+    "empty_arrays": "Use an empty array only when the corresponding cardinality and structural constraints allow it.",
+    "placeholder_objects": "Do not copy unpopulated template objects into the response."
+  },
+
+  "output_constraints": [
+    "Return only fields shown by response_template and item_templates.",
+    "Use only Candidate Manifest Knowledge IDs and supplied source IDs.",
+    "Every required local identifier and human-readable summary must be non-empty.",
+    "Exactly one branch with branch_kind default must exist; the Builder derives default_branch_id from it.",
+    "Do not emit budget_share; the Builder assigns positive shares from budget_policy and normalizes their sum to 1.",
+    "Do not include full source records, source code, Helper calls, Strategy Primitives, or hidden reasoning.",
+    "Cross-field and reference invariants not listed here are enforced by the Validator against the final HarnessSpec Schema."
+  ]
+}
