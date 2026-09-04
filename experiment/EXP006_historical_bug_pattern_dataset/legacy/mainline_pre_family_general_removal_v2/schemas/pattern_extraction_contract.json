@@ -1,0 +1,275 @@
+{
+  "contract_version": "2.0",
+  "contract_name": "historical_bug_pattern_extraction",
+  "purpose": "Extract one or more API-specific, evidence-grounded Bug Pattern candidates from exactly one structured Bug Report.",
+
+  "input_assumptions": {
+    "input_unit": "one_structured_bug_report",
+    "required_report_context": [
+        "report_id",
+        "framework",
+        "available_evidence_refs",
+        "report"
+    ],
+    "expected_report_content": [
+        "api_information",
+        "trigger_conditions",
+        "failure_behavior",
+        "root_cause",
+        "fix_information"
+    ],
+    "evidence_rule": "Every evidence_refs value in the response must be selected from available_evidence_refs supplied with the input report."
+    },
+
+  "response_requirements": {
+    "output_format": "json_only",
+    "root_object_keys": [
+      "patterns"
+    ],
+    "minimum_pattern_count": 1,
+    "maximum_pattern_count_rule": "Create multiple patterns only when the report contains independently testable trigger-mechanism-failure combinations or independent API scopes.",
+    "script_owned_fields_not_to_emit": [
+      "schema_version",
+      "metadata.pattern_id",
+      "metadata.pattern_level",
+      "derivation_information",
+      "scope.framework",
+      "trigger_signature.conditions.condition_id",
+      "defect_mechanism.hypotheses.hypothesis_id"
+    ]
+  },
+
+  "semantic_rules": [
+    "Return API-specific patterns only. Do not create a General Pattern or Pattern Family.",
+    "Each emitted Pattern must contain exactly one supporting Report: the input Report, with relation direct_evidence.",
+    "Do not emit corroborating_evidence during single-Report extraction.",
+    "Do not invent Report IDs, APIs, operators, modules, Issue facts, fix facts, reproduction facts, evidence references, or root causes.",
+    "confirmed_apis must contain only APIs explicitly supported by the input Report.",
+    "Candidate transfer APIs must never be written into confirmed_apis.",
+    "A historical oracle records only an observation from historical evidence. Do not propose a new testing oracle.",
+    "Do not include harness code, mutation procedures, tensor-construction procedures, Strategy Primitives, HarnessSpec content, prompt text, or general testing advice.",
+    "Use lower_snake_case for canonical_name and candidate_family_tags.",
+    "If the root cause is unavailable, return an empty defect_mechanism.hypotheses array rather than inventing an explanation.",
+    "A claim marked official_confirmed, patch_derived, or source_reported must include at least one evidence reference.",
+    "An analyst_inferred claim may be emitted only when its supporting evidence is cited and its confidence is medium or low."
+  ],
+
+  "controlled_vocabularies": {
+    "defect_classes": [
+      "shape_boundary",
+      "dtype_boundary",
+      "device_transition",
+      "memory_layout_boundary",
+      "numerical_edge_case",
+      "gradient_autograd_boundary",
+      "backend_dispatch_boundary",
+      "execution_state_boundary",
+      "graph_transformation_boundary",
+      "api_contract_boundary",
+      "concurrency_boundary"
+    ],
+    "risk_dimensions": [
+      "shape",
+      "dtype",
+      "value",
+      "device",
+      "backend",
+      "layout",
+      "memory",
+      "aliasing",
+      "output_tensor",
+      "state",
+      "execution",
+      "graph",
+      "concurrency",
+      "api_contract"
+    ],
+    "evidence_status": [
+      "source_explicit",
+      "code_derived",
+      "patch_derived",
+      "analyst_inferred",
+      "unknown"
+    ],
+    "condition_necessity": [
+      "required",
+      "contributing",
+      "unknown"
+    ],
+    "mechanism_layers": [
+      "api",
+      "aten",
+      "kernel",
+      "backend",
+      "numerical",
+      "unknown"
+    ],
+    "mechanism_status": [
+      "official_confirmed",
+      "patch_derived",
+      "source_reported",
+      "analyst_inferred",
+      "unknown"
+    ],
+    "failure_types": [
+      "crash",
+      "exception",
+      "incorrect_output",
+      "timeout_hang",
+      "memory_error",
+      "unknown"
+    ],
+    "historical_oracle_kinds": [
+      "signal",
+      "exception_class",
+      "differential_reference",
+      "output_property",
+      "timeout",
+      "sanitizer",
+      "unknown"
+    ],
+    "issue_verification_status": [
+      "official_confirmed",
+      "official_triaged",
+      "benchmark_curated",
+      "user_reported",
+      "unknown"
+    ],
+    "fix_status": [
+      "fixed",
+      "unfixed",
+      "unknown"
+    ],
+    "reproduction_status": [
+      "reproduced",
+      "not_reproduced",
+      "not_attempted"
+    ],
+    "confidence": [
+      "high",
+      "medium",
+      "low"
+    ]
+  },
+
+  "value_selection_rules": {
+    "template_values_are_defaults_not_fixed_values": true,
+    "unknown_enum_value": "Use unknown only when the field is a controlled enum and the input Report provides no reliable value.",
+    "unknown_free_text_value": "Use null when a free-text or ordinary scalar value is unavailable.",
+    "unknown_list_value": "Use an empty array when no supported list item exists.",
+    "confidence_assignment": {
+      "high": "Directly supported by an Issue, reproducer, official developer response, benchmark metadata, PR, or linked fix.",
+      "medium": "Strongly supported by multiple evidence items, but not explicitly confirmed.",
+      "low": "Unknown, incomplete, weakly supported, or analyst-inferred without sufficient corroboration."
+    },
+    "conservative_default": "When evidence is insufficient, use null for free text, unknown for controlled enums, an empty array for lists, and low for confidence."
+  },
+
+  "field_constraints": {
+    "canonical_name": "A concise mechanism-oriented lower_snake_case name. Do not include Issue IDs, commit IDs, crash signals, scripts, or arbitrary constants.",
+    "supporting_reports": "Must contain exactly one direct_evidence item whose report_id is the input Report ID.",
+    "evidence_refs": "Every non-empty evidence_refs array must contain only identifiers supplied in available_evidence_refs.",
+    "primary_defect_class": "Select exactly one defect class for every emitted Pattern.",
+    "secondary_defect_classes": "Use only directly relevant additional defect classes. It may be empty.",
+    "risk_dimensions": "Use evidence-supported dimensions that locate the triggering risk. It may be an empty array when no concrete risk dimension can be determined.",
+    "trigger_conditions": "Represent historical trigger facts, not proposed input-generation steps.",
+    "operation_context": "Use null when no call sequence or execution context is known.",
+    "historical_oracle": "Use null when the historical Report does not contain an observable oracle.",
+    "transferability_hypothesis": "This is only a retrieval hypothesis for later Pattern Family analysis. It does not establish a cross-API bug."
+  },
+
+  "array_item_templates": {
+    "supporting_report": {
+      "report_id": null,
+      "relation": "direct_evidence",
+      "evidence_refs": [],
+      "source_verification": {
+        "issue_verification_status": "unknown",
+        "fix_status": "unknown",
+        "reproduction_status": "not_attempted"
+      }
+    },
+    "trigger_condition": {
+      "dimension": null,
+      "subject": null,
+      "predicate": null,
+      "necessity": "unknown",
+      "evidence_status": "unknown",
+      "evidence_refs": []
+    },
+    "mechanism_hypothesis": {
+      "layer": "unknown",
+      "description": null,
+      "status": "unknown",
+      "evidence_refs": [],
+      "confidence": "low"
+    }
+  },
+
+  "template_interpretation": {
+    "array_item_templates_are_shape_examples": true,
+    "response_template_arrays_start_empty": true,
+    "required_array_rule": "Populate an array only with evidence-supported items. Do not copy null placeholder objects into the final response.",
+    "default_value_rule": "Replace unknown, null, and low defaults whenever the input Report provides sufficient evidence for a more specific value."
+  },
+
+  "response_template": {
+    "patterns": [
+      {
+        "canonical_name": null,
+
+        "provenance": {
+          "supporting_reports": [],
+          "abstraction_rationale": null,
+          "unresolved_information": []
+        },
+
+        "scope": {
+          "primary_api": null,
+          "confirmed_apis": [],
+          "operator": null,
+          "module": null
+        },
+
+        "defect_classification": {
+          "primary_defect_class": null,
+          "secondary_defect_classes": [],
+          "risk_dimensions": []
+        },
+
+        "trigger_signature": {
+          "conditions": [],
+          "operation_context": null
+        },
+
+        "defect_mechanism": {
+          "hypotheses": []
+        },
+
+        "observed_failure": {
+          "failure_type": "unknown",
+          "description": null,
+          "historical_oracle": null,
+          "evidence_refs": []
+        },
+
+        "transferability_hypothesis": {
+          "candidate_family_tags": [],
+          "applicability_conditions": [],
+          "exclusion_conditions": [],
+          "rationale": null,
+          "evidence_status": "unknown",
+          "evidence_refs": [],
+          "confidence": "low"
+        },
+
+        "confidence": {
+          "trigger_confidence": "low",
+          "mechanism_confidence": "low",
+          "oracle_confidence": "low",
+          "transferability_confidence": "low"
+        }
+      }
+    ]
+  }
+}

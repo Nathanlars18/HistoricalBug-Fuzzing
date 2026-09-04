@@ -1,0 +1,491 @@
+{
+  "policy_version": "1.1-provisional",
+  "policy_name": "pattern_family_candidate_retrieval",
+  "policy_status": "provisional",
+  "manifest_version": "1.1",
+  "run_index_version": "1.0",
+  "purpose": "Deterministically retrieve high-recall groups of API-specific Pattern v2 records for later Pattern Family analysis.",
+
+  "execution_boundary": {
+    "method": "deterministic_field_based_retrieval",
+    "llm_usage_allowed": false,
+    "embedding_usage_allowed": false,
+    "semantic_summary_allowed": false,
+    "family_decision_allowed": false,
+    "general_knowledge_generation_allowed": false
+  },
+
+  "candidate_artifact_policy": {
+    "candidate_purpose": "family_analysis_input",
+    "candidate_status": "retrieved_candidate",
+    "candidate_objects_are_immutable": true,
+    "candidate_objects_store_llm_analysis_status": false,
+    "candidate_objects_store_family_decisions": false,
+    "candidate_objects_may_be_reused_across_runs": true
+  },
+
+  "input_requirements": {
+    "schema_version": "2.0",
+    "pattern_level": "api_specific",
+    "allowed_validation_statuses": [
+      "automatically_validated",
+      "human_verified"
+    ],
+    "excluded_validation_statuses": [
+      "not_reviewed",
+      "needs_revision"
+    ],
+    "require_pattern_id": true,
+    "require_pattern_hash": true,
+    "require_primary_api": true,
+    "require_framework": true,
+    "require_direct_source_report": true
+  },
+
+  "normalization": {
+    "string_normalization": "trim_only",
+    "enum_normalization": "exact_value",
+    "array_normalization": {
+      "remove_null": true,
+      "remove_empty_string": true,
+      "remove_unknown_enum": true,
+      "remove_duplicates": true,
+      "sort_values": true
+    },
+    "pattern_sort_key": "pattern_id",
+    "pair_sort_rule": "lexicographic_pattern_id",
+    "jaccard_precision": 6,
+    "jaccard_both_empty_value": null
+  },
+
+  "eligibility_policy": {
+    "minimum_pattern_count": 2,
+    "minimum_distinct_api_count": 2,
+    "minimum_independent_report_count": 2,
+    "require_same_framework": true,
+    "require_all_members_api_specific": true,
+    "require_all_members_valid_v2": true,
+    "allow_multiple_patterns_from_same_api": true,
+    "allow_multiple_patterns_from_same_report": true,
+    "same_report_patterns_count_as_independent_sources": false
+  },
+
+  "retrieval_signature_fields": {
+    "primary_defect_class": "defect_classification.primary_defect_class",
+    "secondary_defect_classes": "defect_classification.secondary_defect_classes",
+    "risk_dimensions": "defect_classification.risk_dimensions",
+    "candidate_family_tags": "transferability_hypothesis.candidate_family_tags",
+    "trigger_dimensions": "trigger_signature.conditions[].dimension",
+    "mechanism_layers": "defect_mechanism.hypotheses[].layer",
+    "failure_types": "observed_failure.failure_type",
+    "historical_oracle_kinds": "observed_failure.historical_oracle.kind",
+    "transferability_evidence_status": "transferability_hypothesis.evidence_status",
+    "transferability_confidence": "transferability_hypothesis.confidence"
+  },
+
+  "signal_categories": {
+    "classification": [
+      "primary_defect_class_match",
+      "secondary_defect_class_match"
+    ],
+    "risk": [
+      "risk_dimension_match"
+    ],
+    "transferability": [
+      "candidate_family_tag_match"
+    ],
+    "trigger": [
+      "trigger_dimension_match"
+    ],
+    "mechanism": [
+      "mechanism_layer_match"
+    ],
+    "observation": [
+      "failure_type_match",
+      "historical_oracle_kind_match"
+    ]
+  },
+
+  "strong_signal_rules": [
+    {
+      "name": "primary_defect_class_with_shared_risk",
+      "categories": [
+        "classification",
+        "risk"
+      ],
+      "requirements": {
+        "all": [
+          {
+            "field": "primary_defect_class",
+            "comparison": "exact_equal_non_null"
+          },
+          {
+            "field": "risk_dimensions",
+            "comparison": "intersection_non_empty"
+          }
+        ]
+      }
+    },
+    {
+      "name": "supported_family_tag_with_trigger_or_mechanism",
+      "categories": [
+        "transferability",
+        "trigger",
+        "mechanism"
+      ],
+      "requirements": {
+        "all": [
+          {
+            "field": "candidate_family_tags",
+            "comparison": "intersection_non_empty"
+          },
+          {
+            "field": "transferability_evidence_status",
+            "comparison": "both_values_not_equal",
+            "value": "unknown"
+          },
+          {
+            "field": "transferability_confidence",
+            "comparison": "both_values_in",
+            "values": [
+              "medium",
+              "high"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "field": "trigger_dimensions",
+            "comparison": "intersection_non_empty"
+          },
+          {
+            "field": "mechanism_layers",
+            "comparison": "intersection_non_empty"
+          }
+        ]
+      }
+    },
+    {
+      "name": "shared_trigger_with_mechanism",
+      "categories": [
+        "trigger",
+        "mechanism"
+      ],
+      "requirements": {
+        "all": [
+          {
+            "field": "trigger_dimensions",
+            "comparison": "intersection_non_empty"
+          },
+          {
+            "field": "mechanism_layers",
+            "comparison": "intersection_non_empty"
+          }
+        ]
+      }
+    }
+  ],
+
+  "weak_signal_rules": [
+    {
+      "name": "primary_defect_class_match",
+      "category": "classification",
+      "field": "primary_defect_class",
+      "comparison": "exact_equal_non_null"
+    },
+    {
+      "name": "secondary_defect_class_match",
+      "category": "classification",
+      "field": "secondary_defect_classes",
+      "comparison": "intersection_non_empty"
+    },
+    {
+      "name": "risk_dimension_match",
+      "category": "risk",
+      "field": "risk_dimensions",
+      "comparison": "intersection_non_empty"
+    },
+    {
+      "name": "candidate_family_tag_match",
+      "category": "transferability",
+      "field": "candidate_family_tags",
+      "comparison": "intersection_non_empty"
+    },
+    {
+      "name": "trigger_dimension_match",
+      "category": "trigger",
+      "field": "trigger_dimensions",
+      "comparison": "intersection_non_empty"
+    },
+    {
+      "name": "mechanism_layer_match",
+      "category": "mechanism",
+      "field": "mechanism_layers",
+      "comparison": "intersection_non_empty"
+    },
+    {
+      "name": "failure_type_match",
+      "category": "observation",
+      "field": "failure_types",
+      "comparison": "intersection_non_empty"
+    },
+    {
+      "name": "historical_oracle_kind_match",
+      "category": "observation",
+      "field": "historical_oracle_kinds",
+      "comparison": "intersection_non_empty"
+    }
+  ],
+
+  "candidate_link_policy": {
+    "pass_if_any_condition_matches": [
+      {
+        "condition_name": "strong_signal_path",
+        "minimum_strong_signal_count": 1
+      },
+      {
+        "condition_name": "weak_signal_fallback",
+        "minimum_weak_signal_count": 3,
+        "minimum_distinct_signal_category_count": 2,
+        "require_at_least_one_category_from": [
+          "classification",
+          "transferability",
+          "trigger",
+          "mechanism"
+        ]
+      }
+    ],
+    "observation_only_link_allowed": false,
+    "single_broad_field_link_allowed": false,
+    "store_passed_and_failed_pairs": true
+  },
+
+  "grouping_policy": {
+    "grouping_method": "connected_components",
+    "minimum_component_size": 2,
+    "emit_only_eligible_components": true,
+    "include_all_internal_pairs": true,
+    "allow_overlapping_candidate_groups": false,
+    "candidate_group_large_threshold": 10
+  },
+
+  "group_consistency_policy": {
+    "chain_drift_rule": {
+      "enabled": true,
+      "flag_when_failed_internal_pair_count_greater_than": 0
+    },
+    "outlier_rule": {
+      "enabled": true,
+      "minimum_group_size": 3,
+      "link_coverage_operator": "less_than",
+      "link_coverage_threshold": 0.5
+    },
+    "subgroup_rule": {
+      "enabled": true,
+      "method": "connected_components_of_strong_signal_graph",
+      "minimum_subgroup_size": 2,
+      "remove_duplicate_subgroups": true,
+      "remove_full_group_subgroup": true
+    },
+    "all_member_strong_signal_rule": {
+      "enabled": true,
+      "require_same_strong_signal_across_all_members": true
+    }
+  },
+
+  "group_signal_policy": {
+    "shared_field_operation": "set_intersection_across_all_members",
+    "shared_primary_defect_class_rule": "exact_equal_across_all_members_or_null",
+    "empty_shared_array_value": [],
+    "shared_fields_are_family_claims": false
+  },
+
+  "candidate_identifier_policy": {
+    "prefix_by_framework": {
+      "pytorch": "pfc_pt",
+      "tensorflow": "pfc_tf"
+    },
+    "fallback_framework_prefix": "pfc_{normalized_framework}",
+    "hash_inputs": [
+      "sorted_member_pattern_ids",
+      "sorted_member_pattern_hashes",
+      "retrieval_policy_version",
+      "retrieval_policy_hash"
+    ],
+    "short_hash_length": 12,
+    "filename_template": "{candidate_group_id}.json",
+    "semantic_name_allowed": false
+  },
+
+  "run_identifier_policy": {
+    "prefix_by_framework": {
+      "pytorch": "pfcr_pt",
+      "tensorflow": "pfcr_tf"
+    },
+    "fallback_framework_prefix": "pfcr_{normalized_framework}",
+    "sequence_width": 6,
+    "run_directory_template": "{run_id}",
+    "run_index_filename": "candidate_run_index.json"
+  },
+
+  "hashing_policy": {
+    "algorithm": "sha256",
+
+    "canonical_json_sort_keys": true,
+    "canonical_json_ensure_ascii": false,
+    "canonical_json_separators": [
+      ",",
+      ":"
+    ],
+
+    "retrieval_policy_hash_mode": "canonical_json",
+
+    "candidate_group_hash_mode": "explicit_semantic_allowlist",
+
+    "candidate_group_hash_semantic_fields": [
+      "manifest_version",
+      "metadata.framework",
+      "generation_information.retrieval_policy_version",
+      "generation_information.retrieval_policy_hash",
+      "members[].pattern_id",
+      "members[].pattern_hash",
+      "members[].primary_api",
+      "members[].source_report_ids",
+      "members[].validation_status",
+      "members[].retrieval_signature",
+      "members[].signal_provenance",
+      "eligibility_summary",
+      "group_retrieval_signals",
+      "pairwise_links",
+      "group_consistency",
+      "retrieval_warnings"
+    ],
+
+    "candidate_group_hash_nonsemantic_fields": [
+      "metadata.candidate_group_id",
+      "metadata.candidate_group_hash",
+      "metadata.candidate_purpose",
+      "metadata.candidate_status",
+      "generation_information.script_version",
+      "generation_information.script_hash",
+      "generation_information.source_corpus_hash",
+      "generation_information.generated_at",
+      "members[].pattern_relpath",
+      "existing_family_matches"
+    ],
+
+    "source_corpus_hash_inventory_fields": [
+      "pattern_id",
+      "pattern_hash"
+    ]
+  },
+
+  "candidate_run_tracking_policy": {
+    "enabled": true,
+
+    "recomputation_mode": "full_eligible_pattern_corpus_per_framework",
+
+    "default_previous_run_selection": "latest_previous_run",
+
+    "previous_run_records_are_immutable": true,
+    "candidate_objects_are_content_reused": true,
+
+    "comparison_uses_member_sets": true,
+    "comparison_uses_candidate_group_hash": true,
+
+    "allowed_current_candidate_change_statuses": [
+      "new",
+      "unchanged",
+      "changed",
+      "expanded",
+      "contracted",
+      "merged_component",
+      "split_component"
+    ],
+
+    "analysis_recommended_for_statuses": [
+      "new",
+      "changed",
+      "expanded",
+      "contracted",
+      "merged_component",
+      "split_component"
+    ],
+
+    "analysis_not_recommended_for_statuses": [
+      "unchanged"
+    ],
+
+    "retired_candidates_stored_separately": true,
+    "superseded_candidates_stored_separately": true,
+
+    "first_run_policy_compatibility_value": null,
+
+    "write_run_index_when_candidate_count_is_zero": true,
+
+    "llm_decision_cache_checked_by_candidate_script": false,
+    "llm_decision_cache_checked_by_family_conversion_script": true
+  },
+
+  "warning_policy": {
+    "allowed_warning_values": [
+      "duplicate_report_source",
+      "chain_drift",
+      "weak_shared_signal",
+      "rule_flagged_outlier",
+      "candidate_group_too_large",
+      "low_confidence_source_pattern",
+      "missing_transferability_evidence"
+    ],
+    "warning_conditions": {
+      "duplicate_report_source": "independent_report_count_less_than_pattern_count",
+      "chain_drift": "group_consistency.chain_drift_flag_is_true",
+      "weak_shared_signal": "group_consistency.all_members_share_strong_signal_is_false",
+      "rule_flagged_outlier": "rule_flagged_outlier_pattern_ids_is_not_empty",
+      "candidate_group_too_large": "pattern_count_greater_than_candidate_group_large_threshold",
+      "low_confidence_source_pattern": "any_member_with_non_empty_candidate_family_tags_has_transferability_confidence_low",
+      "missing_transferability_evidence": "shared_family_tag_exists_and_any_member_transferability_evidence_status_is_unknown"
+    },
+    "free_text_warnings_allowed": false
+  },
+
+  "incremental_matching_policy": {
+    "scope": "existing_verified_pattern_family_matching",
+    "enabled": false,
+
+    "candidate_run_change_tracking_is_incremental_matching": false,
+
+    "automatic_family_membership_update_allowed": false,
+    "automatic_family_merge_allowed": false,
+    "automatic_family_split_allowed": false
+  },
+
+  "output_policy": {
+    "output_root": "quality/pattern_family_candidates",
+
+    "candidate_object_subdirectory": "objects",
+    "candidate_run_subdirectory": "runs",
+
+    "framework_subdirectory_required": true,
+
+    "overwrite_existing_candidate_object": false,
+    "overwrite_existing_run_index": false,
+
+    "reuse_identical_candidate_object": true,
+
+    "output_json_indent": 2,
+    "output_ensure_ascii": false,
+
+    "sort_members_by_pattern_id": true,
+    "sort_pairwise_links": true,
+    "sort_retrieval_warnings": true
+  },
+
+  "pilot_and_freeze_policy": {
+    "thresholds_are_provisional": true,
+    "pilot_required_before_large_scale_generation": true,
+    "policy_version_must_change_when_thresholds_change": true,
+    "frozen_policy_required_for_main_experiment": true,
+    "post_experiment_threshold_tuning_allowed": false
+  }
+}

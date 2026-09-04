@@ -36,10 +36,9 @@ RULE_FILE = os.path.join(
     "pattern_to_knowledge_rules.md"
 )
 
-SCHEMA_VERSION = "2.1"
-MAPPING_VERSION = "2.1"
-PROMPT_VERSION = "knowledge_extract_v2_1"
-INPUT_PATTERN_SCHEMA_VERSION = "2.1"
+SCHEMA_VERSION = "2.0"
+MAPPING_VERSION = "2.0"
+PROMPT_VERSION = "knowledge_extract_v2"
 
 DEFAULT_MODEL = "deepseek-v4-pro"
 
@@ -70,6 +69,8 @@ FORBIDDEN_FIELD_NAMES = {
     "harness_code",
     "generated_code",
     "code_generation_prompt",
+    "general_knowledge",
+    "pattern_family"
 }
 
 
@@ -411,6 +412,7 @@ def build_available_evidence_refs(pattern, pattern_id):
         "trigger_signature",
         "defect_mechanism",
         "observed_failure",
+        "transferability_hypothesis",
         "confidence"
     ]:
         if field_name in pattern:
@@ -482,29 +484,6 @@ def build_available_evidence_refs(pattern, pattern_id):
 
 
 def build_pattern_context(pattern):
-    validate_exact_keys(
-        pattern,
-        {
-            "schema_version",
-            "metadata",
-            "derivation_information",
-            "provenance",
-            "scope",
-            "defect_classification",
-            "trigger_signature",
-            "defect_mechanism",
-            "observed_failure",
-            "confidence"
-        },
-        "Pattern"
-    )
-
-    if pattern["schema_version"] != INPUT_PATTERN_SCHEMA_VERSION:
-        raise ValueError(
-            "Pattern schema_version must be "
-            f"{INPUT_PATTERN_SCHEMA_VERSION}"
-        )
-
     metadata = get_pattern_metadata(pattern)
     scope = get_pattern_scope(pattern)
 
@@ -891,6 +870,7 @@ def validate_candidate(
     validate_exact_keys(
         applicability,
         {
+            "candidate_family_tags",
             "applicability_conditions",
             "exclusion_conditions",
             "rationale",
@@ -899,6 +879,18 @@ def validate_candidate(
         },
         "applicability"
     )
+
+    validate_string_list(
+        applicability["candidate_family_tags"],
+        "applicability.candidate_family_tags"
+    )
+
+    for tag in applicability["candidate_family_tags"]:
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", tag):
+            raise ValueError(
+                "candidate_family_tags must use "
+                "lower_snake_case"
+            )
 
     validate_conditions(
         applicability["applicability_conditions"],
@@ -927,6 +919,7 @@ def validate_candidate(
 
     applicability_is_active = any(
         [
+            applicability["candidate_family_tags"],
             applicability["applicability_conditions"],
             applicability["exclusion_conditions"],
             applicability["rationale"] is not None

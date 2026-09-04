@@ -1,7 +1,7 @@
 # EXP006: Historical Bug Information Database
 
 EXP006 is the canonical Historical Bug Information Database. It owns the
-processed historical bug reports, extracted patterns, generated knowledge,
+processed historical bug reports, API-specific patterns, API-specific knowledge,
 schemas, validation examples, quality reviews, and transformation scripts.
 
 Its data flow is:
@@ -10,11 +10,14 @@ Its data flow is:
 raw issue/report -> structured bug report -> bug pattern -> knowledge base
 ```
 
-The current database contains 39 structured bug reports, 39 bug patterns, and
-39 knowledge items. The next 30-50 PyTorch historical bugs will continue to be
-added under this directory.
+Previous processed records are preserved under `legacy/`. Active Pattern and
+Knowledge records will be regenerated under the v2.1 schemas after the Report
+schema is finalized. New PyTorch historical bugs will continue to be added here.
+
+EXP006 ends at API-specific Knowledge. HarnessSpec synthesis and executable
+strategy design belong to EXP011.
 
 The repository-level `dataset/` directory is only the raw source and interim
 selection workspace; it does not contain this canonical processed database.
 
-`README_legacy.md` preserves the original EXP006 documentation from FlashFuzz.
+`legacy/README_legacy.md` preserves the original EXP006 documentation from FlashFuzz.

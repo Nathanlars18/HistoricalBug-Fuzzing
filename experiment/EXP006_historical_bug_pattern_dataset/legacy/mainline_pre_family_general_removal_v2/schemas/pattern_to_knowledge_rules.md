@@ -1,4 +1,4 @@
-# Pattern-to-Knowledge Rules v2.1
+# Pattern-to-Knowledge Rules v2.0
 
 ## 1. Purpose
 
@@ -42,6 +42,8 @@ that all testing knowledge is naturally one-to-one with Patterns.
 Do not produce:
 
 - multiple Knowledge candidates;
+- General Knowledge, Pattern Families, or General Patterns;
+- candidate transfer APIs;
 - concrete input generation, Strategy Primitives, predicates, HarnessSpec,
   code-generation prompts, or Harness code.
 
@@ -58,9 +60,10 @@ Do not produce:
 | `defect_classification`, `trigger_signature`, and `defect_mechanism` | `knowledge_statement.risk_principle` | Abstract the reusable testing risk; do not reproduce the full trigger or mechanism. |
 | Trigger, mechanism, and failure evidence | `knowledge_statement.testing_objective` | State what testing should explore or observe at a high level. |
 | `observed_failure` and relevant mechanism evidence | `knowledge_statement.failure_relevance` | Explain why the objective may reveal historically relevant behavior; otherwise use `null`. |
-| Pattern scope, trigger, and mechanism evidence | `applicability.applicability_conditions` | Derive semantic prerequisites within the directly supported API scope. |
+| `transferability_hypothesis.candidate_family_tags` | `applicability.candidate_family_tags` | Preserve cautious retrieval tags only; they do not establish transferability. |
+| Pattern scope, trigger, mechanism, and transferability evidence | `applicability.applicability_conditions` | Derive semantic prerequisites for selecting the Knowledge. |
 | Known semantic limits in Pattern evidence | `applicability.exclusion_conditions` | Derive known reasons not to select the Knowledge. |
-| Pattern scope, trigger, and mechanism evidence | `applicability.rationale` | State a concise applicability boundary within the directly supported API scope. |
+| Pattern transferability rationale | `applicability.rationale` | State a concise applicability boundary without naming unverified APIs. |
 | Selected risk dimensions, triggers, and mechanism evidence | `testing_guidance.exploration_goals` | Derive the smallest useful set of high-level exploration goals. |
 | Exploration-goal target dimensions | `testing_guidance.risk_dimensions` | Use the de-duplicated set of `target_dimension` values. |
 | `observed_failure.historical_oracle` and `observed_failure` | `testing_guidance.oracle_guidance` | Preserve evidence-supported observation targets only. |
@@ -89,10 +92,11 @@ speculation, return the conservative candidate and let validation mark it
 
 ### 4.2 Scope and applicability
 
-`directly_supported_apis` is inherited from Pattern evidence. It must match the API scope directly supported by the source Pattern.
+`directly_supported_apis` is inherited from Pattern evidence. It must not
+contain transfer candidates.
 
-Applicability conditions answer whether this Knowledge is relevant to a testing
-scenario within its directly supported API scope. They use only:
+Applicability conditions answer whether this Knowledge may be selected for a
+target API. They use only:
 
 - `api_semantics`;
 - `input_capability`;
@@ -103,6 +107,9 @@ code, mutation operations, or executable predicates.
 
 Use `exclusion_conditions` only for known semantic inapplicability. Use
 `evidence_basis.limitations` for missing or insufficient evidence.
+
+`candidate_family_tags` are retrieval hints for later analysis; they do not
+assert a Pattern Family, General Pattern, or General Knowledge.
 
 ### 4.3 Exploration and Oracle guidance
 
@@ -123,7 +130,7 @@ timeout thresholds, sanitizer configuration, reference calls, or C++ code.
 
 ### 4.4 Confidence
 
-Confidence measures evidence support, not how fluent or broad a statement
+Confidence measures evidence support, not how fluent or general a statement
 appears.
 
 - `high`: directly and consistently supported by Pattern evidence;
@@ -145,7 +152,7 @@ The LLM emits:
 - derivation rationale and limitations;
 - Knowledge statement;
 - applicability and exclusion conditions;
-- applicability conditions, exclusions, and rationale;
+- candidate family tags and applicability rationale;
 - exploration goals;
 - Oracle guidance;
 - confidence values.
@@ -157,4 +164,5 @@ The script:
 - assigns condition and goal IDs;
 - validates evidence references, controlled values, scope inheritance, and
   exploration-goal dimensions;
-- rejects unsupported code, predicates, concrete test construction and HarnessSpec content.
+- rejects unsupported code, predicates, concrete test construction,
+  HarnessSpec, and General Knowledge content.

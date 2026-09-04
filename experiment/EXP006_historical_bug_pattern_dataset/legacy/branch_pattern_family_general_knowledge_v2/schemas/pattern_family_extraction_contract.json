@@ -1,0 +1,287 @@
+{
+  "contract_version": "1.1",
+  "contract_name": "historical_bug_pattern_family_extraction",
+  "contract_status": "draft",
+  "target_schema_version": "1.1",
+
+  "response_template": {
+    "decision": null,
+    "decision_rationale": null,
+    "decision_evidence_refs": [],
+    "proposed_families": [],
+    "excluded_patterns": [],
+    "unresolved_issues": []
+  },
+
+  "item_templates": {
+    "proposed_family": {
+      "canonical_name": null,
+
+      "members": [],
+
+      "family_core": {
+        "statement": null,
+        "basis_types": [],
+        "shared_defect_classes": [],
+        "shared_risk_dimensions": [],
+        "evidence_status": null,
+        "evidence_refs": [],
+        "confidence": null
+      },
+
+      "shared_characteristics": {
+        "trigger_semantics": [],
+        "mechanism_semantics": [],
+        "execution_semantics": [],
+        "failure_observables": []
+      },
+
+      "applicability": {
+        "required_capabilities": [],
+        "exclusion_conditions": []
+      },
+
+      "heterogeneity": {
+        "member_differences": [],
+        "unresolved_conflicts": []
+      },
+
+      "lineage": {
+        "action": null,
+        "target_family_id": null,
+        "parent_family_ids": [],
+        "rationale": null
+      },
+
+      "confidence": {
+        "membership": null,
+        "commonality": null,
+        "applicability": null,
+        "generalization": null
+      }
+    },
+
+    "family_member": {
+      "pattern_id": null,
+      "membership_rationale": null,
+      "evidence_status": null,
+      "evidence_refs": [],
+      "confidence": null
+    },
+
+    "shared_characteristic": {
+      "statement": null,
+      "supporting_pattern_ids": [],
+      "evidence_status": null,
+      "evidence_refs": [],
+      "confidence": null
+    },
+
+    "applicability_condition": {
+      "kind": null,
+      "statement": null,
+      "supporting_pattern_ids": [],
+      "evidence_status": null,
+      "evidence_refs": [],
+      "confidence": null
+    },
+
+    "member_difference": {
+      "dimension": null,
+      "statement": null,
+      "affected_pattern_ids": [],
+      "significance": null,
+      "evidence_status": null,
+      "evidence_refs": [],
+      "confidence": null
+    },
+
+    "unresolved_conflict": {
+      "impact": null,
+      "statement": null,
+      "affected_pattern_ids": [],
+      "evidence_status": null,
+      "evidence_refs": [],
+      "confidence": null,
+      "resolution_status": null
+    },
+
+    "excluded_pattern": {
+      "pattern_id": null,
+      "reason": null,
+      "evidence_refs": []
+    },
+
+    "unresolved_issue": {
+      "issue": null,
+      "affected_pattern_ids": [],
+      "evidence_refs": [],
+      "required_action": null
+    }
+  },
+
+  "array_item_mapping": {
+    "proposed_families[]": "proposed_family",
+    "excluded_patterns[]": "excluded_pattern",
+    "unresolved_issues[]": "unresolved_issue",
+
+    "proposed_families[].members[]": "family_member",
+
+    "proposed_families[].shared_characteristics.trigger_semantics[]": "shared_characteristic",
+    "proposed_families[].shared_characteristics.mechanism_semantics[]": "shared_characteristic",
+    "proposed_families[].shared_characteristics.execution_semantics[]": "shared_characteristic",
+    "proposed_families[].shared_characteristics.failure_observables[]": "shared_characteristic",
+
+    "proposed_families[].applicability.required_capabilities[]": "applicability_condition",
+    "proposed_families[].applicability.exclusion_conditions[]": "applicability_condition",
+
+    "proposed_families[].heterogeneity.member_differences[]": "member_difference",
+    "proposed_families[].heterogeneity.unresolved_conflicts[]": "unresolved_conflict"
+  },
+
+  "allowed_values": {
+    "decision": [
+      "accept",
+      "split",
+      "reject",
+      "needs_revision"
+    ],
+
+    "evidence_status": [
+      "pattern_explicit",
+      "cross_pattern_derived",
+      "analyst_inferred"
+    ],
+
+    "confidence": [
+      "high",
+      "medium",
+      "low"
+    ],
+
+    "basis_type": [
+      "risk_boundary",
+      "trigger_semantics",
+      "mechanism_semantics",
+      "execution_semantics",
+      "failure_observable"
+    ],
+
+    "applicability_kind": [
+      "api_semantics",
+      "input_capability",
+      "execution_capability"
+    ],
+
+    "difference_dimension": [
+      "api_semantics",
+      "risk_boundary",
+      "trigger",
+      "mechanism",
+      "execution",
+      "failure",
+      "applicability",
+      "evidence_quality"
+    ],
+
+    "difference_significance": [
+      "minor",
+      "material"
+    ],
+
+    "conflict_impact": [
+      "membership",
+      "family_core",
+      "applicability",
+      "generalization"
+    ],
+
+    "conflict_resolution_status": [
+      "open",
+      "deferred"
+    ],
+
+    "lineage_action": [
+      "create_new",
+      "reuse_existing",
+      "update_existing",
+      "derive_new",
+      "merge_existing",
+      "split_existing"
+    ]
+  },
+
+  "decision_cardinality": {
+    "accept": {
+      "minimum_proposed_family_count": 1,
+      "maximum_proposed_family_count": 1,
+      "minimum_unresolved_issue_count": 0,
+      "maximum_unresolved_issue_count": 0
+    },
+
+    "split": {
+      "minimum_proposed_family_count": 2,
+      "maximum_proposed_family_count": null,
+      "minimum_unresolved_issue_count": 0,
+      "maximum_unresolved_issue_count": 0
+    },
+
+    "reject": {
+      "minimum_proposed_family_count": 0,
+      "maximum_proposed_family_count": 0,
+      "all_input_patterns_must_be_excluded": true
+    },
+
+    "needs_revision": {
+      "minimum_proposed_family_count": 0,
+      "maximum_proposed_family_count": 0,
+      "minimum_unresolved_issue_count": 1
+    }
+  },
+
+  "structural_constraints": [
+    "decision must use one value from allowed_values.decision.",
+    "decision_rationale must be a non-empty string.",
+    "For accept, split, and reject, decision_evidence_refs must not be empty.",
+    "Every Pattern ID must exist in the input Candidate Manifest.",
+    "Every evidence reference must resolve to a provided Pattern field.",
+    "Every proposed Family canonical_name must use lowercase snake_case.",
+    "Every proposed Family must contain at least two members from at least two distinct primary APIs and at least two independent Report or Issue sources.",
+    "A Pattern ID must not appear more than once in the same proposed Family.",
+    "For accept and split, every input Pattern must appear in at least one proposed Family or in excluded_patterns.",
+    "For reject, every input Pattern must appear in excluded_patterns.",
+    "A Pattern assigned to a proposed Family must not also appear in excluded_patterns.",
+    "For split, the same Pattern may appear in multiple proposed Families.",
+    "Every Family member must contain a non-empty membership_rationale.",
+    "Every Family member must contain at least one evidence reference.",
+    "Every proposed Family must contain a non-empty family_core.statement.",
+    "Every proposed Family family_core.basis_types must contain at least one allowed value.",
+    "Every proposed Family family_core.evidence_refs must not be empty.",
+    "Every supporting_pattern_ids value must identify a member of the corresponding proposed Family.",
+    "Every affected_pattern_ids value must identify a member of the corresponding proposed Family.",
+    "Every proposed Family must contain a lineage object.",
+    "Every proposed Family lineage.action must use one value from allowed_values.lineage_action.",
+    "Every proposed Family lineage.rationale must be a non-empty string.",
+    "For create_new, target_family_id must be null and parent_family_ids must be empty.",
+    "For reuse_existing and update_existing, target_family_id must identify one provided existing Family and parent_family_ids must be empty.",
+    "For derive_new, target_family_id must be null and parent_family_ids must contain at least one provided existing Family ID.",
+    "For merge_existing, target_family_id must be null and parent_family_ids must contain at least two distinct provided existing Family IDs.",
+    "For split_existing, target_family_id must be null and parent_family_ids must contain exactly one provided existing Family ID.",
+    "A parent_family_ids array must not contain duplicate Family IDs.",
+    "If split_existing is used, the top-level decision must be split and at least two proposed Families must reference the same single parent Family with split_existing.",
+    "Every lineage Family ID must identify an existing Family explicitly provided in the current analysis input.",
+    "Every proposed Family must assign membership, commonality, applicability, and generalization confidence.",
+    "All evidence_status, confidence, basis type, condition kind, difference, conflict, and lineage-action values must use allowed_values.",
+    "Empty strings are not allowed."
+  ],
+
+  "output_constraints": {
+    "json_only": true,
+    "single_top_level_object": true,
+    "markdown_allowed": false,
+    "comments_allowed": false,
+    "additional_fields_allowed": false,
+    "all_template_arrays_required": true,
+    "literal_placeholder_values_allowed": false
+  }
+}

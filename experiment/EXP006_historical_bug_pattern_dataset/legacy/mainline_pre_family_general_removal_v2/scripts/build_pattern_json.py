@@ -36,9 +36,9 @@ MAPPING_FILE = os.path.join(
     "report_to_pattern_mapping.md"
 )
 
-SCHEMA_VERSION = "2.1"
-MAPPING_VERSION = "2.1"
-PROMPT_VERSION = "pattern_extract_v2_1"
+SCHEMA_VERSION = "2.0"
+MAPPING_VERSION = "2.0"
+PROMPT_VERSION = "pattern_extract_v2"
 
 DEFAULT_MODEL = "deepseek-v4-pro"
 
@@ -54,6 +54,7 @@ CANDIDATE_KEYS = {
     "trigger_signature",
     "defect_mechanism",
     "observed_failure",
+    "transferability_hypothesis",
     "confidence"
 }
 
@@ -994,6 +995,77 @@ def validate_candidate(
             required=True
         )
 
+    transferability = candidate[
+        "transferability_hypothesis"
+    ]
+
+    validate_exact_keys(
+        transferability,
+        {
+            "candidate_family_tags",
+            "applicability_conditions",
+            "exclusion_conditions",
+            "rationale",
+            "evidence_status",
+            "evidence_refs",
+            "confidence"
+        },
+        "transferability_hypothesis"
+    )
+
+    for key in [
+        "candidate_family_tags",
+        "applicability_conditions",
+        "exclusion_conditions"
+    ]:
+        validate_string_list(
+            transferability[key],
+            f"transferability_hypothesis.{key}"
+        )
+
+    for tag in transferability[
+        "candidate_family_tags"
+    ]:
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", tag):
+            raise ValueError(
+                "candidate_family_tags must use lower_snake_case"
+            )
+
+    if transferability["rationale"] is not None:
+        require_string(
+            transferability["rationale"],
+            "transferability_hypothesis.rationale"
+        )
+
+    validate_enum(
+        transferability["evidence_status"],
+        vocabularies["evidence_status"],
+        "transferability_hypothesis.evidence_status"
+    )
+
+    transferability_is_active = any(
+        [
+            transferability["candidate_family_tags"],
+            transferability["applicability_conditions"],
+            transferability["exclusion_conditions"],
+            transferability["rationale"] is not None,
+            transferability["evidence_status"] != "unknown"
+        ]
+    )
+
+    validate_evidence_refs(
+        transferability["evidence_refs"],
+        allowed_refs,
+        "transferability_hypothesis.evidence_refs",
+        required=transferability_is_active
+    )
+
+    validate_enum(
+        transferability["confidence"],
+        vocabularies["confidence"],
+        "transferability_hypothesis.confidence"
+    )
+
     confidence = candidate["confidence"]
 
     validate_exact_keys(
@@ -1001,7 +1073,8 @@ def validate_candidate(
         {
             "trigger_confidence",
             "mechanism_confidence",
-            "oracle_confidence"
+            "oracle_confidence",
+            "transferability_confidence"
         },
         "confidence"
     )
@@ -1169,6 +1242,10 @@ def enrich_final_pattern(
 
         "observed_failure": candidate[
             "observed_failure"
+        ],
+
+        "transferability_hypothesis": candidate[
+            "transferability_hypothesis"
         ],
 
         "confidence": candidate["confidence"]

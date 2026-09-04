@@ -1,0 +1,287 @@
+{
+  "contract_version": "1.0",
+  "contract_name": "historical_bug_general_knowledge_extraction",
+  "target_schema_version": "1.0",
+
+  "content_boundary": {
+    "knowledge_level": "cross_api_reusable_testing_abstraction",
+
+    "allowed_content": [
+      "cross_api_risk_principle",
+      "testing_objective",
+      "semantic_applicability_boundary",
+      "semantic_exclusion_boundary",
+      "high_level_exploration_goal",
+      "oracle_observation_target",
+      "evidence_limitation"
+    ],
+
+    "forbidden_content": [
+      "exact_historical_reproducer",
+      "concrete_input_values",
+      "exact_parameter_combinations",
+      "tensor_construction_procedure",
+      "mutation_procedure",
+      "executable_predicate",
+      "oracle_implementation",
+      "strategy_primitive",
+      "harnessspec",
+      "source_code",
+      "feedback_loop_state"
+    ]
+  },
+
+  "response_template": {
+    "decision": null,
+    "general_knowledge": null,
+    "unresolved_issues": []
+  },
+
+  "item_templates": {
+    "general_knowledge": {
+      "canonical_name": null,
+
+      "evidence_basis": {
+        "family_evidence_refs": [],
+        "supporting_knowledge": [],
+        "derivation_rationale": null,
+        "limitations": []
+      },
+
+      "knowledge_statement": {
+        "risk_principle": null,
+        "testing_objective": null,
+        "failure_relevance": null,
+        "evidence_status": null,
+        "evidence_refs": []
+      },
+
+      "applicability": {
+        "retrieval_tags": [],
+        "applicability_conditions": [],
+        "exclusion_conditions": [],
+        "rationale": null,
+        "evidence_status": null,
+        "evidence_refs": []
+      },
+
+      "testing_guidance": {
+        "exploration_goals": [],
+        "oracle_guidance": []
+      },
+
+      "confidence": {
+        "evidence_confidence": null,
+        "abstraction_confidence": null,
+        "applicability_confidence": null,
+        "oracle_guidance_confidence": null,
+        "generalization_confidence": null
+      }
+    },
+
+    "supporting_knowledge": {
+      "knowledge_id": null,
+      "evidence_refs": []
+    },
+
+    "limitation": {
+      "limitation_kind": null,
+      "statement": null,
+      "evidence_status": null,
+      "evidence_refs": []
+    },
+
+    "applicability_condition": {
+      "condition_kind": null,
+      "statement": null,
+      "evidence_status": null,
+      "evidence_refs": []
+    },
+
+    "exclusion_condition": {
+      "condition_kind": null,
+      "statement": null,
+      "evidence_status": null,
+      "evidence_refs": []
+    },
+
+    "exploration_goal": {
+      "target_dimension": null,
+      "statement": null,
+      "priority": null,
+      "evidence_status": null,
+      "evidence_refs": []
+    },
+
+    "oracle_guidance": {
+      "objective": null,
+      "observation_kind": null,
+      "evidence_status": null,
+      "evidence_refs": [],
+      "confidence": null
+    },
+
+    "unresolved_issue": {
+      "issue": null,
+      "evidence_refs": [],
+      "required_action": null
+    }
+  },
+
+  "array_item_mapping": {
+    "unresolved_issues[]": "unresolved_issue",
+
+    "general_knowledge.evidence_basis.supporting_knowledge[]": "supporting_knowledge",
+    "general_knowledge.evidence_basis.limitations[]": "limitation",
+
+    "general_knowledge.applicability.applicability_conditions[]": "applicability_condition",
+    "general_knowledge.applicability.exclusion_conditions[]": "exclusion_condition",
+
+    "general_knowledge.testing_guidance.exploration_goals[]": "exploration_goal",
+    "general_knowledge.testing_guidance.oracle_guidance[]": "oracle_guidance"
+  },
+
+  "allowed_values": {
+    "decision": [
+      "accept",
+      "needs_revision"
+    ],
+
+    "evidence_status": [
+      "family_explicit",
+      "family_derived",
+      "analyst_inferred",
+      "unknown"
+    ],
+
+    "limitation_kind": [
+      "member_difference",
+      "unresolved_conflict",
+      "applicability_boundary",
+      "evidence_gap",
+      "support_boundary"
+    ],
+
+    "condition_kind": [
+      "api_semantics",
+      "input_capability",
+      "execution_capability"
+    ],
+
+    "risk_dimension": [
+      "shape",
+      "dtype",
+      "value",
+      "device",
+      "backend",
+      "layout",
+      "memory",
+      "aliasing",
+      "output_tensor",
+      "state",
+      "execution",
+      "graph",
+      "concurrency",
+      "api_contract"
+    ],
+
+    "priority": [
+      "primary",
+      "secondary"
+    ],
+
+    "observation_kind": [
+      "historical_observable",
+      "derived_oracle_candidate"
+    ],
+
+    "confidence": [
+      "high",
+      "medium",
+      "low"
+    ]
+  },
+
+  "value_formats": {
+    "canonical_name": "lower_snake_case",
+    "retrieval_tag": "lower_snake_case",
+    "family_evidence_ref": "family:<family_id>:<field_or_local_element_path>",
+    "knowledge_evidence_ref": "knowledge:<knowledge_id>:<field_or_local_element_path>"
+  },
+
+  "placeholder_policy": {
+    "null_in_required_non_nullable_fields": "template_placeholder_only",
+    "null_in_schema_nullable_fields": "allowed_when_supported_claim_is_unavailable",
+    "unknown": "valid_controlled_value",
+    "low": "valid_controlled_value_not_a_fixed_default",
+    "empty_array": "valid_only_when_decision_cardinality_and_structural_constraints_do_not_require_items"
+  },
+
+  "decision_cardinality": {
+    "accept": {
+      "general_knowledge": "required_object",
+      "unresolved_issue_count": 0
+    },
+
+    "needs_revision": {
+      "general_knowledge": "must_be_null",
+      "minimum_unresolved_issue_count": 1
+    }
+  },
+
+  "structural_constraints": [
+    "The response must satisfy decision_cardinality for the selected decision.",
+
+    "For accept, canonical_name must be non-empty and satisfy value_formats.canonical_name.",
+
+    "For accept, evidence_basis.family_evidence_refs must contain at least one evidence reference resolving to the supplied Pattern Family revision.",
+
+    "For accept, evidence_basis.supporting_knowledge must contain at least two distinct input Knowledge records associated with at least two distinct source Family member APIs.",
+
+    "Every supporting_knowledge.knowledge_id must identify a supplied API-specific Knowledge record.",
+
+    "Every supporting_knowledge.evidence_refs array must be non-empty and must resolve only to the corresponding supplied API-specific Knowledge record.",
+
+    "The same supporting Knowledge ID must not occur more than once.",
+
+    "For accept, evidence_basis.derivation_rationale must be a non-empty string.",
+
+    "For accept, knowledge_statement.risk_principle and knowledge_statement.testing_objective must be non-empty strings.",
+
+    "For accept, knowledge_statement.evidence_refs must contain at least one source Pattern Family evidence reference.",
+
+    "Every controlled field must use the corresponding vocabulary in allowed_values.",
+
+    "When knowledge_statement.evidence_status is analyst_inferred, abstraction_confidence must not be high.",
+
+    "When applicability.evidence_status is analyst_inferred, applicability_confidence must not be high.",
+
+    "When an oracle_guidance item uses analyst_inferred, that item's confidence must not be high.",
+
+    "retrieval_tags must contain unique values satisfying value_formats.retrieval_tag.",
+
+    "Evidence references must resolve only to the supplied Pattern Family revision or supplied API-specific Knowledge records.",
+
+    "Direct Report and direct Pattern evidence references are not allowed.",
+
+    "Every unresolved_issue must contain a non-empty issue and a non-empty required_action.",
+
+    "Every non-empty unresolved_issue.evidence_refs value must resolve to a supplied Pattern Family or API-specific Knowledge record.",
+
+    "All array items must match the item type specified in array_item_mapping.",
+
+    "All generated Knowledge content must respect content_boundary.",
+
+    "Empty strings are not allowed."
+  ],
+
+  "output_constraints": {
+    "json_only": true,
+    "single_top_level_object": true,
+    "markdown_allowed": false,
+    "comments_allowed": false,
+    "additional_fields_allowed": false,
+    "all_materialized_template_objects_required": true,
+    "all_arrays_in_materialized_objects_required": true
+  }
+}

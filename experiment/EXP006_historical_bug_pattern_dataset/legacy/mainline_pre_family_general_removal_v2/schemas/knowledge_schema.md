@@ -1,4 +1,4 @@
-# Historical Bug Knowledge Schema v2.1
+# Historical Bug Knowledge Schema v2.0
 
 ## 1. Purpose
 
@@ -68,7 +68,8 @@ Knowledge v2 does not contain:
 - HarnessSpec;
 - C++ Harness code;
 - code-generation prompts;
-- conflict resolution among multiple Knowledge records.
+- conflict resolution among multiple Knowledge records;
+- General Knowledge or Pattern Family decisions.
 
 The responsibilities of the layers are:
 
@@ -96,14 +97,14 @@ One API-specific Knowledge
 ```
 
 A Report may contain multiple independent Patterns, and each Pattern produces
-its own API-specific Knowledge:
+its own Specific Knowledge:
 
 ```text
 One Bug Report
         ↓
 Multiple independent Patterns
         ↓
-One API-specific Knowledge per Pattern
+One Specific Knowledge per Pattern
 ```
 
 If one Pattern appears to support multiple independent and separately usable
@@ -112,11 +113,19 @@ it should have been split into multiple Patterns.
 
 Initial extraction must not create multiple Knowledge records from one Pattern.
 
+Multiple Patterns may later corroborate one API-specific Knowledge after
+matching and human review, but this is not part of initial extraction.
+
+Multiple Patterns do not automatically form General Knowledge.
+
+General Knowledge will be designed later from reviewed Pattern Family or
+General Pattern evidence.
+
 ## 4. Top-level JSON Structure
 
 ```json
 {
-  "schema_version": "2.1",
+  "schema_version": "2.0",
 
   "metadata": {
     "knowledge_id": null,
@@ -126,7 +135,7 @@ Initial extraction must not create multiple Knowledge records from one Pattern.
 
   "derivation_information": {
     "method": null,
-    "mapping_version": "2.1",
+    "mapping_version": "2.0",
     "prompt_version": null,
     "model": null,
     "input_patterns": [],
@@ -155,6 +164,7 @@ Initial extraction must not create multiple Knowledge records from one Pattern.
   },
 
   "applicability": {
+    "candidate_family_tags": [],
     "applicability_conditions": [],
     "exclusion_conditions": [],
     "rationale": null,
@@ -285,8 +295,8 @@ A canonical name must not contain:
 ```json
 "derivation_information": {
   "method": "llm_assisted",
-  "mapping_version": "2.1",
-  "prompt_version": "knowledge_extract_v2_1",
+  "mapping_version": "2.0",
+  "prompt_version": "knowledge_extract_v2",
   "model": "deepseek-v4-pro",
   "input_patterns": [
     {
@@ -346,7 +356,7 @@ Allowed `validation_status` values:
   ],
   "derivation_rationale": "The supporting Pattern indicates that storage-sensitive execution may expose failures under layout or memory boundary conditions; this is abstracted into a reusable exploration principle.",
   "limitations": [
-    "The Pattern does not establish applicability to testing scenarios where tensor storage cannot be controlled."
+    "The Pattern does not establish applicability to APIs without controllable tensor storage."
   ]
 }
 ```
@@ -355,7 +365,7 @@ Allowed `validation_status` values:
 |---|---|---:|---|
 | supporting_patterns | array | yes | Pattern records that directly support this Knowledge. |
 | derivation_rationale | string | yes | Explains why Pattern evidence supports the Knowledge abstraction. |
-| limitations | array | yes | Material limitations, uncertainties, or non-applicability conditions. |
+| limitations | array | yes | Material limitations, uncertainties, or non-transfer conditions. |
 
 Each `supporting_patterns` item contains:
 
@@ -402,7 +412,8 @@ Rules:
 
 - `primary_api` must appear in `directly_supported_apis`.
 - `directly_supported_apis` is inherited from the directly supporting Pattern scope.
-- Knowledge v2 remains within the API scope directly supported by its source Pattern.
+- Candidate transfer APIs must not be added to `directly_supported_apis`.
+- Initial Knowledge v2 is API-specific and must not declare unverified cross-API support.
 
 ## 10. Knowledge Statement
 
@@ -441,6 +452,10 @@ Rules:
 
 ```json
 "applicability": {
+  "candidate_family_tags": [
+    "memory_alignment",
+    "storage_sensitive_backend"
+  ],
   "applicability_conditions": [
     {
       "condition_id": "ac_01",
@@ -448,7 +463,7 @@ Rules:
       "statement": "The target API accepts tensor inputs whose storage or layout properties can be controlled without violating API-call validity.",
       "evidence_status": "pattern_derived",
       "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:trigger_signature"
+        "pattern:pt_matmul_unaligned_storage_p001:transferability_hypothesis"
       ]
     },
     {
@@ -468,34 +483,35 @@ Rules:
       "statement": "Do not apply this Knowledge when the API has no tensor-storage-related execution behavior.",
       "evidence_status": "pattern_derived",
       "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:trigger_signature"
+        "pattern:pt_matmul_unaligned_storage_p001:transferability_hypothesis"
       ]
     }
   ],
   "rationale": "The testing principle is relevant only when the target API has compatible input and execution semantics.",
   "evidence_status": "pattern_derived",
   "evidence_refs": [
-    "pattern:pt_matmul_unaligned_storage_p001:trigger_signature"
+    "pattern:pt_matmul_unaligned_storage_p001:transferability_hypothesis"
   ]
 }
 ```
 
 | Field | Type | Required | Purpose |
 |---|---|---:|---|
-| applicability_conditions | array | yes | Semantic prerequisites for considering this Knowledge within its directly supported API scope. |
+| candidate_family_tags | array | yes | Retrieval tags for later Pattern Family or General Knowledge analysis. |
+| applicability_conditions | array | yes | Semantic prerequisites for considering this Knowledge for a target API. |
 | exclusion_conditions | array | yes | Known semantic conditions under which this Knowledge must not be selected. |
 | rationale | string/null | yes | Concise explanation of the applicability boundary. |
-| evidence_status | enum | yes | Origin of the applicability rationale. |
-| evidence_refs | array | yes | Pattern evidence supporting the applicability claims. |
+| evidence_status | enum | yes | Origin of the candidate tags or rationale. |
+| evidence_refs | array | yes | Pattern evidence supporting the candidate tags or rationale. |
 
 Each applicability_conditions or exclusion_conditions item contains:
 
-| Field	| Type	| Required	| Purpose|
-| condition_id	| string	| yes	| Stable local identifier, generated by the script.|
-| condition_kind	| enum	| yes	| Broad kind of semantic prerequisite or exclusion.|
-| statement	| string	| yes	| Human-readable semantic condition; not an executable predicate.|
-| evidence_status	| enum	| yes	| Origin of this individual condition.|
-| evidence_refs	| array	| yes	| Pattern evidence supporting this individual condition.|
+| Field	| Type	| Required	| Purpose| 
+| condition_id	| string	| yes	| Stable local identifier, generated by the script.| 
+| condition_kind	| enum	| yes	| Broad kind of semantic prerequisite or exclusion.| 
+| statement	| string	| yes	| Human-readable semantic condition; not an executable predicate.| 
+| evidence_status	| enum	| yes	| Origin of this individual condition.| 
+| evidence_refs	| array	| yes	| Pattern evidence supporting this individual condition.| 
 
 
 Allowed condition_kind values:
@@ -506,12 +522,14 @@ Allowed condition_kind values:
 
 Rules:
 
-- Applicability determines whether this Knowledge is relevant to a testing scenario within its directly supported API scope.
+- Applicability is a candidate-selection rule, not proof of cross-API validity.
 - This object must not list candidate APIs.
+- A Pattern Family or General Knowledge decision must not be made here.
 - condition_id values use ac_01, ac_02, … for applicability conditions and ec_01, ec_02, … for exclusion conditions.
 - The extraction script, rather than the LLM, assigns condition_id.
 - condition_kind must not use unknown or other. If a condition cannot be classified reliably, omit it and record the uncertainty in evidence_basis.limitations.
 - Conditions must state semantic properties, not concrete Tensor values, mutation operations, API-call code, validity predicates, or activation predicates.
+- candidate_family_tags may be empty.
 - If no applicability claim is made, both condition lists must be empty, rationale must be null, evidence_status must be unknown, and evidence_refs may be empty.
 - Applicability confidence is stored only in confidence.applicability_confidence.
 
@@ -585,13 +603,13 @@ Allowed risk_dimensions values:
 
 Each exploration_goals item contains:
 
-| Field	| Type	| Required	| Purpose|
-| goal_id	| string	| yes	| Stable local identifier, generated by the script.|
-| target_dimension	| enum	| yes	| One risk dimension targeted by this exploration goal.|
-| statement	| string	| yes	| High-level exploration direction; not an executable strategy.|
-| priority	| enum	| yes	| Relative research importance of the goal, not a scheduling command.|
-| evidence_status	| enum	| yes	| Origin of this individual goal.|
-| evidence_refs	| array	| yes	| Pattern evidence supporting this individual goal.|
+| Field	| Type	| Required	| Purpose| 
+| goal_id	| string	| yes	| Stable local identifier, generated by the script.| 
+| target_dimension	| enum	| yes	| One risk dimension targeted by this exploration goal.| 
+| statement	| string	| yes	| High-level exploration direction; not an executable strategy.| 
+| priority	| enum	| yes	| Relative research importance of the goal, not a scheduling command.| 
+| evidence_status	| enum	| yes	| Origin of this individual goal.| 
+| evidence_refs	| array	| yes	| Pattern evidence supporting this individual goal.| 
 
 Allowed priority values:
 
@@ -600,12 +618,12 @@ Allowed priority values:
 
 Each oracle_guidance item contains:
 
-| Field	| Type	| Required	| Purpose|
-| objective	| string	| yes	| High-level behavior that later testing should observe.|
-| observation_kind	| enum	| yes	| Whether this is a historical observation or a derived Oracle candidate.|
-| evidence_status	| enum	| yes	| Origin of the Oracle guidance.|
-| evidence_refs	| array	| yes	| Supporting Pattern evidence references.|
-| confidence	| enum	| yes	| Confidence in this individual Oracle guidance item.|
+| Field	| Type	| Required	| Purpose| 
+| objective	| string	| yes	| High-level behavior that later testing should observe.| 
+| observation_kind	| enum	| yes	| Whether this is a historical observation or a derived Oracle candidate.| 
+| evidence_status	| enum	| yes	| Origin of the Oracle guidance.| 
+| evidence_refs	| array	| yes	| Supporting Pattern evidence references.| 
+| confidence	| enum	| yes	| Confidence in this individual Oracle guidance item.| 
 
 Allowed observation_kind values:
 
@@ -651,7 +669,7 @@ Rules:
 
 A Knowledge v2 record is valid only if all of the following hold:
 
-1. `schema_version` is `2.1`.
+1. `schema_version` is `2.0`.
 2. `metadata.knowledge_level` is `api_specific`.
 3. Exactly one `supporting_patterns` entry exists during initial extraction.
 4. The supporting Pattern relation is `direct_derivation`.
@@ -670,13 +688,17 @@ A Knowledge v2 record is valid only if all of the following hold:
 17. If `knowledge_statement.evidence_status` is `analyst_inferred`, `abstraction_confidence` must not be `high`.
 18. A Knowledge record with unsupported abstraction, unclear scope, or missing evidence must be marked `needs_revision`.
 
-## 15. Versioning and Legacy Notes
+## 15. Versioning and Migration Notes
 
 - Existing Knowledge v1 records are preserved under `legacy/knowledge_base_v1/`.
 - Current Knowledge v2 records will later be written to `knowledge_base/<api>/`.
 - Existing v1 testing strategies must not be copied directly into Knowledge v2.
 - Existing v1 Report metadata must not be duplicated; Knowledge v2 cites supporting
   Pattern records instead.
+- Existing v1 transferability statements must be revalidated against supporting
+  Pattern evidence.
+- General Knowledge will be designed later with Pattern Family construction and
+  must not be generated during initial Knowledge v2 extraction.
 
 Knowledge v2 is the reusable testing-principle layer. It remains independent
 from HarnessSpec-level executable planning, Knowledge conflict resolution, and

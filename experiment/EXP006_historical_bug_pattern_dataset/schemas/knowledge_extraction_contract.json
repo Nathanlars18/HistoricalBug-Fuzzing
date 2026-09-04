@@ -1,0 +1,225 @@
+{
+  "contract_version": "2.1",
+  "contract_name": "historical_bug_knowledge_extraction",
+  "purpose": "Derive exactly one API-specific, evidence-grounded Knowledge candidate from exactly one API-specific Bug Pattern.",
+
+  "input_assumptions": {
+    "input_unit": "one_api_specific_bug_pattern",
+    "required_pattern_context": [
+      "pattern_id",
+      "pattern_hash",
+      "available_evidence_refs",
+      "pattern"
+    ],
+    "expected_pattern_content": [
+      "schema_version",
+      "metadata",
+      "derivation_information",
+      "provenance",
+      "scope",
+      "defect_classification",
+      "trigger_signature",
+      "defect_mechanism",
+      "observed_failure",
+      "confidence"
+    ],
+    "evidence_rule": "Every evidence_refs value in the response must be selected from available_evidence_refs supplied with the input Pattern."
+  },
+
+  "response_requirements": {
+    "output_format": "json_only",
+    "root_object_keys": [
+        "knowledge"
+    ],
+    "initial_extraction_cardinality": "one_candidate_per_input_pattern",
+    "script_owned_fields_not_to_emit": [
+      "schema_version",
+      "metadata.knowledge_id",
+      "metadata.knowledge_level",
+      "derivation_information",
+      "evidence_basis.supporting_patterns",
+      "scope.framework",
+      "scope.primary_api",
+      "scope.directly_supported_apis",
+      "applicability.applicability_conditions.condition_id",
+      "applicability.exclusion_conditions.condition_id",
+      "testing_guidance.exploration_goals.goal_id"
+    ]
+  },
+
+  "relationship_rules": [
+    "During initial extraction, produce one API-specific Knowledge candidate from the input API-specific Pattern.",
+    "During initial extraction, the input Pattern is the sole direct derivation source for that candidate.",
+    "Do not add corroborating Patterns, Bug Reports, Issues, commits, pull requests, or external knowledge sources.",
+    "Do not produce multiple Knowledge candidates from one Pattern."
+  ],
+
+  "semantic_rules": [
+    "Knowledge abstracts a Pattern into a reusable testing principle. It must not restate the complete historical trigger signature, defect mechanism, or Issue narrative.",
+    "A Knowledge claim must not be stronger than the supporting Pattern evidence.",
+    "Do not invent APIs, operators, modules, historical failures, root causes, trigger facts, candidate APIs, evidence references, or source identifiers.",
+    "Do not cite a Bug Report directly. All evidence references must point to the supplied Pattern.",
+    "directly_supported_apis are inherited by the script from the input Pattern.",
+    "Applicability conditions describe when this Knowledge is relevant within its directly supported API scope. They are not executable predicates.",
+    "Exclusion conditions describe known semantic situations in which this Knowledge should not be selected.",
+    "Exploration goals describe high-level risk directions after Knowledge selection. They must not specify concrete inputs, mutation operators, parameter values, or execution steps.",
+    "Oracle guidance describes behavior worth observing. It must not contain executable instrumentation, assertion code, or a complete Oracle implementation.",
+    "Do not include Tensor construction, Tensor mutation, Strategy Primitives, validity predicates, risk predicates, activation predicates, HarnessSpec fields, C++ code, code-generation prompts, conflict-resolution rules, or feedback-loop logic.",
+    "Use lower_snake_case for canonical_name.",
+    "If an asserted claim cannot be supported reliably, use null for free text, an empty array for lists, unknown for controlled enum fields, and low for confidence. Do not fabricate a plausible claim.",
+    "If risk_principle or testing_objective cannot be derived without unsupported speculation, return null for that field. The validator will mark the candidate needs_revision rather than accepting an invented Knowledge record."
+  ],
+
+  "controlled_vocabularies": {
+    "evidence_status": [
+      "pattern_explicit",
+      "pattern_derived",
+      "analyst_inferred",
+      "unknown"
+    ],
+    "condition_kind": [
+      "api_semantics",
+      "input_capability",
+      "execution_capability"
+    ],
+    "risk_dimensions": [
+      "shape",
+      "dtype",
+      "value",
+      "device",
+      "backend",
+      "layout",
+      "memory",
+      "aliasing",
+      "output_tensor",
+      "state",
+      "execution",
+      "graph",
+      "concurrency",
+      "api_contract"
+    ],
+    "goal_priority": [
+      "primary",
+      "secondary"
+    ],
+    "observation_kind": [
+      "historical_observable",
+      "derived_oracle_candidate"
+    ],
+    "confidence": [
+      "high",
+      "medium",
+      "low"
+    ]
+  },
+
+  "value_selection_rules": {
+    "template_values_are_defaults_not_fixed_values": true,
+    "unknown_enum_value": "Use unknown only when the field is a controlled enum and the input Pattern provides no reliable value.",
+    "unknown_free_text_value": "Use null when a free-text or ordinary scalar value is unavailable or cannot be stated without unsupported speculation.",
+    "unknown_list_value": "Use an empty array when no evidence-supported list item exists.",
+    "pattern_explicit": "Use only when the Knowledge claim directly preserves an explicit statement from the input Pattern.",
+    "pattern_derived": "Use when the Knowledge claim abstracts or combines evidence-backed Pattern facts without adding an unsupported historical fact.",
+    "analyst_inferred": "Use only when an LLM or human analyst interprets Pattern evidence beyond an explicit or direct abstraction. It must cite supporting evidence and may not have high abstraction confidence.",
+    "confidence_assignment": {
+      "high": "Directly and consistently supported by the relevant Pattern evidence.",
+      "medium": "Strongly supported by Pattern evidence but requires a modest interpretation.",
+      "low": "Incomplete, weakly supported, unknown, or analyst-inferred without sufficient corroboration."
+    },
+    "conservative_default": "When evidence is insufficient, prefer null for free text, unknown for controlled enums, an empty array for lists, and low for confidence."
+  },
+
+  "field_constraints": {
+    "canonical_name": "A concise lower_snake_case API-specific testing-principle name. Do not include Issue IDs, Report IDs, Pattern IDs, commit IDs, crash signals, exact scripts, arbitrary constants, or concrete Tensor settings.",
+    "derivation_rationale": "Explain why the input Pattern supports the Knowledge abstraction. Do not repeat a full historical Issue narrative or propose an implementation.",
+    "limitations": "Record material epistemic uncertainty or unsupported scope. Do not use limitations as executable exclusion rules.",
+    "risk_principle": "State the reusable testing risk learned from the Pattern, not an exact historical bug reproduction.",
+    "testing_objective": "State what testing should explore or observe at a high level, not how to generate inputs.",
+    "failure_relevance": "Explain why the risk may expose historically relevant failure behavior. Use null when that connection is not reliably supported.",
+    "applicability_conditions": "Each item is a semantic prerequisite for considering this Knowledge within its directly supported API scope. Do not include concrete values, code, or predicates.",
+    "exclusion_conditions": "Each item is a known semantic reason not to select this Knowledge. Do not restate an epistemic limitation as an exclusion condition.",
+    "exploration_goals": "Each item has exactly one target_dimension and one high-level evidence-grounded exploration direction.",
+    "risk_dimensions": "Must equal the de-duplicated set of target_dimension values used by exploration_goals.",
+    "oracle_guidance": "Each item states a high-level observation target. It does not define an assertion, differential implementation, sanitizer configuration, timeout value, or executable Oracle.",
+    "evidence_refs": "Every non-empty evidence_refs array must contain only identifiers supplied in available_evidence_refs.",
+    "confidence": "Confidence evaluates evidence support, not how fluent, broad, or intuitive the generated statement appears."
+  },
+
+  "array_item_templates": {
+    "applicability_condition": {
+      "condition_kind": null,
+      "statement": null,
+      "evidence_status": "unknown",
+      "evidence_refs": []
+    },
+    "exclusion_condition": {
+      "condition_kind": null,
+      "statement": null,
+      "evidence_status": "unknown",
+      "evidence_refs": []
+    },
+    "exploration_goal": {
+      "target_dimension": null,
+      "statement": null,
+      "priority": "secondary",
+      "evidence_status": "unknown",
+      "evidence_refs": []
+    },
+    "oracle_guidance": {
+      "objective": null,
+      "observation_kind": null,
+      "evidence_status": "unknown",
+      "evidence_refs": [],
+      "confidence": "low"
+    }
+  },
+
+  "template_interpretation": {
+    "array_item_templates_are_shape_examples": true,
+    "response_template_arrays_start_empty": true,
+    "required_array_rule": "Populate an array only with evidence-supported items. Do not copy null placeholder objects into the final response.",
+    "script_identifier_rule": "The extraction script assigns condition_id values as ac_01, ac_02, or ec_01, ec_02, and assigns goal_id values as eg_01, eg_02.",
+    "default_value_rule": "The null, unknown, and low values shown in templates are conservative placeholders, not fixed output values. Replace them whenever the input Pattern provides sufficient evidence for a more specific value.",
+    "final_record_rule": "A null value in a required final Knowledge field is a safe extraction-failure signal. The validator must mark the candidate needs_revision and must not accept it as a valid final Knowledge v2 record."
+  },
+
+  "response_template": {
+    "knowledge": {
+      "canonical_name": null,
+
+      "evidence_basis": {
+        "derivation_rationale": null,
+        "limitations": []
+      },
+
+      "knowledge_statement": {
+        "risk_principle": null,
+        "testing_objective": null,
+        "failure_relevance": null,
+        "evidence_status": "unknown",
+        "evidence_refs": []
+      },
+
+      "applicability": {
+        "applicability_conditions": [],
+        "exclusion_conditions": [],
+        "rationale": null,
+        "evidence_status": "unknown",
+        "evidence_refs": []
+      },
+
+      "testing_guidance": {
+        "risk_dimensions": [],
+        "exploration_goals": [],
+        "oracle_guidance": []
+      },
+
+      "confidence": {
+        "evidence_confidence": "low",
+        "abstraction_confidence": "low",
+        "applicability_confidence": "low",
+        "oracle_guidance_confidence": "low"
+      }
+    }
+  }
+}

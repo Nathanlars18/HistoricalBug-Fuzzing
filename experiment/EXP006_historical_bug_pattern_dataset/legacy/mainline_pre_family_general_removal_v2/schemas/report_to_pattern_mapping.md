@@ -1,4 +1,4 @@
-# Report-to-Pattern Mapping v2.1
+# Report-to-Pattern Mapping v2.0
 
 ## 1. Purpose
 
@@ -12,7 +12,7 @@ Structured Bug Report
         ↓
 API-specific Bug Pattern
         ↓
-API-specific Knowledge
+Specific Knowledge
         ↓
 HarnessSpec
 ```
@@ -48,10 +48,13 @@ Each initial Pattern must:
 - be supported by the current input Report;
 - contain exactly one `direct_evidence` source Report;
 - preserve relevant evidence references;
-- remain independent of downstream Knowledge and HarnessSpec decisions.
+- remain independent of Knowledge, HarnessSpec, and Pattern Family decisions.
 
 This mapping does not produce:
 
+- General Patterns;
+- Pattern Families;
+- General Knowledge;
 - Harness Strategies;
 - executable constraints;
 - code-generation prompts or Harness code.
@@ -87,7 +90,7 @@ Do not split a Report merely because it contains several jointly required
 conditions, such as shape, dtype, device, layout, and backend constraints for
 one failure.
 
-Do not split a Report merely because it mentions semantically similar APIs.
+Do not split a Report because it mentions possible transfer APIs.
 
 When the split decision is uncertain, prefer one conservative Pattern and
 record the ambiguity in `provenance.unresolved_information`.
@@ -105,7 +108,8 @@ record the ambiguity in `provenance.unresolved_information`.
 | Historical failure behavior | `observed_failure` | Record factual behavior only. |
 | Historical detection method | `historical_oracle` | Preserve only historically observed or used oracles. |
 | Defect theme and risk dimensions | `defect_classification` | Select the most evidence-supported primary defect class. Risk dimensions may be an empty array when the available evidence does not establish a concrete triggering dimension. |
-| Important missing information | `provenance.unresolved_information` | Record uncertainties that materially affect the Pattern explanation. |
+| Potential mechanism reuse | `transferability_hypothesis` | Record a cautious hypothesis only; do not claim cross-API equivalence. |
+| Important missing information | `provenance.unresolved_information` | Record uncertainties that materially affect explanation or transferability. |
 
 ## 5. Evidence Rules
 
@@ -131,12 +135,24 @@ questions, for example:
 
 It should be an empty array when no material uncertainty remains.
 
-## 6. API Scope
+## 6. API Scope and Transferability
 
 `scope.confirmed_apis` contains only APIs directly supported by historical
-evidence. Similar APIs or APIs that may share an implementation must not be
-added without direct support from the input Report. If one Report explicitly
-identifies multiple affected APIs, each may be retained in `confirmed_apis`.
+evidence.
+
+Similar APIs, APIs with compatible signatures, or APIs that may share an
+implementation must not be added to `confirmed_apis`.
+
+Such information may be represented only through:
+
+- `candidate_family_tags`;
+- `applicability_conditions`;
+- `exclusion_conditions`;
+- `transferability_hypothesis.rationale`.
+
+A transferability hypothesis does not prove that another API has the same Bug.
+It only provides evidence-aware input for later Pattern Family retrieval and
+General Knowledge construction.
 
 ## 7. Confidence Rules
 
@@ -144,7 +160,8 @@ Confidence is assigned independently for:
 
 - trigger conditions;
 - defect mechanism;
-- historical oracle.
+- historical oracle;
+- transferability.
 
 Use `high` only for direct or strongly corroborated evidence.
 
@@ -164,6 +181,7 @@ The LLM extracts semantic content:
 - defect classification;
 - mechanism hypotheses;
 - historical failure and oracle;
+- transferability hypothesis;
 - unresolved information;
 - confidence values.
 
@@ -186,7 +204,8 @@ contains unsupported semantic claims must be marked `needs_revision`.
 
 Human review should prioritize:
 
-- low-confidence mechanism claims;
+- low-confidence mechanism or transferability claims;
 - multiple candidate Pattern splits;
 - conflicting mechanism hypotheses;
 - Patterns selected for experimental evaluation;
+- Patterns later considered for Pattern Family construction.
