@@ -1,0 +1,6 @@
+# Lightweight Python environment for project control scripts.
+# PyTorch runtime builds and fuzzing stay inside Docker images.
+requests>=2.31,<3
+pandas>=2.0,<3
+PyYAML>=6,<7
+jsonschema>=4,<5

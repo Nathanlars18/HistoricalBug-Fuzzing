@@ -29,6 +29,9 @@ third_party/FlashFuzz/_cov_result/
 # logs
 *.log
 
+# local Python environments
+.venv/
+
 # python cache
 __pycache__/
 *.pyc
