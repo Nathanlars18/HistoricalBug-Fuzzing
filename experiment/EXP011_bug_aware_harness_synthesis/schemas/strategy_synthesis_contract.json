@@ -1,0 +1,270 @@
+{
+  "contract_version": "1.5",
+  "contract_name": "historical_bug_aware_strategy_synthesis",
+  "target_record_schema_version": "1.1",
+  "response_format": {
+    "format": "json_object_only",
+    "markdown_fence_forbidden": true,
+    "additional_root_fields_forbidden": true
+  },
+  "input_unit": {
+    "required_views": {
+      "harness_spec_view": {
+        "contains": [
+          "source_branches",
+          "global_constraints",
+          "branch_constraints",
+          "branch_preconditions",
+          "target_properties",
+          "activation_targets",
+          "oracle_requirements",
+          "required_spec_elements",
+          "exposable_spec_parameters"
+        ],
+        "purpose": "Defines the fixed semantic testing plan. Global constraints occur once at the view root; branch-local elements occur only inside their source branch."
+      },
+      "resolved_api_primitive_view": {
+        "contains": [
+          "target_api_primitive_id",
+          "input_ports",
+          "output_ports",
+          "api_binding"
+        ],
+        "purpose": "Defines the only permitted target API invocation primitive. A branch uses it once normally or twice with identical bindings for a selected determinism Oracle."
+      },
+      "template_interface_view": {
+        "contains": [
+          "available_slots",
+          "slot_order",
+          "built_in_values"
+        ],
+        "purpose": "Defines valid template placement and values supplied by the Harness template."
+      },
+      "primitive_candidate_views": {
+        "contains": [
+          "primitive_id",
+          "primitive_kind",
+          "semantic_support",
+          "allowed_template_slots",
+          "input_contract",
+          "output_contract",
+          "parameter_contract",
+          "outcome_contract",
+          "limitations"
+        ],
+        "purpose": "Defines the only non-target implementation primitives that may be selected. The target API primitive is supplied only through resolved_api_primitive_view."
+      }
+    },
+    "dynamic_identifier_rule": "All source branch IDs, specification-element IDs, primitive IDs, slots, ports, parameters, and built-in value IDs must be copied exactly from the supplied input views."
+  },
+  "allowed_values": {
+    "synthesis_status": [
+      "materialized",
+      "blocked"
+    ],
+    "blocking_reason_code": [
+      "required_capability_unavailable",
+      "api_input_unconstructable",
+      "type_flow_unresolvable",
+      "required_observation_unavailable",
+      "required_oracle_unavailable",
+      "semantic_conflict_unresolvable"
+    ],
+    "binding_kind": [
+      "literal",
+      "value_ref",
+      "spec_parameter"
+    ],
+    "traceable_spec_element_type": [
+      "global_constraint",
+      "branch_constraint",
+      "branch_precondition",
+      "target_property",
+      "activation_target",
+      "oracle_requirement"
+    ],
+    "parameter_source_spec_element_type": [
+      "global_constraint",
+      "branch_constraint",
+      "branch_precondition",
+      "target_property",
+      "oracle_requirement"
+    ],
+    "dynamic_values": {
+      "primitive_id": "Must be an exact primitive_candidate_views.primitive_id or the exact resolved_api_primitive_view.target_api_primitive_id. The latter is permitted only for the unique target_call Step.",
+      "template_slot": "Must be an exact template_interface_view.available_slots value and valid for the selected primitive.",
+      "port_id": "Must be an exact declared input or output port ID of the selected primitive.",
+      "parameter_id": "Must be an exact declared parameter ID of the selected primitive.",
+      "built_in_value_id": "Must be an exact template_interface_view.built_in_values ID."
+    }
+  },
+  "binding_conventions": {
+    "input_binding": {
+      "port_id": "An exact input port ID declared by the selected primitive.",
+      "value_ref": "Either an exact built-in value ID or an output_binding.value_id produced by an earlier step in the same branch."
+    },
+    "output_binding": {
+      "port_id": "An exact output port ID declared by the selected primitive.",
+      "value_id": "A non-empty branch-local value identifier. The Builder may normalize it and rewrite local references deterministically."
+    },
+    "parameter_binding": {
+      "literal": "binding_value is a JSON literal compatible with the selected parameter contract. JSON null is allowed only when that contract explicitly permits null.",
+      "value_ref": "binding_value is a value reference following the input_binding.value_ref convention.",
+      "spec_parameter": "binding_value is a spec_parameter_ref object that exactly matches an entry in harness_spec_view.exposable_spec_parameters and whose declared value_kind is compatible with the selected parameter contract. Runtime entity references such as subject_ref are not exposable parameters."
+    },
+    "spec_binding": {
+      "scope_rule": "A non-global source element may be bound only in its own source branch. A global_constraint may be bound in every source branch.",
+      "coverage_rule": "Each element listed in harness_spec_view.required_spec_elements must have exactly one spec_binding in its applicable branch."
+    }
+  },
+  "response_constraints": {
+    "conditional_requirements": {
+      "materialized": "implementation_plan is required and blocking_gaps is forbidden.",
+      "blocked": "blocking_gaps must be non-empty and implementation_plan is forbidden."
+    },
+    "materialized_plan_constraints": {
+      "one_strategy_branch_per_source_branch": true,
+      "source_branch_id_must_be_copied_exactly": true,
+      "only_candidate_primitives_may_be_selected": true,
+      "only_candidate_template_slots_may_be_used": true,
+      "only_declared_ports_and_parameters_may_be_bound": true,
+      "step_slot_order_must_follow_template_interface": true,
+      "step_ids_must_be_unique_within_branch": true,
+      "value_ids_must_be_unique_within_branch": true,
+      "port_and_parameter_bindings_must_not_repeat_within_step": true,
+      "value_refs_must_not_cross_branch_or_reference_later_steps": true,
+      "spec_binding_step_ids_must_be_unique_main_path_ids": true,
+      "spec_binding_step_ids_must_follow_branch_execution_order": true,
+      "target_property_risk_dimensions_must_be_jointly_covered": true,
+      "activation_observation_phases_must_each_be_covered": true,
+      "spec_binding_auxiliary_steps_must_be_dataflow_ancestors_of_direct_semantic_steps": true,
+      "target_api_invocation_cardinality": "Exactly one target API Step per branch, except that a branch implementing a determinism Oracle must contain exactly two target API Steps with identical input and parameter bindings.",
+      "target_api_invoke_slot": "target_call",
+      "each_step_must_be_semantically_used": {
+        "satisfied_when_any": [
+          "At least one output is consumed by a later step in the same branch.",
+          "The step is referenced by spec_binding.implementation_step_ids.",
+          "The step is one of the target API invocation steps permitted by target_api_invocation_cardinality."
+        ]
+      },
+      "branch_semantics_must_not_be_added_or_changed": true,
+      "raw_cpp_code_forbidden": true,
+      "helper_names_forbidden": true,
+      "emitter_ids_forbidden": true,
+      "template_markers_forbidden": true,
+      "builder_owned_fields_forbidden": [
+        "schema_version",
+        "identity",
+        "revision_information",
+        "source_context",
+        "provenance",
+        "review",
+        "failure_handlers"
+      ]
+    },
+    "blocked_response_constraints": {
+      "use_only_for_real_capability_or_semantic_gaps": true,
+      "not_for_format_or_repairable_identifier_errors": true,
+      "affected_branch_ids_must_be_non_empty_unique_exact_source_ids": true,
+      "spec_element_reference_rule": "Set both fields to an exact required source element when one exact element is affected; otherwise set both fields to JSON null.",
+      "gap_grouping_rule": "One gap may cover multiple branches only when root cause, reason code, missing capability or conflict, and affected semantic scope are the same.",
+      "details_must_be_factual_and_must_not_invent_missing_evidence": true,
+      "blocked_output_is_not_a_strategy_plan_record": true
+    }
+  },
+  "builder_materialization": {
+    "applies_when": "synthesis_status = materialized",
+    "actions": [
+      "Validate raw local references, then normalize step and value identifiers using branch execution order and Catalog output-port order.",
+      "Reject unknown or duplicate implementation_step_ids and order valid IDs by branch step execution order.",
+      "Resolve the selected API-binding primitive against the API Profile.",
+      "Derive deterministic failure handlers from selected primitive outcome contracts.",
+      "Recompute exact API and Helper Profile content hashes before accepting their references.",
+      "Populate final record metadata, references, hashes, provenance, and review defaults.",
+      "Run final structural, reference, type-flow, slot-order, aggregate semantic-coverage, and dataflow-dependency validation."
+    ]
+  },
+  "builder_blocked_handling": {
+    "applies_when": "synthesis_status = blocked",
+    "actions": [
+      "Validate affected branch and optional specification-element references.",
+      "Sort affected_branch_ids lexically after validation.",
+      "Record the synthesis diagnostic without creating a Strategy Plan record."
+    ]
+  },
+  "response_template": {
+    "materialized": {
+      "synthesis_status": "materialized",
+      "implementation_plan": {
+        "branch_strategies": [
+          "<branch_strategy>"
+        ]
+      }
+    },
+    "blocked": {
+      "synthesis_status": "blocked",
+      "blocking_gaps": [
+        "<blocking_gap>"
+      ]
+    }
+  },
+  "item_templates": {
+    "blocking_gap": {
+      "affected_branch_ids": [
+        "<exact_source_branch_id>"
+      ],
+      "spec_element_type": null,
+      "spec_element_id": null,
+      "reason_code": "<allowed_blocking_reason_code>",
+      "details": "<concise_factual_description_of_the_blocking_gap>"
+    },
+    "branch_strategy": {
+      "source_branch_id": "<exact_source_branch_id>",
+      "steps": [
+        "<strategy_step>"
+      ],
+      "spec_bindings": [
+        "<spec_binding>"
+      ]
+    },
+    "strategy_step": {
+      "step_id": "step_local_1",
+      "primitive_id": "<exact_candidate_primitive_id>",
+      "template_slot": "<exact_candidate_template_slot>",
+      "input_bindings": [
+        "<input_binding>"
+      ],
+      "parameter_bindings": [
+        "<parameter_binding>"
+      ],
+      "output_bindings": [
+        "<output_binding>"
+      ]
+    },
+    "input_binding": {
+      "port_id": "<exact_input_port_id>",
+      "value_ref": "<exact_builtin_value_id_or_prior_output_value_id>"
+    },
+    "parameter_binding": {
+      "parameter_id": "<exact_parameter_id>",
+      "binding_kind": "<literal_or_value_ref_or_spec_parameter>",
+      "binding_value": "<value_determined_by_binding_kind>"
+    },
+    "output_binding": {
+      "port_id": "<exact_output_port_id>",
+      "value_id": "value_local_1"
+    },
+    "spec_binding": {
+      "spec_element_type": "<exact_traceable_spec_element_type>",
+      "spec_element_id": "<exact_source_spec_element_id>",
+      "implementation_step_ids": [
+        "step_local_1"
+      ]
+    },
+    "spec_parameter_ref": {
+      "spec_element_type": "<exact_parameter_source_spec_element_type>",
+      "spec_element_id": "<exact_source_spec_element_id>",
+      "parameter_name": "<exact_exposable_parameter_name>"
+    }
+  }
+}

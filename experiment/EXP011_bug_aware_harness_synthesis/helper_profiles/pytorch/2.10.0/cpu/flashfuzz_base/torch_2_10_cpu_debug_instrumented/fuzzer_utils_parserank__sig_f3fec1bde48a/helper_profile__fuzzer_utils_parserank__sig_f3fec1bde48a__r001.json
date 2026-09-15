@@ -1,0 +1,261 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+  "revision": 1,
+  "metadata": {
+    "parent_revision_ref": null,
+    "generated_at": "2026-09-14T08:03:04.293427Z",
+    "builder_version": "helper_profile_builder_v0.1",
+    "content_hash": "592c38ac16042366f07f5a8d66b86b97f9923f9324f7b46848a43dd72dfda6e0"
+  },
+  "target_environment": {
+    "framework": "pytorch",
+    "framework_version": "2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend": "cpu",
+    "provider": "flashfuzz_base",
+    "provider_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "configuration_id": "torch_2_10_cpu_debug_instrumented"
+  },
+  "callable_interface": {
+    "namespace": "fuzzer_utils",
+    "function_name": "parseRank",
+    "qualified_name": "fuzzer_utils::parseRank",
+    "declaration": "uint8_t parseRank(uint8_t byte);",
+    "return": {
+      "cpp_type": "uint8_t",
+      "semantic_role": "rank",
+      "evidence_refs": [
+        "ev_helper_header",
+        "ev_curated_annotation"
+      ]
+    },
+    "parameters": [
+      {
+        "parameter_id": "param_000_byte",
+        "name": "byte",
+        "ordinal": 0,
+        "cpp_type": "uint8_t",
+        "direction": "in",
+        "semantic_role": "selector_byte",
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "evidence_refs": [
+          "ev_helper_header",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "required_include": "fuzzer_utils.h",
+    "invocation_template": "fuzzer_utils::parseRank({{byte}})",
+    "evidence_refs": [
+      "ev_helper_header"
+    ]
+  },
+  "capability_contract": {
+    "capability_kind": "byte_decoder",
+    "summary": "Maps one selector byte to a tensor rank in the configured rank interval.",
+    "fuzz_input_contract": {
+      "interaction_mode": "selector_value",
+      "data_parameter_refs": [],
+      "size_parameter_refs": [],
+      "offset_parameter_ref": null,
+      "offset_effect": "none",
+      "consumption_mode": "none",
+      "minimum_bytes": null,
+      "maximum_bytes": null,
+      "consumption_formula": null
+    },
+    "domain_constraints": [
+      {
+        "subjects": [
+          {
+            "entity_kind": "return",
+            "entity_ref": null,
+            "property": "rank"
+          }
+        ],
+        "relation": "range",
+        "value": {
+          "minimum": 0,
+          "maximum": 4
+        },
+        "verification_level": "statically_verified",
+        "constraint_id": "constraint_001",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "behavior_claims": [
+      {
+        "claim_kind": "guarantee",
+        "statement": "With MIN_RANK=0 and MAX_RANK=4, the returned rank is byte modulo 5.",
+        "verification_level": "statically_verified",
+        "claim_id": "claim_001",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "side_effects": {
+      "status": "known",
+      "kinds": [
+        "stdout_write"
+      ]
+    },
+    "determinism": "deterministic",
+    "evidence_refs": [
+      "ev_helper_header",
+      "ev_helper_implementation",
+      "ev_curated_annotation"
+    ]
+  },
+  "build_contract": {
+    "compile_definitions": [
+      {
+        "name": "DEBUG_FUZZ",
+        "value": "1 // Keep for debugging convenience",
+        "behavior_affecting": true,
+        "evidence_refs": [
+          "ev_helper_header"
+        ]
+      },
+      {
+        "name": "MAX_RANK",
+        "value": 4,
+        "behavior_affecting": true,
+        "evidence_refs": [
+          "ev_helper_header"
+        ]
+      },
+      {
+        "name": "MIN_RANK",
+        "value": 0,
+        "behavior_affecting": true,
+        "evidence_refs": [
+          "ev_helper_header"
+        ]
+      }
+    ],
+    "helper_dependencies": [],
+    "evidence_refs": [
+      "ev_helper_header",
+      "ev_build_configuration"
+    ]
+  },
+  "validation": {
+    "validation_status": "partial",
+    "execution_readiness": "unassessed",
+    "checks": [
+      {
+        "check_id": "check_header_parse",
+        "check_kind": "header_parse",
+        "status": "passed",
+        "summary": "Public declaration was parsed deterministically.",
+        "evidence_refs": [
+          "ev_helper_header"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_definition_resolution",
+        "check_kind": "definition_resolution",
+        "status": "passed",
+        "summary": "One matching implementation body was located.",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_declaration_definition_match",
+        "check_kind": "declaration_definition_match",
+        "status": "not_run",
+        "summary": "Compiler-backed declaration/definition comparison has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_dependency_resolution",
+        "check_kind": "dependency_resolution",
+        "status": "passed",
+        "summary": "All direct Helper dependencies are resolved.",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_compile",
+        "check_kind": "compile",
+        "status": "not_run",
+        "summary": "Per-Helper compile validation has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_smoke_execution",
+        "check_kind": "smoke_execution",
+        "status": "not_run",
+        "summary": "Per-Helper smoke execution has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      }
+    ],
+    "issues": []
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_helper_header",
+      "source_kind": "helper_header",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.h",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "uint8_t parseRank(uint8_t byte);",
+      "content_hash": "5c3aecce5e9c24de4031436cea02a3327714d8d5155578b4e1e4fa2d915a70e6",
+      "excerpt": "uint8_t parseRank(uint8_t byte);",
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_build_configuration",
+      "source_kind": "build_configuration",
+      "source_location": "runtime/flashfuzz_2_10/runtime_config.json",
+      "source_revision": "0.1",
+      "locator": "target runtime configuration",
+      "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f",
+      "excerpt": null,
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_curated_annotation",
+      "source_kind": "curated_annotation",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/annotations/helper_capability_annotations.json",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "fuzzer_utils::parseRank#f3fec1bde48a",
+      "content_hash": "642f84e28640ad40a570a0e4fef5befed8779dce8498fd0a196e09d13a3ea20e",
+      "excerpt": null,
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_helper_implementation",
+      "source_kind": "helper_implementation",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.cpp",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "fuzzer_utils::parseRank",
+      "content_hash": "e7d8aa99691fbbc38d8eef5bc49a1302ad10672bd98cdfec3273e8eb68add368",
+      "excerpt": "parseRank(uint8_t byte)\n    {\n        constexpr uint8_t range = MAX_RANK - MIN_RANK + 1;\n        uint8_t rank = byte % range + MIN_RANK;\n#ifdef DEBUG_FUZZ\n        std::cout << \"Rank byte: \" << static_cast<int>(byte) << \", rank: \" << static_cast<int>(rank) << std::endl;\n#endif\n        return rank;\n    }",
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    }
+  ],
+  "review": {
+    "review_status": "approved",
+    "reviewer": "nathan",
+    "reviewed_at": "2026-09-06T08:37:26Z",
+    "issue_refs": [],
+    "notes": "Source-level semantic fields confirmed; compile and smoke validation remain independent."
+  }
+}

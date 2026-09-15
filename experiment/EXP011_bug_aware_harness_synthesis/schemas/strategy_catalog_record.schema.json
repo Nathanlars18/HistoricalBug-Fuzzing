@@ -1,0 +1,578 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://historicalbug-fuzzing.local/schemas/strategy_catalog_record.schema.json",
+  "title": "Historical Bug-Aware Strategy Catalog Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalog_id",
+    "catalog_version",
+    "target_language",
+    "template_interface",
+    "primitives",
+    "provenance",
+    "review"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "catalog_id": { "$ref": "#/$defs/identifier" },
+    "catalog_version": { "$ref": "#/$defs/positive_integer" },
+    "target_language": { "const": "cpp" },
+    "template_interface": { "$ref": "#/$defs/template_interface" },
+    "primitives": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/strategy_primitive" }
+    },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "review": { "$ref": "#/$defs/review" }
+  },
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nullable_string": {
+      "anyOf": [
+        { "$ref": "#/$defs/non_empty_string" },
+        { "type": "null" }
+      ]
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "positive_integer": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nullable_timestamp": {
+      "anyOf": [
+        { "$ref": "#/$defs/timestamp" },
+        { "type": "null" }
+      ]
+    },
+    "json_value": {
+      "anyOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "integer" },
+        { "type": "number" },
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/$defs/json_value" }
+        },
+        {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/json_value" }
+        }
+      ]
+    },
+    "artifact_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "artifact_version", "content_hash"],
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/identifier" },
+        "artifact_version": {
+          "anyOf": [
+            { "$ref": "#/$defs/positive_integer" },
+            { "$ref": "#/$defs/non_empty_string" },
+            { "type": "null" }
+          ]
+        },
+        "content_hash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "helper_profile_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "revision", "content_hash"],
+      "properties": {
+        "profile_id": { "$ref": "#/$defs/identifier" },
+        "revision": { "$ref": "#/$defs/positive_integer" },
+        "content_hash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "catalog_source_reference": {
+      "oneOf": [
+        { "$ref": "#/$defs/artifact_reference" },
+        { "$ref": "#/$defs/helper_profile_reference" }
+      ]
+    },
+    "template_slot": {
+      "enum": [
+        "input_construction",
+        "pre_call_transform",
+        "pre_call_guard",
+        "pre_call_observation",
+        "target_call",
+        "post_call_observation",
+        "oracle_check",
+        "artifact_logging",
+        "cleanup"
+      ]
+    },
+    "value_kind": {
+      "enum": [
+        "raw_bytes",
+        "byte_cursor",
+        "boolean",
+        "integer",
+        "floating",
+        "string",
+        "scalar",
+        "dtype",
+        "rank",
+        "shape",
+        "device",
+        "layout",
+        "tensor",
+        "tensor_list",
+        "optional_value",
+        "tuple_value",
+        "exception_state",
+        "observation_result",
+        "artifact"
+      ]
+    },
+    "risk_dimension": {
+      "enum": [
+        "shape",
+        "dtype",
+        "value",
+        "device",
+        "backend",
+        "layout",
+        "memory",
+        "aliasing",
+        "output_tensor",
+        "state",
+        "execution",
+        "graph",
+        "concurrency",
+        "api_contract"
+      ]
+    },
+    "requirement_type": {
+      "enum": [
+        "value_comparison",
+        "set_membership",
+        "range_constraint",
+        "cross_subject_relation",
+        "property_state",
+        "state_transition",
+        "availability",
+        "reachability",
+        "no_crash",
+        "no_sanitizer_violation",
+        "expected_exception",
+        "result_equivalence",
+        "output_property",
+        "termination",
+        "resource_bound"
+      ]
+    },
+    "oracle_type": {
+      "enum": [
+        "crash",
+        "exception",
+        "sanitizer",
+        "timeout",
+        "output_property",
+        "differential",
+        "metamorphic",
+        "state_consistency",
+        "determinism",
+        "resource_usage"
+      ]
+    },
+    "built_in_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value_id", "value_kind", "description"],
+      "properties": {
+        "value_id": { "$ref": "#/$defs/identifier" },
+        "value_kind": { "$ref": "#/$defs/value_kind" },
+        "description": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "template_interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template_ref", "available_slots", "built_in_values"],
+      "properties": {
+        "template_ref": { "$ref": "#/$defs/artifact_reference" },
+        "available_slots": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/template_slot" }
+        },
+        "built_in_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/built_in_value" }
+        }
+      }
+    },
+    "semantic_support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["risk_dimensions", "requirement_types", "oracle_types"],
+      "properties": {
+        "risk_dimensions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/risk_dimension" }
+        },
+        "requirement_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/requirement_type" }
+        },
+        "oracle_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/oracle_type" }
+        }
+      }
+    },
+    "input_port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["port_id", "accepted_value_kinds", "required"],
+      "properties": {
+        "port_id": { "$ref": "#/$defs/identifier" },
+        "accepted_value_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/value_kind" }
+        },
+        "required": { "type": "boolean" }
+      }
+    },
+    "output_port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["port_id", "produced_value_kind", "binding_required"],
+      "properties": {
+        "port_id": { "$ref": "#/$defs/identifier" },
+        "produced_value_kind": { "$ref": "#/$defs/value_kind" },
+        "binding_required": { "type": "boolean" }
+      }
+    },
+    "parameter_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameter_id",
+        "value_kind",
+        "required",
+        "allowed_binding_kinds"
+      ],
+      "properties": {
+        "parameter_id": { "$ref": "#/$defs/identifier" },
+        "value_kind": { "$ref": "#/$defs/value_kind" },
+        "required": { "type": "boolean" },
+        "allowed_binding_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["literal", "value_ref", "spec_parameter"] }
+        },
+        "default_value": { "$ref": "#/$defs/json_value" },
+        "allowed_values": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/json_value" }
+        }
+      }
+    },
+    "failure_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome_id", "description", "terminal_action"],
+      "properties": {
+        "outcome_id": {
+          "allOf": [
+            { "$ref": "#/$defs/identifier" },
+            { "not": { "const": "success" } }
+          ]
+        },
+        "description": { "$ref": "#/$defs/non_empty_string" },
+        "terminal_action": { "enum": ["reject_input", "record_and_return"] }
+      }
+    },
+    "outcome_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failure_outcomes"],
+      "properties": {
+        "failure_outcomes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/failure_outcome" }
+        }
+      }
+    },
+    "implementation_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "emitter_id", "helper_profile_ref"],
+      "properties": {
+        "kind": { "enum": ["helper_backed", "generator_native", "api_binding"] },
+        "emitter_id": { "$ref": "#/$defs/identifier" },
+        "helper_profile_ref": {
+          "anyOf": [
+            { "$ref": "#/$defs/helper_profile_reference" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "helper_backed" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "helper_profile_ref": { "$ref": "#/$defs/helper_profile_reference" }
+            }
+          },
+          "else": {
+            "properties": { "helper_profile_ref": { "type": "null" } }
+          }
+        }
+      ]
+    },
+    "strategy_primitive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primitive_id",
+        "primitive_kind",
+        "summary",
+        "semantic_support",
+        "allowed_template_slots",
+        "input_contract",
+        "output_contract",
+        "parameter_contract",
+        "outcome_contract",
+        "implementation_binding",
+        "limitations"
+      ],
+      "properties": {
+        "primitive_id": { "$ref": "#/$defs/identifier" },
+        "primitive_kind": {
+          "enum": [
+            "input_decode",
+            "value_construct",
+            "value_transform",
+            "relation_enforce",
+            "predicate_evaluate",
+            "target_api_invoke",
+            "oracle_evaluate",
+            "artifact_record"
+          ]
+        },
+        "summary": { "$ref": "#/$defs/non_empty_string" },
+        "semantic_support": { "$ref": "#/$defs/semantic_support" },
+        "allowed_template_slots": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/template_slot" }
+        },
+        "input_contract": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/input_port" }
+        },
+        "output_contract": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/output_port" }
+        },
+        "parameter_contract": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/parameter_contract" }
+        },
+        "outcome_contract": { "$ref": "#/$defs/outcome_contract" },
+        "implementation_binding": { "$ref": "#/$defs/implementation_binding" },
+        "limitations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/non_empty_string" }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "primitive_kind": { "const": "target_api_invoke" } },
+            "required": ["primitive_kind"]
+          },
+          "then": {
+            "properties": {
+              "allowed_template_slots": { "const": ["target_call"] },
+              "implementation_binding": {
+                "allOf": [
+                  { "$ref": "#/$defs/implementation_binding" },
+                  { "properties": { "kind": { "const": "api_binding" } } }
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "implementation_binding": {
+                "allOf": [
+                  { "$ref": "#/$defs/implementation_binding" },
+                  { "properties": { "kind": { "not": { "const": "api_binding" } } } }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generation_method", "source_refs", "generated_at"],
+      "properties": {
+        "generation_method": { "enum": ["manual", "script", "hybrid"] },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/catalog_source_reference" }
+        },
+        "generated_at": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+    "validation_issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issue_code", "severity", "field_path", "message"],
+      "properties": {
+        "issue_code": { "$ref": "#/$defs/identifier" },
+        "severity": { "enum": ["error", "warning"] },
+        "field_path": { "$ref": "#/$defs/non_empty_string" },
+        "message": { "$ref": "#/$defs/non_empty_string" }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validation_status",
+        "validation_issues",
+        "human_review_status",
+        "reviewer_id",
+        "reviewed_at",
+        "review_notes"
+      ],
+      "properties": {
+        "validation_status": { "enum": ["not_validated", "passed", "failed"] },
+        "validation_issues": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/validation_issue" }
+        },
+        "human_review_status": { "enum": ["not_reviewed", "approved", "needs_revision"] },
+        "reviewer_id": { "$ref": "#/$defs/nullable_string" },
+        "reviewed_at": { "$ref": "#/$defs/nullable_timestamp" },
+        "review_notes": { "$ref": "#/$defs/nullable_string" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "human_review_status": { "const": "approved" } },
+            "required": ["human_review_status"]
+          },
+          "then": {
+            "properties": {
+              "validation_status": { "const": "passed" },
+              "reviewer_id": { "$ref": "#/$defs/non_empty_string" },
+              "reviewed_at": { "$ref": "#/$defs/timestamp" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "human_review_status": { "const": "not_reviewed" } },
+            "required": ["human_review_status"]
+          },
+          "then": {
+            "properties": {
+              "reviewer_id": { "type": "null" },
+              "reviewed_at": { "type": "null" },
+              "review_notes": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "human_review_status": { "const": "needs_revision" } },
+            "required": ["human_review_status"]
+          },
+          "then": {
+            "properties": {
+              "reviewer_id": { "$ref": "#/$defs/non_empty_string" },
+              "reviewed_at": { "$ref": "#/$defs/timestamp" },
+              "review_notes": { "$ref": "#/$defs/non_empty_string" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "validation_status": { "const": "passed" } },
+            "required": ["validation_status"]
+          },
+          "then": {
+            "properties": {
+              "validation_issues": {
+                "not": {
+                  "contains": {
+                    "type": "object",
+                    "properties": { "severity": { "const": "error" } },
+                    "required": ["severity"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "validation_status": { "const": "failed" } },
+            "required": ["validation_status"]
+          },
+          "then": {
+            "properties": {
+              "validation_issues": {
+                "contains": {
+                  "type": "object",
+                  "properties": { "severity": { "const": "error" } },
+                  "required": ["severity"]
+                },
+                "minContains": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

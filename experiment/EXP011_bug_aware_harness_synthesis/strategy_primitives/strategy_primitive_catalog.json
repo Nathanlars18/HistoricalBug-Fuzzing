@@ -1,0 +1,511 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "pytorch_cpp_strategy_primitives",
+  "catalog_version": 2,
+  "target_language": "cpp",
+  "template_interface": {
+    "template_ref": {
+      "artifact_id": "libfuzzer_harness_v1",
+      "artifact_version": 1,
+      "content_hash": "a2fc89fc6804d456b777a23f8e58dd30b9f5ab60a3c697bfde3e2e79331240d8"
+    },
+    "available_slots": [
+      "input_construction",
+      "pre_call_transform",
+      "pre_call_guard",
+      "pre_call_observation",
+      "target_call",
+      "post_call_observation",
+      "oracle_check",
+      "artifact_logging",
+      "cleanup"
+    ],
+    "built_in_values": [
+      {
+        "value_id": "data",
+        "value_kind": "raw_bytes",
+        "description": "LibFuzzer input bytes."
+      },
+      {
+        "value_id": "size",
+        "value_kind": "integer",
+        "description": "LibFuzzer input size."
+      },
+      {
+        "value_id": "offset",
+        "value_kind": "byte_cursor",
+        "description": "Cursor after the branch selector byte."
+      },
+      {
+        "value_id": "selector",
+        "value_kind": "integer",
+        "description": "Branch selector byte."
+      }
+    ]
+  },
+  "primitives": [
+    {
+      "primitive_id": "construct_tensor_from_fuzz",
+      "primitive_kind": "value_construct",
+      "summary": "Construct a bounded CPU int64 tensor from three fuzz bytes.",
+      "semantic_support": {
+        "risk_dimensions": ["shape", "dtype", "value"],
+        "requirement_types": [
+          "range_constraint",
+          "property_state",
+          "availability"
+        ],
+        "oracle_types": []
+      },
+      "allowed_template_slots": ["input_construction"],
+      "input_contract": [
+        {
+          "port_id": "data",
+          "accepted_value_kinds": ["raw_bytes"],
+          "required": true
+        },
+        {
+          "port_id": "size",
+          "accepted_value_kinds": ["integer"],
+          "required": true
+        },
+        {
+          "port_id": "cursor",
+          "accepted_value_kinds": ["byte_cursor"],
+          "required": true
+        }
+      ],
+      "output_contract": [
+        {
+          "port_id": "tensor",
+          "produced_value_kind": "tensor",
+          "binding_required": true
+        },
+        {
+          "port_id": "next_cursor",
+          "produced_value_kind": "byte_cursor",
+          "binding_required": true
+        }
+      ],
+      "parameter_contract": [
+        {
+          "parameter_id": "dtype_policy",
+          "value_kind": "string",
+          "required": true,
+          "allowed_binding_kinds": ["literal"],
+          "allowed_values": ["int64"]
+        },
+        {
+          "parameter_id": "max_dimension",
+          "value_kind": "integer",
+          "required": true,
+          "allowed_binding_kinds": ["literal"],
+          "allowed_values": [1, 2, 4, 8, 16]
+        }
+      ],
+      "outcome_contract": {
+        "failure_outcomes": [
+          {
+            "outcome_id": "insufficient_fuzz_data",
+            "description": "Fewer than three bytes remain at the input cursor.",
+            "terminal_action": "reject_input"
+          }
+        ]
+      },
+      "implementation_binding": {
+        "kind": "generator_native",
+        "emitter_id": "emit_construct_tensor_from_fuzz",
+        "helper_profile_ref": null
+      },
+      "limitations": [
+        "Initial implementation supports rank-2 CPU int64 tensors only."
+      ]
+    },
+    {
+      "primitive_id": "construct_tensor_with_constraints",
+      "primitive_kind": "value_construct",
+      "summary": "Construct a bounded CPU int64 tensor from a controlled shape template.",
+      "semantic_support": {
+        "risk_dimensions": ["shape", "dtype", "value"],
+        "requirement_types": [
+          "value_comparison",
+          "set_membership",
+          "range_constraint",
+          "property_state"
+        ],
+        "oracle_types": []
+      },
+      "allowed_template_slots": ["input_construction"],
+      "input_contract": [
+        {
+          "port_id": "data",
+          "accepted_value_kinds": ["raw_bytes"],
+          "required": true
+        },
+        {
+          "port_id": "size",
+          "accepted_value_kinds": ["integer"],
+          "required": true
+        },
+        {
+          "port_id": "cursor",
+          "accepted_value_kinds": ["byte_cursor"],
+          "required": true
+        }
+      ],
+      "output_contract": [
+        {
+          "port_id": "tensor",
+          "produced_value_kind": "tensor",
+          "binding_required": true
+        },
+        {
+          "port_id": "next_cursor",
+          "produced_value_kind": "byte_cursor",
+          "binding_required": true
+        }
+      ],
+      "parameter_contract": [
+        {
+          "parameter_id": "shape_template",
+          "value_kind": "shape",
+          "required": true,
+          "allowed_binding_kinds": ["literal", "spec_parameter"]
+        },
+        {
+          "parameter_id": "dtype_policy",
+          "value_kind": "string",
+          "required": true,
+          "allowed_binding_kinds": ["literal"],
+          "allowed_values": ["int64"]
+        },
+        {
+          "parameter_id": "fill_policy",
+          "value_kind": "string",
+          "required": true,
+          "allowed_binding_kinds": ["literal"],
+          "allowed_values": ["zero", "fuzz_int64"]
+        },
+        {
+          "parameter_id": "max_dimension",
+          "value_kind": "integer",
+          "required": true,
+          "allowed_binding_kinds": ["literal"],
+          "allowed_values": [1, 2, 4, 8, 16]
+        }
+      ],
+      "outcome_contract": {
+        "failure_outcomes": []
+      },
+      "implementation_binding": {
+        "kind": "generator_native",
+        "emitter_id": "emit_construct_tensor_with_constraints",
+        "helper_profile_ref": null
+      },
+      "limitations": [
+        "Shape templates contain one to four dimensions; -1 denotes a fuzz-derived positive dimension."
+      ]
+    },
+    {
+      "primitive_id": "enforce_dimension_relation",
+      "primitive_kind": "relation_enforce",
+      "summary": "Reject an input when two selected tensor dimensions are unequal.",
+      "semantic_support": {
+        "risk_dimensions": ["shape", "api_contract"],
+        "requirement_types": [
+          "cross_subject_relation",
+          "range_constraint"
+        ],
+        "oracle_types": []
+      },
+      "allowed_template_slots": ["pre_call_guard"],
+      "input_contract": [
+        {
+          "port_id": "left",
+          "accepted_value_kinds": ["tensor"],
+          "required": true
+        },
+        {
+          "port_id": "right",
+          "accepted_value_kinds": ["tensor"],
+          "required": true
+        }
+      ],
+      "output_contract": [
+        {
+          "port_id": "relation_satisfied",
+          "produced_value_kind": "boolean",
+          "binding_required": true
+        }
+      ],
+      "parameter_contract": [
+        {
+          "parameter_id": "left_axis",
+          "value_kind": "integer",
+          "required": true,
+          "allowed_binding_kinds": ["literal", "spec_parameter"],
+          "allowed_values": [0, 1, 2, 3, 4, 5, 6, 7]
+        },
+        {
+          "parameter_id": "right_axis",
+          "value_kind": "integer",
+          "required": true,
+          "allowed_binding_kinds": ["literal", "spec_parameter"],
+          "allowed_values": [0, 1, 2, 3, 4, 5, 6, 7]
+        },
+        {
+          "parameter_id": "relation_kind",
+          "value_kind": "string",
+          "required": true,
+          "allowed_binding_kinds": ["literal"],
+          "allowed_values": ["equal"]
+        }
+      ],
+      "outcome_contract": {
+        "failure_outcomes": [
+          {
+            "outcome_id": "relation_unsatisfied",
+            "description": "The selected dimensions are unavailable or unequal.",
+            "terminal_action": "reject_input"
+          }
+        ]
+      },
+      "implementation_binding": {
+        "kind": "generator_native",
+        "emitter_id": "emit_enforce_dimension_relation",
+        "helper_profile_ref": null
+      },
+      "limitations": [
+        "Initial implementation supports equality over non-negative axes 0 through 7."
+      ]
+    },
+    {
+      "primitive_id": "evaluate_tensor_property",
+      "primitive_kind": "predicate_evaluate",
+      "summary": "Evaluate one controlled tensor property and emit activation evidence.",
+      "semantic_support": {
+        "risk_dimensions": ["shape", "dtype", "value", "layout"],
+        "requirement_types": [
+          "value_comparison",
+          "set_membership",
+          "range_constraint",
+          "property_state"
+        ],
+        "oracle_types": []
+      },
+      "allowed_template_slots": [
+        "pre_call_observation",
+        "post_call_observation"
+      ],
+      "input_contract": [
+        {
+          "port_id": "subject",
+          "accepted_value_kinds": ["tensor"],
+          "required": true
+        }
+      ],
+      "output_contract": [
+        {
+          "port_id": "property_holds",
+          "produced_value_kind": "boolean",
+          "binding_required": true
+        }
+      ],
+      "parameter_contract": [
+        {
+          "parameter_id": "property_kind",
+          "value_kind": "string",
+          "required": true,
+          "allowed_binding_kinds": ["literal"],
+          "allowed_values": [
+            "dtype_is_int64",
+            "rank_equals",
+            "dimension_size_equals",
+            "numel_equals_zero",
+            "is_contiguous",
+            "is_non_contiguous"
+          ]
+        },
+        {
+          "parameter_id": "axis",
+          "value_kind": "integer",
+          "required": true,
+          "allowed_binding_kinds": ["literal", "spec_parameter"],
+          "allowed_values": [0, 1, 2, 3, 4, 5, 6, 7]
+        },
+        {
+          "parameter_id": "expected_integer",
+          "value_kind": "integer",
+          "required": true,
+          "allowed_binding_kinds": ["literal", "spec_parameter"]
+        }
+      ],
+      "outcome_contract": {
+        "failure_outcomes": []
+      },
+      "implementation_binding": {
+        "kind": "generator_native",
+        "emitter_id": "emit_evaluate_tensor_property",
+        "helper_profile_ref": null
+      },
+      "limitations": [
+        "Initial implementation supports one Activation Target and one Observation Point per Branch."
+      ]
+    },
+    {
+      "primitive_id": "invoke_profiled_target_api",
+      "primitive_kind": "target_api_invoke",
+      "summary": "Invoke the exact C++ callable resolved by the approved API Profile.",
+      "semantic_support": {
+        "risk_dimensions": ["execution", "api_contract"],
+        "requirement_types": ["reachability"],
+        "oracle_types": []
+      },
+      "allowed_template_slots": ["target_call"],
+      "input_contract": [],
+      "output_contract": [],
+      "parameter_contract": [],
+      "outcome_contract": {
+        "failure_outcomes": []
+      },
+      "implementation_binding": {
+        "kind": "api_binding",
+        "emitter_id": "emit_profiled_target_api",
+        "helper_profile_ref": null
+      },
+      "limitations": [
+        "Initial implementation supports one directly returned value and trailing omitted defaults."
+      ]
+    },
+    {
+      "primitive_id": "evaluate_output_property",
+      "primitive_kind": "oracle_evaluate",
+      "summary": "Evaluate a controlled tensor-output property and terminate on violation.",
+      "semantic_support": {
+        "risk_dimensions": ["shape", "dtype", "value"],
+        "requirement_types": [
+          "value_comparison",
+          "property_state",
+          "output_property"
+        ],
+        "oracle_types": ["output_property"]
+      },
+      "allowed_template_slots": ["oracle_check"],
+      "input_contract": [
+        {
+          "port_id": "result",
+          "accepted_value_kinds": ["tensor"],
+          "required": true
+        }
+      ],
+      "output_contract": [
+        {
+          "port_id": "oracle_holds",
+          "produced_value_kind": "boolean",
+          "binding_required": true
+        }
+      ],
+      "parameter_contract": [
+        {
+          "parameter_id": "check_kind",
+          "value_kind": "string",
+          "required": true,
+          "allowed_binding_kinds": ["literal"],
+          "allowed_values": [
+            "all_zero",
+            "numel_equals",
+            "rank_equals",
+            "dtype_is_int64",
+            "shape_equals"
+          ]
+        },
+        {
+          "parameter_id": "expected_integer",
+          "value_kind": "integer",
+          "required": true,
+          "allowed_binding_kinds": ["literal", "spec_parameter"]
+        },
+        {
+          "parameter_id": "expected_shape",
+          "value_kind": "shape",
+          "required": false,
+          "allowed_binding_kinds": ["literal", "spec_parameter"],
+          "default_value": [1]
+        }
+      ],
+      "outcome_contract": {
+        "failure_outcomes": []
+      },
+      "implementation_binding": {
+        "kind": "generator_native",
+        "emitter_id": "emit_evaluate_output_property",
+        "helper_profile_ref": null
+      },
+      "limitations": [
+        "Initial implementation supports tensor-valued output properties only."
+      ]
+    },
+    {
+      "primitive_id": "evaluate_tensor_determinism",
+      "primitive_kind": "oracle_evaluate",
+      "summary": "Compare tensor results from two identically bound target API invocations and terminate on inequality.",
+      "semantic_support": {
+        "risk_dimensions": ["output_tensor"],
+        "requirement_types": ["result_equivalence"],
+        "oracle_types": ["determinism"]
+      },
+      "allowed_template_slots": ["oracle_check"],
+      "input_contract": [
+        {
+          "port_id": "first_result",
+          "accepted_value_kinds": ["tensor"],
+          "required": true
+        },
+        {
+          "port_id": "second_result",
+          "accepted_value_kinds": ["tensor"],
+          "required": true
+        }
+      ],
+      "output_contract": [
+        {
+          "port_id": "oracle_holds",
+          "produced_value_kind": "boolean",
+          "binding_required": true
+        }
+      ],
+      "parameter_contract": [],
+      "outcome_contract": {
+        "failure_outcomes": []
+      },
+      "implementation_binding": {
+        "kind": "generator_native",
+        "emitter_id": "emit_evaluate_tensor_determinism",
+        "helper_profile_ref": null
+      },
+      "limitations": [
+        "Supports one tensor-valued target output and exact tensor equality.",
+        "Requires exactly two target API Steps with identical input and parameter bindings."
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "manual",
+    "source_refs": [
+      {
+        "artifact_id": "libfuzzer_harness_v1",
+        "artifact_version": 1,
+        "content_hash": "a2fc89fc6804d456b777a23f8e58dd30b9f5ab60a3c697bfde3e2e79331240d8"
+      }
+    ],
+    "generated_at": "2026-09-14T13:41:29Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "approved",
+    "reviewer_id": "nathan",
+    "reviewed_at": "2026-09-14T13:41:29Z",
+    "review_notes": "Primitive-to-emitter and template-slot mappings passed deterministic local validation. Compilation and runtime outcomes remain Harness Artifact evidence."
+  }
+}

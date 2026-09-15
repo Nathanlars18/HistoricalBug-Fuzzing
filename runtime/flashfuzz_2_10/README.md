@@ -28,6 +28,9 @@ using `torch.relu`.
 - `docker/torch-2.10-cov-runtime.Dockerfile`: builds a separate CPU PyTorch
   runtime with LLVM source-coverage flags enabled; smoke testing confirmed
   `.profraw` generation, `.profdata` merge, and `llvm-cov-20 report` execution.
+- `docker/torch-2.10-api-metadata.Dockerfile`: adds the official CPU Python
+  package to the pinned source base and verifies its release and Git commit; it
+  is used only for API Profile extraction, not fuzz or coverage execution.
 - `overlay/`: reserved for project-owned changes to the FlashFuzz execution
   path after the initial smoke test identifies an actual compatibility need.
 - `generation/`: reserved for the separately pinned Python 2.10 API-profile

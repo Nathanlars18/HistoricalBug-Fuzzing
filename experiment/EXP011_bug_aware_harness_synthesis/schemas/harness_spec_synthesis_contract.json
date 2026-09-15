@@ -1,8 +1,8 @@
 {
-  "contract_version": "1.1",
+  "contract_version": "1.8",
   "contract_name": "historical_bug_aware_harness_spec_synthesis",
-  "target_schema_version": "1.1",
-  "input_unit": "one target API bundle containing an API Profile, a Helper Capability Profile, a Candidate Manifest, and the referenced API-specific Knowledge records",
+  "target_schema_version": "1.7",
+  "input_unit": "one target API bundle containing an API Profile, compact views of available Helper Profiles, and deterministically supplied eligible API-specific Knowledge records",
 
   "response_requirements": {
     "output_format": "json_only",
@@ -16,8 +16,8 @@
       "identity",
       "revision_information",
       "target_context",
-      "knowledge_plan.candidate_manifest_ref",
       "exploration_plan.default_branch_id",
+      "exploration_plan.budget_policy_ref",
       "exploration_plan.branches[].budget_share",
       "provenance",
       "review"
@@ -26,7 +26,7 @@
 
   "response_template": {
     "knowledge_plan": {
-      "candidate_decisions": [],
+      "knowledge_decisions": [],
       "resolution_records": []
     },
     "validity_constraints": {
@@ -47,7 +47,7 @@
       "source_type": null,
       "source_id": null
     },
-    "candidate_decision": {
+    "knowledge_decision": {
       "knowledge_id": null,
       "selection_status": null,
       "applicability_status": null,
@@ -81,9 +81,8 @@
     },
     "target_property": {
       "target_property_id": null,
-      "subject": null,
-      "property_name": null,
-      "desired_state": null,
+      "risk_dimensions": [],
+      "semantic_requirement": null,
       "source_refs": []
     },
     "branch_precondition": {
@@ -94,8 +93,11 @@
     },
     "activation_target": {
       "activation_target_id": null,
-      "activation_kind": null,
-      "target_property_ids": [],
+      "target_property_id": null,
+      "observation_points": []
+    },
+    "observation_point": {
+      "observation_role": null,
       "observation_point": null
     },
     "oracle_requirement": {
@@ -118,20 +120,20 @@
       "branch_preconditions": [],
       "branch_constraints": [],
       "activation_targets": [],
-      "activation_logic": null,
       "oracle_requirements": []
     }
   },
 
   "array_item_mapping": {
-    "knowledge_plan.candidate_decisions[]": "candidate_decision",
+    "knowledge_plan.knowledge_decisions[]": "knowledge_decision",
     "knowledge_plan.resolution_records[]": "resolution_record",
     "resolution_record.interaction_dimensions[]": "interaction_dimension",
     "resolution_record.resolution_effects[]": "resolution_effect",
-    "candidate_decision.reason_codes[]": "reason_code",
+    "knowledge_decision.reason_codes[]": "reason_code",
     "validity_constraints.global_constraints[]": "constraint",
     "constraint.source_refs[]": "source_ref",
     "target_property.source_refs[]": "source_ref",
+    "target_property.risk_dimensions[]": "risk_dimension",
     "branch_precondition.source_refs[]": "source_ref",
     "oracle_requirement.oracle_preconditions[]": "semantic_requirement",
     "oracle_requirement.source_refs[]": "source_ref",
@@ -141,11 +143,13 @@
     "exploration_branch.branch_preconditions[]": "branch_precondition",
     "exploration_branch.branch_constraints[]": "constraint",
     "exploration_branch.activation_targets[]": "activation_target",
+    "activation_target.observation_points[]": "observation_point",
     "exploration_branch.oracle_requirements[]": "oracle_requirement"
   },
 
   "object_mapping": {
     "constraint.semantic_requirement": "semantic_requirement",
+    "target_property.semantic_requirement": "semantic_requirement",
     "branch_precondition.semantic_requirement": "semantic_requirement",
     "oracle_requirement.expected_behavior": "semantic_requirement"
   },
@@ -153,7 +157,6 @@
   "allowed_values": {
     "source_type": [
       "api_profile",
-      "helper_profile",
       "knowledge"
     ],
     "selection_status": [
@@ -184,6 +187,7 @@
       "distinct_risk_contribution",
       "complementary_goal",
       "complementary_oracle",
+      "oracle_only_contribution",
       "target_api_mismatch",
       "exclusion_condition_matched",
       "insufficient_applicability_evidence",
@@ -219,10 +223,10 @@
       "merge_into_branch",
       "separate_into_branches",
       "keep_separate",
-      "prefer_candidates",
+      "prefer_knowledge",
       "deduplicate_contribution",
-      "defer_candidates",
-      "reject_candidates"
+      "defer_knowledge",
+      "reject_knowledge"
     ],
     "constraint_kind": [
       "shape_relation",
@@ -288,18 +292,14 @@
       "termination",
       "resource_bound"
     ],
-    "activation_kind": [
-      "property_state",
-      "target_api_reached"
+    "observation_role": [
+      "evaluate",
+      "before",
+      "after"
     ],
     "observation_point": [
       "before_target_api_call",
-      "at_target_api_call",
       "after_target_api_call"
-    ],
-    "activation_logic": [
-      "all_required",
-      "any_required"
     ],
     "oracle_type": [
       "crash",
@@ -319,20 +319,49 @@
     ]
   },
 
+  "target_property_parameter_contracts": {
+    "property_state": {
+      "required": ["subject_ref", "property_ref", "operator", "expected_value"],
+      "operators": ["equals", "not_equals"]
+    },
+    "value_comparison": {
+      "required": ["subject_ref", "property_ref", "operator", "expected_value"],
+      "operators": ["equals", "not_equals", "less_than", "less_or_equal", "greater_than", "greater_or_equal"]
+    },
+    "set_membership": {
+      "required": ["subject_ref", "property_ref", "operator", "values"],
+      "operators": ["in", "not_in"]
+    },
+    "range_constraint": {
+      "required": ["subject_ref", "property_ref", "lower_bound", "upper_bound", "lower_inclusive", "upper_inclusive"]
+    },
+    "cross_subject_relation": {
+      "required": ["left_subject_ref", "left_property_ref", "relation", "right_subject_ref", "right_property_ref"],
+      "relations": ["equals", "not_equals", "less_than", "less_or_equal", "greater_than", "greater_or_equal", "broadcastable_with", "same_shape_as", "aliases", "not_aliases", "shares_storage_with"]
+    },
+    "state_transition": {
+      "required": ["subject_ref", "property_ref", "transition"],
+      "transitions": ["changed", "unchanged", "increased", "decreased", "created", "removed"]
+    },
+    "subject_refs": "Use exact API Profile parameter_id or return_id values, or one of context.backend, context.device, context.autograd, context.execution, and context.resource.",
+    "property_refs": "Use normalized lowercase semantic paths with one or more dot-separated segments; a canonical single-segment property such as dtype is valid. Do not emit C++ expressions, method calls, generated variable names, or Helper identifiers."
+  },
+
   "value_formats": {
     "branch_id": "br_default, br_generic_<nnn>, or br_knowledge_<nnn>",
     "resolution_id": "res_<nnn>",
     "effect_id": "eff_<resolution_number>_<nn>",
     "global_constraint_id": "gc_<nnn>",
-    "branch_local_id": "<bc|tp|pre|act|orc>_<branch_id>_<nn>"
+    "branch_local_id": "<bc|tp|pre|act|orc>_<branch_id>_<nnn>"
   },
 
   "builder_materialization": {
-    "candidate_decision.knowledge_id": "Replace with the exact Knowledge Reference from the Candidate Manifest.",
-    "source_ref": "Attach the exact source revision or version and content hash.",
+    "knowledge_decision.knowledge_id": "Replace with the exact Knowledge Reference from the supplied eligible Knowledge set.",
+    "source_ref": "Use only the exact supplied API Profile profile_id or eligible Knowledge knowledge_id as source_id; never use nested evidence_id values. The Builder attaches source version and content hash.",
     "exploration_plan.default_branch_id": "Set to the branch_id of the unique branch whose branch_kind is default.",
-    "exploration_plan.branches[].budget_share": "Assign deterministically from config budget_policy and normalize all branch shares to 1.",
-    "local_identifiers": "Normalize identifier prefixes and numbering, rewrite internal references, and preserve unchanged identifiers across revisions."
+    "exploration_plan.budget_policy_ref": "Set to null for controlled_baseline or to the exact versioned budget-policy artifact used for bug-aware allocation.",
+    "exploration_plan.branches[].budget_share": "Assign deterministically from the referenced budget policy and normalize all branch shares to 1.",
+    "local_identifiers": "Normalize identifier prefixes and numbering and rewrite internal references. LLM synthesis handles initial records only; feedback-derived budget revisions use the Builder's deterministic feedback path."
   },
 
   "placeholder_policy": {
@@ -343,10 +372,20 @@
 
   "output_constraints": [
     "Return only fields shown by response_template and item_templates.",
-    "Use only Candidate Manifest Knowledge IDs and supplied source IDs.",
+    "Use only supplied eligible Knowledge IDs and supplied source IDs.",
     "Every required local identifier and human-readable summary must be non-empty.",
+    "A Target Property semantic requirement may use only a requirement_type defined in target_property_parameter_contracts; result_equivalence, no_crash, and other Oracle expectations belong under oracle_requirement.expected_behavior.",
+    "oracle_requirement.oracle_type must use the oracle_type vocabulary; no_crash and other expected outcomes are requirement_type values, not Oracle types.",
+    "Every semantic source_ref.source_id must be an exact supplied API Profile profile_id or eligible Knowledge knowledge_id, never an internal evidence_id.",
     "Exactly one branch with branch_kind default must exist; the Builder derives default_branch_id from it.",
-    "Do not emit budget_share; the Builder assigns positive shares from budget_policy and normalizes their sum to 1.",
+    "Do not emit budget_policy_ref or budget_share; the Builder assigns the policy reference and positive shares deterministically.",
+    "A historical input, output, relation, or context state deliberately generated or explored by a Knowledge-directed branch must be a Target Property, not solely a Branch Precondition.",
+    "A selected Knowledge may omit a Target Property only when its contribution is solely Oracle- or behavior-directed; in that case add oracle_only_contribution to its reason_codes and cite it from a supported Oracle.",
+    "Target Property risk dimensions must be included in the containing branch risk dimensions.",
+    "Each Activation Target observes exactly one Target Property; state transitions use one before and one after point, and other requirement types use one evaluate point.",
+    "Target-API invocation is a fixed downstream execution invariant and must not be emitted as an Activation Target.",
+    "Every Oracle observation_subjects array must be non-empty and contain only exact API Profile parameter_id or return_id values, or context.backend, context.device, context.autograd, context.execution, or context.resource.",
+    "Semantic source references may identify only the supplied API Profile or selected Knowledge; Helper Profiles are capability context, not semantic evidence.",
     "Do not include full source records, source code, Helper calls, Strategy Primitives, or hidden reasoning.",
     "Cross-field and reference invariants not listed here are enforced by the Validator against the final HarnessSpec Schema."
   ]

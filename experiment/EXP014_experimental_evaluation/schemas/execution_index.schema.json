@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Experiment Execution Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "runner_version",
+    "matrix_id",
+    "matrix_content_hash",
+    "matrix_file_ref",
+    "created_at",
+    "updated_at",
+    "preparation",
+    "tasks",
+    "result_provenance_ref"
+  ],
+  "properties": {
+    "runner_version": {"$ref": "#/$defs/version_string"},
+    "matrix_id": {"$ref": "#/$defs/identifier"},
+    "matrix_content_hash": {"$ref": "#/$defs/sha256"},
+    "matrix_file_ref": {"$ref": "#/$defs/file_reference"},
+    "created_at": {"$ref": "#/$defs/timestamp"},
+    "updated_at": {"$ref": "#/$defs/timestamp"},
+    "preparation": {"$ref": "#/$defs/state_map"},
+    "tasks": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/task_key"},
+      "additionalProperties": {"$ref": "#/$defs/task_state"}
+    },
+    "feedback": {"$ref": "#/$defs/state_map"},
+    "adaptive_current": {"$ref": "#/$defs/state_map"},
+    "result_provenance_ref": {
+      "oneOf": [
+        {"$ref": "#/$defs/file_reference"},
+        {"type": "null"}
+      ]
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "task_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*:(structured_baseline|bug_aware_static|bug_aware_adaptive):repeat_[0-9]{3}:round_[0-9]{3}$"
+    },
+    "version_string": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*))*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "not": {"pattern": "^(?:/|[A-Za-z]:[\\\\/])"}
+    },
+    "file_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relative_path", "content_hash"],
+      "properties": {
+        "relative_path": {"$ref": "#/$defs/relative_path"},
+        "content_hash": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "state_map": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "task_state": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": [
+            "in_progress",
+            "completed",
+            "completed_with_abnormal_events",
+            "method_failed",
+            "aborted_by_feedback"
+          ]
+        },
+        "seed": {"type": ["integer", "null"]},
+        "terminal_at": {"$ref": "#/$defs/timestamp"},
+        "updated_at": {"$ref": "#/$defs/timestamp"},
+        "round_record_path": {"type": "string", "minLength": 1},
+        "runtime_snapshot_path": {"type": ["string", "null"]},
+        "fragments": {"type": "array"}
+      },
+      "additionalProperties": true
+    }
+  }
+}

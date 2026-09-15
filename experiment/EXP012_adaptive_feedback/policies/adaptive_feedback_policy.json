@@ -1,0 +1,236 @@
+{
+  "policy_id": "adaptive_branch_budget_pilot",
+  "policy_version": "0.4",
+  "policy_kind": "adaptive_branch_budget",
+  "calibration": {
+    "status": "pilot_initial",
+    "modifiable_during_pilot": true,
+    "freeze_before_main_experiment": true
+  },
+  "protocol": {
+    "protocol_id": "adaptive_feedback_loop_protocol",
+    "protocol_version": "0.5",
+    "path": "experiment/EXP012_adaptive_feedback/feedback_loop_protocol.md"
+  },
+  "scope": {
+    "applicable_spec_modes": [
+      "bug_aware_static",
+      "bug_aware_adaptive"
+    ],
+    "shared_initial_spec_mode": "bug_aware_static",
+    "feedback_candidate_spec_mode": "bug_aware_adaptive",
+    "source_revision_minimum": 1,
+    "candidate_revision_minimum": 1,
+    "state_isolation": [
+      "target_api_id",
+      "experimental_group",
+      "independent_repeat"
+    ],
+    "cross_scope_state_sharing": false,
+    "initial_allocation_policy_ref": "experiment/EXP011_bug_aware_harness_synthesis/schemas/initial_branch_budget_policy.json"
+  },
+  "selector_space": {
+    "total_slots": 256,
+    "canonical_representation": "integer_slots",
+    "share_denominator": 256,
+    "minimum_effective_transfer_slots": 1
+  },
+  "evidence_thresholds": {
+    "minimum_completed_iterations": 512,
+    "minimum_branch_selected_cases": 24,
+    "minimum_branch_activation_attempts": 24,
+    "maximum_branch_activation_check_error_count": 0,
+    "minimum_oracle_opportunities": 16,
+    "maximum_periodic_snapshot_staleness_iterations": 65536
+  },
+  "diagnosis_thresholds": {
+    "target_unreachable": {
+      "maximum_target_reached_count": 0
+    },
+    "rejection_dominated": {
+      "minimum_rejection_rate": 0.8
+    },
+    "activation_absent": {
+      "maximum_activation_true_count": 0
+    },
+    "activation_unevaluable": {
+      "maximum_checked_count": 0,
+      "minimum_unevaluable_count": 1
+    },
+    "activation_rare": {
+      "minimum_activation_rate_exclusive": 0.0,
+      "maximum_activation_rate_exclusive": 0.05
+    },
+    "oracle_unevaluable": {
+      "minimum_evaluable_rate": 0.5
+    }
+  },
+  "coverage_trend": {
+    "role": "supporting_diagnosis_only",
+    "metric_binding_status": "pending_metrics_definition",
+    "triggers_budget_action": false,
+    "unavailable_behavior": "does_not_block_activation_driven_decision"
+  },
+  "history_rules": {
+    "history_source": "immutable_round_and_feedback_records",
+    "maximum_accepted_exploration_boosts_per_branch": 1,
+    "minimum_post_boost_eligible_rounds": 1,
+    "minimum_post_boost_activation_checked_cases": 24,
+    "insufficient_total_samples_causes_early_termination": false,
+    "no_effective_adjustment_causes_early_termination": false,
+    "consecutive_evidence_ineligible_before_freeze": 2,
+    "consecutive_candidate_rejections_before_freeze": 2
+  },
+  "allocation_rules": {
+    "single_branch_behavior": "retain_current",
+    "floor_slots": {
+      "default_branch": 52,
+      "non_default_branch": 13
+    },
+    "ceiling_slots": {
+      "multiple_branch_maximum": 192,
+      "single_branch": 256
+    },
+    "maximum_transfer_slots_per_transition": 16,
+    "maximum_boost_recipients_per_transition": 1,
+    "infeasible_floor_policy": "validation_error_before_experiment",
+    "recipient_rules": [
+      {
+        "priority": 1,
+        "branch_status": "branch_activation_absent",
+        "maximum_prior_accepted_boosts": 0,
+        "requires_activation_targets": true
+      },
+      {
+        "priority": 2,
+        "branch_status": "branch_activation_rare",
+        "maximum_prior_accepted_boosts": 0,
+        "requires_activation_targets": true
+      },
+      {
+        "priority": 3,
+        "branch_status": "branch_under_sampled",
+        "maximum_prior_accepted_boosts": 0,
+        "requires_activation_targets": false,
+        "only_when_no_higher_priority_recipient_exists": true
+      }
+    ],
+    "persistent_ineffective_rule": {
+      "branch_status": "branch_activation_absent",
+      "minimum_prior_accepted_boosts": 1,
+      "minimum_post_boost_eligible_rounds": 1,
+      "recipient_eligible": false,
+      "donor_priority": 1,
+      "recovery_method": "restore_pre_boost_allocation_vector",
+      "require_exact_pre_boost_decision_ref": true,
+      "respect_current_floor_and_ceiling": true
+    },
+    "donor_rules": {
+      "must_remain_at_or_above_floor": true,
+      "exclude_selected_recipient": true,
+      "excluded_branch_statuses": [
+        "branch_activation_unevaluable"
+      ],
+      "selection_order": [
+        "persistent_ineffective_first",
+        "available_surplus_descending",
+        "branch_id_ascending"
+      ],
+      "consume_multiple_donors_if_required": true
+    },
+    "transfer_size_rule": {
+      "method": "bounded_minimum",
+      "inputs": [
+        "maximum_transfer_slots_per_transition",
+        "recipient_remaining_capacity",
+        "total_donor_surplus"
+      ]
+    }
+  },
+  "decision_rules": {
+    "round_gate_rules": [
+      {
+        "priority": 1,
+        "round_gate_result": "crash_or_sanitizer_candidate",
+        "budget_action": "retain_current",
+        "run_disposition": "handoff_crash_analysis"
+      },
+      {
+        "priority": 2,
+        "round_gate_result": "evidence_ineligible",
+        "budget_action": "retain_current",
+        "run_disposition_before_history_limit": "continue",
+        "run_disposition_at_history_limit": "freeze_adaptation",
+        "history_limit_ref": "history_rules.consecutive_evidence_ineligible_before_freeze"
+      },
+      {
+        "priority": 3,
+        "round_gate_result": "insufficient_total_samples",
+        "budget_action": "retain_current",
+        "run_disposition": "continue"
+      },
+      {
+        "priority": 4,
+        "round_gate_result": "eligible",
+        "next_stage": "eligible_branch_allocation"
+      }
+    ],
+    "eligible_branch_allocation": {
+      "reallocate_when_eligible_recipient_and_donor_exist": true,
+      "otherwise_budget_action": "retain_current",
+      "run_disposition": "continue",
+      "coverage_plateau_alone_triggers_reallocation": false
+    },
+    "unchanged_selector_ranges": {
+      "budget_action": "retain_current",
+      "materialization_outcome": "not_attempted"
+    }
+  },
+  "post_materialization_rules": {
+    "not_attempted": {
+      "run_disposition": "preserve_assessment_disposition"
+    },
+    "accepted": {
+      "run_disposition": "continue"
+    },
+    "rejected": {
+      "retain_parent_revision": true,
+      "create_second_candidate_in_same_round": false,
+      "run_disposition_before_history_limit": "continue",
+      "run_disposition_at_history_limit": "freeze_adaptation",
+      "history_limit_ref": "history_rules.consecutive_candidate_rejections_before_freeze"
+    }
+  },
+  "tie_breaking": {
+    "recipient_order": [
+      "recipient_rule_priority_ascending",
+      "branch_id_ascending"
+    ],
+    "donor_order_ref": "allocation_rules.donor_rules.selection_order",
+    "branch_id_order": "unicode_code_point_ascending"
+  },
+  "required_invariants": [
+    "total_selector_slots_equal_256",
+    "every_active_branch_has_positive_integer_slots",
+    "every_branch_respects_its_floor",
+    "every_branch_respects_the_applicable_ceiling",
+    "branch_identity_order_kind_and_count_are_unchanged",
+    "transfer_does_not_exceed_transition_limit",
+    "recipient_and_donor_sets_are_disjoint",
+    "unevaluable_branches_are_not_budget_recipients_or_donors",
+    "branch_activation_checker_errors_do_not_exceed_policy_limit",
+    "accepted_candidate_selector_ranges_differ_from_parent",
+    "same_inputs_history_and_policy_produce_identical_output"
+  ],
+  "excluded_signals": [
+    "knowledge_confidence",
+    "llm_output_order",
+    "issue_count",
+    "cross_api_results",
+    "other_repeat_allocations",
+    "manual_runtime_preference",
+    "unadjudicated_bug_claims",
+    "unvalidated_branch_level_coverage",
+    "main_experiment_manual_tuning"
+  ]
+}

@@ -1,0 +1,70 @@
+/*
+ * HistoricalBug-Fuzzing deterministic LibFuzzer harness template.
+ *
+ * This file defines only the stable harness structure.
+ * Generated code is inserted by generate_harness.py.
+ */
+
+#include <cstddef>
+#include <cstdint>
+
+#include <torch/torch.h>
+
+#include "fuzzer_utils.h"
+#include "harness_instrumentation.h"
+
+/* HBFG_INSERT:generated_includes */
+
+namespace {
+
+constexpr std::uint32_t kHbfgInstrumentationSiteCount =
+    /* HBFG_VALUE:instrumentation_site_count */;
+
+constexpr char kHbfgArtifactId[] =
+    /* HBFG_VALUE:artifact_id */;
+
+constexpr char kHbfgGenerationKey[] =
+    /* HBFG_VALUE:generation_key */;
+
+}  // namespace
+
+/* HBFG_INSERT:generated_support_code */
+
+extern "C" int LLVMFuzzerTestOneInput(
+    const std::uint8_t* Data,
+    std::size_t Size) {
+  /* HBFG_REGION_BEGIN:fuzzer_entry */
+
+  static hbfg::InstrumentationRegistry hbfg_registry{
+      kHbfgInstrumentationSiteCount,
+      hbfg::HarnessIdentity{
+          kHbfgArtifactId,
+          kHbfgGenerationKey,
+      }};
+
+  if (Size < 1) {
+    return 0;
+  }
+
+  std::size_t hbfg_offset = 1;
+
+  auto hbfg_iteration = hbfg_registry.begin_iteration();
+
+  /* HBFG_REGION_END:fuzzer_entry */
+
+  /* HBFG_REGION_BEGIN:branch_dispatch */
+
+  {
+    const std::uint8_t hbfg_selector = Data[0];
+
+    /* HBFG_INSERT:branch_dispatch */
+  }
+
+  /* HBFG_REGION_END:branch_dispatch */
+
+  /* HBFG_REGION_BEGIN:iteration_exit */
+
+  return 0;
+
+  /* HBFG_REGION_END:iteration_exit */
+}

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Harness Runtime Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_format_version",
+    "runtime_version",
+    "artifact_id",
+    "generation_key",
+    "snapshot_kind",
+    "snapshot_interval",
+    "site_count",
+    "started_iterations",
+    "finished_iterations",
+    "unwound_iterations",
+    "invalid_site_records",
+    "export_failures",
+    "site_counts"
+  ],
+  "properties": {
+    "record_format_version": {"const": "1.0"},
+    "runtime_version": {"$ref": "#/$defs/version_string"},
+    "artifact_id": {"$ref": "#/$defs/identifier"},
+    "generation_key": {"$ref": "#/$defs/sha256"},
+    "snapshot_kind": {"enum": ["final", "periodic"]},
+    "snapshot_interval": {"$ref": "#/$defs/non_negative_integer"},
+    "site_count": {"$ref": "#/$defs/non_negative_integer"},
+    "started_iterations": {"$ref": "#/$defs/non_negative_integer"},
+    "finished_iterations": {"$ref": "#/$defs/non_negative_integer"},
+    "unwound_iterations": {"$ref": "#/$defs/non_negative_integer"},
+    "invalid_site_records": {"$ref": "#/$defs/non_negative_integer"},
+    "export_failures": {"$ref": "#/$defs/non_negative_integer"},
+    "site_counts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_negative_integer"}
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "version_string": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*))*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "non_negative_integer": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

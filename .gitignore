@@ -43,3 +43,11 @@ results/raw/
 results/smoke_test/
 *.profraw
 *.log
+
+# generated environments and run-local records
+.venv*/
+**/.venv*/
+**/_runs/**
+**/*_runs/**
+**/diagnostics/**
+~$*

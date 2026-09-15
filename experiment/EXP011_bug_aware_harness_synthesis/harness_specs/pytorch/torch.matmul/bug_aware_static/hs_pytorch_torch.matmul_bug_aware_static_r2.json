@@ -1,0 +1,431 @@
+{
+  "schema_version": "1.7",
+  "identity": {
+    "spec_id": "hs_pytorch_torch.matmul_bug_aware_static",
+    "framework": "pytorch",
+    "target_api": "torch.matmul",
+    "spec_mode": "bug_aware_static"
+  },
+  "revision_information": {
+    "revision_number": 2,
+    "parent_revision_ref": {
+      "spec_id": "hs_pytorch_torch.matmul_bug_aware_static",
+      "revision_number": 1,
+      "content_hash": "0c97811725fdf3cbada7ebcdd397a72077ca4d28bde943e06f599e28342bed34"
+    },
+    "derived_from_spec_ref": null,
+    "feedback_request_ref": null,
+    "revision_trigger": "source_artifact_update",
+    "change_scopes": [
+      "target_context"
+    ],
+    "change_summary": "Deterministically refresh the exact API Profile reference after compile and runtime validation",
+    "lifecycle_status": "draft"
+  },
+  "target_context": {
+    "api_profile_ref": {
+      "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.matmul:python_default:aten.matmul.default",
+      "revision": 2,
+      "content_hash": "0e9d01a4597450a71656eada7be3b2989fbbe56fd55766eec324598f4ccc4bd6"
+    },
+    "available_helper_profile_refs": [
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_comparetensors_96f975d59bc7",
+        "revision": 2,
+        "content_hash": "3a023fbd4f2abef1efebf74da7c09a39820fb5bcaf87108f06115dcaeaa9c7af"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+        "revision": 2,
+        "content_hash": "77ba0a7b4446c33e3dce2e9c738edb1b113013315817a75cfa00c8321f0b1f1e"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_currenttimestamp_c81f2a7d32da",
+        "revision": 2,
+        "content_hash": "ec490726fa6f4b7ef9bd2a590b3dfa352cfb9ab0f571edc48934d339daf8cccd"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_ensure_log_directory_exists_0998a5920e8b",
+        "revision": 2,
+        "content_hash": "ec5d435bfd631ae34cac1ef70c71eca7ba91352a354689b1b4da987604f6106c"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_logerrormessage_ffbff3bb0e31",
+        "revision": 2,
+        "content_hash": "225e26b459e805214d62aa15b3fcebe3ad4b5f4452adb17460d67abafdcfb7d9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+        "revision": 2,
+        "content_hash": "d24f50a2b9ee76d060d46d3cd29e88d93a4e7c4afc1dd4775fbb964553aeafc6"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+        "revision": 2,
+        "content_hash": "883cb198e4fea076f62b4d8d4a585115c7a7841ea27323959b28c7dde95a6910"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parseshape_bc0dff00f287",
+        "revision": 2,
+        "content_hash": "45ec76ea73190c533ebf6a8cedef5cf44c08278d9002a648f9166b85fd54bc2d"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsetensordata_326eeb67c32d",
+        "revision": 2,
+        "content_hash": "7c13a00d198673107c2a960c6372ae9884298aa09aedcf2609c2d5d45e2807cb"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_sanitizedtimestamp_3462aebdca72",
+        "revision": 2,
+        "content_hash": "2513caf9c97e44f09e903b2c0d9bbe74341defee995561980dd45cbd86141dc9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_savediffinput_2413f328d009",
+        "revision": 2,
+        "content_hash": "6a45475e9d31bb95c9ad693af4b8366ef7ea671252b9d1fbb137ecd2b80d0608"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_saveerrorinput_315d3b0ca605",
+        "revision": 2,
+        "content_hash": "abd8268e9d0019a9a75c95eb96ac0d6b94eeba2e45a9b0ee3e832b1b2fc45086"
+      }
+    ],
+    "framework_version": "v2.10.0",
+    "backend_scope": [
+      "cpu"
+    ]
+  },
+  "knowledge_plan": {
+    "knowledge_decisions": [
+      {
+        "selection_status": "selected",
+        "applicability_status": "applicable",
+        "capability_status": "supported",
+        "reason_codes": [
+          "direct_api_evidence",
+          "distinct_risk_contribution",
+          "complementary_oracle"
+        ],
+        "decision_summary": "Target CPU torch.matmul can exercise empty inner dimension and int64 inputs with the supplied tensor constructor and comparison helpers; the determinism observation adds a distinct output-tensor risk.",
+        "decision_confidence": "medium",
+        "knowledge_ref": {
+          "knowledge_id": "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001",
+          "schema_version": "2.1",
+          "content_hash": "5eaab61ddf7f33f8104e04b76c18a3711cfec0c6d7378f8fa861227f4e5a677a"
+        }
+      },
+      {
+        "selection_status": "rejected",
+        "applicability_status": "not_applicable",
+        "capability_status": "unsupported",
+        "reason_codes": [
+          "target_api_mismatch",
+          "backend_mismatch",
+          "exclusion_condition_matched"
+        ],
+        "decision_summary": "The target API profile is CPU-only, while this Knowledge requires MPS execution; the non-MPS exclusion condition is matched.",
+        "decision_confidence": "high",
+        "knowledge_ref": {
+          "knowledge_id": "kn_pt_torch_matmul_mps_non_contiguous_out_write_correctness_k001",
+          "schema_version": "2.1",
+          "content_hash": "e865ce2298d17d8723f23dc7c43124b320f6ec42877a82990c5d01aeb42dce9a"
+        }
+      },
+      {
+        "selection_status": "deferred",
+        "applicability_status": "partially_applicable",
+        "capability_status": "unknown",
+        "reason_codes": [
+          "helper_capability_gap",
+          "insufficient_applicability_evidence"
+        ],
+        "decision_summary": "The CPU alignment risk is relevant, but the supplied helpers do not explicitly advertise construction of a misaligned contiguous right-hand operand, so a reliable branch cannot be justified.",
+        "decision_confidence": "low",
+        "knowledge_ref": {
+          "knowledge_id": "kn_pt_torch_matmul_unaligned_fp32_rhs_cpu_blas_alignment_crash_risk_k001",
+          "schema_version": "2.1",
+          "content_hash": "4a5be5ee3164ef6135605635049a5f1298af2979f492899cef9280a90d57e337"
+        }
+      },
+      {
+        "selection_status": "deferred",
+        "applicability_status": "partially_applicable",
+        "capability_status": "unknown",
+        "reason_codes": [
+          "helper_capability_gap",
+          "insufficient_applicability_evidence"
+        ],
+        "decision_summary": "The out= view capacity mismatch risk is relevant to torch.matmul, but the supplied helpers do not advertise creating an undersized out view from larger storage, so the supported subset is unclear.",
+        "decision_confidence": "low",
+        "knowledge_ref": {
+          "knowledge_id": "kn_pt_torch_matmul_undersized_out_view_storage_capacity_mismatch_k001",
+          "schema_version": "2.1",
+          "content_hash": "a1ec7b47cf1f276b17666e825ef7b7d2c1b3af8dad5e1b14af43361bf29da790"
+        }
+      }
+    ],
+    "resolution_records": []
+  },
+  "validity_constraints": {
+    "global_constraints": []
+  },
+  "exploration_plan": {
+    "default_branch_id": "br_default",
+    "budget_policy_ref": {
+      "artifact_id": "initial_branch_budget_policy.json",
+      "artifact_version": "1.0",
+      "content_hash": "e0d09200c9eb83565f0153e71a6a025ce17ea29904592b75256af9714a9eb8c9"
+    },
+    "branches": [
+      {
+        "branch_id": "br_default",
+        "branch_kind": "default",
+        "input_validity_intent": "expected_valid",
+        "source_knowledge_ids": [],
+        "exploration_goal": "Exercise the canonical torch.matmul CPU path with expected-valid inputs and verify that the call completes without a crash.",
+        "risk_dimensions": [],
+        "target_properties": [],
+        "branch_preconditions": [],
+        "branch_constraints": [],
+        "activation_targets": [],
+        "oracle_requirements": [
+          {
+            "oracle_requirement_id": "orc_br_default_001",
+            "oracle_type": "crash",
+            "observation_subjects": [
+              "context.execution"
+            ],
+            "oracle_preconditions": [],
+            "expected_behavior": {
+              "requirement_type": "no_crash",
+              "parameters": {},
+              "description": "The torch.matmul call completes without a process crash or fatal signal."
+            },
+            "source_refs": [
+              {
+                "source_type": "api_profile",
+                "source_id": "api_prof:pytorch:v2.10.0:cpu:torch.matmul:python_default:aten.matmul.default",
+                "source_version": 1,
+                "content_hash": "98e71e30ddb91233074381767c4be6e00469756a0c8b48611cd532c5b2052cfa"
+              }
+            ],
+            "requirement_level": "required"
+          }
+        ],
+        "budget_share": 0.5
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "branch_kind": "knowledge_directed",
+        "input_validity_intent": "boundary_valid",
+        "source_knowledge_ids": [
+          "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001"
+        ],
+        "exploration_goal": "Explore torch.matmul on CPU with int64 inputs and an empty contraction dimension, and observe whether repeated identical calls produce consistent output tensors.",
+        "risk_dimensions": [
+          "shape",
+          "dtype",
+          "backend",
+          "output_tensor"
+        ],
+        "target_properties": [
+          {
+            "target_property_id": "tp_br_knowledge_001_001",
+            "risk_dimensions": [
+              "shape"
+            ],
+            "semantic_requirement": {
+              "requirement_type": "property_state",
+              "parameters": {
+                "subject_ref": "param_000_input",
+                "property_ref": "inner_dimension",
+                "operator": "equals",
+                "expected_value": 0
+              },
+              "description": "The first input tensor has an empty contraction dimension."
+            },
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001",
+                "source_version": "2.1",
+                "content_hash": "5eaab61ddf7f33f8104e04b76c18a3711cfec0c6d7378f8fa861227f4e5a677a"
+              }
+            ]
+          },
+          {
+            "target_property_id": "tp_br_knowledge_001_002",
+            "risk_dimensions": [
+              "shape"
+            ],
+            "semantic_requirement": {
+              "requirement_type": "property_state",
+              "parameters": {
+                "subject_ref": "param_001_other",
+                "property_ref": "inner_dimension",
+                "operator": "equals",
+                "expected_value": 0
+              },
+              "description": "The second input tensor has an empty contraction dimension."
+            },
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001",
+                "source_version": "2.1",
+                "content_hash": "5eaab61ddf7f33f8104e04b76c18a3711cfec0c6d7378f8fa861227f4e5a677a"
+              }
+            ]
+          },
+          {
+            "target_property_id": "tp_br_knowledge_001_003",
+            "risk_dimensions": [
+              "dtype"
+            ],
+            "semantic_requirement": {
+              "requirement_type": "property_state",
+              "parameters": {
+                "subject_ref": "param_000_input",
+                "property_ref": "dtype",
+                "operator": "equals",
+                "expected_value": "int64"
+              },
+              "description": "The first input tensor uses the int64 (long) dtype."
+            },
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001",
+                "source_version": "2.1",
+                "content_hash": "5eaab61ddf7f33f8104e04b76c18a3711cfec0c6d7378f8fa861227f4e5a677a"
+              }
+            ]
+          },
+          {
+            "target_property_id": "tp_br_knowledge_001_004",
+            "risk_dimensions": [
+              "dtype"
+            ],
+            "semantic_requirement": {
+              "requirement_type": "property_state",
+              "parameters": {
+                "subject_ref": "param_001_other",
+                "property_ref": "dtype",
+                "operator": "equals",
+                "expected_value": "int64"
+              },
+              "description": "The second input tensor uses the int64 (long) dtype."
+            },
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001",
+                "source_version": "2.1",
+                "content_hash": "5eaab61ddf7f33f8104e04b76c18a3711cfec0c6d7378f8fa861227f4e5a677a"
+              }
+            ]
+          }
+        ],
+        "branch_preconditions": [],
+        "branch_constraints": [],
+        "activation_targets": [
+          {
+            "activation_target_id": "act_br_knowledge_001_001",
+            "target_property_id": "tp_br_knowledge_001_001",
+            "observation_points": [
+              {
+                "observation_role": "evaluate",
+                "observation_point": "before_target_api_call"
+              }
+            ]
+          },
+          {
+            "activation_target_id": "act_br_knowledge_001_002",
+            "target_property_id": "tp_br_knowledge_001_002",
+            "observation_points": [
+              {
+                "observation_role": "evaluate",
+                "observation_point": "before_target_api_call"
+              }
+            ]
+          },
+          {
+            "activation_target_id": "act_br_knowledge_001_003",
+            "target_property_id": "tp_br_knowledge_001_003",
+            "observation_points": [
+              {
+                "observation_role": "evaluate",
+                "observation_point": "before_target_api_call"
+              }
+            ]
+          },
+          {
+            "activation_target_id": "act_br_knowledge_001_004",
+            "target_property_id": "tp_br_knowledge_001_004",
+            "observation_points": [
+              {
+                "observation_role": "evaluate",
+                "observation_point": "before_target_api_call"
+              }
+            ]
+          }
+        ],
+        "oracle_requirements": [
+          {
+            "oracle_requirement_id": "orc_br_knowledge_001_001",
+            "oracle_type": "determinism",
+            "observation_subjects": [
+              "return_000"
+            ],
+            "oracle_preconditions": [],
+            "expected_behavior": {
+              "requirement_type": "result_equivalence",
+              "parameters": {},
+              "description": "Repeated torch.matmul calls with identical boundary-valid inputs return equivalent output tensors."
+            },
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001",
+                "source_version": "2.1",
+                "content_hash": "5eaab61ddf7f33f8104e04b76c18a3711cfec0c6d7378f8fa861227f4e5a677a"
+              }
+            ],
+            "requirement_level": "required"
+          }
+        ],
+        "budget_share": 0.5
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "script",
+    "generator_name": "harness_spec_builder_v0.10",
+    "model_name": null,
+    "generation_run_id": "profile_refresh_20260915T101223Z_62a0588b1821",
+    "script_ref": {
+      "artifact_id": "build_harness_spec_json.py",
+      "artifact_version": "harness_spec_builder_v0.10",
+      "content_hash": "09d5a28d95569e4a0237adec392aee245b12914f3171eecf88d6c621a3b382ed"
+    },
+    "contract_ref": {
+      "artifact_id": "harness_spec_synthesis_contract.json",
+      "artifact_version": "1.8",
+      "content_hash": "a0b2f5aa35b63b1e820a4e6751ea598646e65eb68bb8b2f8e0f401c41d0b813b"
+    },
+    "rules_ref": {
+      "artifact_id": "knowledge_to_harness_spec_rules.md",
+      "artifact_version": "1.7",
+      "content_hash": "d97a7886f8c83a22611335facc66106f20f72d4546fd3ee03a9a8352d2d47299"
+    },
+    "generated_at": "2026-09-15T10:12:23.967631Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

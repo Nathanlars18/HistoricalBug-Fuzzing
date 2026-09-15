@@ -1,0 +1,1178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:historicalbug-fuzzing:schema:api-profile-record:1.0",
+  "title": "HistoricalBug-Fuzzing API Profile Record v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "revision",
+    "metadata",
+    "target",
+    "python_contract",
+    "target_binding",
+    "documented_constraints",
+    "flashfuzz_support",
+    "validation",
+    "evidence",
+    "review"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "profile_id": {
+      "$ref": "#/$defs/identifier"
+    },
+    "revision": {
+      "$ref": "#/$defs/positive_integer"
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "target": {
+      "$ref": "#/$defs/target"
+    },
+    "python_contract": {
+      "$ref": "#/$defs/python_contract"
+    },
+    "target_binding": {
+      "$ref": "#/$defs/target_binding"
+    },
+    "documented_constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/documented_constraint"
+      }
+    },
+    "flashfuzz_support": {
+      "$ref": "#/$defs/flashfuzz_support"
+    },
+    "validation": {
+      "$ref": "#/$defs/validation"
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "review": {
+      "$ref": "#/$defs/review"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "revision": {
+            "const": 1
+          }
+        },
+        "required": [
+          "revision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "metadata": {
+            "properties": {
+              "parent_revision_ref": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "metadata": {
+            "properties": {
+              "parent_revision_ref": {
+                "$ref": "#/$defs/profile_revision_ref"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nullable_string": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "positive_integer": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "non_negative_integer": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "git_commit": {
+      "type": "string",
+      "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+    },
+    "nullable_sha256": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nullable_timestamp": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "backend": {
+      "enum": [
+        "cpu",
+        "cuda",
+        "mps",
+        "other"
+      ]
+    },
+    "evidence_ref_array": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/identifier"
+      }
+    },
+    "local_ref_array": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/identifier"
+      }
+    },
+    "profile_revision_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "revision",
+        "content_hash"
+      ],
+      "properties": {
+        "profile_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "revision": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parent_revision_ref",
+        "generated_at",
+        "builder_version",
+        "content_hash"
+      ],
+      "properties": {
+        "parent_revision_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/profile_revision_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "builder_version": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "framework",
+        "framework_version",
+        "framework_commit",
+        "backend_scope",
+        "python_api",
+        "callable_kind",
+        "python_variant",
+        "aliases"
+      ],
+      "properties": {
+        "framework": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "framework_version": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "framework_commit": {
+          "$ref": "#/$defs/git_commit"
+        },
+        "backend_scope": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/backend"
+          }
+        },
+        "python_api": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "callable_kind": {
+          "enum": [
+            "function",
+            "tensor_method",
+            "module_function",
+            "operator",
+            "constructor",
+            "other"
+          ]
+        },
+        "python_variant": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "aliases": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        }
+      }
+    },
+    "python_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentation_status",
+        "signature",
+        "behavior_summary",
+        "parameters",
+        "returns",
+        "documented_domains",
+        "documented_exceptions",
+        "evidence_refs"
+      ],
+      "properties": {
+        "documentation_status": {
+          "enum": [
+            "available",
+            "partial",
+            "missing",
+            "conflicting"
+          ]
+        },
+        "signature": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "behavior_summary": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter"
+          }
+        },
+        "returns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/return_value"
+          }
+        },
+        "documented_domains": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/documented_domain"
+          }
+        },
+        "documented_exceptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/documented_exception"
+          }
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "normalized_type": {
+      "enum": [
+        "tensor",
+        "tensor_sequence",
+        "index_tensor",
+        "scalar",
+        "integer",
+        "floating",
+        "boolean",
+        "string",
+        "dtype",
+        "device",
+        "layout",
+        "memory_format",
+        "shape",
+        "dimension",
+        "generator",
+        "callable",
+        "object",
+        "none",
+        "unknown",
+        "other"
+      ]
+    },
+    "parameter_semantic_role": {
+      "enum": [
+        "input_tensor",
+        "other_tensor",
+        "index_tensor",
+        "output_tensor",
+        "bias_tensor",
+        "dimension_selector",
+        "shape",
+        "dtype",
+        "device",
+        "layout",
+        "memory_format",
+        "scalar",
+        "boolean_flag",
+        "sequence",
+        "generator",
+        "configuration",
+        "unknown",
+        "other"
+      ]
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameter_id",
+        "name",
+        "ordinal",
+        "parameter_kind",
+        "required",
+        "documented_type",
+        "normalized_types",
+        "default",
+        "semantic_role",
+        "normalization_basis",
+        "constraint_refs",
+        "evidence_refs"
+      ],
+      "properties": {
+        "parameter_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "ordinal": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/non_negative_integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parameter_kind": {
+          "enum": [
+            "positional_only",
+            "positional_or_keyword",
+            "keyword_only",
+            "variadic_positional",
+            "variadic_keyword"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "documented_type": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "normalized_types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/normalized_type"
+          }
+        },
+        "default": {
+          "$ref": "#/$defs/default_value"
+        },
+        "semantic_role": {
+          "$ref": "#/$defs/parameter_semantic_role"
+        },
+        "normalization_basis": {
+          "enum": [
+            "source_explicit",
+            "deterministic",
+            "manual_interpretation",
+            "unknown"
+          ]
+        },
+        "constraint_refs": {
+          "$ref": "#/$defs/local_ref_array"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "default_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "no_default",
+            "literal",
+            "none_literal",
+            "runtime_defined",
+            "unknown"
+          ]
+        },
+        "value": {}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "literal"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "return_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "return_id",
+        "position",
+        "documented_type",
+        "normalized_types",
+        "semantic_role",
+        "description",
+        "evidence_refs"
+      ],
+      "properties": {
+        "return_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "position": {
+          "$ref": "#/$defs/non_negative_integer"
+        },
+        "documented_type": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "normalized_types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/normalized_type"
+          }
+        },
+        "semantic_role": {
+          "enum": [
+            "result_tensor",
+            "result_tensor_sequence",
+            "scalar_result",
+            "boolean_result",
+            "index_result",
+            "shape_result",
+            "object_result",
+            "unknown",
+            "other"
+          ]
+        },
+        "description": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "documented_domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain_kind",
+        "values",
+        "notes",
+        "evidence_refs"
+      ],
+      "properties": {
+        "domain_kind": {
+          "enum": [
+            "dtype",
+            "device",
+            "layout",
+            "memory_format",
+            "gradient_mode",
+            "other"
+          ]
+        },
+        "values": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "notes": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "documented_exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exception_type",
+        "condition",
+        "description",
+        "evidence_refs"
+      ],
+      "properties": {
+        "exception_type": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "condition": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "description": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "target_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "operator_name",
+        "operator_overload",
+        "operator_schema",
+        "cpp_callable",
+        "binding_parameters",
+        "argument_mapping",
+        "return_mapping",
+        "evidence_refs"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "resolved",
+            "partial",
+            "unresolved",
+            "conflicting",
+            "not_applicable"
+          ]
+        },
+        "operator_name": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "operator_overload": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "operator_schema": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "cpp_callable": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "binding_parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/binding_parameter"
+          }
+        },
+        "argument_mapping": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/argument_mapping"
+          }
+        },
+        "return_mapping": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/return_mapping"
+          }
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "resolved"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "operator_name": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "operator_overload": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "operator_schema": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "cpp_callable": {
+                "$ref": "#/$defs/non_empty_string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "binding_parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding_parameter_id",
+        "name",
+        "ordinal",
+        "schema_type",
+        "default"
+      ],
+      "properties": {
+        "binding_parameter_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "ordinal": {
+          "$ref": "#/$defs/non_negative_integer"
+        },
+        "schema_type": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "default": {
+          "$ref": "#/$defs/nullable_string"
+        }
+      }
+    },
+    "argument_mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "python_parameter_ref",
+        "binding_parameter_ref",
+        "mapping_kind",
+        "transformation",
+        "evidence_refs"
+      ],
+      "properties": {
+        "python_parameter_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/identifier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "binding_parameter_ref": {
+          "$ref": "#/$defs/identifier"
+        },
+        "mapping_kind": {
+          "enum": [
+            "direct",
+            "renamed",
+            "default_injected",
+            "converted",
+            "packed",
+            "omitted",
+            "unresolved"
+          ]
+        },
+        "transformation": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "return_mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding_return_position",
+        "python_return_ref",
+        "mapping_kind",
+        "description",
+        "evidence_refs"
+      ],
+      "properties": {
+        "binding_return_position": {
+          "$ref": "#/$defs/non_negative_integer"
+        },
+        "python_return_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/identifier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mapping_kind": {
+          "enum": [
+            "direct",
+            "converted",
+            "packed",
+            "unpacked",
+            "omitted",
+            "unresolved"
+          ]
+        },
+        "description": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "documented_constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "constraint_id",
+        "constraint_kind",
+        "applies_to",
+        "condition",
+        "requirement",
+        "evidence_refs"
+      ],
+      "properties": {
+        "constraint_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "constraint_kind": {
+          "enum": [
+            "parameter",
+            "cross_parameter",
+            "dtype",
+            "shape",
+            "rank",
+            "device",
+            "layout",
+            "memory_format",
+            "value",
+            "output",
+            "environment",
+            "other"
+          ]
+        },
+        "applies_to": {
+          "$ref": "#/$defs/local_ref_array"
+        },
+        "condition": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "requirement": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "flashfuzz_support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "flashfuzz_commit",
+        "api_list_status",
+        "evidence_refs"
+      ],
+      "properties": {
+        "flashfuzz_commit": {
+          "$ref": "#/$defs/git_commit"
+        },
+        "api_list_status": {
+          "enum": [
+            "listed",
+            "unlisted",
+            "unknown"
+          ]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validation_status",
+        "execution_readiness",
+        "checks",
+        "issues"
+      ],
+      "properties": {
+        "validation_status": {
+          "enum": [
+            "not_run",
+            "partial",
+            "passed",
+            "failed"
+          ]
+        },
+        "execution_readiness": {
+          "enum": [
+            "unassessed",
+            "ready",
+            "needs_adapter",
+            "review_required",
+            "blocked"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validation_check"
+          }
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validation_issue"
+          }
+        }
+      }
+    },
+    "validation_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "check_kind",
+        "backend",
+        "status",
+        "summary",
+        "evidence_refs"
+      ],
+      "properties": {
+        "check_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "check_kind": {
+          "enum": [
+            "python_resolution",
+            "signature_resolution",
+            "operator_schema_resolution",
+            "argument_mapping",
+            "cpp_binding_resolution",
+            "cpp_compile",
+            "cpp_smoke_execution",
+            "target_reachability"
+          ]
+        },
+        "backend": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/backend"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "not_run",
+            "passed",
+            "failed",
+            "blocked",
+            "not_applicable"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "validation_issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "issue_id",
+        "issue_kind",
+        "blocking",
+        "description",
+        "affected_refs",
+        "evidence_refs"
+      ],
+      "properties": {
+        "issue_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "issue_kind": {
+          "enum": [
+            "missing_documentation",
+            "documentation_conflict",
+            "signature_ambiguity",
+            "overload_ambiguity",
+            "binding_unresolved",
+            "argument_mapping_unresolved",
+            "flashfuzz_support_gap",
+            "compile_failure",
+            "runtime_failure",
+            "reachability_unconfirmed",
+            "version_mismatch",
+            "other"
+          ]
+        },
+        "blocking": {
+          "type": "boolean"
+        },
+        "description": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "affected_refs": {
+          "$ref": "#/$defs/local_ref_array"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/evidence_ref_array"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "source_kind",
+        "source_location",
+        "source_revision",
+        "locator",
+        "content_hash",
+        "excerpt",
+        "collected_at"
+      ],
+      "properties": {
+        "evidence_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_kind": {
+          "enum": [
+            "runtime_docstring",
+            "official_documentation",
+            "operator_schema",
+            "pytorch_source",
+            "flashfuzz_api_list",
+            "flashfuzz_source",
+            "build_log",
+            "runtime_trace"
+          ]
+        },
+        "source_location": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "source_revision": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "locator": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/nullable_sha256"
+        },
+        "excerpt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "collected_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_status",
+        "reviewer",
+        "reviewed_at",
+        "issue_refs"
+      ],
+      "properties": {
+        "review_status": {
+          "enum": [
+            "unreviewed",
+            "in_review",
+            "approved",
+            "needs_revision"
+          ]
+        },
+        "reviewer": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "reviewed_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "issue_refs": {
+          "$ref": "#/$defs/local_ref_array"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "review_status": {
+                "const": "unreviewed"
+              }
+            },
+            "required": [
+              "review_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reviewer": {
+                "type": "null"
+              },
+              "reviewed_at": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "review_status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "review_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reviewer": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "reviewed_at": {
+                "$ref": "#/$defs/timestamp"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "feedback_decision_record.schema.json",
+  "title": "Adaptive Feedback Decision Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_format_version",
+    "canonicalization_version",
+    "decision_id",
+    "decision_key",
+    "scope",
+    "input_references",
+    "round_assessment",
+    "budget_decision",
+    "materialization",
+    "run_disposition"
+  ],
+  "properties": {
+    "record_format_version": {
+      "const": "1.2"
+    },
+    "canonicalization_version": {
+      "const": "1.0"
+    },
+    "decision_id": {
+      "$ref": "#/$defs/identifier"
+    },
+    "decision_key": {
+      "$ref": "#/$defs/sha256"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "input_references": {
+      "$ref": "#/$defs/input_references"
+    },
+    "round_assessment": {
+      "$ref": "#/$defs/round_assessment"
+    },
+    "budget_decision": {
+      "$ref": "#/$defs/budget_decision"
+    },
+    "materialization": {
+      "$ref": "#/$defs/materialization"
+    },
+    "run_disposition": {
+      "$ref": "#/$defs/run_disposition"
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "version_string": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "not": {
+        "const": "0"
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "positive_integer": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "non_negative_integer": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "nullable_non_negative_integer": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/non_negative_integer"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "artifact_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_version",
+        "content_hash"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "artifact_version": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/positive_integer"
+            },
+            {
+              "$ref": "#/$defs/version_string"
+            }
+          ]
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "nullable_artifact_reference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/artifact_reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "harness_spec_revision_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec_id",
+        "revision_number",
+        "content_hash"
+      ],
+      "properties": {
+        "spec_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "revision_number": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "nullable_harness_spec_revision_reference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/harness_spec_revision_reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "strategy_revision_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy_id",
+        "revision_number",
+        "content_hash"
+      ],
+      "properties": {
+        "strategy_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "revision_number": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "nullable_strategy_revision_reference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/strategy_revision_reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "feedback_decision_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_id",
+        "content_hash"
+      ],
+      "properties": {
+        "decision_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "nullable_feedback_decision_reference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/feedback_decision_reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_api_id",
+        "experimental_group",
+        "independent_repeat_id",
+        "observed_round_index",
+        "effective_from_round_index"
+      ],
+      "properties": {
+        "target_api_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "experimental_group": {
+          "const": "bug_aware_adaptive"
+        },
+        "independent_repeat_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "observed_round_index": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "effective_from_round_index": {
+          "$ref": "#/$defs/positive_integer"
+        }
+      }
+    },
+    "input_references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "current_harness_spec_ref",
+        "current_strategy_ref",
+        "current_harness_artifact_ref",
+        "fuzzing_round_ref",
+        "runtime_snapshot_ref",
+        "coverage_summary_ref",
+        "output_corpus_ref",
+        "feedback_policy_ref",
+        "controller_ref",
+        "prior_feedback_decision_refs"
+      ],
+      "properties": {
+        "current_harness_spec_ref": {
+          "$ref": "#/$defs/harness_spec_revision_reference"
+        },
+        "current_strategy_ref": {
+          "$ref": "#/$defs/strategy_revision_reference"
+        },
+        "current_harness_artifact_ref": {
+          "$ref": "#/$defs/artifact_reference"
+        },
+        "fuzzing_round_ref": {
+          "$ref": "#/$defs/artifact_reference"
+        },
+        "runtime_snapshot_ref": {
+          "$ref": "#/$defs/nullable_artifact_reference"
+        },
+        "coverage_summary_ref": {
+          "$ref": "#/$defs/nullable_artifact_reference"
+        },
+        "output_corpus_ref": {
+          "$ref": "#/$defs/nullable_artifact_reference"
+        },
+        "feedback_policy_ref": {
+          "$ref": "#/$defs/artifact_reference"
+        },
+        "controller_ref": {
+          "$ref": "#/$defs/artifact_reference"
+        },
+        "prior_feedback_decision_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/feedback_decision_reference"
+          }
+        }
+      }
+    },
+    "round_gate_issue_code": {
+      "enum": [
+        "scope_identity_mismatch",
+        "artifact_identity_mismatch",
+        "generation_key_mismatch",
+        "site_count_mismatch",
+        "missing_instrumentation_binding",
+        "counter_inconsistent",
+        "invalid_site_record_observed",
+        "round_record_validation_failed",
+        "runtime_snapshot_missing",
+        "runtime_snapshot_invalid",
+        "activation_checker_error_observed",
+        "snapshot_execution_mismatch",
+        "runtime_export_failure",
+        "infrastructure_failure_observed",
+        "round_cancelled",
+        "termination_reason_unknown",
+        "coverage_scope_mismatch",
+        "snapshot_too_stale",
+        "completed_iterations_below_minimum",
+        "crash_candidate_observed",
+        "sanitizer_candidate_observed",
+        "target_exception_candidate_observed",
+        "oracle_failure_candidate_observed"
+      ]
+    },
+    "round_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result",
+        "issue_codes"
+      ],
+      "properties": {
+        "result": {
+          "enum": [
+            "evidence_ineligible",
+            "crash_or_sanitizer_candidate",
+            "insufficient_total_samples",
+            "eligible"
+          ]
+        },
+        "issue_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/round_gate_issue_code"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "result": {
+                "const": "eligible"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "then": {
+            "properties": {
+              "issue_codes": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "issue_codes": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "branch_status": {
+      "enum": [
+        "branch_under_sampled",
+        "branch_target_unreachable",
+        "branch_rejection_dominated",
+        "branch_activation_unevaluable",
+        "branch_activation_absent",
+        "branch_activation_rare",
+        "branch_oracle_unevaluable",
+        "branch_healthy"
+      ]
+    },
+    "branch_measurements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch_selected_count",
+        "target_reached_count",
+        "input_rejected_count",
+        "activation_required",
+        "activation_checked_count",
+        "activation_true_count",
+        "activation_unevaluable_count",
+        "activation_check_error_count",
+        "oracle_required",
+        "oracle_opportunity_count",
+        "oracle_evaluated_count"
+      ],
+      "properties": {
+        "branch_selected_count": {
+          "$ref": "#/$defs/non_negative_integer"
+        },
+        "target_reached_count": {
+          "$ref": "#/$defs/non_negative_integer"
+        },
+        "input_rejected_count": {
+          "$ref": "#/$defs/non_negative_integer"
+        },
+        "activation_required": {
+          "type": "boolean"
+        },
+        "activation_checked_count": {
+          "$ref": "#/$defs/nullable_non_negative_integer"
+        },
+        "activation_true_count": {
+          "$ref": "#/$defs/nullable_non_negative_integer"
+        },
+        "activation_unevaluable_count": {
+          "$ref": "#/$defs/nullable_non_negative_integer"
+        },
+        "activation_check_error_count": {
+          "$ref": "#/$defs/nullable_non_negative_integer"
+        },
+        "oracle_required": {
+          "type": "boolean"
+        },
+        "oracle_opportunity_count": {
+          "$ref": "#/$defs/nullable_non_negative_integer"
+        },
+        "oracle_evaluated_count": {
+          "$ref": "#/$defs/nullable_non_negative_integer"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "activation_required": {
+                "const": true
+              }
+            },
+            "required": [
+              "activation_required"
+            ]
+          },
+          "then": {
+            "properties": {
+              "activation_checked_count": {
+                "$ref": "#/$defs/non_negative_integer"
+              },
+              "activation_true_count": {
+                "$ref": "#/$defs/non_negative_integer"
+              },
+              "activation_unevaluable_count": {
+                "$ref": "#/$defs/non_negative_integer"
+              },
+              "activation_check_error_count": {
+                "$ref": "#/$defs/non_negative_integer"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "activation_checked_count": {
+                "type": "null"
+              },
+              "activation_true_count": {
+                "type": "null"
+              },
+              "activation_unevaluable_count": {
+                "type": "null"
+              },
+              "activation_check_error_count": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "oracle_required": {
+                "const": true
+              }
+            },
+            "required": [
+              "oracle_required"
+            ]
+          },
+          "then": {
+            "properties": {
+              "oracle_opportunity_count": {
+                "$ref": "#/$defs/non_negative_integer"
+              },
+              "oracle_evaluated_count": {
+                "$ref": "#/$defs/non_negative_integer"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "oracle_opportunity_count": {
+                "type": "null"
+              },
+              "oracle_evaluated_count": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "branch_diagnosis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch_id",
+        "primary_status",
+        "supporting_statuses",
+        "measurements",
+        "instrumentation_binding_refs"
+      ],
+      "properties": {
+        "branch_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "primary_status": {
+          "$ref": "#/$defs/branch_status"
+        },
+        "supporting_statuses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/branch_status"
+          }
+        },
+        "measurements": {
+          "$ref": "#/$defs/branch_measurements"
+        },
+        "instrumentation_binding_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identifier"
+          }
+        }
+      }
+    },
+    "coverage_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trend",
+        "coverage_summary_ref"
+      ],
+      "properties": {
+        "trend": {
+          "enum": [
+            "coverage_growing",
+            "coverage_plateau",
+            "coverage_unavailable"
+          ]
+        },
+        "coverage_summary_ref": {
+          "$ref": "#/$defs/nullable_artifact_reference"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "trend": {
+                "const": "coverage_unavailable"
+              }
+            },
+            "required": [
+              "trend"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage_summary_ref": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "coverage_summary_ref": {
+                "$ref": "#/$defs/artifact_reference"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "nullable_coverage_assessment": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/coverage_assessment"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "round_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "round_gate",
+        "branch_diagnoses",
+        "coverage_assessment"
+      ],
+      "properties": {
+        "round_gate": {
+          "$ref": "#/$defs/round_gate"
+        },
+        "branch_diagnoses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/branch_diagnosis"
+          }
+        },
+        "coverage_assessment": {
+          "$ref": "#/$defs/nullable_coverage_assessment"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "round_gate": {
+                "properties": {
+                  "result": {
+                    "const": "eligible"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
+              }
+            },
+            "required": [
+              "round_gate"
+            ]
+          },
+          "then": {
+            "properties": {
+              "branch_diagnoses": {
+                "minItems": 1
+              },
+              "coverage_assessment": {
+                "$ref": "#/$defs/coverage_assessment"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "branch_diagnoses": {
+                "maxItems": 0
+              },
+              "coverage_assessment": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "allocation_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch_id",
+        "selector_slots"
+      ],
+      "properties": {
+        "branch_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "selector_slots": {
+          "$ref": "#/$defs/positive_integer"
+        }
+      }
+    },
+    "allocation_vector": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/allocation_entry"
+      }
+    },
+    "nullable_allocation_vector": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/allocation_vector"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "slot_transfer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "donor_branch_id",
+        "recipient_branch_id",
+        "selector_slots"
+      ],
+      "properties": {
+        "donor_branch_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "recipient_branch_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "selector_slots": {
+          "$ref": "#/$defs/positive_integer"
+        }
+      }
+    },
+    "no_change_reason": {
+      "enum": [
+        "round_not_eligible",
+        "single_branch_only",
+        "no_eligible_recipient",
+        "no_eligible_donor",
+        "insufficient_donor_surplus",
+        "recipient_at_ceiling",
+        "selector_ranges_unchanged",
+        "final_scheduled_round"
+      ]
+    },
+    "nullable_no_change_reason": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/no_change_reason"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "budget_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "budget_action",
+        "transition_kind",
+        "no_change_reason",
+        "current_allocation",
+        "proposed_allocation",
+        "transfers",
+        "pre_boost_decision_ref"
+      ],
+      "properties": {
+        "budget_action": {
+          "enum": [
+            "retain_current",
+            "reallocate_budget"
+          ]
+        },
+        "transition_kind": {
+          "enum": [
+            "none",
+            "exploration_boost",
+            "restore_pre_boost_allocation"
+          ]
+        },
+        "no_change_reason": {
+          "$ref": "#/$defs/nullable_no_change_reason"
+        },
+        "current_allocation": {
+          "$ref": "#/$defs/allocation_vector"
+        },
+        "proposed_allocation": {
+          "$ref": "#/$defs/nullable_allocation_vector"
+        },
+        "transfers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/slot_transfer"
+          }
+        },
+        "pre_boost_decision_ref": {
+          "$ref": "#/$defs/nullable_feedback_decision_reference"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "budget_action": {
+                "const": "retain_current"
+              }
+            },
+            "required": [
+              "budget_action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "transition_kind": {
+                "const": "none"
+              },
+              "no_change_reason": {
+                "$ref": "#/$defs/no_change_reason"
+              },
+              "proposed_allocation": {
+                "type": "null"
+              },
+              "transfers": {
+                "maxItems": 0
+              },
+              "pre_boost_decision_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "budget_action": {
+                "const": "reallocate_budget"
+              }
+            },
+            "required": [
+              "budget_action"
+            ]
+          },
+          "then": {
+            "properties": {
+              "transition_kind": {
+                "enum": [
+                  "exploration_boost",
+                  "restore_pre_boost_allocation"
+                ]
+              },
+              "no_change_reason": {
+                "type": "null"
+              },
+              "proposed_allocation": {
+                "$ref": "#/$defs/allocation_vector"
+              },
+              "transfers": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "transition_kind": {
+                "const": "exploration_boost"
+              }
+            },
+            "required": [
+              "transition_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "pre_boost_decision_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "transition_kind": {
+                "const": "restore_pre_boost_allocation"
+              }
+            },
+            "required": [
+              "transition_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "pre_boost_decision_ref": {
+                "$ref": "#/$defs/feedback_decision_reference"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "materialization_failure_stage": {
+      "enum": [
+        "harness_spec_validation",
+        "budget_only_diff_validation",
+        "strategy_rebinding",
+        "strategy_validation",
+        "harness_materialization",
+        "harness_static_validation",
+        "compilation",
+        "preflight_execution"
+      ]
+    },
+    "nullable_materialization_failure_stage": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/materialization_failure_stage"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "materialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "candidate_harness_spec_ref",
+        "candidate_strategy_ref",
+        "candidate_harness_artifact_ref",
+        "failed_stage",
+        "warning_refs",
+        "failure_diagnostic_refs"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "not_attempted",
+            "accepted",
+            "rejected"
+          ]
+        },
+        "candidate_harness_spec_ref": {
+          "$ref": "#/$defs/nullable_harness_spec_revision_reference"
+        },
+        "candidate_strategy_ref": {
+          "$ref": "#/$defs/nullable_strategy_revision_reference"
+        },
+        "candidate_harness_artifact_ref": {
+          "$ref": "#/$defs/nullable_artifact_reference"
+        },
+        "failed_stage": {
+          "$ref": "#/$defs/nullable_materialization_failure_stage"
+        },
+        "warning_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/artifact_reference"
+          }
+        },
+        "failure_diagnostic_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/artifact_reference"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "not_attempted"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "candidate_harness_spec_ref": {
+                "type": "null"
+              },
+              "candidate_strategy_ref": {
+                "type": "null"
+              },
+              "candidate_harness_artifact_ref": {
+                "type": "null"
+              },
+              "failed_stage": {
+                "type": "null"
+              },
+              "warning_refs": {
+                "maxItems": 0
+              },
+              "failure_diagnostic_refs": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "accepted"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "candidate_harness_spec_ref": {
+                "$ref": "#/$defs/harness_spec_revision_reference"
+              },
+              "candidate_strategy_ref": {
+                "$ref": "#/$defs/strategy_revision_reference"
+              },
+              "candidate_harness_artifact_ref": {
+                "$ref": "#/$defs/artifact_reference"
+              },
+              "failed_stage": {
+                "type": "null"
+              },
+              "failure_diagnostic_refs": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "rejected"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failed_stage": {
+                "$ref": "#/$defs/materialization_failure_stage"
+              },
+              "failure_diagnostic_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "run_disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "disposition_reason",
+        "handoff_ref"
+      ],
+      "properties": {
+        "value": {
+          "enum": [
+            "continue",
+            "freeze_adaptation",
+            "handoff_crash_analysis",
+            "abort_repeat"
+          ]
+        },
+        "handoff_ref": {
+          "$ref": "#/$defs/nullable_artifact_reference"
+        },
+        "disposition_reason": {
+          "$ref": "#/$defs/nullable_disposition_reason"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "enum": [
+                  "continue",
+                  "handoff_crash_analysis"
+                ]
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "disposition_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "const": "continue"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "handoff_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "const": "handoff_crash_analysis"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "handoff_ref": {
+                "$ref": "#/$defs/artifact_reference"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "const": "freeze_adaptation"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "disposition_reason": {
+                "enum": [
+                  "consecutive_evidence_ineligible_limit_reached",
+                  "consecutive_candidate_rejection_limit_reached",
+                  "scheduled_rounds_completed"
+                ]
+              },
+              "handoff_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "const": "abort_repeat"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "disposition_reason": {
+                "enum": [
+                  "unrecoverable_infrastructure_failure",
+                  "unrecoverable_capability_failure"
+                ]
+              },
+              "handoff_ref": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "disposition_reason": {
+      "enum": [
+        "consecutive_evidence_ineligible_limit_reached",
+        "consecutive_candidate_rejection_limit_reached",
+        "unrecoverable_infrastructure_failure",
+        "unrecoverable_capability_failure",
+        "scheduled_rounds_completed"
+      ]
+    },
+    "nullable_disposition_reason": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/disposition_reason"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

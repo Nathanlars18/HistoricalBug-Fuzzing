@@ -1,0 +1,255 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+  "revision": 1,
+  "metadata": {
+    "parent_revision_ref": null,
+    "generated_at": "2026-09-14T08:03:04.293427Z",
+    "builder_version": "helper_profile_builder_v0.1",
+    "content_hash": "2d8b74c1ece01f5ffd2f28921f2b50cd1f845cbc5027dfa9e52f2278fc52bb6b"
+  },
+  "target_environment": {
+    "framework": "pytorch",
+    "framework_version": "2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend": "cpu",
+    "provider": "flashfuzz_base",
+    "provider_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "configuration_id": "torch_2_10_cpu_debug_instrumented"
+  },
+  "callable_interface": {
+    "namespace": "fuzzer_utils",
+    "function_name": "parseDataType",
+    "qualified_name": "fuzzer_utils::parseDataType",
+    "declaration": "torch::ScalarType parseDataType(uint8_t selector);",
+    "return": {
+      "cpp_type": "torch::ScalarType",
+      "semantic_role": "dtype",
+      "evidence_refs": [
+        "ev_helper_header",
+        "ev_curated_annotation"
+      ]
+    },
+    "parameters": [
+      {
+        "parameter_id": "param_000_selector",
+        "name": "selector",
+        "ordinal": 0,
+        "cpp_type": "uint8_t",
+        "direction": "in",
+        "semantic_role": "dtype_selector",
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "evidence_refs": [
+          "ev_helper_header",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "required_include": "fuzzer_utils.h",
+    "invocation_template": "fuzzer_utils::parseDataType({{selector}})",
+    "evidence_refs": [
+      "ev_helper_header"
+    ]
+  },
+  "capability_contract": {
+    "capability_kind": "byte_decoder",
+    "summary": "Maps one selector byte to a supported torch scalar type.",
+    "fuzz_input_contract": {
+      "interaction_mode": "selector_value",
+      "data_parameter_refs": [],
+      "size_parameter_refs": [],
+      "offset_parameter_ref": null,
+      "offset_effect": "none",
+      "consumption_mode": "none",
+      "minimum_bytes": null,
+      "maximum_bytes": null,
+      "consumption_formula": null
+    },
+    "domain_constraints": [
+      {
+        "subjects": [
+          {
+            "entity_kind": "return",
+            "entity_ref": null,
+            "property": "dtype"
+          }
+        ],
+        "relation": "one_of",
+        "value": [
+          "float32",
+          "float64",
+          "float16",
+          "bfloat16",
+          "complex64",
+          "complex128",
+          "int8",
+          "uint8",
+          "int16",
+          "int32",
+          "int64",
+          "bool"
+        ],
+        "verification_level": "statically_verified",
+        "constraint_id": "constraint_001",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "behavior_claims": [
+      {
+        "claim_kind": "guarantee",
+        "statement": "The selector is reduced modulo the statically defined supported-type list.",
+        "verification_level": "statically_verified",
+        "claim_id": "claim_001",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "side_effects": {
+      "status": "known",
+      "kinds": [
+        "stdout_write"
+      ]
+    },
+    "determinism": "deterministic",
+    "evidence_refs": [
+      "ev_helper_header",
+      "ev_helper_implementation",
+      "ev_curated_annotation"
+    ]
+  },
+  "build_contract": {
+    "compile_definitions": [
+      {
+        "name": "DEBUG_FUZZ",
+        "value": "1 // Keep for debugging convenience",
+        "behavior_affecting": true,
+        "evidence_refs": [
+          "ev_helper_header"
+        ]
+      }
+    ],
+    "helper_dependencies": [],
+    "evidence_refs": [
+      "ev_helper_header",
+      "ev_build_configuration"
+    ]
+  },
+  "validation": {
+    "validation_status": "partial",
+    "execution_readiness": "unassessed",
+    "checks": [
+      {
+        "check_id": "check_header_parse",
+        "check_kind": "header_parse",
+        "status": "passed",
+        "summary": "Public declaration was parsed deterministically.",
+        "evidence_refs": [
+          "ev_helper_header"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_definition_resolution",
+        "check_kind": "definition_resolution",
+        "status": "passed",
+        "summary": "One matching implementation body was located.",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_declaration_definition_match",
+        "check_kind": "declaration_definition_match",
+        "status": "not_run",
+        "summary": "Compiler-backed declaration/definition comparison has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_dependency_resolution",
+        "check_kind": "dependency_resolution",
+        "status": "passed",
+        "summary": "All direct Helper dependencies are resolved.",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_compile",
+        "check_kind": "compile",
+        "status": "not_run",
+        "summary": "Per-Helper compile validation has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_smoke_execution",
+        "check_kind": "smoke_execution",
+        "status": "not_run",
+        "summary": "Per-Helper smoke execution has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      }
+    ],
+    "issues": []
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_helper_header",
+      "source_kind": "helper_header",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.h",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "torch::ScalarType parseDataType(uint8_t selector);",
+      "content_hash": "5c3aecce5e9c24de4031436cea02a3327714d8d5155578b4e1e4fa2d915a70e6",
+      "excerpt": "torch::ScalarType parseDataType(uint8_t selector);",
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_build_configuration",
+      "source_kind": "build_configuration",
+      "source_location": "runtime/flashfuzz_2_10/runtime_config.json",
+      "source_revision": "0.1",
+      "locator": "target runtime configuration",
+      "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f",
+      "excerpt": null,
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_curated_annotation",
+      "source_kind": "curated_annotation",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/annotations/helper_capability_annotations.json",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "fuzzer_utils::parseDataType#54f7f7e39ec2",
+      "content_hash": "b3dab143f8747d515a4eadabc7355ded7271c3ad7e9d966f612092423a161f8e",
+      "excerpt": null,
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_helper_implementation",
+      "source_kind": "helper_implementation",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.cpp",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "fuzzer_utils::parseDataType",
+      "content_hash": "e7d8aa99691fbbc38d8eef5bc49a1302ad10672bd98cdfec3273e8eb68add368",
+      "excerpt": "parseDataType(uint8_t selector)\n    {\n        size_t index = selector % supported_types.size();\n#ifdef DEBUG_FUZZ\n        std::cout << \"Data type selector: \" << static_cast<int>(selector) << \", index: \" << index << \", type: \" << c10::toString(supported_types[index]) << std::endl;\n#endif\n        return supported_types[index];\n    }",
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    }
+  ],
+  "review": {
+    "review_status": "approved",
+    "reviewer": "nathan",
+    "reviewed_at": "2026-09-06T08:37:26Z",
+    "issue_refs": [],
+    "notes": "Source-level semantic fields confirmed; compile and smoke validation remain independent."
+  }
+}

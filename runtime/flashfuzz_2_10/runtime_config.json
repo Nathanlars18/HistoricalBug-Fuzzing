@@ -26,7 +26,8 @@
   "images": {
     "base": "historicalbug/flashfuzz:torch2.10-base",
     "fuzz_runtime": "historicalbug/flashfuzz:torch2.10-fuzz-runtime",
-    "coverage_runtime": "historicalbug/flashfuzz:torch2.10-cov-runtime"
+    "coverage_runtime": "historicalbug/flashfuzz:torch2.10-cov-runtime",
+    "api_metadata_runtime": "historicalbug/flashfuzz:torch2.10-api-metadata"
   },
   "resource_policy": {
     "initial_pytorch_build_jobs": 2,

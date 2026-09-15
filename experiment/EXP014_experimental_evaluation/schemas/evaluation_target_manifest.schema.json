@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evaluation Target Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "manifest_id",
+    "revision",
+    "status",
+    "detector_contract_version",
+    "api_target_sets",
+    "unresolved_bindings"
+  ],
+  "properties": {
+    "format_version": {"const": "1.0"},
+    "manifest_id": {"$ref": "#/$defs/identifier"},
+    "revision": {"$ref": "#/$defs/positive_integer"},
+    "status": {"enum": ["draft", "frozen"]},
+    "detector_contract_version": {"$ref": "#/$defs/version_string"},
+    "api_target_sets": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/api_target_set"}
+    },
+    "unresolved_bindings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/unresolved_binding"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"status": {"const": "frozen"}},
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "api_target_sets": {"minItems": 1},
+          "unresolved_bindings": {"maxItems": 0}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "version_string": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*))*$"
+    },
+    "positive_integer": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "api_target_set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api_id", "targets"],
+      "properties": {
+        "api_id": {"$ref": "#/$defs/identifier"},
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/evaluation_target"}
+        }
+      }
+    },
+    "evaluation_target": {
+      "type": "object",
+      "required": ["evaluation_target_id"],
+      "properties": {
+        "evaluation_target_id": {"$ref": "#/$defs/identifier"}
+      },
+      "additionalProperties": true
+    },
+    "unresolved_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["json_pointer", "expected_type", "required_before"],
+      "properties": {
+        "json_pointer": {"type": "string", "minLength": 1},
+        "expected_type": {"type": "string", "minLength": 1},
+        "required_before": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

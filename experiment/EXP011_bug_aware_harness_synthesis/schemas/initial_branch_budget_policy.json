@@ -1,0 +1,48 @@
+{
+  "policy_version": "1.0",
+  "policy_id": "initial_equal_with_default_floor",
+  "policy_kind": "initial_branch_allocation",
+  "scope": {
+    "applicable_spec_modes": [
+      "bug_aware_static",
+      "bug_aware_adaptive"
+    ],
+    "applicable_revision_number": 1,
+    "state_isolation": "per_harness_spec"
+  },
+  "allocation": {
+    "method": "equal_with_default_floor",
+    "description": "Assign equal shares when feasible; otherwise raise the default branch to its minimum and divide the remainder equally among non-default branches.",
+    "target_total_share": 1.0,
+    "single_branch_default_share": 1.0,
+    "default_branch": {
+      "base": "equal_share",
+      "minimum_share": 0.2
+    },
+    "non_default_branches": {
+      "distribution": "equal_remaining",
+      "minimum_share": 0.05
+    },
+    "infeasible_policy": "validation_error"
+  },
+  "rounding": {
+    "decimal_places": 12,
+    "residual_recipient": "default_branch",
+    "sum_tolerance": 1e-09
+  },
+  "excluded_allocation_signals": [
+    "knowledge_confidence",
+    "llm_output_order",
+    "cross_api_results",
+    "execution_metrics",
+    "previous_api_allocation"
+  ],
+  "required_invariants": [
+    "exactly_one_default_branch",
+    "every_branch_has_positive_share",
+    "default_share_meets_minimum",
+    "non_default_shares_are_equal",
+    "non_default_shares_meet_minimum",
+    "shares_sum_to_target_within_tolerance"
+  ]
+}

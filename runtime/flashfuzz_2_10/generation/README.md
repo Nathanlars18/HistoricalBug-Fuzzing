@@ -1,9 +1,15 @@
-# Python Generation and API-Profile Environment
+# Python API-Metadata Environment
 
-This directory is reserved for a separately pinned Python environment using
-PyTorch 2.10. It will support API Profile extraction and Harness generation.
+This directory documents the separately pinned Python environment used to
+extract API Profile facts. It is not the C++ fuzz or coverage runtime.
 
-It is intentionally not created from the existing FlashFuzz `torch==2.7.0`
-environment. The exact Python dependency lock will be added after the C++
-PyTorch 2.10 fuzz runtime has passed its first smoke test, so the profile and
-target runtime are validated against the same framework release.
+The image is defined by
+`../docker/torch-2.10-api-metadata.Dockerfile`. It reuses the pinned PyTorch
+source base, installs the official PyTorch 2.10 CPU package, and rejects the
+build unless `torch.__version__` and `torch.version.git_version` match the
+configured target.
+
+The environment supplies runtime docstrings and signatures. Versioned PyTorch
+source remains the authority for operator schemas and C++/ATen bindings.
+Generated Harnesses are still compiled and executed only in the dedicated fuzz
+and coverage images.

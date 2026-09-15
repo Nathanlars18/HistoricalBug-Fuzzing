@@ -1,14 +1,14 @@
-# Historical Bug-Aware HarnessSpec Schema v1.1
+# Historical Bug-Aware HarnessSpec Schema v1.7
 
 ## 1. Purpose
 
 A HarnessSpec is a structured, target-API-specific testing plan produced after
-API-specific Knowledge records have been retrieved, assessed, and resolved.
+eligible API-specific Knowledge records have been assessed and resolved.
 
 It records:
 
 - the target API and capability context;
-- the final decision for each candidate Knowledge record;
+- the final decision for each eligible Knowledge record supplied to synthesis;
 - material relationships and resolutions among multiple Knowledge records;
 - validity, safety, and environment constraints;
 - semantic exploration branches and their execution-budget shares;
@@ -73,9 +73,9 @@ execution infrastructure is required across experimental groups.
 | --- | --- | --- | --- |
 | `schema_version` | string | yes | HarnessSpec record-format version |
 | `identity` | object | yes | Stable identity and experimental mode |
-| `revision_information` | object | yes | Same-Spec revision chain and cross-Spec origin |
+| `revision_information` | object | yes | Same-Spec revision chain |
 | `target_context` | object | yes | Target API and capability context |
-| `knowledge_plan` | object | yes | Candidate decisions and multi-Knowledge resolutions |
+| `knowledge_plan` | object | yes | Knowledge decisions and multi-Knowledge resolutions |
 | `validity_constraints` | object | yes | Constraints shared by all branches |
 | `exploration_plan` | object | yes | Semantic branches and budget shares |
 | `provenance` | object | yes | Exact generation artifacts and run information |
@@ -146,7 +146,7 @@ contract.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `knowledge_id` | string | yes | Stable Knowledge identifier |
-| `revision` | integer | yes | Positive Knowledge revision number |
+| `schema_version` | string | yes | Source Knowledge record-format version |
 | `content_hash` | string | yes | Hash of the referenced Knowledge content |
 
 ### 5.3 HarnessSpec Revision Reference
@@ -155,6 +155,7 @@ contract.
 | --- | --- | --- | --- |
 | `spec_id` | string | yes | Stable HarnessSpec identifier |
 | `revision_number` | integer | yes | Positive HarnessSpec revision number |
+| `content_hash` | string | yes | Canonical hash of the exact referenced parent revision record |
 
 ### 5.4 API Profile Reference
 
@@ -169,7 +170,7 @@ contract.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `profile_id` | string | yes | Stable Helper Capability Profile identifier |
-| `version` | string | yes | Exact profile version |
+| `revision` | integer | yes | Positive Helper Profile revision |
 | `content_hash` | string | yes | Hash of the referenced profile content |
 
 ### 5.6 Source Reference
@@ -178,19 +179,18 @@ contract.
 | --- | --- | --- | --- |
 | `source_type` | enum | yes | Source artifact category |
 | `source_id` | string | yes | Stable source identifier |
-| `source_revision` | integer or string | yes | Exact source revision or version |
+| `source_version` | integer or string | yes | Exact source revision or schema version |
 | `content_hash` | string | yes | Hash of the exact source content |
 
 Allowed `source_type` values:
 
 ```text
 api_profile
-helper_profile
 knowledge
 ```
 
 Every Source Reference identifies an externally stored, versioned artifact. Its
-`source_revision` and `content_hash` are therefore non-null in a final
+`source_version` and `content_hash` are therefore non-null in a final
 HarnessSpec record.
 
 ---
@@ -199,7 +199,7 @@ HarnessSpec record.
 
 | Field | Type | Required | Allowed value |
 | --- | --- | --- | --- |
-| `schema_version` | string | yes | `"1.1"` |
+| `schema_version` | string | yes | `"1.7"` |
 
 `schema_version` describes the record format and is independent of the
 HarnessSpec revision number.
@@ -238,10 +238,11 @@ All fields in `identity` remain unchanged across revisions of the same `spec_id`
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `revision_number` | integer | yes | Positive revision number within the same `spec_id` |
-| `parent_revision_ref` | HarnessSpec Revision Reference or null | yes | Immediate previous revision of the same HarnessSpec |
-| `forked_from_spec_ref` | HarnessSpec Revision Reference or null | yes | Cross-Spec revision used to create revision 1 |
+| `parent_revision_ref` | HarnessSpec Revision Reference or null | yes | Immediate previous revision of the same `spec_id` |
+| `derived_from_spec_ref` | HarnessSpec Revision Reference or null | yes | Cross-identity source used only when the first Adaptive record is derived from shared Static H0 |
+| `feedback_request_ref` | Artifact Reference or null | yes | Exact Materialization Request for an execution-feedback revision |
 | `revision_trigger` | enum | yes | Event that caused this revision to be created |
-| `change_scopes` | array of enums | yes | Structured sections changed from the parent or fork source |
+| `change_scopes` | array of enums | yes | Structured sections changed from the parent revision |
 | `change_summary` | string | yes | Concise human-readable change summary |
 | `lifecycle_status` | enum | yes | Operational state of this revision |
 
@@ -249,7 +250,6 @@ Allowed `revision_trigger` values:
 
 ```text
 initial_creation
-cross_spec_derivation
 manual_review
 execution_feedback
 source_artifact_update
@@ -283,23 +283,23 @@ retired
 
 Lineage semantics:
 
-- revision 1 has `parent_revision_ref = null`;
-- revision 2 or later points `parent_revision_ref` to the immediately preceding revision of the same `spec_id`;
-- `forked_from_spec_ref` is allowed only on revision 1 and points to a different `spec_id`;
-- later revisions trace their origin through the parent chain to revision 1, then through `forked_from_spec_ref` when present;
-- `cross_spec_derivation` requires a non-null `forked_from_spec_ref`;
-- `initial_creation` requires a null `forked_from_spec_ref`.
+- `parent_revision_ref` is only the immediate predecessor with the same `spec_id`;
+- initial synthesis has revision 1 with both lineage references null;
+- the first repeat-scoped Adaptive record has revision 1, `parent_revision_ref = null`, and `derived_from_spec_ref` pointing to the exact shared Static H0;
+- later Adaptive revisions use `parent_revision_ref` and set `derived_from_spec_ref = null`;
+- every `execution_feedback` record references the exact Materialization Request in `feedback_request_ref`;
+- `initial_creation` is used only for initial synthesis.
 
 Change-scope semantics:
 
 - changing only branch `budget_share` values is `budget_allocation`;
 - adding, removing, splitting, or merging branches is `branch_structure`;
 - changing a branch goal, target property, precondition, or constraint without changing the branch set is `branch_semantics`;
-- changing candidate selection is `knowledge_selection`;
+- changing Knowledge selection is `knowledge_selection`;
 - changing only provenance, review, or other non-semantic metadata is `metadata_only`.
 
 `change_scopes` should be computed by a deterministic structured diff whenever a
-parent or fork source is available. It should not be inferred from free-form LLM
+parent revision is available. It should not be inferred from free-form LLM
 explanations.
 
 Lifecycle semantics:
@@ -316,7 +316,7 @@ Lifecycle semantics:
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `api_profile_ref` | API Profile Reference | yes | Exact Target API Profile |
-| `helper_profile_ref` | Helper Profile Reference | yes | Exact Helper Capability Profile |
+| `available_helper_profile_refs` | non-empty array of Helper Profile References | yes | Exact Helper Profiles whose capabilities are available to this HarnessSpec |
 | `framework_version` | string or null | yes | Framework version targeted by this revision |
 | `backend_scope` | array of strings | yes | Backends covered by this HarnessSpec |
 
@@ -331,7 +331,10 @@ mps
 The API Profile owns the exact API signature, parameter roles, binding
 information, and API-level constraints.
 
-The Helper Profile owns available Helper capabilities and limitations.
+Each referenced Helper Profile owns one available Helper capability and its
+limitations. The array is an available-capability set, not a list of concrete
+Helper calls. Strategy Primitives later select the Helper subset used to
+implement individual branches.
 
 Complete profile content is not copied into the HarnessSpec.
 
@@ -339,25 +342,26 @@ Complete profile content is not copied into the HarnessSpec.
 
 ## 10. `knowledge_plan`
 
-The `knowledge_plan` records the exact retrieved candidate set, the final
-decision for each candidate, and material multi-Knowledge resolutions.
+The `knowledge_plan` records the final decision for every eligible Knowledge
+record supplied to synthesis and material multi-Knowledge resolutions. The
+Builder determines eligibility from the target API, environment, and configured
+record-status policy before the LLM is called.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `candidate_manifest_ref` | Artifact Reference or null | yes | Exact candidate-retrieval manifest |
-| `candidate_decisions` | array of Candidate Decision objects | yes | One final decision for each candidate Knowledge |
+| `knowledge_decisions` | array of Knowledge Decision objects | yes | One final decision for each eligible Knowledge supplied to synthesis |
 | `resolution_records` | array of Resolution Record objects | yes | Material relationships and their effects |
 
 Full Knowledge content must not be embedded in this object.
 
-### 10.1 Candidate Decision
+### 10.1 Knowledge Decision
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `knowledge_ref` | Knowledge Reference | yes | Exact candidate Knowledge revision |
+| `knowledge_ref` | Knowledge Reference | yes | Exact eligible Knowledge schema version and content |
 | `selection_status` | enum | yes | Final inclusion decision for this revision |
 | `applicability_status` | enum | yes | Semantic applicability to the target API |
-| `capability_status` | enum | yes | Implementability under the referenced Helper Profile |
+| `capability_status` | enum | yes | Preliminary compatibility with capabilities advertised by the available Helper Profile set |
 | `reason_codes` | array of strings | yes | Normalized decision reasons |
 | `decision_summary` | string | yes | Concise human-readable decision summary |
 | `decision_confidence` | enum or null | yes | Confidence in the final combined decision |
@@ -385,6 +389,21 @@ not_applicable
 unknown
 ```
 
+Meanings:
+
+- `supported`: the available profiles advertise all capabilities required by
+  the selected semantic contribution;
+- `partially_supported`: the profiles advertise the selected usable subset, but
+  other parts of the Knowledge remain unsupported;
+- `unsupported`: an indispensable capability for the proposed contribution is
+  not advertised;
+- `unknown`: the semantic need cannot be mapped reliably to the advertised
+  capabilities.
+
+This is a capability-screening result, not proof that a complete Strategy has
+been implemented. Final implementation feasibility belongs to the Strategy
+layer.
+
 Allowed `capability_status` values:
 
 ```text
@@ -405,10 +424,12 @@ low
 `null` means that confidence could not be responsibly assessed.
 
 The controlled `reason_codes` vocabulary belongs to the machine-readable
-contract.
+contract. `oracle_only_contribution` is reserved for selected Knowledge whose
+branch contribution introduces no deliberately generated or explored state and
+is represented by a supported Oracle.
 
 Branch contribution is recorded only through each branch's
-`source_knowledge_ids`; it is not duplicated in Candidate Decision.
+`source_knowledge_ids`; it is not duplicated in Knowledge Decision.
 
 ### 10.2 Resolution Record
 
@@ -466,10 +487,10 @@ Allowed `effect_type` values:
 merge_into_branch
 separate_into_branches
 keep_separate
-prefer_candidates
+prefer_knowledge
 deduplicate_contribution
-defer_candidates
-reject_candidates
+defer_knowledge
+reject_knowledge
 ```
 
 Multiple effects may appear in one Resolution Record. For example, overlapping
@@ -545,11 +566,17 @@ layer must implement.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `default_branch_id` | string | yes | Canonical default valid-input branch |
+| `budget_policy_ref` | Artifact Reference or null | yes | Exact policy used to assign branch budget shares |
 | `branches` | array of Exploration Branch objects | yes | Branches executed by this revision |
 
 `default_branch_id` equals the `branch_id` of the unique branch whose
 `branch_kind` is `default`. It is derived deterministically from `branches` and
 is not an independent planning decision.
+
+`budget_policy_ref` is Builder-owned. A controlled baseline stores `null`, has
+only the default branch, and assigns it a share of `1.0`. Revision 1 of either
+bug-aware mode references the versioned initial policy. Later Adaptive revisions
+reference the versioned policy produced by the feedback stage.
 
 Only branches that participate in the current revision are stored. A removed or
 disabled branch remains traceable through the parent revision and is not kept as
@@ -569,8 +596,7 @@ a zero-budget branch in the current revision.
 | `branch_preconditions` | array of Branch Precondition objects | yes | Conditions gating entry into this branch |
 | `branch_constraints` | array of Constraint objects | yes | Conditions that must hold throughout this branch |
 | `budget_share` | number | yes | Relative execution-budget share in `[0, 1]` |
-| `activation_targets` | array of Activation Target objects | yes | Runtime evidence that the intended path occurred |
-| `activation_logic` | enum | yes | Combination rule for activation targets |
+| `activation_targets` | array of Activation Target objects | yes | Runtime observations required to establish Knowledge-derived target states |
 | `oracle_requirements` | array of Oracle Requirement objects | yes | Semantic observations required or preferred |
 
 Allowed `branch_kind` values:
@@ -601,13 +627,6 @@ Meanings:
 - `boundary_valid`: inputs remain valid while approaching a semantic boundary;
 - `intentionally_invalid`: a specific API validity condition is deliberately violated to test error handling.
 
-Allowed `activation_logic` values:
-
-```text
-all_required
-any_required
-```
-
 The default and generic branches do not use historical Knowledge and therefore
 have an empty `source_knowledge_ids` array.
 
@@ -616,12 +635,19 @@ A Knowledge-directed branch references at least one selected Knowledge record.
 `budget_share` is branch-level execution allocation, not a Knowledge confidence
 score or Knowledge importance weight.
 
-For an initial HarnessSpec revision, the Builder assigns `budget_share`
-deterministically from the versioned budget policy. Adaptive feedback may change
-the stored shares only by creating a new HarnessSpec revision.
+For revision 1 of a bug-aware HarnessSpec, the Builder assigns `budget_share`
+deterministically from `budget_policy_ref`. Adaptive feedback may change the
+stored shares only by creating a new revision with a feedback-derived policy
+reference. The baseline does not use a budget policy.
 
 `risk_dimensions` reuses the controlled vocabulary defined by API-specific
 Knowledge and enumerated by the HarnessSpec synthesis contract.
+
+Every executable branch is expected to invoke the target API, and downstream
+Strategy and Harness instrumentation must record whether that invocation
+occurred. Target-API reachability is a fixed execution invariant, not a
+Knowledge risk-activation target, and is therefore not repeated in
+`activation_targets`.
 
 ### 12.2 Target Property
 
@@ -631,13 +657,19 @@ It is not a condition that must hold for every branch.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `target_property_id` | string | yes | Unique target-property identifier |
-| `subject` | string | yes | API parameter, output, exception, or contextual object |
-| `property_name` | string | yes | Normalized semantic property |
-| `desired_state` | JSON value | yes | Intended state, relation, or range |
+| `risk_dimensions` | array of enums | yes | One or more controlled risk dimensions represented by this state |
+| `semantic_requirement` | Semantic Requirement | yes | Structured implementation-independent state, relation, range, or transition |
 | `source_refs` | array of Source References | yes | Sources supporting this target property |
 
 A Target Property defines the desired semantic state, not how that state is
-created.
+created. Its `risk_dimensions` are a non-empty subset of the containing
+branch's `risk_dimensions`. `semantic_requirement.parameters` use stable API
+Profile parameter identifiers and normalized property paths; they do not use C++
+expressions, generated variable names, Helper calls, or instrumentation details.
+
+Target Property Source References may identify only an API Profile or selected
+Knowledge. A Helper Profile describes implementation capability and is not
+semantic evidence for a risk state.
 
 ### 12.3 Branch Precondition
 
@@ -661,36 +693,38 @@ unresolved
 
 ### 12.4 Activation Target
 
-An Activation Target records runtime evidence that the intended semantic state
-or target API path actually occurred. It does not define how instrumentation is
-implemented.
+An Activation Target requires runtime observation of one Target Property. It
+does not define how instrumentation is implemented.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `activation_target_id` | string | yes | Unique activation-target identifier |
-| `activation_kind` | enum | yes | Type of runtime activation evidence |
-| `target_property_ids` | array of strings | yes | Target Properties whose states must be observed |
-| `observation_point` | enum | yes | Semantic observation point |
+| `target_property_id` | string | yes | Exactly one Target Property observed by this target |
+| `observation_points` | array of Observation Point objects | yes | One evaluation point, or a before/after pair for a state transition |
 
-Allowed `activation_kind` values:
+An Observation Point contains:
 
-```text
-property_state
-target_api_reached
-```
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `observation_role` | enum | yes | `evaluate`, `before`, or `after` |
+| `observation_point` | enum | yes | Semantic phase relative to the target API call |
 
 Allowed `observation_point` values:
 
 ```text
 before_target_api_call
-at_target_api_call
 after_target_api_call
 ```
 
-For `property_state`, `target_property_ids` is non-empty.
+For `state_transition`, `observation_points` contains exactly one `before` and
+one `after` item at the corresponding phases. Other Target Property requirement
+types use exactly one `evaluate` item. Duplicate roles or phases are prohibited.
 
-For `target_api_reached`, `target_property_ids` is empty and
-`observation_point` is `at_target_api_call`.
+Every Activation Target in a branch is required for that branch's risk-
+activation claim. Alternative target states are represented as separate
+branches rather than an `any` combination. A branch without a Knowledge-derived
+state, including a default or solely Oracle-directed branch, may have an empty
+`activation_targets` array.
 
 Oracle readiness is defined by Oracle Preconditions rather than by an Activation
 Target.
@@ -794,39 +828,43 @@ warning
 
 A valid HarnessSpec must satisfy:
 
-1. `schema_version` is `"1.1"`.
+1. `schema_version` is `"1.7"`.
 2. `revision_number` is a positive integer.
 3. All `identity` fields remain unchanged across revisions of the same `spec_id`.
-4. Revision 1 has `parent_revision_ref = null`; later revisions reference the immediately preceding revision of the same `spec_id`.
-5. `forked_from_spec_ref`, when present, appears only on revision 1 and references a different `spec_id` with the same framework and target API.
-6. `initial_creation` has no fork source; `cross_spec_derivation` has a fork source.
-7. Revision 1 includes `initial_definition`; later revisions do not.
-8. `metadata_only` does not appear with a semantic change scope.
-9. Internal IDs required to be unique are unique within the record.
-10. Internal references resolve within the record; external references resolve to exact artifact revisions or versions.
-11. A controlled baseline has `candidate_manifest_ref = null`, no Candidate Decisions, no Resolution Records, and no Knowledge-directed branches.
-12. A bug-aware Static or Adaptive HarnessSpec has a non-null `candidate_manifest_ref`.
-13. Each candidate Knowledge appears exactly once in `candidate_decisions`.
-14. A selected candidate is not `not_applicable`, `unsupported`, or `unknown` in either applicability or capability.
-15. Every Knowledge referenced by a Knowledge-directed branch is selected.
-16. Every Knowledge ID in a Resolution Record resolves to exactly one Candidate Decision.
-17. A Resolution Record involves at least two Knowledge records and contains at least one interaction dimension and one effect.
-18. Every Resolution Effect targets only Knowledge involved in its Resolution Record, and every referenced result branch exists.
-19. Exactly one branch has `branch_kind = default`, and `default_branch_id` resolves to it.
-20. The default branch uses `input_validity_intent = expected_valid` and has no source Knowledge.
-21. A generic branch has no source Knowledge; a Knowledge-directed branch has at least one selected source Knowledge.
-22. Every branch has `budget_share > 0`, and all branch budget shares sum to `1` within implementation-defined floating-point tolerance.
-23. Every global or branch Constraint is mandatory for its scope.
-24. A condition deliberately violated by an intentionally invalid branch is a Target Property rather than a Constraint of that branch.
-25. Target Properties referenced by an Activation Target exist in the same branch.
-26. `property_state` Activation Targets reference at least one Target Property.
-27. `target_api_reached` Activation Targets reference no Target Property and use `at_target_api_call`.
-28. Full Knowledge content is not embedded in `knowledge_plan`.
-29. Semantic requirements, target properties, constraints, preconditions, activation targets, and Oracle requirements contain no Helper calls, Strategy Primitive implementations, or source code.
-30. A revision with unresolved required references, unresolved Constraints or Preconditions, or failed automatic validation is not `active`.
-31. An `active` revision has `validation_status = passed` and `human_review_status = approved`.
-32. At most one revision of the same `spec_id` is `active`.
-33. Change scopes are derived from structured parent/fork comparison when such a source exists.
+4. `parent_revision_ref` is same-identity lineage; only the first repeat-scoped Adaptive record may instead use `derived_from_spec_ref` to reference shared Static H0.
+5. Initial synthesis includes `initial_definition`; execution-feedback records use only `budget_allocation` and an exact `feedback_request_ref`.
+6. `metadata_only` does not appear with a semantic change scope.
+7. Internal IDs required to be unique are unique within the record.
+8. Internal references resolve within the record; external references resolve to exact artifact revisions or versions.
+9. A controlled baseline has no Knowledge Decisions or Resolution Records, stores `budget_policy_ref = null`, and contains exactly one default branch with `budget_share = 1.0`.
+10. A bug-aware Static or Adaptive HarnessSpec has one Knowledge Decision for every eligible Knowledge record supplied to synthesis and no Knowledge Decision for an unsupplied record.
+11. Each Knowledge appears exactly once in `knowledge_decisions`.
+12. A selected Knowledge record is not `not_applicable`, `unsupported`, or `unknown` in either applicability or capability.
+13. Every Knowledge referenced by a Knowledge-directed branch is selected.
+14. Every Knowledge ID in a Resolution Record resolves to exactly one Knowledge Decision.
+15. A Resolution Record involves at least two Knowledge records and contains at least one interaction dimension and one effect.
+16. Every Resolution Effect targets only Knowledge involved in its Resolution Record, and every referenced result branch exists.
+17. Exactly one branch has `branch_kind = default`, and `default_branch_id` resolves to it.
+18. The default branch uses `input_validity_intent = expected_valid` and has no source Knowledge.
+19. Every branch has at least one required Oracle Requirement; target-API invocation is a fixed downstream execution and monitoring invariant.
+20. A generic branch has no source Knowledge; a Knowledge-directed branch has at least one selected source Knowledge.
+21. Every branch has `budget_share > 0`, and all shares sum to `1`; bug-aware revisions use the tolerance declared by their non-null `budget_policy_ref`, while the baseline share is exactly `1.0`.
+22. Every global or branch Constraint is mandatory for its scope.
+23. A condition deliberately violated by an intentionally invalid branch is a Target Property rather than a Constraint of that branch.
+24. Every Target Property has at least one risk dimension, and each is listed in the containing branch's `risk_dimensions`.
+25. Every Activation Target references exactly one Target Property in the same branch.
+26. A `state_transition` Target Property has one before and one after Observation Point; every other activated Target Property has one evaluate point.
+27. Every Activation Target in a branch is required; alternative target states use separate branches.
+28. Every selected Knowledge has a substantive Source Reference in a Constraint, Precondition, Target Property, or Oracle Requirement.
+29. A Knowledge-directed branch's `source_knowledge_ids` equals the Knowledge Source Reference union of its branch-local Constraints, Preconditions, Target Properties, and Oracle Requirements.
+30. Semantic Source References identify only API Profiles or selected Knowledge; Helper availability is represented only by `target_context.available_helper_profile_refs` and capability screening.
+31. Full Knowledge content is not embedded in `knowledge_plan`.
+32. Semantic requirements, target properties, constraints, preconditions, activation targets, and Oracle requirements contain no Helper calls, Strategy Primitive implementations, instrumentation, or source code.
+33. A revision with unresolved required references, unresolved Constraints or Preconditions, or failed automatic validation is not `active`.
+34. An `active` revision has `validation_status = passed` and `human_review_status = approved`.
+35. At most one revision of the same `spec_id` is `active`.
+36. Change scopes are derived from structured parent comparison when a parent revision exists.
+37. A Knowledge contribution not marked `oracle_only_contribution` is cited by at least one Target Property; a marked contribution is cited by an Oracle and not by a Target Property.
 
 ---
 
@@ -834,7 +872,7 @@ A valid HarnessSpec must satisfy:
 
 ```json
 {
-  "schema_version": "1.1",
+  "schema_version": "1.7",
   "identity": {
     "spec_id": "",
     "framework": "pytorch",
@@ -844,7 +882,8 @@ A valid HarnessSpec must satisfy:
   "revision_information": {
     "revision_number": 1,
     "parent_revision_ref": null,
-    "forked_from_spec_ref": null,
+    "derived_from_spec_ref": null,
+    "feedback_request_ref": null,
     "revision_trigger": "initial_creation",
     "change_scopes": ["initial_definition"],
     "change_summary": "",
@@ -856,17 +895,18 @@ A valid HarnessSpec must satisfy:
       "revision": 1,
       "content_hash": ""
     },
-    "helper_profile_ref": {
-      "profile_id": "",
-      "version": "",
-      "content_hash": ""
-    },
+    "available_helper_profile_refs": [
+      {
+        "profile_id": "",
+        "revision": 1,
+        "content_hash": ""
+      }
+    ],
     "framework_version": null,
     "backend_scope": []
   },
   "knowledge_plan": {
-    "candidate_manifest_ref": null,
-    "candidate_decisions": [],
+    "knowledge_decisions": [],
     "resolution_records": []
   },
   "validity_constraints": {
@@ -874,6 +914,11 @@ A valid HarnessSpec must satisfy:
   },
   "exploration_plan": {
     "default_branch_id": "",
+    "budget_policy_ref": {
+      "artifact_id": "initial_branch_budget_policy.json",
+      "artifact_version": "1.0",
+      "content_hash": ""
+    },
     "branches": []
   },
   "provenance": {
@@ -884,12 +929,12 @@ A valid HarnessSpec must satisfy:
     "script_ref": null,
     "contract_ref": {
       "artifact_id": "",
-      "artifact_version": "1.1",
+      "artifact_version": "1.5",
       "content_hash": ""
     },
     "rules_ref": {
       "artifact_id": "",
-      "artifact_version": "1.1",
+      "artifact_version": "1.4",
       "content_hash": ""
     },
     "generated_at": ""

@@ -1,0 +1,132 @@
+{
+  "policy_format_version": "1.0",
+  "policy_id": "crash_analysis_policy",
+  "policy_version": "0.2",
+  "policy_status": "draft",
+  "compatibility": {
+    "crash_protocol_version": "1.0",
+    "crash_case_record_version": "1.1",
+    "fuzzing_round_record_version": "1.0"
+  },
+  "algorithms": {
+    "canonicalization": {
+      "algorithm_id": "canonical_json",
+      "algorithm_version": "1.0"
+    },
+    "case_key": {
+      "algorithm_id": "crash_case_key",
+      "algorithm_version": "1.0",
+      "input_components": [
+        "fuzzing_round_content_hash",
+        "candidate_observation_id",
+        "triggering_input_content_hash"
+      ]
+    },
+    "observation_signature": {
+      "algorithm_id": "crash_observation_signature",
+      "algorithm_version": "1.0",
+      "input_components": [
+        "observation_kind",
+        "observation_subtype",
+        "normalized_primary_diagnostic",
+        "normalized_framework_frames"
+      ],
+      "maximum_framework_frames": 5,
+      "normalize_addresses": true,
+      "normalize_absolute_paths": true,
+      "normalize_thread_ids": true,
+      "normalize_whitespace": true,
+      "preserve_numeric_literals": true
+    },
+    "exact_fingerprint": {
+      "algorithm_id": "crash_exact_fingerprint",
+      "algorithm_version": "1.0",
+      "input_components": [
+        "target_api_id",
+        "harness_artifact_content_hash",
+        "primary_observation_kind",
+        "primary_observation_subtype",
+        "primary_observation_signature_hash",
+        "triggering_input_content_hash"
+      ]
+    }
+  },
+  "candidate_admission": {
+    "primary_observation_priority": [
+      "sanitizer_finding",
+      "oracle_violation",
+      "resource_anomaly",
+      "target_exception",
+      "process_termination"
+    ],
+    "observation_actions": {
+      "process_termination": "direct",
+      "sanitizer_finding": "direct",
+      "target_exception": "conditional",
+      "resource_anomaly": "conditional"
+    },
+    "oracle_tier_actions": {
+      "tier_1_exact": "direct",
+      "tier_2_validated": "conditional",
+      "tier_3_heuristic": "diagnostic_only",
+      "unevaluable": "diagnostic_only"
+    }
+  },
+  "replay": {
+    "required_valid_attempts": 5,
+    "maximum_replacement_attempts": 2,
+    "replacement_eligible_only_for_invalid_attempts": true,
+    "require_target_api_reached": true,
+    "reuse_source_run_limits": true,
+    "automatic_success_equivalence": [
+      "exact_match"
+    ],
+    "reviewed_success_equivalence": [
+      "exact_match",
+      "semantically_equivalent"
+    ],
+    "completed_status_by_success_count": {
+      "0": "not_reproduced",
+      "1": "weak",
+      "2": "intermittent",
+      "3": "intermittent",
+      "4": "stable",
+      "5": "stable"
+    },
+    "inconclusive_when_valid_attempts_incomplete": true
+  },
+  "deduplication": {
+    "automatic_assignment_kinds": [
+      "exact_duplicate"
+    ],
+    "semantic_duplicate_requires_human_review": true,
+    "representative_order": [
+      "/candidate_event/observed_at",
+      "/identity/case_id"
+    ],
+    "cluster_id_source": "representative_case_key",
+    "cluster_id_prefix": "cl_",
+    "cluster_hash_prefix_length": 16
+  },
+  "revision_control": {
+    "prevent_overwrite": true,
+    "atomic_write": true,
+    "parent_revision_rules": {
+      "revision_one_parent_must_be_null": true,
+      "require_immediate_previous_revision": true,
+      "require_same_case_id": true,
+      "require_parent_content_hash_match": true,
+      "forbid_self_reference": true,
+      "forbid_cycles": true
+    },
+    "immutable_paths": [
+      "/identity/case_id",
+      "/identity/case_key",
+      "/identity/target_api_id",
+      "/origin/fuzzing_round_ref",
+      "/origin/candidate_observation_id",
+      "/candidate_event/observed_at",
+      "/evidence/triggering_input_ref"
+    ]
+  }
+}

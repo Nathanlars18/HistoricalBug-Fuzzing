@@ -1,0 +1,367 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+  "revision": 2,
+  "metadata": {
+    "parent_revision_ref": {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+      "revision": 1,
+      "content_hash": "d6aa6561063bfb9f841203edd4b14633c0551ac8b72d0f3be0ce4924f6b20ef8"
+    },
+    "generated_at": "2026-09-14T08:25:20.313852Z",
+    "builder_version": "helper_profile_validator_v0.1",
+    "content_hash": "77ba0a7b4446c33e3dce2e9c738edb1b113013315817a75cfa00c8321f0b1f1e"
+  },
+  "target_environment": {
+    "framework": "pytorch",
+    "framework_version": "2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend": "cpu",
+    "provider": "flashfuzz_base",
+    "provider_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "configuration_id": "torch_2_10_cpu_debug_instrumented"
+  },
+  "callable_interface": {
+    "namespace": "fuzzer_utils",
+    "function_name": "createTensor",
+    "qualified_name": "fuzzer_utils::createTensor",
+    "declaration": "torch::Tensor createTensor(const uint8_t *Data, size_t Size, size_t &offset);",
+    "return": {
+      "cpp_type": "torch::Tensor",
+      "semantic_role": "tensor",
+      "evidence_refs": [
+        "ev_helper_header",
+        "ev_curated_annotation"
+      ]
+    },
+    "parameters": [
+      {
+        "parameter_id": "param_000_data",
+        "name": "Data",
+        "ordinal": 0,
+        "cpp_type": "const uint8_t *",
+        "direction": "in",
+        "semantic_role": "fuzz_data",
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "evidence_refs": [
+          "ev_helper_header",
+          "ev_curated_annotation"
+        ]
+      },
+      {
+        "parameter_id": "param_001_size",
+        "name": "Size",
+        "ordinal": 1,
+        "cpp_type": "size_t",
+        "direction": "in",
+        "semantic_role": "fuzz_size",
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "evidence_refs": [
+          "ev_helper_header",
+          "ev_curated_annotation"
+        ]
+      },
+      {
+        "parameter_id": "param_002_offset",
+        "name": "offset",
+        "ordinal": 2,
+        "cpp_type": "size_t &",
+        "direction": "inout",
+        "semantic_role": "byte_offset",
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "evidence_refs": [
+          "ev_helper_header",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "required_include": "fuzzer_utils.h",
+    "invocation_template": "fuzzer_utils::createTensor({{Data}}, {{Size}}, {{offset}})",
+    "evidence_refs": [
+      "ev_helper_header"
+    ]
+  },
+  "capability_contract": {
+    "capability_kind": "tensor_constructor",
+    "summary": "Constructs a tensor by decoding dtype, rank, shape, and optionally tensor bytes from the fuzz buffer.",
+    "fuzz_input_contract": {
+      "interaction_mode": "decode_buffer",
+      "data_parameter_refs": [
+        "param_000_data"
+      ],
+      "size_parameter_refs": [
+        "param_001_size"
+      ],
+      "offset_parameter_ref": "param_002_offset",
+      "offset_effect": "advances",
+      "consumption_mode": "data_dependent",
+      "minimum_bytes": 2,
+      "maximum_bytes": null,
+      "consumption_formula": "2 + shape_bytes_consumed + tensor_bytes_consumed"
+    },
+    "domain_constraints": [
+      {
+        "subjects": [
+          {
+            "entity_kind": "parameter",
+            "entity_ref": "param_002_offset",
+            "property": "value"
+          },
+          {
+            "entity_kind": "parameter",
+            "entity_ref": "param_001_size",
+            "property": "value"
+          }
+        ],
+        "relation": "less_than_or_equal",
+        "value": null,
+        "verification_level": "statically_verified",
+        "constraint_id": "constraint_001",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "behavior_claims": [
+      {
+        "claim_kind": "precondition",
+        "statement": "At least two bytes must remain at the initial offset for the dtype and rank selectors; otherwise the Helper throws std::runtime_error.",
+        "verification_level": "statically_verified",
+        "claim_id": "claim_001",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      },
+      {
+        "claim_kind": "limitation",
+        "statement": "Tensor-data behavior is configuration-dependent because the implementation contains a USE_RANDOM_TENSOR conditional branch.",
+        "verification_level": "statically_verified",
+        "claim_id": "claim_002",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      },
+      {
+        "claim_kind": "postcondition",
+        "statement": "The non-random branch returns an owning tensor by creating or cloning storage with the decoded shape and dtype.",
+        "verification_level": "statically_verified",
+        "claim_id": "claim_003",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "side_effects": {
+      "status": "known",
+      "kinds": [
+        "parameter_mutation",
+        "stdout_write"
+      ]
+    },
+    "determinism": "configuration_dependent",
+    "evidence_refs": [
+      "ev_helper_header",
+      "ev_helper_implementation",
+      "ev_curated_annotation"
+    ]
+  },
+  "build_contract": {
+    "compile_definitions": [
+      {
+        "name": "DEBUG_FUZZ",
+        "value": "1 // Keep for debugging convenience",
+        "behavior_affecting": true,
+        "evidence_refs": [
+          "ev_helper_header"
+        ]
+      }
+    ],
+    "helper_dependencies": [
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+        "qualified_name": "fuzzer_utils::parseDataType",
+        "resolution_status": "resolved",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ]
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+        "qualified_name": "fuzzer_utils::parseRank",
+        "resolution_status": "resolved",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ]
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parseshape_bc0dff00f287",
+        "qualified_name": "fuzzer_utils::parseShape",
+        "resolution_status": "resolved",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ]
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsetensordata_326eeb67c32d",
+        "qualified_name": "fuzzer_utils::parseTensorData",
+        "resolution_status": "resolved",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ]
+      }
+    ],
+    "evidence_refs": [
+      "ev_helper_header",
+      "ev_build_configuration"
+    ]
+  },
+  "validation": {
+    "validation_status": "passed",
+    "execution_readiness": "ready",
+    "checks": [
+      {
+        "check_id": "check_header_parse",
+        "check_kind": "header_parse",
+        "status": "passed",
+        "summary": "Public declaration was parsed deterministically.",
+        "evidence_refs": [
+          "ev_helper_header"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_definition_resolution",
+        "check_kind": "definition_resolution",
+        "status": "passed",
+        "summary": "One matching implementation body was located.",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_declaration_definition_match",
+        "check_kind": "declaration_definition_match",
+        "status": "passed",
+        "summary": "Compiler-backed helper probe matched declarations and definitions.",
+        "evidence_refs": [
+          "ev_compile_validation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_dependency_resolution",
+        "check_kind": "dependency_resolution",
+        "status": "passed",
+        "summary": "All direct Helper dependencies are resolved.",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_compile",
+        "check_kind": "compile",
+        "status": "passed",
+        "summary": "All helper implementations compiled in the pinned runtime.",
+        "evidence_refs": [
+          "ev_compile_validation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_smoke_execution",
+        "check_kind": "smoke_execution",
+        "status": "passed",
+        "summary": "Every public Helper was invoked once and the probe terminated normally.",
+        "evidence_refs": [
+          "ev_smoke_validation"
+        ],
+        "issue_refs": []
+      }
+    ],
+    "issues": []
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_helper_header",
+      "source_kind": "helper_header",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.h",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "torch::Tensor createTensor(const uint8_t *Data, size_t Size, size_t &offset);",
+      "content_hash": "5c3aecce5e9c24de4031436cea02a3327714d8d5155578b4e1e4fa2d915a70e6",
+      "excerpt": "torch::Tensor createTensor(const uint8_t *Data, size_t Size, size_t &offset);",
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_build_configuration",
+      "source_kind": "build_configuration",
+      "source_location": "runtime/flashfuzz_2_10/runtime_config.json",
+      "source_revision": "0.1",
+      "locator": "target runtime configuration",
+      "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f",
+      "excerpt": null,
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_curated_annotation",
+      "source_kind": "curated_annotation",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/annotations/helper_capability_annotations.json",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "fuzzer_utils::createTensor#14110b37b225",
+      "content_hash": "63453fbf08c850b72921db7c64208c8d9731770ae43374f8c2b2b8e3acd22070",
+      "excerpt": null,
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_helper_implementation",
+      "source_kind": "helper_implementation",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.cpp",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "fuzzer_utils::createTensor",
+      "content_hash": "e7d8aa99691fbbc38d8eef5bc49a1302ad10672bd98cdfec3273e8eb68add368",
+      "excerpt": "createTensor(const uint8_t *Data, size_t Size, size_t &offset)\n    {\n        \n        const size_t min_required_size = 2;\n        if (Size < offset + min_required_size)\n        {\n            throw std::runtime_error(\"Input data too small for basic tensor metadata (dtype, rank). Offset: \" + std::to_string(offset) + \", Size: \" + std::to_string(Size));\n        }\n\n#ifdef DEBUG_FUZZ\n        std::cout << \"\\n--- Creating Tensor ---\" << std::endl;\n        std::cout << \"Initial offset: \" << offset << \", Size: \" << Size << std::endl;\n#endif\n\n        \n        const uint8_t dtype_selector = Data[offset++];\n        const auto dtype = parseDataType(dtype_selector);\n        const size_t dtypeSize = c10::elementSize(dtype); \n\n        if (dtypeSize == 0 && dtype != torch::kBool)\n        { \n          \n          \n          \n          \n          \n        }\n\n        \n        const uint8_t rank_byte = Data[offset++];\n        const uint8_t rank = parseRank(rank_byte);\n\n        \n        \n        auto shape = ",
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_compile_validation",
+      "source_kind": "compile_log",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/_runs/helper_profile_validation__20260914T082455668452Z/compile_smoke.log",
+      "source_revision": "20260914T082455668452Z",
+      "locator": "docker helper probe build",
+      "content_hash": "13b96bf44ab3850689e1394624fd3ec00fc1390a35359cbd1017e62c48000384",
+      "excerpt": "Shared helper probe compiled in the pinned runtime.",
+      "collected_at": "2026-09-14T08:25:20.313852Z"
+    },
+    {
+      "evidence_id": "ev_smoke_validation",
+      "source_kind": "smoke_test_log",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/_runs/helper_profile_validation__20260914T082455668452Z/compile_smoke.log",
+      "source_revision": "20260914T082455668452Z",
+      "locator": "LLVMFuzzerTestOneInput -runs=1",
+      "content_hash": "13b96bf44ab3850689e1394624fd3ec00fc1390a35359cbd1017e62c48000384",
+      "excerpt": "All public helpers were invoked once by the probe.",
+      "collected_at": "2026-09-14T08:25:20.313852Z"
+    }
+  ],
+  "review": {
+    "review_status": "approved",
+    "reviewer": "nathan",
+    "reviewed_at": "2026-09-06T08:37:26Z",
+    "issue_refs": [],
+    "notes": "Source-level semantic fields confirmed; compile and smoke validation remain independent."
+  }
+}

@@ -1,0 +1,1076 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Harness Artifact Record Schema v1.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "identity",
+    "source_context",
+    "source_artifact",
+    "materialization_map",
+    "instrumentation_map",
+    "validation",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.2"
+    },
+    "record_type": {
+      "const": "harness_artifact"
+    },
+    "identity": {
+      "$ref": "#/$defs/identity"
+    },
+    "source_context": {
+      "$ref": "#/$defs/source_context"
+    },
+    "source_artifact": {
+      "$ref": "#/$defs/source_artifact"
+    },
+    "materialization_map": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/materialization_entry"
+      }
+    },
+    "instrumentation_map": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/instrumentation_entry"
+      }
+    },
+    "validation": {
+      "$ref": "#/$defs/validation"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "static_validation": {
+                "properties": {
+                  "status": {
+                    "const": "failed"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "static_validation"
+            ]
+          }
+        },
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "validation": {
+            "properties": {
+              "compile_check": {
+                "properties": {
+                  "status": {
+                    "const": "skipped"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "compile_check"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "positive_integer": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "allOf": [
+        {
+          "not": {
+            "pattern": "^/"
+          }
+        },
+        {
+          "not": {
+            "pattern": "^[A-Za-z]:"
+          }
+        },
+        {
+          "not": {
+            "pattern": "\\\\"
+          }
+        },
+        {
+          "not": {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          }
+        }
+      ]
+    },
+    "nullable_non_empty_string": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullable_timestamp": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "file_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relative_path",
+        "content_hash"
+      ],
+      "properties": {
+        "relative_path": {
+          "$ref": "#/$defs/relative_path"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "nullable_file_reference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/file_reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "artifact_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_version",
+        "content_hash"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "artifact_version": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/positive_integer"
+            },
+            {
+              "$ref": "#/$defs/non_empty_string"
+            }
+          ]
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "nullable_artifact_reference": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/artifact_reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "strategy_revision_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy_id",
+        "revision_number",
+        "content_hash"
+      ],
+      "properties": {
+        "strategy_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "revision_number": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "source_span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_line",
+        "end_line"
+      ],
+      "properties": {
+        "start_line": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "end_line": {
+          "$ref": "#/$defs/positive_integer"
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "harness_artifact_id",
+        "generation_key"
+      ],
+      "properties": {
+        "harness_artifact_id": {
+          "type": "string",
+          "pattern": "^ha_[a-z][a-z0-9_]*_r[1-9][0-9]*_[0-9a-f]{12}$"
+        },
+        "generation_key": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "source_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy_revision_ref"
+      ],
+      "properties": {
+        "strategy_revision_ref": {
+          "$ref": "#/$defs/strategy_revision_reference"
+        }
+      }
+    },
+    "source_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relative_path",
+        "content_hash",
+        "encoding",
+        "newline",
+        "language",
+        "entrypoint"
+      ],
+      "properties": {
+        "relative_path": {
+          "$ref": "#/$defs/relative_path"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "encoding": {
+          "const": "utf-8"
+        },
+        "newline": {
+          "const": "lf"
+        },
+        "language": {
+          "const": "cpp"
+        },
+        "entrypoint": {
+          "const": "LLVMFuzzerTestOneInput"
+        }
+      }
+    },
+    "materialization_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch_id",
+        "step_id",
+        "primitive_id",
+        "emitter_id",
+        "template_slot",
+        "emitted_segment_id",
+        "materialized_failure_handler_ids",
+        "source_span"
+      ],
+      "properties": {
+        "branch_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "step_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "primitive_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "emitter_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "template_slot": {
+          "enum": [
+            "input_construction",
+            "pre_call_transform",
+            "pre_call_guard",
+            "pre_call_observation",
+            "target_call",
+            "post_call_observation",
+            "oracle_check",
+            "artifact_logging",
+            "cleanup"
+          ]
+        },
+        "emitted_segment_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "materialized_failure_handler_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "source_span": {
+          "$ref": "#/$defs/source_span"
+        }
+      }
+    },
+    "trace_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref_type",
+        "ref_id"
+      ],
+      "properties": {
+        "ref_type": {
+          "enum": [
+            "evaluation_target",
+            "global_constraint",
+            "branch_constraint",
+            "branch_precondition",
+            "target_property",
+            "activation_target",
+            "oracle_requirement",
+            "failure_handler"
+          ]
+        },
+        "ref_id": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      }
+    },
+    "observation_locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_role",
+        "observation_point"
+      ],
+      "properties": {
+        "observation_role": {
+          "enum": [
+            "evaluate",
+            "before",
+            "after"
+          ]
+        },
+        "observation_point": {
+          "enum": [
+            "before_target_api_call",
+            "after_target_api_call"
+          ]
+        }
+      }
+    },
+    "source_owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner_type",
+        "owner_id"
+      ],
+      "properties": {
+        "owner_type": {
+          "enum": [
+            "strategy_segment",
+            "generator_infrastructure"
+          ]
+        },
+        "owner_id": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "owner_type": {
+              "const": "strategy_segment"
+            },
+            "owner_id": {
+              "$ref": "#/$defs/non_empty_string"
+            }
+          }
+        },
+        {
+          "properties": {
+            "owner_type": {
+              "const": "generator_infrastructure"
+            },
+            "owner_id": {
+              "enum": [
+                "fuzzer_entry",
+                "branch_dispatch",
+                "branch_entry",
+                "iteration_exit"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "instrumentation_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instrumentation_binding_id",
+        "runtime_site_id",
+        "event_kind",
+        "event_key",
+        "branch_id",
+        "trace_refs",
+        "source_owner",
+        "source_span"
+      ],
+      "properties": {
+        "instrumentation_binding_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "runtime_site_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "event_kind": {
+          "enum": [
+            "branch_entered",
+            "input_constructed",
+            "input_rejected",
+            "observation_captured",
+            "activation_checked",
+            "activation_true",
+            "activation_unevaluable",
+            "activation_check_error",
+            "branch_activation_checked",
+            "branch_activation_true",
+            "branch_activation_unevaluable",
+            "branch_activation_check_error",
+            "target_api_reached",
+            "target_api_completed",
+            "target_api_exception",
+            "oracle_evaluated",
+            "oracle_passed",
+            "oracle_failed"
+          ]
+        },
+        "event_key": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "branch_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "trace_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/trace_reference"
+          }
+        },
+        "observation_locator": {
+          "$ref": "#/$defs/observation_locator"
+        },
+        "source_owner": {
+          "$ref": "#/$defs/source_owner"
+        },
+        "source_span": {
+          "$ref": "#/$defs/source_span"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "observation_captured"
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "observation_locator"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "observation_locator"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "validation_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "status"
+      ],
+      "properties": {
+        "check_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        }
+      }
+    },
+    "validation_issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "issue_code",
+        "severity",
+        "message",
+        "related_ids"
+      ],
+      "properties": {
+        "issue_code": {
+          "$ref": "#/$defs/identifier"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        },
+        "message": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "related_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        }
+      }
+    },
+    "static_validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "checks",
+        "issues"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/validation_check"
+          }
+        },
+        "issues": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/validation_issue"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "passed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "not": {
+                  "contains": {
+                    "properties": {
+                      "status": {
+                        "const": "failed"
+                      }
+                    },
+                    "required": [
+                      "status"
+                    ]
+                  }
+                }
+              },
+              "issues": {
+                "not": {
+                  "contains": {
+                    "properties": {
+                      "severity": {
+                        "const": "error"
+                      }
+                    },
+                    "required": [
+                      "severity"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "failed"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "properties": {
+                  "checks": {
+                    "contains": {
+                      "properties": {
+                        "status": {
+                          "const": "failed"
+                        }
+                      },
+                      "required": [
+                        "status"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "issues": {
+                    "contains": {
+                      "properties": {
+                        "severity": {
+                          "const": "error"
+                        }
+                      },
+                      "required": [
+                        "severity"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "compile_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "command_argv",
+        "build_environment_ref",
+        "exit_code",
+        "skip_reason",
+        "diagnostics_ref",
+        "binary_artifact"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "failed",
+            "skipped"
+          ]
+        },
+        "command_argv": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "build_environment_ref": {
+          "$ref": "#/$defs/nullable_artifact_reference"
+        },
+        "exit_code": {
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "skip_reason": {
+          "$ref": "#/$defs/nullable_non_empty_string"
+        },
+        "diagnostics_ref": {
+          "$ref": "#/$defs/nullable_file_reference"
+        },
+        "binary_artifact": {
+          "$ref": "#/$defs/nullable_file_reference"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "status": {
+              "const": "passed"
+            },
+            "command_argv": {
+              "minItems": 1
+            },
+            "build_environment_ref": {
+              "$ref": "#/$defs/artifact_reference"
+            },
+            "exit_code": {
+              "const": 0
+            },
+            "skip_reason": {
+              "type": "null"
+            },
+            "binary_artifact": {
+              "$ref": "#/$defs/file_reference"
+            }
+          }
+        },
+        {
+          "properties": {
+            "status": {
+              "const": "failed"
+            },
+            "command_argv": {
+              "minItems": 1
+            },
+            "exit_code": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "not": {
+                    "const": 0
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "skip_reason": {
+              "type": "null"
+            },
+            "diagnostics_ref": {
+              "$ref": "#/$defs/file_reference"
+            },
+            "binary_artifact": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "properties": {
+            "status": {
+              "const": "skipped"
+            },
+            "exit_code": {
+              "type": "null"
+            },
+            "skip_reason": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "binary_artifact": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "human_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reviewer_id",
+        "reviewed_at",
+        "review_note"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_reviewed",
+            "approved",
+            "changes_requested"
+          ]
+        },
+        "reviewer_id": {
+          "$ref": "#/$defs/nullable_non_empty_string"
+        },
+        "reviewed_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "review_note": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000,
+              "pattern": "\\S"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "status": {
+              "const": "not_reviewed"
+            },
+            "reviewer_id": {
+              "type": "null"
+            },
+            "reviewed_at": {
+              "type": "null"
+            },
+            "review_note": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "properties": {
+            "status": {
+              "const": "approved"
+            },
+            "reviewer_id": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "reviewed_at": {
+              "$ref": "#/$defs/timestamp"
+            }
+          }
+        },
+        {
+          "properties": {
+            "status": {
+              "const": "changes_requested"
+            },
+            "reviewer_id": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "reviewed_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "review_note": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000,
+              "pattern": "\\S"
+            }
+          }
+        }
+      ]
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "static_validation",
+        "compile_check",
+        "human_review"
+      ],
+      "properties": {
+        "static_validation": {
+          "$ref": "#/$defs/static_validation"
+        },
+        "compile_check": {
+          "$ref": "#/$defs/compile_check"
+        },
+        "human_review": {
+          "$ref": "#/$defs/human_review"
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generator_id",
+        "generator_version",
+        "entrypoint_ref",
+        "component_refs"
+      ],
+      "properties": {
+        "generator_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "generator_version": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "entrypoint_ref": {
+          "$ref": "#/$defs/file_reference"
+        },
+        "component_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/file_reference"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generator",
+        "generation_run_id",
+        "generated_at",
+        "repository_commit",
+        "working_tree_state",
+        "working_tree_diff_ref"
+      ],
+      "properties": {
+        "generator": {
+          "$ref": "#/$defs/generator"
+        },
+        "generation_run_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "generated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "repository_commit": {
+          "type": "string",
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+        },
+        "working_tree_state": {
+          "enum": [
+            "clean",
+            "dirty",
+            "unknown"
+          ]
+        },
+        "working_tree_diff_ref": {
+          "$ref": "#/$defs/nullable_file_reference"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "working_tree_state": {
+                "const": "dirty"
+              }
+            },
+            "required": [
+              "working_tree_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "working_tree_diff_ref": {
+                "$ref": "#/$defs/file_reference"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "working_tree_diff_ref": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

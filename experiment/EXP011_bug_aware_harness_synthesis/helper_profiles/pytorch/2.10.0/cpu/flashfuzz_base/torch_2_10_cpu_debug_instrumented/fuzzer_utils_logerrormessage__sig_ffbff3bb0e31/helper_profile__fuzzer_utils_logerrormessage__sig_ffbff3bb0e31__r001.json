@@ -1,0 +1,244 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_logerrormessage_ffbff3bb0e31",
+  "revision": 1,
+  "metadata": {
+    "parent_revision_ref": null,
+    "generated_at": "2026-09-14T08:03:04.293427Z",
+    "builder_version": "helper_profile_builder_v0.1",
+    "content_hash": "de2d773538a725454a2500e88dd3bab54abad7900bb266a26e6f1379c0446a24"
+  },
+  "target_environment": {
+    "framework": "pytorch",
+    "framework_version": "2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend": "cpu",
+    "provider": "flashfuzz_base",
+    "provider_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "configuration_id": "torch_2_10_cpu_debug_instrumented"
+  },
+  "callable_interface": {
+    "namespace": "fuzzer_utils",
+    "function_name": "logErrorMessage",
+    "qualified_name": "fuzzer_utils::logErrorMessage",
+    "declaration": "void logErrorMessage(const std::string &msg);",
+    "return": {
+      "cpp_type": "void",
+      "semantic_role": "void",
+      "evidence_refs": [
+        "ev_helper_header",
+        "ev_curated_annotation"
+      ]
+    },
+    "parameters": [
+      {
+        "parameter_id": "param_000_msg",
+        "name": "msg",
+        "ordinal": 0,
+        "cpp_type": "const std::string &",
+        "direction": "in",
+        "semantic_role": "message",
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "evidence_refs": [
+          "ev_helper_header",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "required_include": "fuzzer_utils.h",
+    "invocation_template": "fuzzer_utils::logErrorMessage({{msg}})",
+    "evidence_refs": [
+      "ev_helper_header"
+    ]
+  },
+  "capability_contract": {
+    "capability_kind": "artifact_handler",
+    "summary": "Appends a timestamped error message to error.log when the log directory is available.",
+    "fuzz_input_contract": {
+      "interaction_mode": "none",
+      "data_parameter_refs": [],
+      "size_parameter_refs": [],
+      "offset_parameter_ref": null,
+      "offset_effect": "none",
+      "consumption_mode": "none",
+      "minimum_bytes": null,
+      "maximum_bytes": null,
+      "consumption_formula": null
+    },
+    "domain_constraints": [],
+    "behavior_claims": [
+      {
+        "claim_kind": "postcondition",
+        "statement": "Appends the current timestamp, supplied message, and separator to error.log when the file opens successfully.",
+        "verification_level": "statically_verified",
+        "claim_id": "claim_001",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      },
+      {
+        "claim_kind": "failure_behavior",
+        "statement": "Returns without writing the message when directory preparation or file opening fails.",
+        "verification_level": "statically_verified",
+        "claim_id": "claim_002",
+        "evidence_refs": [
+          "ev_helper_implementation",
+          "ev_curated_annotation"
+        ]
+      }
+    ],
+    "side_effects": {
+      "status": "known",
+      "kinds": [
+        "directory_creation",
+        "file_write",
+        "stderr_write"
+      ]
+    },
+    "determinism": "input_and_state_dependent",
+    "evidence_refs": [
+      "ev_helper_header",
+      "ev_helper_implementation",
+      "ev_curated_annotation"
+    ]
+  },
+  "build_contract": {
+    "compile_definitions": [],
+    "helper_dependencies": [
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_currenttimestamp_c81f2a7d32da",
+        "qualified_name": "fuzzer_utils::currentTimestamp",
+        "resolution_status": "resolved",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ]
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_ensure_log_directory_exists_0998a5920e8b",
+        "qualified_name": "fuzzer_utils::ensure_log_directory_exists",
+        "resolution_status": "resolved",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ]
+      }
+    ],
+    "evidence_refs": [
+      "ev_helper_header",
+      "ev_build_configuration"
+    ]
+  },
+  "validation": {
+    "validation_status": "partial",
+    "execution_readiness": "unassessed",
+    "checks": [
+      {
+        "check_id": "check_header_parse",
+        "check_kind": "header_parse",
+        "status": "passed",
+        "summary": "Public declaration was parsed deterministically.",
+        "evidence_refs": [
+          "ev_helper_header"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_definition_resolution",
+        "check_kind": "definition_resolution",
+        "status": "passed",
+        "summary": "One matching implementation body was located.",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_declaration_definition_match",
+        "check_kind": "declaration_definition_match",
+        "status": "not_run",
+        "summary": "Compiler-backed declaration/definition comparison has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_dependency_resolution",
+        "check_kind": "dependency_resolution",
+        "status": "passed",
+        "summary": "All direct Helper dependencies are resolved.",
+        "evidence_refs": [
+          "ev_helper_implementation"
+        ],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_compile",
+        "check_kind": "compile",
+        "status": "not_run",
+        "summary": "Per-Helper compile validation has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      },
+      {
+        "check_id": "check_smoke_execution",
+        "check_kind": "smoke_execution",
+        "status": "not_run",
+        "summary": "Per-Helper smoke execution has not run.",
+        "evidence_refs": [],
+        "issue_refs": []
+      }
+    ],
+    "issues": []
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_helper_header",
+      "source_kind": "helper_header",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.h",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "void logErrorMessage(const std::string &msg);",
+      "content_hash": "5c3aecce5e9c24de4031436cea02a3327714d8d5155578b4e1e4fa2d915a70e6",
+      "excerpt": "void logErrorMessage(const std::string &msg);",
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_build_configuration",
+      "source_kind": "build_configuration",
+      "source_location": "runtime/flashfuzz_2_10/runtime_config.json",
+      "source_revision": "0.1",
+      "locator": "target runtime configuration",
+      "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f",
+      "excerpt": null,
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_curated_annotation",
+      "source_kind": "curated_annotation",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/annotations/helper_capability_annotations.json",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "fuzzer_utils::logErrorMessage#ffbff3bb0e31",
+      "content_hash": "b8525f807be9cd6fc2d0f35de8559f8b85a5c2320dd3d4a6865a57a70b2c6127",
+      "excerpt": null,
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    },
+    {
+      "evidence_id": "ev_helper_implementation",
+      "source_kind": "helper_implementation",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.cpp",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "fuzzer_utils::logErrorMessage",
+      "content_hash": "e7d8aa99691fbbc38d8eef5bc49a1302ad10672bd98cdfec3273e8eb68add368",
+      "excerpt": "logErrorMessage(const std::string &msg)\n    {\n        if (!ensure_log_directory_exists())\n            return;\n        std::ofstream ofs(\"error.log\", std::ios::app);\n        if (!ofs)\n        {\n            std::cerr << \"Warning: Unable to open error.log to log error messages.\" << std::endl;\n            return;\n        }\n        ofs << \"Timestamp: \" << currentTimestamp() << \"\\n\"\n            << msg << separator;\n    }",
+      "collected_at": "2026-09-14T08:03:04.293427Z"
+    }
+  ],
+  "review": {
+    "review_status": "approved",
+    "reviewer": "nathan",
+    "reviewed_at": "2026-09-06T08:37:26Z",
+    "issue_refs": [],
+    "notes": "Source-level semantic fields confirmed; compile and smoke validation remain independent."
+  }
+}

@@ -1,0 +1,350 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.matmul:python_default:aten.matmul.default",
+  "revision": 2,
+  "metadata": {
+    "parent_revision_ref": {
+      "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.matmul:python_default:aten.matmul.default",
+      "revision": 1,
+      "content_hash": "98e71e30ddb91233074381767c4be6e00469756a0c8b48611cd532c5b2052cfa"
+    },
+    "generated_at": "2026-09-14T13:56:39.314313Z",
+    "builder_version": "api_profile_builder_v0.3",
+    "content_hash": "0e9d01a4597450a71656eada7be3b2989fbbe56fd55766eec324598f4ccc4bd6"
+  },
+  "target": {
+    "framework": "pytorch",
+    "framework_version": "v2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend_scope": [
+      "cpu"
+    ],
+    "python_api": "torch.matmul",
+    "callable_kind": "function",
+    "python_variant": "python_default",
+    "aliases": []
+  },
+  "python_contract": {
+    "documentation_status": "available",
+    "signature": "def matmul(input: Tensor, other: Tensor, *, out: Tensor | None=None) -> Tensor",
+    "behavior_summary": "matmul(input, other, *, out=None) -> Tensor",
+    "parameters": [
+      {
+        "parameter_id": "param_000_input",
+        "name": "input",
+        "ordinal": 0,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "input_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_docstring",
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "parameter_id": "param_001_other",
+        "name": "other",
+        "ordinal": 1,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "other_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_docstring",
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "parameter_id": "param_002_out",
+        "name": "out",
+        "ordinal": 2,
+        "parameter_kind": "keyword_only",
+        "required": false,
+        "documented_type": "Tensor | None",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "none_literal",
+          "value": null
+        },
+        "semantic_role": "other_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_docstring",
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "returns": [
+      {
+        "return_id": "return_000",
+        "position": 0,
+        "documented_type": "Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "semantic_role": "result_tensor",
+        "description": null,
+        "evidence_refs": [
+          "ev_runtime_docstring",
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "documented_domains": [],
+    "documented_exceptions": [],
+    "evidence_refs": [
+      "ev_runtime_docstring",
+      "ev_python_signature_source",
+      "ev_operator_schema"
+    ]
+  },
+  "target_binding": {
+    "status": "resolved",
+    "operator_name": "aten::matmul",
+    "operator_overload": "default",
+    "operator_schema": "matmul(Tensor self, Tensor other) -> Tensor",
+    "cpp_callable": "at::matmul",
+    "binding_parameters": [
+      {
+        "binding_parameter_id": "binding_param_000_self",
+        "name": "self",
+        "ordinal": 0,
+        "schema_type": "Tensor",
+        "default": null
+      },
+      {
+        "binding_parameter_id": "binding_param_001_other",
+        "name": "other",
+        "ordinal": 1,
+        "schema_type": "Tensor",
+        "default": null
+      }
+    ],
+    "argument_mapping": [
+      {
+        "python_parameter_ref": "param_000_input",
+        "binding_parameter_ref": "binding_param_000_self",
+        "mapping_kind": "renamed",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_001_other",
+        "binding_parameter_ref": "binding_param_001_other",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "return_mapping": [
+      {
+        "binding_return_position": 0,
+        "python_return_ref": "return_000",
+        "mapping_kind": "direct",
+        "description": null,
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "evidence_refs": [
+      "ev_operator_schema"
+    ]
+  },
+  "documented_constraints": [],
+  "flashfuzz_support": {
+    "flashfuzz_commit": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "api_list_status": "listed",
+    "evidence_refs": [
+      "ev_flashfuzz_api_list"
+    ]
+  },
+  "validation": {
+    "validation_status": "passed",
+    "execution_readiness": "ready",
+    "checks": [
+      {
+        "check_id": "check_python_resolution",
+        "check_kind": "python_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Python API resolved in the pinned runtime.",
+        "evidence_refs": [
+          "ev_runtime_docstring"
+        ]
+      },
+      {
+        "check_id": "check_signature_resolution",
+        "check_kind": "signature_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "One Python signature was resolved.",
+        "evidence_refs": [
+          "ev_python_signature_source"
+        ]
+      },
+      {
+        "check_id": "check_operator_schema_resolution",
+        "check_kind": "operator_schema_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "One target operator schema was selected.",
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_argument_mapping",
+        "check_kind": "argument_mapping",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Python-to-binding argument mapping is complete.",
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_cpp_binding_resolution",
+        "check_kind": "cpp_binding_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "A C++/ATen callable candidate was resolved.",
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_cpp_compile",
+        "check_kind": "cpp_compile",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Resolved C++ callable compiled in the pinned runtime.",
+        "evidence_refs": [
+          "ev_cpp_compile_validation"
+        ]
+      },
+      {
+        "check_id": "check_cpp_smoke_execution",
+        "check_kind": "cpp_smoke_execution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Compiled C++ API probe terminated normally.",
+        "evidence_refs": [
+          "ev_cpp_smoke_execution"
+        ]
+      },
+      {
+        "check_id": "check_target_reachability",
+        "check_kind": "target_reachability",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "The resolved target callable was reached by the C++ probe.",
+        "evidence_refs": [
+          "ev_cpp_smoke_execution"
+        ]
+      }
+    ],
+    "issues": []
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_runtime_docstring",
+      "source_kind": "runtime_docstring",
+      "source_location": "container://historicalbug/flashfuzz:torch2.10-api-metadata/torch.matmul",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "torch.matmul",
+      "content_hash": "131d636067944c4c6f899aa58a08b289b9ea084aa71204ca57e66da205770a59",
+      "excerpt": "matmul(input, other, *, out=None) -> Tensor\n\nMatrix product of two tensors.\n\nThe behavior depends on the dimensionality of the tensors as follows:\n\n- If both tensors are 1-dimensional, the dot product (scalar) is returned.\n- If both arguments are 2-dimensional, the matrix-matrix product is returned.\n- If the first argument is 1-dimensional and the second argument is 2-dimensional,\n  a 1 is prepended to its dimension for the purpose of the matrix multiply.\n  After the matrix multiply, the prepended dimension is removed.\n- If the first argument is 2-dimensional and the second argument is 1-dimensional,\n  the matrix-vector product is returned.\n- If both arguments are at least 1-dimensional and at least one argument is\n  N-dimensional (where N > 2), then a batched matrix multiply is returned.  If the first\n  argument is 1-dimensional, a 1 is prepended to its dimension for the purpose of the\n  batched matrix multiply and removed after.  If the second argument is 1-dimensional, a\n  1 is appe",
+      "collected_at": "2026-09-14T07:59:15.127415Z"
+    },
+    {
+      "evidence_id": "ev_python_signature_source",
+      "source_kind": "pytorch_source",
+      "source_location": "container://historicalbug/flashfuzz:torch2.10-api-metadata/usr/local/lib/python3.12/dist-packages/torch/_C/_VariableFunctions.pyi",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "matmul",
+      "content_hash": "c478a2696e0e72fe8d1c5cff8984078bae9c9af2c340e7bc5ca3c6a4e0d29226",
+      "excerpt": "def matmul(input: Tensor, other: Tensor, *, out: Tensor | None=None) -> Tensor",
+      "collected_at": "2026-09-14T07:59:15.127415Z"
+    },
+    {
+      "evidence_id": "ev_operator_schema",
+      "source_kind": "operator_schema",
+      "source_location": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "aten::matmul.default",
+      "content_hash": "29c55ccb397ea85a392eed7e176813a781dde1925bfc0f6c0a1fda635a421a83",
+      "excerpt": "matmul(Tensor self, Tensor other) -> Tensor",
+      "collected_at": "2026-09-14T07:59:15.127415Z"
+    },
+    {
+      "evidence_id": "ev_flashfuzz_api_list",
+      "source_kind": "flashfuzz_api_list",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/api.txt",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "torch.matmul",
+      "content_hash": "d000ff747c4a517c7ff9685ee980606b27a0861c59fe7524cf3ac89c581d9055",
+      "excerpt": "torch.matmul",
+      "collected_at": "2026-09-14T07:59:15.127415Z"
+    },
+    {
+      "evidence_id": "ev_cpp_compile_validation",
+      "source_kind": "build_log",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/_runs/api_profile_runtime_validation__20260914T135639314313Z/torch.matmul.log",
+      "source_revision": "sha256:6d5335ce21952176ae5c38bdfea0867d04980d7c2991420878bb6a262ecd393d",
+      "locator": "HBFG_COMPILE_STATUS=0",
+      "content_hash": "d75ab5af6d33eb5e8da96704603b0d5efd6fd53c23275b7469f59ba0560b02fc",
+      "excerpt": "#include <torch/torch.h>\n#include <exception>\n#include <iostream>\n\nint main() {\n  try {\n    auto hbfg_arg_0 = torch::ones({2, 2}, torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU));\n    auto hbfg_arg_1 = torch::ones({2, 2}, torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU));\n    auto hbfg_result = at::matmul(hbfg_arg_0, hbfg_arg_1);\n    (void)hbfg_result;\n    std::cout << \"HBFG_TARGET_REACHED\" << std::endl;\n    return 0;\n  } catch (const std::exception& error) {\n    std::cerr << \"HBFG_TARGET_EXCEPTION: \" << error.what() << std::endl;\n    return 90;\n  }\n}\n",
+      "collected_at": "2026-09-14T13:56:39.314313Z"
+    },
+    {
+      "evidence_id": "ev_cpp_smoke_execution",
+      "source_kind": "runtime_trace",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/_runs/api_profile_runtime_validation__20260914T135639314313Z/torch.matmul.log",
+      "source_revision": "sha256:6d5335ce21952176ae5c38bdfea0867d04980d7c2991420878bb6a262ecd393d",
+      "locator": "HBFG_RUN_STATUS=0 and HBFG_TARGET_REACHED",
+      "content_hash": "d75ab5af6d33eb5e8da96704603b0d5efd6fd53c23275b7469f59ba0560b02fc",
+      "excerpt": "C++ probe invoked the resolved target and terminated normally.",
+      "collected_at": "2026-09-14T13:56:39.314313Z"
+    }
+  ],
+  "review": {
+    "review_status": "approved",
+    "reviewer": "nathan",
+    "reviewed_at": "2026-09-14T13:56:39.314313Z",
+    "issue_refs": []
+  }
+}

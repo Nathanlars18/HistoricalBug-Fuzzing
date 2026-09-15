@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Experiment Result Provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "runner_version",
+    "matrix_id",
+    "matrix_content_hash",
+    "last_terminal_core_run_at",
+    "analysis_cutoff_at",
+    "finalized_at",
+    "task_count"
+  ],
+  "properties": {
+    "runner_version": {"$ref": "#/$defs/version_string"},
+    "matrix_id": {"$ref": "#/$defs/identifier"},
+    "matrix_content_hash": {"$ref": "#/$defs/sha256"},
+    "last_terminal_core_run_at": {"$ref": "#/$defs/timestamp"},
+    "analysis_cutoff_at": {"$ref": "#/$defs/timestamp"},
+    "finalized_at": {"$ref": "#/$defs/timestamp"},
+    "task_count": {"type": "integer", "minimum": 1}
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "version_string": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*))*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  }
+}

@@ -1,24 +1,13 @@
-config_version: 2
+config_version: 4
 experiment_id: EXP011
 
 paths:
   schemas: schemas
   api_profiles: api_profiles
   helper_profiles: helper_profiles
-  candidate_manifests: candidate_manifests
   harness_specs: harness_specs
   strategy_primitives: strategy_primitives
   scripts: scripts
   harnesses: harnesses
   knowledge_database: ../EXP006_historical_bug_pattern_dataset
-
-budget_policy:
-  initial_policy: equal_with_default_floor
-  infeasible_policy: validation_error
-  min_default_share: 0.20
-  min_branch_share: 0.05
-
-candidate_policy:
-  scope: target_api_only
-  max_prompt_candidates: 12
-  max_candidates_per_risk_dimension: 3
+  initial_budget_policy: schemas/initial_branch_budget_policy.json

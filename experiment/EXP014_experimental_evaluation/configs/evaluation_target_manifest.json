@@ -1,0 +1,15 @@
+{
+  "format_version": "1.0",
+  "manifest_id": "etm_pytorch_2_10_pilot",
+  "revision": 1,
+  "status": "draft",
+  "detector_contract_version": "1.0",
+  "api_target_sets": [],
+  "unresolved_bindings": [
+    {
+      "json_pointer": "/api_target_sets",
+      "expected_type": "non_empty_array",
+      "required_before": "frozen"
+    }
+  ]
+}
