@@ -1,0 +1,170 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "knowledge_id": "kn_pt_torch_matmul_mps_non_contiguous_out_write_correctness_k001",
+    "canonical_name": "torch_matmul_mps_non_contiguous_out_write_correctness",
+    "knowledge_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "knowledge_extract_v2_1",
+    "model": "deepseek-v4-pro",
+    "input_patterns": [
+      {
+        "pattern_id": "pt_mps_matmul_non_contiguous_out_incorrect_output_p001",
+        "pattern_hash": "sha256:e8d9ad1acdfd2f3d2fd10680bdb0cefd36a157fe86c673fc758920efcfe927f6"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "evidence_basis": {
+    "supporting_patterns": [
+      {
+        "pattern_id": "pt_mps_matmul_non_contiguous_out_incorrect_output_p001",
+        "relation": "direct_derivation",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_signature",
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:observed_failure",
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:observed_failure.historical_oracle",
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:scope",
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_condition:tc_01",
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_condition:tc_02",
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:defect_classification"
+        ]
+      }
+    ],
+    "derivation_rationale": "The input Pattern provides explicit trigger evidence that torch.matmul on the MPS backend with a non-contiguous out view or slice can leave the out tensor incorrectly unchanged relative to CPU, and includes an explicit differential historical oracle for that behavior. This supports abstracting a testing principle focused on validating out-tensor write correctness under non-contiguous output layout on MPS.",
+    "limitations": [
+      "The underlying root cause is not established in the Pattern evidence.",
+      "Fix status and any repair or regression boundary are unknown.",
+      "Possible segmentation faults were mentioned but not consistently reproduced, so they are not treated as supported oracle guidance.",
+      "The source report was user-reported and reproduction was not attempted in the supplied Pattern evidence."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "directly_supported_apis": [
+      "torch.matmul"
+    ]
+  },
+  "knowledge_statement": {
+    "risk_principle": "For torch.matmul on the MPS backend, providing an out tensor as a non-contiguous view or slice can lead to incorrect writes relative to CPU reference behavior, so out-tensor layout and backend interactions should be treated as a correctness risk.",
+    "testing_objective": "Exercise torch.matmul out-argument behavior on MPS for non-contiguous output destinations and observe whether the out tensor is updated with the correct result.",
+    "failure_relevance": "The Pattern reports the out tensor remaining zero or unchanged while CPU writes the correct result, so observing out-tensor writes under this layout and backend combination can expose the historically reported incorrect-output behavior.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_signature",
+      "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:observed_failure",
+      "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:observed_failure.historical_oracle"
+    ]
+  },
+  "applicability": {
+    "applicability_conditions": [
+      {
+        "condition_kind": "execution_capability",
+        "statement": "The torch.matmul call executes on the MPS backend.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_condition:tc_01"
+        ],
+        "condition_id": "ac_01"
+      },
+      {
+        "condition_kind": "api_semantics",
+        "statement": "The torch.matmul call uses an out argument that is a non-contiguous view or slice of a larger tensor.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_condition:tc_02"
+        ],
+        "condition_id": "ac_02"
+      }
+    ],
+    "exclusion_conditions": [
+      {
+        "condition_kind": "execution_capability",
+        "statement": "The execution backend is not MPS.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_condition:tc_01"
+        ],
+        "condition_id": "ec_01"
+      },
+      {
+        "condition_kind": "api_semantics",
+        "statement": "The out tensor is contiguous and does not depend on a non-contiguous view or slice output destination.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_condition:tc_02"
+        ],
+        "condition_id": "ec_02"
+      }
+    ],
+    "rationale": "This Knowledge is applicable to torch.matmul on the MPS backend when the out destination is a non-contiguous view or slice; contiguous out destinations and non-MPS execution fall outside the supported failure boundary.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:scope",
+      "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_signature"
+    ]
+  },
+  "testing_guidance": {
+    "risk_dimensions": [
+      "layout",
+      "backend",
+      "output_tensor"
+    ],
+    "exploration_goals": [
+      {
+        "target_dimension": "layout",
+        "statement": "Explore how non-contiguous out tensor views or slices affect torch.matmul output writes on the MPS backend.",
+        "priority": "primary",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_condition:tc_02",
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:defect_classification"
+        ],
+        "goal_id": "eg_01"
+      },
+      {
+        "target_dimension": "backend",
+        "statement": "Compare MPS torch.matmul out behavior against CPU reference behavior for equivalent non-contiguous output destinations.",
+        "priority": "primary",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:trigger_condition:tc_01",
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:observed_failure.historical_oracle"
+        ],
+        "goal_id": "eg_02"
+      },
+      {
+        "target_dimension": "output_tensor",
+        "statement": "Observe whether the out tensor content is updated or remains stale after the matmul operation.",
+        "priority": "secondary",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:observed_failure"
+        ],
+        "goal_id": "eg_03"
+      }
+    ],
+    "oracle_guidance": [
+      {
+        "objective": "For MPS torch.matmul with a non-contiguous out tensor, observe whether the out tensor is written correctly relative to the CPU reference result rather than remaining unchanged.",
+        "observation_kind": "historical_observable",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_mps_matmul_non_contiguous_out_incorrect_output_p001:observed_failure.historical_oracle"
+        ],
+        "confidence": "high"
+      }
+    ]
+  },
+  "confidence": {
+    "evidence_confidence": "high",
+    "abstraction_confidence": "medium",
+    "applicability_confidence": "high",
+    "oracle_guidance_confidence": "high"
+  }
+}

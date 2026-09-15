@@ -1,0 +1,219 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "knowledge_id": "kn_pt_torch_matmul_unaligned_fp32_rhs_cpu_blas_alignment_crash_risk_k001",
+    "canonical_name": "torch_matmul_unaligned_fp32_rhs_cpu_blas_alignment_crash_risk",
+    "knowledge_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "knowledge_extract_v2_1",
+    "model": "deepseek-v4-pro",
+    "input_patterns": [
+      {
+        "pattern_id": "pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001",
+        "pattern_hash": "sha256:8da85d072d547e8837b7ea36a081355ad74fbd19284d5149857ac818c7596115"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "evidence_basis": {
+    "supporting_patterns": [
+      {
+        "pattern_id": "pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001",
+        "relation": "direct_derivation",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_signature",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:defect_mechanism",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:observed_failure",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:scope",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_04",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_01",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_02",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_03",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_05",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:mechanism_hypothesis:dm_01",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:observed_failure.historical_oracle"
+        ]
+      }
+    ],
+    "derivation_rationale": "The Pattern provides direct evidence that torch.matmul with a contiguous but misaligned float32 right-hand operand, a single-row left operand, and the large-matrix CPU BLAS dispatch path produced a SIGBUS process crash. This supports abstracting to a testing principle focused on alignment-sensitive right-hand operands at the torch.matmul CPU dispatch boundary.",
+    "limitations": [
+      "The root cause and exact alignment assumption in the CPU BLAS/GEMV path are inferred from the report, not confirmed by a developer response or patch.",
+      "The Pattern does not confirm whether the crash affects non-Accelerate CPU BLAS backends or small-matrix execution paths.",
+      "The historical reproducer was not independently re-run during pattern extraction."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "directly_supported_apis": [
+      "torch.matmul"
+    ]
+  },
+  "knowledge_statement": {
+    "risk_principle": "Misaligned but contiguous float32 right-hand operands can reach torch.matmul CPU BLAS/GEMV paths that assume element-size alignment, causing process-level crashes for single-row large-matrix execution instead of Python-level exceptions.",
+    "testing_objective": "Explore torch.matmul handling of unaligned right-hand operands across CPU execution paths, especially single-row large-matrix cases, to determine whether failures surface as Python-level exceptions or hard process crashes.",
+    "failure_relevance": "The Pattern links this alignment and CPU dispatch boundary to a SIGBUS process crash, so exercising the same high-risk boundary can reveal historically relevant crash behavior rather than ordinary API errors.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_signature",
+      "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:defect_mechanism",
+      "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:observed_failure"
+    ]
+  },
+  "applicability": {
+    "applicability_conditions": [
+      {
+        "condition_kind": "api_semantics",
+        "statement": "The scenario exercises torch.matmul with a right-hand operand whose dtype carries an element-size alignment assumption in the backend.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_04"
+        ],
+        "condition_id": "ac_01"
+      },
+      {
+        "condition_kind": "input_capability",
+        "statement": "The right-hand operand is a contiguous tensor whose memory address is not aligned to its element-size boundary.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_01"
+        ],
+        "condition_id": "ac_02"
+      },
+      {
+        "condition_kind": "execution_capability",
+        "statement": "The call reaches a CPU BLAS/GEMV dispatch path used for large-matrix single-row left operands.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_02",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_03"
+        ],
+        "condition_id": "ac_03"
+      },
+      {
+        "condition_kind": "execution_capability",
+        "statement": "The selected CPU backend dispatch path assumes alignment for the right-hand operand.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_05",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:mechanism_hypothesis:dm_01"
+        ],
+        "condition_id": "ac_04"
+      }
+    ],
+    "exclusion_conditions": [
+      {
+        "condition_kind": "execution_capability",
+        "statement": "The scenario does not target execution paths that do not dispatch to the large-matrix CPU BLAS/GEMV path.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_03"
+        ],
+        "condition_id": "ec_01"
+      },
+      {
+        "condition_kind": "input_capability",
+        "statement": "The scenario does not target right-hand operands whose memory is already aligned to the element-size boundary.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_01"
+        ],
+        "condition_id": "ec_02"
+      }
+    ],
+    "rationale": "Relevant within torch.matmul when a contiguous right-hand operand with a dtype subject to element-size alignment is misaligned and the call may enter the CPU BLAS/GEMV path for large-matrix single-row execution.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:scope",
+      "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_signature",
+      "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:defect_mechanism"
+    ]
+  },
+  "testing_guidance": {
+    "risk_dimensions": [
+      "layout",
+      "shape",
+      "backend",
+      "dtype",
+      "api_contract"
+    ],
+    "exploration_goals": [
+      {
+        "target_dimension": "layout",
+        "statement": "Explore how torch.matmul reacts when a contiguous right-hand operand's memory address does not satisfy the alignment assumption implied by its dtype.",
+        "priority": "primary",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_01",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:observed_failure"
+        ],
+        "goal_id": "eg_01"
+      },
+      {
+        "target_dimension": "shape",
+        "statement": "Explore single-row large-problem shapes that route to CPU BLAS/GEMV execution rather than small-matrix paths.",
+        "priority": "primary",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_02",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_03"
+        ],
+        "goal_id": "eg_02"
+      },
+      {
+        "target_dimension": "backend",
+        "statement": "Explore CPU backend dispatch behavior when alignment assumptions meet floating-point right-hand operands.",
+        "priority": "secondary",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_05",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:mechanism_hypothesis:dm_01"
+        ],
+        "goal_id": "eg_03"
+      },
+      {
+        "target_dimension": "dtype",
+        "statement": "Explore whether the alignment sensitivity is tied to the right-hand operand's dtype.",
+        "priority": "secondary",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:trigger_condition:tc_04"
+        ],
+        "goal_id": "eg_04"
+      },
+      {
+        "target_dimension": "api_contract",
+        "statement": "Explore whether torch.matmul reports alignment-related invalid operands as Python-level exceptions or permits execution into a crash-prone backend path.",
+        "priority": "secondary",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:observed_failure",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:defect_mechanism"
+        ],
+        "goal_id": "eg_05"
+      }
+    ],
+    "oracle_guidance": [
+      {
+        "objective": "Observe whether execution terminates with a process-level crash signal such as SIGBUS or a nonzero exit code, rather than a Python-level exception, when an unaligned right-hand operand is used in the large single-row CPU matmul path.",
+        "observation_kind": "historical_observable",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:observed_failure",
+          "pattern:pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001:observed_failure.historical_oracle"
+        ],
+        "confidence": "high"
+      }
+    ]
+  },
+  "confidence": {
+    "evidence_confidence": "medium",
+    "abstraction_confidence": "medium",
+    "applicability_confidence": "medium",
+    "oracle_guidance_confidence": "high"
+  }
+}

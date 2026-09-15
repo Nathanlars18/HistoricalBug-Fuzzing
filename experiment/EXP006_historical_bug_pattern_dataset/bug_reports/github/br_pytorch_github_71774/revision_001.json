@@ -1,0 +1,182 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_71774",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "71774",
+        "url": "https://github.com/pytorch/pytorch/issues/71774",
+        "local_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_002.md",
+        "title": null,
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:6d97ae1f86ae7b46e200814c15569e3134c28082235039b93115d5399d44a31e"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_ad9f06e799c7",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 11,
+        "end_line": 23
+      },
+      "excerpt": "## Description\n\nThis was found in opinfo tests. Observed in Windows CI test and internal @mode/opt.\n\nOnly seen on dtype=torch.long, not with ints.\n\nSimilar bugs are found in:\n\n- __rmatmul__, int64\n- addmm_decomposed, float16 (turns out this is actually a jit-only issue)\n- linalg_multi_dot, int64\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:681829bec31ec8f493b8f7c08b2936ebe1ad4c4e38d7a2a082f1a34a614f0334"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_c33d173b9e71",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 24,
+        "end_line": 128
+      },
+      "excerpt": null,
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:5d69b64d08351603c9792ea8dcffec158784596e66c8bc80ebfbca8bee9eb845"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_69a6f591fc72",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 24,
+        "end_line": 128
+      },
+      "excerpt": null,
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:5d69b64d08351603c9792ea8dcffec158784596e66c8bc80ebfbca8bee9eb845"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.matmul",
+        "relation": "primary",
+        "assertion_basis": "code_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_c33d173b9e71"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "unknown",
+        "statement": "This was found in opinfo tests. Observed in Windows CI test and internal @mode/opt.\n\nOnly seen on dtype=torch.long, not with ints.\n\nSimilar bugs are found in:\n\n- __rmatmul__, int64\n- addmm_decomposed, float16 (turns out this is actually a jit-only issue)\n- linalg_multi_dot, int64",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ad9f06e799c7"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [],
+    "historical_oracle_claims": [],
+    "environment_facts": [],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_69a6f591fc72"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_ad9f06e799c7"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_69a6f591fc72"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.2",
+      "content_hash": "sha256:382f1978f8ee167e1c0cf5f6bba4cc4d72ba9a77aa970851964fdec4f52169b9"
+    },
+    "generation_run_id": "report-build-20260914T021918493523Z-1f500e85",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-14T02:19:18.493543Z",
+    "content_hash": "sha256:b11e56cd52f1fd3f71b5dae28ee211abb19e5d16b5f3c411718f785ad547b58e"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

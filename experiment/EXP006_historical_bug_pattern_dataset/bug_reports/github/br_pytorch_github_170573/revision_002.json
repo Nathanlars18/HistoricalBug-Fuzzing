@@ -1,0 +1,291 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_170573",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 2,
+    "parent_revision_ref": {
+      "report_id": "br_pytorch_github_170573",
+      "revision_number": 1,
+      "content_hash": "sha256:64f1859352273f21154171712677a1e314959801406a19f1d466379d078c5142"
+    },
+    "revision_trigger": "builder_updated",
+    "change_summary": "Regenerated after builder updated."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "170573",
+        "url": null,
+        "local_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_004.md",
+        "title": null,
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:bb8daec17eb607fc256df2737606c215181c35e4953697d2ee305b08263794ee"
+      },
+      {
+        "artifact_id": "art_alternate_source_001",
+        "artifact_role": "other",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "170573",
+        "url": null,
+        "local_path": "dataset/interim/github_issue_collection/torch.add/issue_170573_out_view_buffer_overflow.txt",
+        "title": null,
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:d68132d39d50ecd03e8efa8a58386292ab07e61c2a25363310cdb0c3b376a715"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_bee3856d4ebc",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 18,
+        "end_line": 62
+      },
+      "excerpt": "## Description\n\nWhen passing an undersized view as the out argument to standard operations\n(e.g., torch.add, torch.matmul, torch.linalg.pinv),\nPyTorch fails to validate the size requirements or safely handle the resize.\n\nInstead of raising a RuntimeError (as expected for views),\nthe operation triggers a deprecated implicit resize path.\n\nThis path successfully updates the tensor metadata (shape) to match the operation result,\nbut fails to update the storage because views cannot be reallocated.\n\nThe kernel may then write the full result based on the new shape into the old storage buffer.\n\n\n## Reproduction Script\n\n```python\nimport torch\n\ndef reproduce_buffer_overflow():\n\n    storage = torch.zeros(6, dtype=torch.float32)\n\n    # out is a view with insufficient storage\n    out_view = storage[:2]\n\n    canary = storage[2:]\n    canary.fill_(-1.0)\n\n    a = torch.full((4,), 10.0)\n    b = torch.full((4,), 20.0)\n\n    print(f\"Canary Before: {canary.tolist()}\")\n\n    try:\n        torch.add(a, b, out=out_view)\n    except Exception as e:\n        print(e)\n\n    print(f\"Canary After: {canary.tolist()})\n\n\nif __name__ == \"__main__\":\n    reproduce_buffer_overflow()",
+      "attribution": {
+        "actor": "jiren-the-gray",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:94abfa75506c1fbab80520d0a188b487c61bf9ae8ccaa89f4213bc4f660dc5f1"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_144eed9194ca",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 63,
+        "end_line": 68
+      },
+      "excerpt": "Observed Behavior\nThe operation emits a warning:\n\"An output with one or more elements was resized since it had shape [2],\nwhich does not match the required output shape [4].\"\nHowever, execution continues.\nThe memory region after the output view may be modified.",
+      "attribution": {
+        "actor": "jiren-the-gray",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:a91c0c99b774e025bac4d80268dde3e0f86a68cd9c66ce3846523b4a2e5365ae"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_8bd8cd44298e",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 72,
+        "end_line": 75
+      },
+      "excerpt": "Affected Operations\ntorch.add\ntorch.matmul\ntorch.linalg.pinv",
+      "attribution": {
+        "actor": "jiren-the-gray",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:8a98a4d610e81d808d0a1c8845d30819203f3abfb9ab31d46966a1ee77d2e828"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_4e5afdd0f7b0",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 69,
+        "end_line": 71
+      },
+      "excerpt": "Expected Behavior\nThe operation should raise an error when an undersized view is provided as output.\nImplicit resizing should not cause unsafe memory writes.",
+      "attribution": {
+        "actor": "jiren-the-gray",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:3ac4c4002809e533476797d2b31ec7458fdd5a4df0e9531cb4ddac6385b4487d"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_08f3e93a5282",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 76,
+        "end_line": 82
+      },
+      "excerpt": "Environment\nPyTorch:\n2.9.0+cpu\nOS:\nUbuntu 22.04.5 LTS\nDevice:\nCPU",
+      "attribution": {
+        "actor": "jiren-the-gray",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:26d1cc852fabbdedbd3fa42c3bded5e4f53c20e19f90137a317b78139f8af5fa"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.matmul",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_8bd8cd44298e"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_002",
+        "api_name": "torch.add",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_8bd8cd44298e"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_003",
+        "api_name": "torch.linalg.pinv",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_8bd8cd44298e"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "unknown",
+        "statement": "The operation emits a warning:\n\"An output with one or more elements was resized since it had shape [2],\nwhich does not match the required output shape [4].\"\nHowever, execution continues.\nThe memory region after the output view may be modified.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_144eed9194ca"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "The operation should raise an error when an undersized view is provided as output.\nImplicit resizing should not cause unsafe memory writes.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_4e5afdd0f7b0"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "PyTorch",
+        "value": "2.9.0+cpu",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_08f3e93a5282"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "OS",
+        "value": "Ubuntu 22.04.5 LTS",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_08f3e93a5282"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "Device",
+        "value": "CPU",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_08f3e93a5282"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "absent",
+      "source_evidence_refs": [],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_bee3856d4ebc"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_url_001",
+      "field_path": "/source_bundle/source_artifacts/0/url",
+      "description": "The curated local Issue text does not contain its canonical URL.",
+      "reason": "not_collected",
+      "evidence_refs": []
+    },
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": []
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.4",
+      "content_hash": "sha256:68735b74e9b8b7aaffa32d26728f911fcd10e1af8d5a2361b3170b9d5a6782f5"
+    },
+    "generation_run_id": "report-build-20260914T033504698201Z-59f620f7",
+    "input_artifact_refs": [
+      "art_primary_report",
+      "art_alternate_source_001"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-14T03:35:04.698226Z",
+    "content_hash": "sha256:02c8b218b40bc55c9fa0ad871bfe670b7692c182e9f543633dc89bb4ad364b88"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

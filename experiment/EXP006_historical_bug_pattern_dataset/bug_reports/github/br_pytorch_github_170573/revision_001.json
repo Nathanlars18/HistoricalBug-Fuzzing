@@ -1,0 +1,184 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_170573",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "170573",
+        "url": null,
+        "local_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_004.md",
+        "title": null,
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:bb8daec17eb607fc256df2737606c215181c35e4953697d2ee305b08263794ee"
+      },
+      {
+        "artifact_id": "art_alternate_source_001",
+        "artifact_role": "other",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "170573",
+        "url": null,
+        "local_path": "dataset/interim/github_issue_collection/torch.add/issue_170573_out_view_buffer_overflow.txt",
+        "title": null,
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:d68132d39d50ecd03e8efa8a58386292ab07e61c2a25363310cdb0c3b376a715"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_4204d6b659a5",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 18,
+        "end_line": 86
+      },
+      "excerpt": "## Description\n\nWhen passing an undersized view as the out argument to standard operations\n(e.g., torch.add, torch.matmul, torch.linalg.pinv),\nPyTorch fails to validate the size requirements or safely handle the resize.\n\nInstead of raising a RuntimeError (as expected for views),\nthe operation triggers a deprecated implicit resize path.\n\nThis path successfully updates the tensor metadata (shape) to match the operation result,\nbut fails to update the storage because views cannot be reallocated.\n\nThe kernel may then write the full result based on the new shape into the old storage buffer.\n\n\n## Reproduction Script\n\n```python\nimport torch\n\ndef reproduce_buffer_overflow():\n\n    storage = torch.zeros(6, dtype=torch.float32)\n\n    # out is a view with insufficient storage\n    out_view = storage[:2]\n\n    canary = storage[2:]\n    canary.fill_(-1.0)\n\n    a = torch.full((4,), 10.0)\n    b = torch.full((4,), 20.0)\n\n    print(f\"Canary Before: {canary.tolist()}\")\n\n    try:\n        torch.add(a, b, out=out_view)\n    except Exception as e:\n        print(e)\n\n    print(f\"Canary After: {canary.tolist()})\n\n\nif __name__ == \"__main__\":\n    reproduce_buffer_overflow()\nObserved Behavior\nThe operation emits a warning:\n\"An output with one or more elements was resized since it had shape [2],\nwhich does not match the required output shape [4].\"\nHowever, execution continues.\nThe memory region after the output view may be modified.\nExpected Behavior\nThe operation should raise an error when an undersized view is provided as output.\nImplicit resizing should not cause unsafe memory writes.\nAffected Operations\ntorch.add\ntorch.matmul\ntorch.linalg.pinv\nEnvironment\nPyTorch:\n2.9.0+cpu\nOS:\nUbuntu 22.04.5 LTS\nDevice:\nCPU\nActivity\nOfficial PyTorch maintainers participated in the discussion.\nThe issue was marked as triaged.\nNo fixing commit was referenced in the issue.",
+      "attribution": {
+        "actor": "jiren-the-gray",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:ec1f3b666735a0ed8da6b30df3fdd5d3f0c80effd3dab330d97cf08f3907eff0"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_8e615caa1f9b",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 18,
+        "end_line": 86
+      },
+      "excerpt": "## Description\n\nWhen passing an undersized view as the out argument to standard operations\n(e.g., torch.add, torch.matmul, torch.linalg.pinv),\nPyTorch fails to validate the size requirements or safely handle the resize.\n\nInstead of raising a RuntimeError (as expected for views),\nthe operation triggers a deprecated implicit resize path.\n\nThis path successfully updates the tensor metadata (shape) to match the operation result,\nbut fails to update the storage because views cannot be reallocated.\n\nThe kernel may then write the full result based on the new shape into the old storage buffer.\n\n\n## Reproduction Script\n\n```python\nimport torch\n\ndef reproduce_buffer_overflow():\n\n    storage = torch.zeros(6, dtype=torch.float32)\n\n    # out is a view with insufficient storage\n    out_view = storage[:2]\n\n    canary = storage[2:]\n    canary.fill_(-1.0)\n\n    a = torch.full((4,), 10.0)\n    b = torch.full((4,), 20.0)\n\n    print(f\"Canary Before: {canary.tolist()}\")\n\n    try:\n        torch.add(a, b, out=out_view)\n    except Exception as e:\n        print(e)\n\n    print(f\"Canary After: {canary.tolist()})\n\n\nif __name__ == \"__main__\":\n    reproduce_buffer_overflow()\nObserved Behavior\nThe operation emits a warning:\n\"An output with one or more elements was resized since it had shape [2],\nwhich does not match the required output shape [4].\"\nHowever, execution continues.\nThe memory region after the output view may be modified.\nExpected Behavior\nThe operation should raise an error when an undersized view is provided as output.\nImplicit resizing should not cause unsafe memory writes.\nAffected Operations\ntorch.add\ntorch.matmul\ntorch.linalg.pinv\nEnvironment\nPyTorch:\n2.9.0+cpu\nOS:\nUbuntu 22.04.5 LTS\nDevice:\nCPU\nActivity\nOfficial PyTorch maintainers participated in the discussion.\nThe issue was marked as triaged.\nNo fixing commit was referenced in the issue.",
+      "attribution": {
+        "actor": "jiren-the-gray",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:ec1f3b666735a0ed8da6b30df3fdd5d3f0c80effd3dab330d97cf08f3907eff0"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.matmul",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_8e615caa1f9b"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "exception",
+        "statement": "When passing an undersized view as the out argument to standard operations\n(e.g., torch.add, torch.matmul, torch.linalg.pinv),\nPyTorch fails to validate the size requirements or safely handle the resize.\n\nInstead of raising a RuntimeError (as expected for views),\nthe operation triggers a deprecated implicit resize path.\n\nThis path successfully updates the tensor metadata (shape) to match the operation result,\nbut fails to update the storage because views cannot be reallocated.\n\nThe kernel may then write the full result based on the new shape into the old storage buffer.\n\n\n## Reproduction Script\n\n```python\nimport torch\n\ndef reproduce_buffer_overflow():\n\n    storage = torch.zeros(6, dtype=torch.float32)\n\n    # out is a view with insufficient storage\n    out_view = storage[:2]\n\n    canary = storage[2:]\n    canary.fill_(-1.0)\n\n    a = torch.full((4,), 10.0)\n    b = torch.full((4,), 20.0)\n\n    print(f\"Canary Before: {canary.tolist()}\")\n\n    try:\n        torch.add(a, b, out=out_view)\n    except Exception as e:\n        print(e)\n\n    print(f\"Canary After: {canary.tolist()})\n\n\nif __name__ == \"__main__\":\n    reproduce_buffer_overflow()\nObserved Behavior\nThe operation emits a warning:\n\"An output with one or more elements was resized since it had shape [2],\nwhich does not match the required output shape [4].\"\nHowever, execution continues.\nThe memory region after the output view may be modified.\nExpected Behavior\nThe operation should raise an error when an undersized view is provided as output.\nImplicit resizing should not cause unsafe memory writes.\nAffected Operations\ntorch.add\ntorch.matmul\ntorch.linalg.pinv\nEnvironment\nPyTorch:\n2.9.0+cpu\nOS:\nUbuntu 22.04.5 LTS\nDevice:\nCPU\nActivity\nOfficial PyTorch maintainers participated in the discussion.\nThe issue was marked as triaged.\nNo fixing commit was referenced in the issue.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_4204d6b659a5"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [],
+    "historical_oracle_claims": [],
+    "environment_facts": [],
+    "reproduction": {
+      "availability": "absent",
+      "source_evidence_refs": [],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_4204d6b659a5"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_url_001",
+      "field_path": "/source_bundle/source_artifacts/0/url",
+      "description": "The curated local Issue text does not contain its canonical URL.",
+      "reason": "not_collected",
+      "evidence_refs": []
+    },
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": []
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.2",
+      "content_hash": "sha256:382f1978f8ee167e1c0cf5f6bba4cc4d72ba9a77aa970851964fdec4f52169b9"
+    },
+    "generation_run_id": "report-build-20260914T021918493523Z-1f500e85",
+    "input_artifact_refs": [
+      "art_primary_report",
+      "art_alternate_source_001"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-14T02:19:18.493543Z",
+    "content_hash": "sha256:64f1859352273f21154171712677a1e314959801406a19f1d466379d078c5142"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

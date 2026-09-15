@@ -1,26 +1,24 @@
 {
-  "contract_version": "2.1",
+  "contract_version": "2.2",
   "contract_name": "historical_bug_pattern_extraction",
   "purpose": "Extract one or more API-specific, evidence-grounded Bug Pattern candidates from exactly one structured Bug Report.",
-
   "input_assumptions": {
     "input_unit": "one_structured_bug_report",
     "required_report_context": [
-        "report_id",
-        "framework",
-        "available_evidence_refs",
-        "report"
+      "report_id",
+      "framework",
+      "available_evidence_refs",
+      "report"
     ],
     "expected_report_content": [
-        "api_information",
-        "trigger_conditions",
-        "failure_behavior",
-        "root_cause",
-        "fix_information"
+      "api_information",
+      "trigger_conditions",
+      "failure_behavior",
+      "root_cause",
+      "fix_information"
     ],
     "evidence_rule": "Every evidence_refs value in the response must be selected from available_evidence_refs supplied with the input report."
-    },
-
+  },
   "response_requirements": {
     "output_format": "json_only",
     "root_object_keys": [
@@ -38,9 +36,10 @@
       "defect_mechanism.hypotheses.hypothesis_id"
     ]
   },
-
   "semantic_rules": [
-    "Return API-specific patterns only.",
+    "Return patterns only for the selected_api in the supplied context.",
+    "`trigger_signature.operation_context` must be either null or an object with exactly description, evidence_status, and evidence_refs; never emit a free-text string or array.",
+    "Treat only primary or affected API assertions as eligible scope evidence; mentioned-only APIs are not eligible as the Pattern primary API.",
     "Each emitted Pattern must contain exactly one supporting Report: the input Report, with relation direct_evidence.",
     "Do not emit corroborating_evidence during single-Report extraction.",
     "Do not invent Report IDs, APIs, operators, modules, Issue facts, fix facts, reproduction facts, evidence references, or root causes.",
@@ -52,7 +51,6 @@
     "A claim marked official_confirmed, patch_derived, or source_reported must include at least one evidence reference.",
     "An analyst_inferred claim may be emitted only when its supporting evidence is cited and its confidence is medium or low."
   ],
-
   "controlled_vocabularies": {
     "defect_classes": [
       "shape_boundary",
@@ -150,7 +148,6 @@
       "low"
     ]
   },
-
   "value_selection_rules": {
     "template_values_are_defaults_not_fixed_values": true,
     "unknown_enum_value": "Use unknown only when the field is a controlled enum and the input Report provides no reliable value.",
@@ -163,7 +160,6 @@
     },
     "conservative_default": "When evidence is insufficient, use null for free text, unknown for controlled enums, an empty array for lists, and low for confidence."
   },
-
   "field_constraints": {
     "canonical_name": "A concise mechanism-oriented lower_snake_case name. Do not include Issue IDs, commit IDs, crash signals, scripts, or arbitrary constants.",
     "supporting_reports": "Must contain exactly one direct_evidence item whose report_id is the input Report ID.",
@@ -172,10 +168,9 @@
     "secondary_defect_classes": "Use only directly relevant additional defect classes. It may be empty.",
     "risk_dimensions": "Use evidence-supported dimensions that locate the triggering risk. It may be an empty array when no concrete risk dimension can be determined.",
     "trigger_conditions": "Represent historical trigger facts, not proposed input-generation steps.",
-    "operation_context": "Use null when no call sequence or execution context is known.",
-    "historical_oracle": "Use null when the historical Report does not contain an observable oracle."
+    "operation_context": "Use null when no call sequence or execution context is known. Otherwise emit an object with exactly description, evidence_status, and evidence_refs; do not emit a string or array.",
+    "historical_oracle": "Use null when the historical Report does not contain an observable oracle. Otherwise emit an object with exactly kind, condition, evidence_status, and evidence_refs; do not emit a partial object."
   },
-
   "array_item_templates": {
     "supporting_report": {
       "report_id": null,
@@ -203,54 +198,45 @@
       "confidence": "low"
     }
   },
-
   "template_interpretation": {
     "array_item_templates_are_shape_examples": true,
     "response_template_arrays_start_empty": true,
     "required_array_rule": "Populate an array only with evidence-supported items. Do not copy null placeholder objects into the final response.",
     "default_value_rule": "Replace unknown, null, and low defaults whenever the input Report provides sufficient evidence for a more specific value."
   },
-
   "response_template": {
     "patterns": [
       {
         "canonical_name": null,
-
         "provenance": {
           "supporting_reports": [],
           "abstraction_rationale": null,
           "unresolved_information": []
         },
-
         "scope": {
           "primary_api": null,
           "confirmed_apis": [],
           "operator": null,
           "module": null
         },
-
         "defect_classification": {
           "primary_defect_class": null,
           "secondary_defect_classes": [],
           "risk_dimensions": []
         },
-
         "trigger_signature": {
           "conditions": [],
           "operation_context": null
         },
-
         "defect_mechanism": {
           "hypotheses": []
         },
-
         "observed_failure": {
           "failure_type": "unknown",
           "description": null,
           "historical_oracle": null,
           "evidence_refs": []
         },
-
         "confidence": {
           "trigger_confidence": "low",
           "mechanism_confidence": "low",
@@ -258,5 +244,18 @@
         }
       }
     ]
+  },
+  "optional_object_templates": {
+    "operation_context": {
+      "description": null,
+      "evidence_status": "unknown",
+      "evidence_refs": []
+    },
+    "historical_oracle": {
+      "kind": "unknown",
+      "condition": null,
+      "evidence_status": "unknown",
+      "evidence_refs": []
+    }
   }
 }

@@ -1,0 +1,154 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001",
+    "canonical_name": "zero_inner_dimension_long_matmul_nondeterministic_output",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_71774",
+        "report_hash": "sha256:236230f6e02ce9cf7d968cedaa9d14bd95ebd68f0abee34dcdc3a6bb0e29a055"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_71774",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ad9f06e799c7",
+          "ev_art_primary_report_observed_output_e5dbee0abb2e",
+          "ev_art_primary_report_api_reference_562906ce3fc9",
+          "ev_art_primary_report_reproduction_8a8fe020f1b3",
+          "ev_art_primary_report_expected_behavior_ed85f559ca3d",
+          "ev_art_primary_report_environment_63fd6ab4e607"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes a torch.matmul failure with zero inner dimension and torch.long inputs on CPU producing nondeterministic outputs across repeated executions. The pattern abstracts these trigger and failure facts without asserting an unsupported root cause.",
+    "unresolved_information": [
+      "The root cause of the non-deterministic zero-inner-dimension behavior is not provided in the report.",
+      "The report statement 'Only seen on dtype=torch.long, not with ints' is ambiguous about whether other integer dtypes are affected.",
+      "It is not confirmed whether the behavior is specific to the CPU backend or also occurs on other backends."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "confirmed_apis": [
+      "torch.matmul"
+    ],
+    "operator": null,
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "shape_boundary",
+    "secondary_defect_classes": [
+      "memory_layout_boundary"
+    ],
+    "risk_dimensions": [
+      "shape",
+      "dtype",
+      "backend",
+      "memory",
+      "output_tensor"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "dtype",
+        "subject": "torch.matmul input tensors",
+        "predicate": "are torch.long",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ad9f06e799c7",
+          "ev_art_primary_report_environment_63fd6ab4e607"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "shape",
+        "subject": "inner dimension of matrix multiplication inputs",
+        "predicate": "is zero",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_e5dbee0abb2e"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "backend",
+        "subject": "execution backend",
+        "predicate": "is CPU",
+        "necessity": "contributing",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_63fd6ab4e607"
+        ],
+        "condition_id": "tc_03"
+      },
+      {
+        "dimension": "execution",
+        "subject": "torch.matmul invocation pattern",
+        "predicate": "uses repeated calls with identical inputs",
+        "necessity": "contributing",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_562906ce3fc9",
+          "ev_art_primary_report_reproduction_8a8fe020f1b3"
+        ],
+        "condition_id": "tc_04"
+      }
+    ],
+    "operation_context": {
+      "description": "Two consecutive torch.matmul calls are performed on the same input tensors and their outputs are compared for equality.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_api_reference_562906ce3fc9",
+        "ev_art_primary_report_reproduction_8a8fe020f1b3"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "When the inner dimension is zero and inputs are torch.long on CPU, repeated torch.matmul executions return different values between repeated executions.",
+    "historical_oracle": {
+      "kind": "output_property",
+      "condition": "Repeated torch.matmul calls with identical inputs and zero inner dimension must return identical output tensors.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_expected_behavior_ed85f559ca3d",
+        "ev_art_primary_report_api_reference_562906ce3fc9"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_e5dbee0abb2e",
+      "ev_art_primary_report_bug_description_ad9f06e799c7"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "high"
+  }
+}

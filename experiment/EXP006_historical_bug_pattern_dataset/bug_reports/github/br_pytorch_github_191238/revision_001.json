@@ -1,0 +1,231 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_191238",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "191238",
+        "url": null,
+        "local_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_001.md",
+        "title": null,
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:dd5e5ce4baa08fa5d95fe75b549bfa01def87e66a205a653818afd1ce166ccb1"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_c310c53a6f2a",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 11,
+        "end_line": 20
+      },
+      "excerpt": "Issue ID:\n\n#191238\n\n\nSource:\n\nGitHub Issue\n\n",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:3d01af9670f38e308322544123d0fe4c0bcb6fe396afe2e813d01a368509cb74"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_ce75e49cc13e",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 45,
+        "end_line": 62
+      },
+      "excerpt": "## Describe the bug\n\nA float32 tensor whose data_ptr() is not 4-byte aligned crashes the process with SIGBUS\nwhen used as the right-hand operand of a large matmul with a single row (M == 1).\n\nWith M >= 2 the identical call is fine, so this looks specific to the GEMV path.\n\n\nPyTorch constructs such a tensor without complaint — torch.frombuffer accepts any byte\noffset.\n\nA hard process crash reachable from pure Python seems wrong regardless of whether\nunaligned storage is considered supported; at minimum I'd expect a Python-level exception\nrather than a signal that kills the interpreter.\n\n\n---\n",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:67ea522d13b73fb350594e3388e89d7eb6efb6ea7f25c7e66e8bb40f444ce7e8"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_095010862de3",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 63,
+        "end_line": 198
+      },
+      "excerpt": null,
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:a16d9ff329450600e96732292f20b03439f13a2944561f2af87257072c440b77"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_a8c7e39c57d6",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 63,
+        "end_line": 198
+      },
+      "excerpt": null,
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:a16d9ff329450600e96732292f20b03439f13a2944561f2af87257072c440b77"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_75cbb45e72a8",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 35,
+        "end_line": 44
+      },
+      "excerpt": "Status:\n\ntriaged\n\n\n---\n\n# Original Issue Description\n\n",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:97e7c3a6e8f4d8d7ceb08241e60e09a536afc2c60195bdf97699b9257c2a8c21"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.matmul",
+        "relation": "primary",
+        "assertion_basis": "code_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_095010862de3"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "crash",
+        "statement": "A float32 tensor whose data_ptr() is not 4-byte aligned crashes the process with SIGBUS\nwhen used as the right-hand operand of a large matmul with a single row (M == 1).\n\nWith M >= 2 the identical call is fine, so this looks specific to the GEMV path.\n\n\nPyTorch constructs such a tensor without complaint — torch.frombuffer accepts any byte\noffset.\n\nA hard process crash reachable from pure Python seems wrong regardless of whether\nunaligned storage is considered supported; at minimum I'd expect a Python-level exception\nrather than a signal that kills the interpreter.\n\n\n---",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [],
+    "historical_oracle_claims": [],
+    "environment_facts": [],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_a8c7e39c57d6"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_ce75e49cc13e",
+        "ev_art_primary_report_source_metadata_c310c53a6f2a"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_url_001",
+      "field_path": "/source_bundle/source_artifacts/0/url",
+      "description": "The curated local Issue text does not contain its canonical URL.",
+      "reason": "not_collected",
+      "evidence_refs": []
+    },
+    {
+      "unresolved_id": "unresolved_issue_state_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_native_state",
+      "description": "The captured state value is not a recognized native Issue state.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_75cbb45e72a8"
+      ]
+    },
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_a8c7e39c57d6"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.2",
+      "content_hash": "sha256:382f1978f8ee167e1c0cf5f6bba4cc4d72ba9a77aa970851964fdec4f52169b9"
+    },
+    "generation_run_id": "report-build-20260914T021918493523Z-1f500e85",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-14T02:19:18.493543Z",
+    "content_hash": "sha256:931573f756483f852193fbc2e3076d3c3e30044a1f954958cc6fc53777d6f3df"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

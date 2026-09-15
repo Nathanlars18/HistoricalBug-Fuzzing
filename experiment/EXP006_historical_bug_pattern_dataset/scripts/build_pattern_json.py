@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import re
+from pathlib import Path
 from datetime import datetime, timezone
 
 import requests
@@ -38,13 +39,15 @@ MAPPING_FILE = os.path.join(
 
 SCHEMA_VERSION = "2.1"
 MAPPING_VERSION = "2.1"
-PROMPT_VERSION = "pattern_extract_v2_1"
+PROMPT_VERSION = "pattern_extract_v2_5"
 
 DEFAULT_MODEL = "deepseek-v4-pro"
 
 DEFAULT_API_URL = (
     "https://api.deepseek.com/chat/completions"
 )
+
+MAX_LLM_ATTEMPTS = 3
 
 CANDIDATE_KEYS = {
     "canonical_name",
@@ -68,18 +71,6 @@ FORBIDDEN_FIELD_NAMES = {
     "code"
 }
 
-EVIDENCE_FIELD_CANDIDATES = [
-    "source_information",
-    "api_information",
-    "bug_description",
-    "trigger_conditions",
-    "failure_behavior",
-    "root_cause",
-    "fix_information",
-    "fix",
-    "verification",
-    "raw_content_reference"
-]
 
 
 def load_text(path):
@@ -90,10 +81,6 @@ def load_text(path):
 def load_json(path):
     with open(path, "r", encoding="utf-8") as file:
         return json.load(file)
-
-
-def is_empty(value):
-    return value in (None, "", [], {})
 
 
 def require_dict(value, label):
@@ -336,75 +323,72 @@ def find_empty_string(value, path=""):
 
 
 def get_report_id(report, fallback_report_id):
-    metadata = report.get("metadata", {})
-
-    if not isinstance(metadata, dict):
-        metadata = {}
-
-    source_information = report.get(
-        "source_information",
-        {}
-    )
-
-    if not isinstance(source_information, dict):
-        source_information = {}
-
-    return (
-        metadata.get("bug_id")
-        or metadata.get("report_id")
-        or report.get("bug_id")
-        or report.get("report_id")
-        or source_information.get("issue_id")
-        or fallback_report_id
-    )
+    identity = report.get("identity", {})
+    if isinstance(identity, dict) and identity.get("report_id"):
+        return identity["report_id"]
+    return fallback_report_id
 
 
 def get_framework(report, fallback_framework="pytorch"):
-    metadata = report.get("metadata", {})
-    api_information = report.get("api_information", {})
+    identity = report.get("identity", {})
+    if isinstance(identity, dict) and identity.get("framework"):
+        return identity["framework"]
+    return fallback_framework
 
-    if not isinstance(metadata, dict):
-        metadata = {}
 
-    if not isinstance(api_information, dict):
-        api_information = {}
-
-    return (
-        report.get("framework")
-        or metadata.get("framework")
-        or api_information.get("framework")
-        or fallback_framework
+def report_supports_api(report, selected_api):
+    scope = report.get("scope_assertions", {})
+    assertions = scope.get("api_assertions", []) if isinstance(scope, dict) else []
+    selected = selected_api.casefold()
+    return any(
+        isinstance(item, dict)
+        and str(item.get("api_name", "")).casefold() == selected
+        and item.get("relation") in {"primary", "affected"}
+        for item in assertions
     )
 
 
-def build_report_context(report, fallback_report_id):
-    report_id = get_report_id(
-        report,
-        fallback_report_id
-    )
+def latest_report_paths_for_api(api):
+    """Return one newest Report revision per supported Report ID."""
+    latest = {}
+    for path in sorted(Path(BUG_REPORT_DIR).rglob("revision_*.json")):
+        try:
+            report = load_json(str(path))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not report_supports_api(report, api):
+            continue
+        report_id = get_report_id(report, path.stem)
+        revision = report.get("revision_information", {}).get("revision_number", 0)
+        try:
+            revision = int(revision)
+        except (TypeError, ValueError):
+            revision = 0
+        previous = latest.get(report_id)
+        if previous is None or revision > previous[0] or (revision == previous[0] and str(path) > str(previous[1])):
+            latest[report_id] = (revision, path)
+    return [item[1] for item in sorted(latest.values(), key=lambda item: (item[0], str(item[1])))]
 
+
+def build_report_context(report, fallback_report_id, selected_api):
+    report_id = get_report_id(report, fallback_report_id)
     framework = get_framework(report)
-
+    evidence_items = report.get("evidence_items", [])
+    if not isinstance(evidence_items, list):
+        raise ValueError("Report evidence_items must be an array")
     available_evidence_refs = []
-
-    for field_name in EVIDENCE_FIELD_CANDIDATES:
-        value = report.get(field_name)
-
-        if not is_empty(value):
-            available_evidence_refs.append(
-                f"report:{report_id}:{field_name}"
-            )
-
+    for item in evidence_items:
+        if not isinstance(item, dict) or not item.get("evidence_id"):
+            raise ValueError("Every evidence item must contain evidence_id")
+        available_evidence_refs.append(item["evidence_id"])
     if not available_evidence_refs:
-        raise ValueError(
-            "Report has no addressable evidence fields"
-        )
-
+        raise ValueError("Report has no addressable evidence_items")
     return {
         "report_id": report_id,
         "framework": framework,
+        "selected_api": selected_api,
         "available_evidence_refs": available_evidence_refs,
-        "report": report
+        "report": report,
     }
 
 
@@ -436,6 +420,26 @@ Input Report Context
 ====================
 
 {json.dumps(report_context, indent=2, ensure_ascii=False)}
+"""
+
+
+def build_repair_prompt(base_prompt, previous_response, validation_error):
+    return f"""
+{base_prompt}
+
+====================
+Previous Response Repair
+====================
+
+The previous response failed deterministic validation:
+{validation_error}
+
+Return a complete corrected JSON response, not a patch.
+Preserve only evidence-supported content. Do not invent missing values.
+When an optional object cannot be completed from evidence, return null.
+
+Previous response:
+{previous_response}
 """
 
 
@@ -679,6 +683,16 @@ def validate_candidate(
         raise ValueError(
             "scope.primary_api must appear in "
             "scope.confirmed_apis"
+        )
+
+    selected_api = report_context["selected_api"]
+    if scope["primary_api"] != selected_api:
+        raise ValueError(
+            f"scope.primary_api must match selected API {selected_api!r}"
+        )
+    if selected_api not in scope["confirmed_apis"]:
+        raise ValueError(
+            f"scope.confirmed_apis must include selected API {selected_api!r}"
         )
 
     for optional_key in ["operator", "module"]:
@@ -1069,7 +1083,8 @@ def next_pattern_id(output_api_dir, framework, canonical_name):
 
 def has_existing_pattern_for_report(
     output_api_dir,
-    report_id
+    report_id,
+    report_hash
 ):
     if not os.path.isdir(output_api_dir):
         return False
@@ -1077,39 +1092,31 @@ def has_existing_pattern_for_report(
     for filename in os.listdir(output_api_dir):
         if not filename.endswith(".json"):
             continue
-
-        path = os.path.join(
-            output_api_dir,
-            filename
-        )
-
+        path = os.path.join(output_api_dir, filename)
         try:
             pattern = load_json(path)
-
             supporting_reports = pattern.get(
-                "provenance",
-                {}
-            ).get(
-                "supporting_reports",
-                []
+                "provenance", {}
+            ).get("supporting_reports", [])
+            direct_support = any(
+                item.get("report_id") == report_id
+                and item.get("relation") == "direct_evidence"
+                for item in supporting_reports
+                if isinstance(item, dict)
             )
-
-            for supporting_report in supporting_reports:
-                if (
-                    supporting_report.get("report_id")
-                    == report_id
-                    and supporting_report.get("relation")
-                    == "direct_evidence"
-                ):
-                    return True
-
-        except (
-            OSError,
-            json.JSONDecodeError,
-            AttributeError
-        ):
+            input_reports = pattern.get(
+                "derivation_information", {}
+            ).get("input_reports", [])
+            exact_input = any(
+                item.get("report_id") == report_id
+                and item.get("report_hash") == report_hash
+                for item in input_reports
+                if isinstance(item, dict)
+            )
+            if direct_support and exact_input:
+                return True
+        except (OSError, json.JSONDecodeError, AttributeError):
             continue
-
     return False
 
 
@@ -1220,19 +1227,15 @@ def process_api(
 ):
     validate_api_argument(api)
 
-    input_api_dir = os.path.join(
-        BUG_REPORT_DIR,
-        api
-    )
-
     output_api_dir = os.path.join(
         output_root,
         api
     )
 
-    if not os.path.isdir(input_api_dir):
+    report_paths = latest_report_paths_for_api(api)
+    if not report_paths:
         raise RuntimeError(
-            f"Input directory does not exist: {input_api_dir}"
+            f"No v2 Report supports API {api!r} under {BUG_REPORT_DIR}"
         )
 
     contract = load_json(CONTRACT_FILE)
@@ -1242,44 +1245,33 @@ def process_api(
     skipped_count = 0
     failed_count = 0
 
-    for filename in sorted(os.listdir(input_api_dir)):
-        if not filename.endswith(".json"):
-            continue
-
-        report_path = os.path.join(
-            input_api_dir,
-            filename
-        )
-
-        fallback_report_id = os.path.splitext(
-            filename
-        )[0]
+    for report_path in report_paths:
+        filename = os.path.basename(report_path)
+        fallback_report_id = os.path.splitext(filename)[0]
 
         try:
-            report = load_json(report_path)
-
+            report = load_json(str(report_path))
             report_context = build_report_context(
                 report,
-                fallback_report_id
+                fallback_report_id,
+                api,
             )
-
         except (
             OSError,
             json.JSONDecodeError,
-            ValueError
+            ValueError,
         ) as error:
-            print(
-                f"[FAILED] {filename}: invalid Report: {error}"
-            )
-
+            print(f"[FAILED] {filename}: invalid v2 Report: {error}")
             failed_count += 1
             continue
 
         report_id = report_context["report_id"]
+        report_hash = canonical_json_hash(report)
 
         if has_existing_pattern_for_report(
             output_api_dir,
-            report_id
+            report_id,
+            report_hash
         ):
             print(
                 f"[SKIP] {filename}: existing Pattern "
@@ -1300,68 +1292,71 @@ def process_api(
             mapping
         )
 
-        try:
-            raw_response = call_deepseek(
-                prompt,
-                api_key,
-                model,
-                api_url
-            )
+        candidates = None
+        previous_response = ""
+        validation_error = ""
 
-            response = extract_json(raw_response)
-
-            validate_response_envelope(response)
-
-        except Exception as error:
-            print(
-                f"[FAILED] {filename}: LLM response error: {error}"
-            )
-
-            failed_count += 1
-            continue
-
-        candidates = []
-
-        try:
-            for raw_candidate in response["patterns"]:
-                candidate = normalize_candidate(
-                    raw_candidate
+        for attempt_index in range(1, MAX_LLM_ATTEMPTS + 1):
+            attempt_prompt = (
+                prompt
+                if attempt_index == 1
+                else build_repair_prompt(
+                    prompt,
+                    previous_response,
+                    validation_error,
                 )
-
-                validate_candidate(
-                    candidate,
-                    report_context,
-                    contract
+            )
+            try:
+                raw_response = call_deepseek(
+                    attempt_prompt,
+                    api_key,
+                    model,
+                    api_url,
                 )
+                previous_response = raw_response
+                response = extract_json(raw_response)
+                validate_response_envelope(response)
 
-                candidates.append(candidate)
+                validated_candidates = []
+                for raw_candidate in response["patterns"]:
+                    candidate = normalize_candidate(raw_candidate)
+                    validate_candidate(candidate, report_context, contract)
+                    validated_candidates.append(candidate)
 
-        except Exception as error:
-            print(
-                f"[FAILED] {filename}: candidate validation "
-                f"error: {error}"
-            )
+                canonical_names = [
+                    candidate["canonical_name"]
+                    for candidate in validated_candidates
+                ]
+                if len(canonical_names) != len(set(canonical_names)):
+                    raise ValueError(
+                        "duplicated canonical_name values in one response"
+                    )
 
+                candidates = validated_candidates
+                break
+            except requests.RequestException as error:
+                validation_error = str(error)
+                print(
+                    f"[FAILED] {filename}: network request failed: "
+                    f"{validation_error}"
+                )
+                break
+            except Exception as error:
+                validation_error = str(error)
+                if attempt_index < MAX_LLM_ATTEMPTS:
+                    print(
+                        f"[RETRY] {filename}: attempt {attempt_index} "
+                        f"failed validation: {validation_error}"
+                    )
+                else:
+                    print(
+                        f"[FAILED] {filename}: all {MAX_LLM_ATTEMPTS} "
+                        f"LLM attempts failed: {validation_error}"
+                    )
+
+        if candidates is None:
             failed_count += 1
             continue
-
-        canonical_names = [
-            candidate["canonical_name"]
-            for candidate in candidates
-        ]
-
-        if len(canonical_names) != len(
-            set(canonical_names)
-        ):
-            print(
-                f"[FAILED] {filename}: duplicated "
-                "canonical_name values in one response"
-            )
-
-            failed_count += 1
-            continue
-
-        report_hash = canonical_json_hash(report)
 
         final_patterns = []
 

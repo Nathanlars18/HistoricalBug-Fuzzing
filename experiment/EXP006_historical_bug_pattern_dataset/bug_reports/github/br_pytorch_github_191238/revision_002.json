@@ -1,0 +1,304 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_191238",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 2,
+    "parent_revision_ref": {
+      "report_id": "br_pytorch_github_191238",
+      "revision_number": 1,
+      "content_hash": "sha256:931573f756483f852193fbc2e3076d3c3e30044a1f954958cc6fc53777d6f3df"
+    },
+    "revision_trigger": "builder_updated",
+    "change_summary": "Regenerated after builder updated."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "191238",
+        "url": null,
+        "local_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_001.md",
+        "title": null,
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:dd5e5ce4baa08fa5d95fe75b549bfa01def87e66a205a653818afd1ce166ccb1"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_c310c53a6f2a",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 11,
+        "end_line": 20
+      },
+      "excerpt": "Issue ID:\n\n#191238\n\n\nSource:\n\nGitHub Issue\n\n",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:3d01af9670f38e308322544123d0fe4c0bcb6fe396afe2e813d01a368509cb74"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_ce75e49cc13e",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 45,
+        "end_line": 62
+      },
+      "excerpt": "## Describe the bug\n\nA float32 tensor whose data_ptr() is not 4-byte aligned crashes the process with SIGBUS\nwhen used as the right-hand operand of a large matmul with a single row (M == 1).\n\nWith M >= 2 the identical call is fine, so this looks specific to the GEMV path.\n\n\nPyTorch constructs such a tensor without complaint — torch.frombuffer accepts any byte\noffset.\n\nA hard process crash reachable from pure Python seems wrong regardless of whether\nunaligned storage is considered supported; at minimum I'd expect a Python-level exception\nrather than a signal that kills the interpreter.\n\n\n---\n",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:67ea522d13b73fb350594e3388e89d7eb6efb6ea7f25c7e66e8bb40f444ce7e8"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_050a03c871a4",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 63,
+        "end_line": 125
+      },
+      "excerpt": "# Minimal Reproduction\n\n\n```python\nimport torch\nimport torch.nn.functional as F\n\nN, K = 50257, 768\n\nbuf = bytearray(N * K * 4 + 8)\n\nW = torch.frombuffer(\n    memoryview(buf),\n    dtype=torch.float32,\n    count=N * K,\n    offset=1\n).view(N, K)\n\n\nassert W.is_contiguous()\nassert W.data_ptr() % 4 == 1\n\n\nwith torch.no_grad():\n\n    F.linear(torch.randn(2, K), W)   # OK\n\n    F.linear(torch.randn(1, K), W)   # SIGBUS\nResult:\n3/3 runs, exit code 138.\nThe crash kills the interpreter, so nothing prints after the failing line.\nScope\nByte alignment of the weight\nMatrix size:\nN = 50257\nK = 768\nM = 1\ndata_ptr() % 4\tResult\n0\tOK\n1\tSIGBUS\n2\tSIGBUS\n3\tSIGBUS\n\n\nOperations with unaligned weight at M=1\nOperation\tResult\nF.linear\tSIGBUS\ntorch.matmul\tSIGBUS\ntorch.mv\tSIGBUS\ntorch.addmm\tSIGBUS\nW.sum()\tOK\nW.clone()\tOK\n\n\nThe issue only appears in the large-matrix BLAS path.\nSmall matrices use another execution path.\nM >= 2 is safe for all tested sizes and offsets.\nTested Versions\ntorch\tPython\tBLAS\tResult\n2.12.0\t3.13.13\tAccelerate\tSIGBUS\n2.10.0\t3.12.13\tAccelerate\tSIGBUS\n\n",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:316f5094124852fe1642b0f0ca7b15b078f83394d22e18710497da884e523062"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_d915a17aeed8",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 63,
+        "end_line": 125
+      },
+      "excerpt": "# Minimal Reproduction\n\n\n```python\nimport torch\nimport torch.nn.functional as F\n\nN, K = 50257, 768\n\nbuf = bytearray(N * K * 4 + 8)\n\nW = torch.frombuffer(\n    memoryview(buf),\n    dtype=torch.float32,\n    count=N * K,\n    offset=1\n).view(N, K)\n\n\nassert W.is_contiguous()\nassert W.data_ptr() % 4 == 1\n\n\nwith torch.no_grad():\n\n    F.linear(torch.randn(2, K), W)   # OK\n\n    F.linear(torch.randn(1, K), W)   # SIGBUS\nResult:\n3/3 runs, exit code 138.\nThe crash kills the interpreter, so nothing prints after the failing line.\nScope\nByte alignment of the weight\nMatrix size:\nN = 50257\nK = 768\nM = 1\ndata_ptr() % 4\tResult\n0\tOK\n1\tSIGBUS\n2\tSIGBUS\n3\tSIGBUS\n\n\nOperations with unaligned weight at M=1\nOperation\tResult\nF.linear\tSIGBUS\ntorch.matmul\tSIGBUS\ntorch.mv\tSIGBUS\ntorch.addmm\tSIGBUS\nW.sum()\tOK\nW.clone()\tOK\n\n\nThe issue only appears in the large-matrix BLAS path.\nSmall matrices use another execution path.\nM >= 2 is safe for all tested sizes and offsets.\nTested Versions\ntorch\tPython\tBLAS\tResult\n2.12.0\t3.13.13\tAccelerate\tSIGBUS\n2.10.0\t3.12.13\tAccelerate\tSIGBUS\n\n",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:316f5094124852fe1642b0f0ca7b15b078f83394d22e18710497da884e523062"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_846ebe3ab387",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 153,
+        "end_line": 155
+      },
+      "excerpt": "Expected Behavior\nPossible solutions:\nHandle unaligned inputs in CPU BLAS dispatch.",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:3ca65723f51b11c09b8242906569a964b3063bfc8b6dc6c7f8f267b1442e25ca"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_75cbb45e72a8",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 35,
+        "end_line": 44
+      },
+      "excerpt": "Status:\n\ntriaged\n\n\n---\n\n# Original Issue Description\n\n",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:97e7c3a6e8f4d8d7ceb08241e60e09a536afc2c60195bdf97699b9257c2a8c21"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_8401ccf098a4",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 126,
+        "end_line": 139
+      },
+      "excerpt": "Environment:\nOS: macOS 15.0 arm64\n\nCPU:\nApple M1 Pro\n\n\nPyTorch:\n2.12.0\nWhy This Happens in Practice\nThis is not only triggered by manually created tensors.\nsafetensors can mmap checkpoints and provide tensors as views into the mapping.\nIf the JSON header length of a safetensors file is not padded to a multiple of 4,\nthe fp32 tensor data region can become misaligned.",
+      "attribution": {
+        "actor": "guptaishaan",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:5369d11ba7ac8c39142af05e603597457ca4fcc7ad680f4be40a81ac0fdd4a77"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.matmul",
+        "relation": "primary",
+        "assertion_basis": "code_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_050a03c871a4"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "crash",
+        "statement": "A float32 tensor whose data_ptr() is not 4-byte aligned crashes the process with SIGBUS\nwhen used as the right-hand operand of a large matmul with a single row (M == 1).\n\nWith M >= 2 the identical call is fine, so this looks specific to the GEMV path.\n\n\nPyTorch constructs such a tensor without complaint — torch.frombuffer accepts any byte\noffset.\n\nA hard process crash reachable from pure Python seems wrong regardless of whether\nunaligned storage is considered supported; at minimum I'd expect a Python-level exception\nrather than a signal that kills the interpreter.\n\n\n---",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "Possible solutions:\nHandle unaligned inputs in CPU BLAS dispatch.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_846ebe3ab387"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "OS",
+        "value": "macOS 15.0 arm64",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_8401ccf098a4"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "CPU",
+        "value": "Apple M1 Pro",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_8401ccf098a4"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "PyTorch",
+        "value": "2.12.0",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_8401ccf098a4"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_d915a17aeed8"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_ce75e49cc13e",
+        "ev_art_primary_report_source_metadata_c310c53a6f2a"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_url_001",
+      "field_path": "/source_bundle/source_artifacts/0/url",
+      "description": "The curated local Issue text does not contain its canonical URL.",
+      "reason": "not_collected",
+      "evidence_refs": []
+    },
+    {
+      "unresolved_id": "unresolved_issue_state_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_native_state",
+      "description": "The captured state value is not a recognized native Issue state.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_75cbb45e72a8"
+      ]
+    },
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_d915a17aeed8"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.4",
+      "content_hash": "sha256:68735b74e9b8b7aaffa32d26728f911fcd10e1af8d5a2361b3170b9d5a6782f5"
+    },
+    "generation_run_id": "report-build-20260914T033504698201Z-59f620f7",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-14T03:35:04.698226Z",
+    "content_hash": "sha256:50f188949c01a295d1fc9d3a0d179afc6e0818e18a687d000718f3649ef4c372"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

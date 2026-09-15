@@ -1,0 +1,182 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001",
+    "canonical_name": "unaligned_fp32_rhs_large_matmul_m1_sigbus",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_191238",
+        "report_hash": "sha256:8583920f9ba8274bff45129e2f9a2930880e5b60c8df9d0986a51e85f84c74a9"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_191238",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e",
+          "ev_art_primary_report_api_reference_050a03c871a4",
+          "ev_art_primary_report_reproduction_d915a17aeed8",
+          "ev_art_primary_report_environment_8401ccf098a4"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "Abstracts the reported torch.matmul crash caused by a 4-byte-misaligned float32 right-hand operand when the large-matrix CPU BLAS/GEMV path is used with M == 1. The report provides an explicit reproducer and operation-level observations supporting the trigger and SIGBUS failure.",
+    "unresolved_information": [
+      "The root cause is not explicitly confirmed by a developer response or patch in this report.",
+      "The exact CPU BLAS/GEMV kernel behavior and alignment assumption are inferred from the reported M == 1 GEMV-path behavior and the suggested CPU BLAS dispatch fix.",
+      "It is not confirmed whether the same crash affects non-Accelerate CPU BLAS backends or small-matrix execution paths."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "confirmed_apis": [
+      "torch.matmul"
+    ],
+    "operator": null,
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "memory_layout_boundary",
+    "secondary_defect_classes": [
+      "backend_dispatch_boundary",
+      "api_contract_boundary"
+    ],
+    "risk_dimensions": [
+      "layout",
+      "shape",
+      "dtype",
+      "backend",
+      "api_contract"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "layout",
+        "subject": "right-hand operand (weight tensor) supplied to torch.matmul",
+        "predicate": "contiguous float32 tensor whose data_ptr() is not 4-byte aligned (data_ptr() % 4 == 1, 2, or 3); torch.frombuffer accepted the misaligned view",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e",
+          "ev_art_primary_report_api_reference_050a03c871a4",
+          "ev_art_primary_report_reproduction_d915a17aeed8"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "shape",
+        "subject": "matmul first-operand row count / effective M",
+        "predicate": "M == 1 (single row); the identical call with M >= 2 is reported safe",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e",
+          "ev_art_primary_report_api_reference_050a03c871a4"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "shape",
+        "subject": "matmul problem size / execution path",
+        "predicate": "large-matrix CPU BLAS path is used (e.g., N = 50257, K = 768); small matrices use another execution path and are not reported to crash",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e",
+          "ev_art_primary_report_api_reference_050a03c871a4"
+        ],
+        "condition_id": "tc_03"
+      },
+      {
+        "dimension": "dtype",
+        "subject": "right-hand operand dtype",
+        "predicate": "torch.float32",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e",
+          "ev_art_primary_report_api_reference_050a03c871a4",
+          "ev_art_primary_report_reproduction_d915a17aeed8"
+        ],
+        "condition_id": "tc_04"
+      },
+      {
+        "dimension": "backend",
+        "subject": "CPU BLAS backend",
+        "predicate": "Apple Accelerate CPU BLAS on macOS arm64; tested with PyTorch 2.10.0 and 2.12.0",
+        "necessity": "contributing",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_050a03c871a4",
+          "ev_art_primary_report_environment_8401ccf098a4"
+        ],
+        "condition_id": "tc_05"
+      }
+    ],
+    "operation_context": {
+      "description": "Historical execution context: an unaligned but contiguous float32 tensor is supplied as the right-hand operand to torch.matmul under torch.no_grad(); the first operand has a single row (M=1) and the call enters the large-matrix CPU BLAS path. The reproducer obtained the unaligned RHS from a torch.frombuffer view at a non-4-byte offset.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_api_reference_050a03c871a4",
+        "ev_art_primary_report_reproduction_d915a17aeed8"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": [
+      {
+        "layer": "backend",
+        "description": "The large-matrix CPU BLAS/GEMV path assumes 4-byte alignment for a float32 right-hand operand; when an unaligned tensor reaches that path, the process crashes with SIGBUS instead of raising a Python-level exception. The expected-fix evidence suggests handling unaligned inputs in CPU BLAS dispatch.",
+        "status": "analyst_inferred",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e",
+          "ev_art_primary_report_api_reference_050a03c871a4",
+          "ev_art_primary_report_expected_behavior_846ebe3ab387"
+        ],
+        "confidence": "medium",
+        "hypothesis_id": "dm_01"
+      }
+    ]
+  },
+  "observed_failure": {
+    "failure_type": "crash",
+    "description": "A hard process crash kills the Python interpreter with SIGBUS (exit code 138) when the misaligned float32 RHS is used with a single-row large matmul. The report also observes the same failure for F.linear, torch.mv, and torch.addmm with the same unaligned weight at M=1.",
+    "historical_oracle": {
+      "kind": "signal",
+      "condition": "SIGBUS / exit code 138 when the misaligned RHS is used with M == 1 on the large-matrix CPU BLAS path",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_ce75e49cc13e",
+        "ev_art_primary_report_api_reference_050a03c871a4"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_bug_description_ce75e49cc13e",
+      "ev_art_primary_report_api_reference_050a03c871a4"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "medium",
+    "oracle_confidence": "high"
+  }
+}

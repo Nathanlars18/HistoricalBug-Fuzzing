@@ -32,12 +32,18 @@ vocabularies, output format, and validation constraints are defined in:
 
 ### Input
 
-The input is one structured Bug Report with:
+The input is one structured Bug Report with a selected target API. The builder
+selects the newest revision for each Report ID and passes only Reports whose
+`scope_assertions.api_assertions` contains that API with relation `primary` or
+`affected`.
+
+The input Report has:
 
 - a stable Report ID;
 - framework and API information;
 - addressable evidence references;
-- available trigger, failure, mechanism, or fix information.
+- available trigger, failure, mechanism, or fix information;
+- evidence items whose stable `evidence_id` values are the only legal evidence references.
 
 ### Output
 
@@ -92,7 +98,16 @@ Do not split a Report merely because it mentions semantically similar APIs.
 When the split decision is uncertain, prefer one conservative Pattern and
 record the ambiguity in `provenance.unresolved_information`.
 
-## 4. Field Mapping Rules
+## 4. API Selection and Revision Rules
+
+For a requested API, use exact API-name matching after case-preserving
+normalization. A `primary` or `affected` assertion is eligible; a
+`mentioned` assertion alone is not sufficient. If multiple revisions exist for
+one Report ID, use the greatest numeric `revision_information.revision_number`.
+If the selected API is not the Report's `scope.primary_api`, the conversion
+must reject the Report rather than silently retargeting it.
+
+## 5. Field Mapping Rules
 
 | Bug Report evidence | Pattern representation | Mapping rule |
 |---|---|---|
@@ -107,7 +122,7 @@ record the ambiguity in `provenance.unresolved_information`.
 | Defect theme and risk dimensions | `defect_classification` | Select the most evidence-supported primary defect class. Risk dimensions may be an empty array when the available evidence does not establish a concrete triggering dimension. |
 | Important missing information | `provenance.unresolved_information` | Record uncertainties that materially affect the Pattern explanation. |
 
-## 5. Evidence Rules
+## 6. Evidence Rules
 
 Every nontrivial Pattern claim must be traceable to the input Report.
 
@@ -131,14 +146,14 @@ questions, for example:
 
 It should be an empty array when no material uncertainty remains.
 
-## 6. API Scope
+## 7. API Scope
 
 `scope.confirmed_apis` contains only APIs directly supported by historical
 evidence. Similar APIs or APIs that may share an implementation must not be
 added without direct support from the input Report. If one Report explicitly
 identifies multiple affected APIs, each may be retained in `confirmed_apis`.
 
-## 7. Confidence Rules
+## 8. Confidence Rules
 
 Confidence is assigned independently for:
 
@@ -154,7 +169,7 @@ Use `low` for incomplete, weakly supported, or analyst-inferred conclusions.
 
 A fluent LLM explanation must not increase confidence.
 
-## 8. Extraction Responsibilities
+## 9. Extraction Responsibilities
 
 The LLM extracts semantic content:
 
@@ -179,7 +194,7 @@ The conversion script performs deterministic work:
 The script may normalize formatting, but it must not silently repair unsupported
 semantic claims.
 
-## 9. Review Rule
+## 10. Review Rule
 
 A Pattern that lacks sufficient evidence, has an unclear split decision, or
 contains unsupported semantic claims must be marked `needs_revision`.

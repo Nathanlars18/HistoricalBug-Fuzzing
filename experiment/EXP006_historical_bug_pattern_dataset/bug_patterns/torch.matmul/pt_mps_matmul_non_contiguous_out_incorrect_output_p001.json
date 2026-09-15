@@ -1,0 +1,132 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_mps_matmul_non_contiguous_out_incorrect_output_p001",
+    "canonical_name": "mps_matmul_non_contiguous_out_incorrect_output",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_104832",
+        "report_hash": "sha256:8fcb16146e91b48cbc3282a4e52537fe548b0555afc48cc3a067147d39d6f83e"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_104832",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_source_metadata_964ad3466096",
+          "ev_art_primary_report_bug_description_a41402a1fbf0",
+          "ev_art_primary_report_observed_output_e2d1097661a5",
+          "ev_art_primary_report_api_reference_55e6e4494359",
+          "ev_art_primary_report_reproduction_c68f89f62c09",
+          "ev_art_primary_report_expected_behavior_56c8b3cb3189",
+          "ev_art_primary_report_environment_9d97f5f6c6e7"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes torch.matmul on the MPS backend failing to write computed results into a non-contiguous out view, leaving it unchanged and differing from CPU behavior. The extracted pattern captures the layout/backend trigger and incorrect-output failure without adding implementation claims beyond the historical evidence.",
+    "unresolved_information": [
+      "Root cause is not provided in the report.",
+      "Fix status is unknown and no linked fix or PR evidence is available.",
+      "The reporter mentioned possible segmentation faults in some cases but could not provide a consistent reproduction."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "confirmed_apis": [
+      "torch.matmul"
+    ],
+    "operator": null,
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "memory_layout_boundary",
+    "secondary_defect_classes": [
+      "backend_dispatch_boundary"
+    ],
+    "risk_dimensions": [
+      "layout",
+      "backend",
+      "output_tensor",
+      "memory"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "backend",
+        "subject": "backend",
+        "predicate": "MPS",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_9d97f5f6c6e7",
+          "ev_art_primary_report_observed_output_e2d1097661a5"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "layout",
+        "subject": "out tensor",
+        "predicate": "non-contiguous view/slice, e.g. Z[:,128:(128+256)]",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_a41402a1fbf0",
+          "ev_art_primary_report_reproduction_c68f89f62c09"
+        ],
+        "condition_id": "tc_02"
+      }
+    ],
+    "operation_context": {
+      "description": "torch.matmul(X, Y, out=Z[:,128:(128+256)]) where X and Y are 256x256 MPS tensors and out is a strided slice of a larger MPS tensor",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_c68f89f62c09",
+        "ev_art_primary_report_bug_description_a41402a1fbf0"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "On MPS, torch.matmul with a non-contiguous out argument does not update the output tensor correctly. The output remains zero and differs from the CPU implementation. The reporter also mentioned possible segmentation faults in some cases without a consistent reproduction.",
+    "historical_oracle": {
+      "kind": "differential_reference",
+      "condition": "MPS result is compared against the CPU torch.matmul result; the MPS out tensor remains zero while CPU writes the correct result into the non-contiguous out tensor",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_observed_output_e2d1097661a5",
+        "ev_art_primary_report_reproduction_c68f89f62c09"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_e2d1097661a5",
+      "ev_art_primary_report_bug_description_a41402a1fbf0"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "high"
+  }
+}

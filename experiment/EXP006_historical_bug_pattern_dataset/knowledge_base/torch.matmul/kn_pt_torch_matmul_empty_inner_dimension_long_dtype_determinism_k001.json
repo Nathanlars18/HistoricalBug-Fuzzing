@@ -1,0 +1,186 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "knowledge_id": "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001",
+    "canonical_name": "torch_matmul_empty_inner_dimension_long_dtype_determinism",
+    "knowledge_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "knowledge_extract_v2_1",
+    "model": "deepseek-v4-pro",
+    "input_patterns": [
+      {
+        "pattern_id": "pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001",
+        "pattern_hash": "sha256:99b7b5002984c59fc902c76ef39189e9c417020b793cbe756d7dfa6f9e775293"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "evidence_basis": {
+    "supporting_patterns": [
+      {
+        "pattern_id": "pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001",
+        "relation": "direct_derivation",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_signature",
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:observed_failure",
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_02",
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_01",
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_03",
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_04",
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:observed_failure.historical_oracle"
+        ]
+      }
+    ],
+    "derivation_rationale": "The input Pattern directly reports that repeated torch.matmul calls with zero inner dimension and long integer inputs on CPU can return different values, supporting a focused determinism testing principle for empty-contraction matmul under those dtype and backend conditions.",
+    "limitations": [
+      "The root cause is unresolved, so the Knowledge is limited to observing output consistency rather than mechanism-specific guidance.",
+      "The Pattern does not confirm whether the behavior is CPU-specific or also occurs on other backends.",
+      "The report statement about other integer dtypes is ambiguous, so applicability beyond the reported long dtype is uncertain."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "directly_supported_apis": [
+      "torch.matmul"
+    ]
+  },
+  "knowledge_statement": {
+    "risk_principle": "For torch.matmul, output determinism under repeated identical calls should not be assumed when the inner dimension is empty and the inputs use the reported long integer dtype on CPU.",
+    "testing_objective": "Explore whether repeated torch.matmul executions with empty inner dimension and long integer dtype inputs on CPU produce consistent outputs.",
+    "failure_relevance": "If repeated identical torch.matmul calls return different output tensors, the observed behavior matches the historically reported incorrect-output failure for this shape, dtype, and backend boundary.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_signature",
+      "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:observed_failure"
+    ]
+  },
+  "applicability": {
+    "applicability_conditions": [
+      {
+        "condition_kind": "input_capability",
+        "statement": "The matmul input tensors have an inner dimension of size zero.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_02"
+        ],
+        "condition_id": "ac_01"
+      },
+      {
+        "condition_kind": "input_capability",
+        "statement": "The matmul input tensors use a long integer dtype.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_01"
+        ],
+        "condition_id": "ac_02"
+      },
+      {
+        "condition_kind": "execution_capability",
+        "statement": "The operation is executed on CPU.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_03"
+        ],
+        "condition_id": "ac_03"
+      },
+      {
+        "condition_kind": "execution_capability",
+        "statement": "The testing scenario can compare repeated torch.matmul calls with identical inputs.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_04"
+        ],
+        "condition_id": "ac_04"
+      }
+    ],
+    "exclusion_conditions": [
+      {
+        "condition_kind": "input_capability",
+        "statement": "The matmul input tensors do not have an inner dimension of size zero.",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_02"
+        ],
+        "condition_id": "ec_01"
+      }
+    ],
+    "rationale": "This Knowledge applies within torch.matmul when the testing scenario can exercise empty inner dimensions, long integer dtype inputs, CPU execution, and repeated identical calls to observe output determinism.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_signature",
+      "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:observed_failure"
+    ]
+  },
+  "testing_guidance": {
+    "risk_dimensions": [
+      "shape",
+      "dtype",
+      "backend",
+      "output_tensor"
+    ],
+    "exploration_goals": [
+      {
+        "target_dimension": "shape",
+        "statement": "Explore matmul behavior when the contraction dimension is empty.",
+        "priority": "primary",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_02"
+        ],
+        "goal_id": "eg_01"
+      },
+      {
+        "target_dimension": "dtype",
+        "statement": "Explore dtype interactions when matmul inputs are long integer tensors.",
+        "priority": "primary",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_01"
+        ],
+        "goal_id": "eg_02"
+      },
+      {
+        "target_dimension": "backend",
+        "statement": "Explore backend interactions reported for this behavior.",
+        "priority": "secondary",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:trigger_condition:tc_03"
+        ],
+        "goal_id": "eg_03"
+      },
+      {
+        "target_dimension": "output_tensor",
+        "statement": "Assess whether repeated identical calls produce consistent output tensors.",
+        "priority": "primary",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:observed_failure"
+        ],
+        "goal_id": "eg_04"
+      }
+    ],
+    "oracle_guidance": [
+      {
+        "objective": "Repeated torch.matmul calls with identical inputs and zero inner dimension should return identical output tensors.",
+        "observation_kind": "historical_observable",
+        "evidence_status": "pattern_explicit",
+        "evidence_refs": [
+          "pattern:pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001:observed_failure.historical_oracle"
+        ],
+        "confidence": "high"
+      }
+    ]
+  },
+  "confidence": {
+    "evidence_confidence": "high",
+    "abstraction_confidence": "medium",
+    "applicability_confidence": "medium",
+    "oracle_guidance_confidence": "high"
+  }
+}
