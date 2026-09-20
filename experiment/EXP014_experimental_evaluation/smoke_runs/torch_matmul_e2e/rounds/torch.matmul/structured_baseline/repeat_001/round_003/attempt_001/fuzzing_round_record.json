@@ -1,0 +1,133 @@
+{
+  "record_format_version": "1.0",
+  "record_type": "fuzzing_round",
+  "identity": {
+    "round_id": "torch.matmul:structured_baseline:repeat_001:round_003",
+    "execution_id": "ex_8092bd9e59634605860982cecedad78e",
+    "target_api_id": "torch.matmul",
+    "experimental_group": "structured_baseline",
+    "independent_repeat_id": "repeat_001",
+    "round_index": 3,
+    "attempt_index": 1
+  },
+  "schedule": {
+    "planned_final_round_index": 3,
+    "planned_duration_seconds": 5.0
+  },
+  "source_context": {
+    "harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.matmul_controlled_baseline",
+      "revision_number": 1,
+      "content_hash": "8a5b51e346418eb437139854c17cfa21e9472f07ea10d16c5a534341242f098f"
+    },
+    "strategy_ref": {
+      "strategy_id": "st_hs_pytorch_torch_matmul_controlled_baseline_hsr001",
+      "revision_number": 1,
+      "content_hash": "059a371ca30459d43edba5636a10ca58033fcc9e861695b557a8286f03dc69ac"
+    },
+    "harness_artifact_ref": {
+      "artifact_id": "ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_92c2edaeac84",
+      "artifact_version": "1.2",
+      "content_hash": "cd484073bc26e112e60539573c18a1025af36ba36d2ad1317a4635fb009b332b"
+    },
+    "fuzzing_config_ref": {
+      "artifact_id": "round_config_ex_8092bd9e59634605860982cecedad78e",
+      "artifact_version": 1,
+      "content_hash": "1c5340a9342c41ad139502631144c7fae4c40b596768064c5ef9c7f387dd5a54"
+    },
+    "runtime_environment_ref": {
+      "artifact_id": "pytorch_2_10_runtime_environment",
+      "artifact_version": "0.1",
+      "content_hash": "9006cfc2edf33d73b38f1a7dcd40e88ec22fff2e2e247f0f4d0f3c67bada6415"
+    },
+    "input_corpus_ref": {
+      "artifact_id": "corpus_ee5169167596c463",
+      "artifact_version": 1,
+      "content_hash": "96816360473c085518da61202c9a56e0a61ac46a0aaa4917d415a2542ff96ef0"
+    },
+    "instrumentation_runtime_ref": {
+      "artifact_id": "harness_instrumentation_runtime",
+      "artifact_version": "1.0",
+      "content_hash": "899aa2631acbe2313513fc0effca2cec7362295b69185660f5ae8c228a04814b"
+    },
+    "instrumentation_contract_version": "1.0"
+  },
+  "attempt_selection": {
+    "status": "selected_as_round_result",
+    "reason_code": "only_attempt"
+  },
+  "execution": {
+    "seed": 758296585,
+    "started_at": "2026-09-20T06:52:45.028046Z",
+    "ended_at": "2026-09-20T06:52:53.789167Z",
+    "actual_duration_seconds": 8.761124,
+    "termination": {
+      "reason": "time_budget_reached",
+      "exit_code": 0,
+      "signal_name": null,
+      "diagnostic_refs": []
+    }
+  },
+  "evidence": {
+    "runtime_snapshot": {
+      "status": "present",
+      "location": {
+        "artifact_ref": {
+          "artifact_id": "runtime_snapshot_ex_8092bd9e59634605860982cecedad78e",
+          "artifact_version": "1.0",
+          "content_hash": "0d0602e177f4fc5a3d60fa74250ee5098ea76a710fc5923bc4b475c9d2ed02f1"
+        },
+        "file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+          "content_hash": "9b544a9e1c1b3f0c8687e2eb6da6cd4675bcc1511c9fdbd75b5f59621b7ee148"
+        }
+      },
+      "snapshot_kind": "final",
+      "staleness_iterations": 0
+    },
+    "coverage_summary": {
+      "status": "not_collected",
+      "location": null,
+      "diagnostic_refs": []
+    },
+    "output_corpus": {
+      "status": "present",
+      "location": {
+        "artifact_ref": {
+          "artifact_id": "corpus_b7714bb89ef49fa8",
+          "artifact_version": 1,
+          "content_hash": "afc95a16476e03e369d0e05b66792aa8bd0a73f3e12736868066db1e24de9766"
+        },
+        "file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_003/attempt_001/corpus_manifest.json",
+          "content_hash": "8bfd76a056da444b7a988cb535f2d556712fe3dbd6d6663047b690e898d9ff1e"
+        }
+      },
+      "diagnostic_refs": []
+    },
+    "candidate_evidence": {
+      "status": "absent",
+      "bundle_ref": null,
+      "observations": []
+    },
+    "run_log_refs": [
+      {
+        "artifact_id": "run_log_ex_8092bd9e59634605860982cecedad78e",
+        "artifact_version": 1,
+        "content_hash": "79a5772b0043d456c462436195572285c6993df149dd966b7575aae3a9f3ebf3"
+      }
+    ]
+  },
+  "validation": {
+    "validation_status": "passed",
+    "validation_issues": []
+  },
+  "provenance": {
+    "runner_artifact_ref": {
+      "artifact_id": "run_fuzzing_round",
+      "artifact_version": "0.1.0",
+      "content_hash": "b97cd4ced2d24a124531e748badfe6aeda3121185026d7d4676691fe34247932"
+    },
+    "generated_at": "2026-09-20T06:52:53.795150Z"
+  }
+}

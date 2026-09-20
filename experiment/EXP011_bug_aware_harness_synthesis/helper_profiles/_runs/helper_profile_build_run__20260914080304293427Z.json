@@ -1,0 +1,147 @@
+{
+  "builder_version": "helper_profile_builder_v0.1",
+  "schema_version": "1.0",
+  "generated_at": "2026-09-14T08:03:04.293427Z",
+  "dry_run": false,
+  "fail_fast": false,
+  "aborted_before_materialization": false,
+  "requested_helpers": [
+    "fuzzer_utils::compareTensors#96f975d59bc7",
+    "fuzzer_utils::createTensor#14110b37b225",
+    "fuzzer_utils::currentTimestamp#c81f2a7d32da",
+    "fuzzer_utils::ensure_log_directory_exists#0998a5920e8b",
+    "fuzzer_utils::logErrorMessage#ffbff3bb0e31",
+    "fuzzer_utils::parseDataType#54f7f7e39ec2",
+    "fuzzer_utils::parseRank#f3fec1bde48a",
+    "fuzzer_utils::parseShape#bc0dff00f287",
+    "fuzzer_utils::parseTensorData#326eeb67c32d",
+    "fuzzer_utils::sanitizedTimestamp#3462aebdca72",
+    "fuzzer_utils::saveDiffInput#2413f328d009",
+    "fuzzer_utils::saveErrorInput#315d3b0ca605"
+  ],
+  "dependency_closure_helpers": [
+    "fuzzer_utils::compareTensors#96f975d59bc7",
+    "fuzzer_utils::createTensor#14110b37b225",
+    "fuzzer_utils::currentTimestamp#c81f2a7d32da",
+    "fuzzer_utils::ensure_log_directory_exists#0998a5920e8b",
+    "fuzzer_utils::logErrorMessage#ffbff3bb0e31",
+    "fuzzer_utils::parseDataType#54f7f7e39ec2",
+    "fuzzer_utils::parseRank#f3fec1bde48a",
+    "fuzzer_utils::parseShape#bc0dff00f287",
+    "fuzzer_utils::parseTensorData#326eeb67c32d",
+    "fuzzer_utils::sanitizedTimestamp#3462aebdca72",
+    "fuzzer_utils::saveDiffInput#2413f328d009",
+    "fuzzer_utils::saveErrorInput#315d3b0ca605"
+  ],
+  "source": {
+    "provider_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "header": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.h",
+    "header_sha256": "5c3aecce5e9c24de4031436cea02a3327714d8d5155578b4e1e4fa2d915a70e6",
+    "implementation": "third_party/FlashFuzz/testharness_generation/torch_cpu/torch_cpu_helper/fuzzer_utils.cpp",
+    "implementation_sha256": "e7d8aa99691fbbc38d8eef5bc49a1302ad10672bd98cdfec3273e8eb68add368",
+    "annotation_file": "experiment/EXP011_bug_aware_harness_synthesis/annotations/helper_capability_annotations.json",
+    "annotation_sha256": "28e39482eff9a5b00671384c5be3cec67ea3843a4be21b201c5d0b5acb821a0d"
+  },
+  "counts": {
+    "created": 12
+  },
+  "outcomes": [
+    {
+      "helper": "fuzzer_utils::compareTensors#96f975d59bc7",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_comparetensors_96f975d59bc7",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_comparetensors__sig_96f975d59bc7/helper_profile__fuzzer_utils_comparetensors__sig_96f975d59bc7__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::createTensor#14110b37b225",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_createtensor__sig_14110b37b225/helper_profile__fuzzer_utils_createtensor__sig_14110b37b225__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::currentTimestamp#c81f2a7d32da",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_currenttimestamp_c81f2a7d32da",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_currenttimestamp__sig_c81f2a7d32da/helper_profile__fuzzer_utils_currenttimestamp__sig_c81f2a7d32da__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::ensure_log_directory_exists#0998a5920e8b",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_ensure_log_directory_exists_0998a5920e8b",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_ensure_log_directory_exists__sig_0998a5920e8b/helper_profile__fuzzer_utils_ensure_log_directory_exists__sig_0998a5920e8b__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::logErrorMessage#ffbff3bb0e31",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_logerrormessage_ffbff3bb0e31",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_logerrormessage__sig_ffbff3bb0e31/helper_profile__fuzzer_utils_logerrormessage__sig_ffbff3bb0e31__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::parseDataType#54f7f7e39ec2",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_parsedatatype__sig_54f7f7e39ec2/helper_profile__fuzzer_utils_parsedatatype__sig_54f7f7e39ec2__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::parseRank#f3fec1bde48a",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_parserank__sig_f3fec1bde48a/helper_profile__fuzzer_utils_parserank__sig_f3fec1bde48a__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::parseShape#bc0dff00f287",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parseshape_bc0dff00f287",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_parseshape__sig_bc0dff00f287/helper_profile__fuzzer_utils_parseshape__sig_bc0dff00f287__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::parseTensorData#326eeb67c32d",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsetensordata_326eeb67c32d",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_parsetensordata__sig_326eeb67c32d/helper_profile__fuzzer_utils_parsetensordata__sig_326eeb67c32d__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::sanitizedTimestamp#3462aebdca72",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_sanitizedtimestamp_3462aebdca72",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_sanitizedtimestamp__sig_3462aebdca72/helper_profile__fuzzer_utils_sanitizedtimestamp__sig_3462aebdca72__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::saveDiffInput#2413f328d009",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_savediffinput_2413f328d009",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_savediffinput__sig_2413f328d009/helper_profile__fuzzer_utils_savediffinput__sig_2413f328d009__r001.json",
+      "error_kind": null,
+      "message": ""
+    },
+    {
+      "helper": "fuzzer_utils::saveErrorInput#315d3b0ca605",
+      "status": "created",
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_saveerrorinput_315d3b0ca605",
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_saveerrorinput__sig_315d3b0ca605/helper_profile__fuzzer_utils_saveerrorinput__sig_315d3b0ca605__r001.json",
+      "error_kind": null,
+      "message": ""
+    }
+  ]
+}

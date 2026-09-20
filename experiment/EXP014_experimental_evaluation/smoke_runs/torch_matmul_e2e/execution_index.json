@@ -1,0 +1,544 @@
+{
+  "runner_version": "0.4.1",
+  "matrix_id": "pytorch_2_10_torch_matmul_e2e_smoke",
+  "matrix_content_hash": "222798f7c6291393dfbf30e2242a6427c61a0ecf1c82d3f5555f195958298f34",
+  "matrix_file_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/configs/experiment_matrix_torch_matmul_e2e_smoke.json",
+    "content_hash": "ca0a3c0e2fea23eb4331664671ad406b70918fd9b76a44b122c23daba9ede03b"
+  },
+  "created_at": "2026-09-20T05:59:02Z",
+  "updated_at": "2026-09-20T06:58:20Z",
+  "preparation": {
+    "torch.matmul": {
+      "structured_baseline": {
+        "harness_spec": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/harness_specs/pytorch/torch.matmul/controlled_baseline/hs_pytorch_torch.matmul_controlled_baseline_r1.json",
+          "output_file_hash": "957381d004820c1124a53bba8b732f0f88d0a3d61e054e5662efb2a96d2b37ab",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/attempts/harness_spec/attempt_001",
+          "finished_at": "2026-09-20T05:59:28Z"
+        },
+        "strategy": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/strategy_plans/plans/pytorch/torch_matmul/controlled_baseline/st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r001.json",
+          "output_file_hash": "482e291bf767fe745b49517ffb3419bfb262b6bcb3873d7358ac5c861ac04a18",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/attempts/strategy/attempt_001",
+          "finished_at": "2026-09-20T06:01:01Z"
+        },
+        "harness_artifact_failed_001": {
+          "status": "failed",
+          "message": "harness_artifact returned 1: {'run_id': 'harness_generation_20260920T060101Z_2a615ebc7a5c', 'generator_id': 'build_harness_artifact', 'generator_version': '0.8.0', 'started_at': '2026-09-20T06:01:01.991204Z', 'finished_at': '2026-09-20T06:01:03.216562Z', 'results': [{'strategy_path': 'experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/strategy_plans/plans/pytorch/torch_matmul/controlled_baseline/st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r001.json', 'status': 'failed', 'error_type': 'InputError', 'message': \"Exact HarnessSpec is unavailable: ('hs_pytorch_torch.matmul_controlled_baseline', 1, '8a5b51e346418eb437139854c17cfa21e9472f07ea10d16c5a534341242f098f')\"}], 'status': 'failed', 'summary_path': 'experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/harnesses/run_summaries/harness_generation_20260920T060101Z_2a615ebc7a5c.json'}",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/attempts/harness_artifact/attempt_001"
+        },
+        "harness_artifact": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/harnesses/pytorch/torch_matmul/controlled_baseline/ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_92c2edaeac84/harness_artifact.json",
+          "output_file_hash": "ab10bb3622890a9ffdcacf4110db76139c7fa44560c35082e69db60612491da2",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/attempts/harness_artifact/attempt_002",
+          "finished_at": "2026-09-20T06:10:56Z"
+        },
+        "preflight": {
+          "status": "passed",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/attempts/preflight/attempt_001",
+          "finished_at": "2026-09-20T06:10:56Z"
+        },
+        "status": "success",
+        "target_api": "torch.matmul",
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/harness_specs/pytorch/torch.matmul/controlled_baseline/hs_pytorch_torch.matmul_controlled_baseline_r1.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/strategy_plans/plans/pytorch/torch_matmul/controlled_baseline/st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r001.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/harnesses/pytorch/torch_matmul/controlled_baseline/ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_92c2edaeac84/harness_artifact.json",
+        "triplet_hash": "57f2755320e93a0feb14776a79b11d67040130ff7f081655509b26433f637658"
+      },
+      "bug_aware_static": {
+        "harness_spec": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harness_specs/pytorch/torch.matmul/bug_aware_static/hs_pytorch_torch.matmul_bug_aware_static_r1.json",
+          "output_file_hash": "31666730ba449b0bf18fc18a656f47bbad4bff1baf1cb8ca51944f683e001afb",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/attempts/harness_spec/attempt_001",
+          "finished_at": "2026-09-20T06:38:32Z"
+        },
+        "strategy": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/strategy_plans/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r001.json",
+          "output_file_hash": "2d3d5223c96cc3f4283a577106068633cab9caeddfb5d6dac929d81639c876e4",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/attempts/strategy/attempt_001",
+          "finished_at": "2026-09-20T06:44:11Z"
+        },
+        "harness_artifact": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1/harness_artifact.json",
+          "output_file_hash": "053d28f1494b41a6c421e23951c1d3a0eab5ce2d93dea312bffad258e5601dce",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/attempts/harness_artifact/attempt_001",
+          "finished_at": "2026-09-20T06:44:23Z"
+        },
+        "preflight": {
+          "status": "passed",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/attempts/preflight/attempt_001",
+          "finished_at": "2026-09-20T06:44:23Z"
+        },
+        "status": "success",
+        "target_api": "torch.matmul",
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harness_specs/pytorch/torch.matmul/bug_aware_static/hs_pytorch_torch.matmul_bug_aware_static_r1.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/strategy_plans/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r001.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1/harness_artifact.json",
+        "triplet_hash": "7b9b23431e01e07f2083fa1eb9fa08ba5b20917db13cdfb42b99b4cf7bd07c7d"
+      },
+      "bug_aware_adaptive": {
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harness_specs/pytorch/torch.matmul/bug_aware_static/hs_pytorch_torch.matmul_bug_aware_static_r1.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/strategy_plans/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r001.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1/harness_artifact.json",
+        "status": "success",
+        "reuse_source_group": "bug_aware_static",
+        "reused_exact_triplet_hash": "7b9b23431e01e07f2083fa1eb9fa08ba5b20917db13cdfb42b99b4cf7bd07c7d"
+      }
+    }
+  },
+  "tasks": {
+    "torch.matmul:structured_baseline:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 492603401,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:52:25Z",
+            "finished_at": "2026-09-20T06:52:36Z",
+            "elapsed_seconds": 10.838286475000132,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:52:36.100590Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_30739b2027a04f8d",
+                "artifact_version": 1,
+                "content_hash": "0daded2d212884b58b09409424f50368cbe2697afd33dc36affbc1026f5a7b4f"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "f9aee73142d944eb5e7757e82b3f0adb7bc1b7da14c595ccf4d9b3caa7e00792"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "9d4ee19e14e7fab33d38697a5747d99d09dd273184fa8fc41a341a861882526b"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "903f25bc78df7cec24898894119d08712935bb8922c3b4b9e5dce1eff428c094"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:52:36.100590Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json"
+    },
+    "torch.matmul:structured_baseline:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1900685786,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:52:36Z",
+            "finished_at": "2026-09-20T06:52:44Z",
+            "elapsed_seconds": 9.893885808998675,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:52:44.659307Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_ee5169167596c463",
+                "artifact_version": 1,
+                "content_hash": "96816360473c085518da61202c9a56e0a61ac46a0aaa4917d415a2542ff96ef0"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "140889b20d5a20c98dcb6c48fac252e53b1525d1a6257c6976726d7712c13c48"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "6704ed3c58139a35d34432c4751d7b12fe40715120577e27e2073bea643aca2a"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "94b0da277c63533476266353fb983e03d413a510602ea3b3188f34f38cf9c661"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:52:44.659307Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_002/attempt_001/runtime_snapshot.json"
+    },
+    "torch.matmul:structured_baseline:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 758296585,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:52:44Z",
+            "finished_at": "2026-09-20T06:52:53Z",
+            "elapsed_seconds": 9.124050022001029,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:52:53.789167Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_b7714bb89ef49fa8",
+                "artifact_version": 1,
+                "content_hash": "afc95a16476e03e369d0e05b66792aa8bd0a73f3e12736868066db1e24de9766"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "8bfd76a056da444b7a988cb535f2d556712fe3dbd6d6663047b690e898d9ff1e"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "0b7f9045cc96385dfdac2a28be87a689c86c9d80c52f0a075c04d96933b61b3c"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "9b544a9e1c1b3f0c8687e2eb6da6cd4675bcc1511c9fdbd75b5f59621b7ee148"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:52:53.789167Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json"
+    },
+    "torch.matmul:bug_aware_static:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 492603401,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:52:53Z",
+            "finished_at": "2026-09-20T06:53:02Z",
+            "elapsed_seconds": 9.053461118999621,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:53:02.845907Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_998ced5fd6f0cc17",
+                "artifact_version": 1,
+                "content_hash": "bb5bfbbcbd1e947f055ca5082a8461181c8faf525fc6fa49f87fc1dbe602391b"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "f4d7deed5e1516d696830335b1f89a1f82090c57c9d226690cce5b87caf49d95"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "477eabbca5384b229542dc99dc8728ae68600649f1ec516a67683c47d8b19e17"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "d5a930343897255d0acd4c928c1aa21d21f205a6256e418e7738c7f13ee6c9f4"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:53:02.845907Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json"
+    },
+    "torch.matmul:bug_aware_static:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1900685786,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:53:02Z",
+            "finished_at": "2026-09-20T06:53:12Z",
+            "elapsed_seconds": 10.579362886999661,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:53:12.050312Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_aa9e47a217f5d6a8",
+                "artifact_version": 1,
+                "content_hash": "d8da60b6ada27b98e01ca8901a78f54a33ca07cfdf2c0601b8d0c4f92115ff6a"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "c4f2ba443045386bbbd2387e66db0a39679246730ea45feb7c932af374bc6f6c"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "7ca83fc813a37da6637d243f018fea2cf92fd0338eba5ad68ed07cafd08947af"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "b29b184caf7061ed0a6eb84580ce62d5b385da0d537b6c7c3e142e38801cf7a6"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:53:12.050312Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_002/attempt_001/runtime_snapshot.json"
+    },
+    "torch.matmul:bug_aware_static:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 758296585,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:53:12Z",
+            "finished_at": "2026-09-20T06:53:21Z",
+            "elapsed_seconds": 9.044801774000007,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:53:21.090716Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_0194c54d8cfbabe6",
+                "artifact_version": 1,
+                "content_hash": "fc41edfc939849969f377ea1c7e7e53bc8550fa0762f43ad9292933033cab92f"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "a2fa29174b7aac213191d35cfd5680dcce8c29c9d4f49fd5a4898504223fd691"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "45debb3ec4e27f33c8a4d0147d88d2114a36f1d7ff6537df7aff07256dce749c"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "cef1c263ceeb849331e1775928dfbfa5a0e2580e8b2a9b60992e4257501c8dc7"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:53:21.090716Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_static/repeat_001/round_003/attempt_001/runtime_snapshot.json"
+    },
+    "torch.matmul:bug_aware_adaptive:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 492603401,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:53:21Z",
+            "finished_at": "2026-09-20T06:53:30Z",
+            "elapsed_seconds": 9.047220323000147,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:53:30.146721Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_b312da1bcd9b096f",
+                "artifact_version": 1,
+                "content_hash": "db1130dd67d5501b399c6b8686316370c8cadc2d3cdf4c312bd16cae253014d2"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "5909899895e6116bce2ed8b622cfbcb6b0222c23a67492fcfcaf80836cef4242"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "c000881abdfff7c1185544ae2bdd11b2c76bc160b6a0366562d0bf740ce7caf6"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "650794a08ab042972dfbe79dc5a9334759b3c9ca99c082f1bbc9cc5f632a24dd"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:53:30.146721Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json"
+    },
+    "torch.matmul:bug_aware_adaptive:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1900685786,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:53:30Z",
+            "finished_at": "2026-09-20T06:53:39Z",
+            "elapsed_seconds": 10.391703613000573,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:53:39.657061Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_4ae2d0dee456f611",
+                "artifact_version": 1,
+                "content_hash": "d6689aea3ba556659ede65d8c0a7e205f18c58f54800340e53f8b108b56b2b27"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "e4c3f596ef9f179a5f5721ce788b9b6f5745801acb40ca89c8bcbc36112e3ee0"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "0d07c2f76bbdd926142a53a0c0ad110518ee1493190a1da2783d21eee7c95cb0"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "05e097f3e4cc2d768717cdc683a465f8d6f371f0f034700914dbc7d369660a3b"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:53:39.657061Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_002/attempt_001/runtime_snapshot.json"
+    },
+    "torch.matmul:bug_aware_adaptive:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 758296585,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-09-20T06:53:40Z",
+            "finished_at": "2026-09-20T06:53:49Z",
+            "elapsed_seconds": 8.96705601999929,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-09-20T06:53:49.089633Z",
+            "active_seconds_consumed": 5.0,
+            "remaining_active_seconds": 0.0,
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_91de7274366e3fb2",
+                "artifact_version": 1,
+                "content_hash": "7dcafbd3611b82c36bfa5e9acd53fee5378d0bf031925375b1ed57c8acb126b0"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "77c2839f85cedaa84b42a038ff053741317e14f962960055299e959da3df544e"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "4196e8bf5cdd306acd50b637c9070232dde57885d924f34950c6ae8f21ea4e4a"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "5ee685445b7b67c419281c1a4da5225196521cb52684c446e5a38f902162b3e0"
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-09-20T06:53:49.089633Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/rounds/torch.matmul/bug_aware_adaptive/repeat_001/round_003/attempt_001/runtime_snapshot.json"
+    }
+  },
+  "result_provenance_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/result_provenance.json",
+    "content_hash": "961472eb80ed313c905fbdaec7211c625965ea3e78b23a2459abdcf8e59742e6"
+  },
+  "adaptive_current": {
+    "torch.matmul": {
+      "repeat_001": {
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harness_specs/pytorch/torch.matmul/bug_aware_static/hs_pytorch_torch.matmul_bug_aware_static_r1.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/strategy_plans/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r001.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1/harness_artifact.json",
+        "status": "success"
+      }
+    }
+  },
+  "feedback": {
+    "torch.matmul": {
+      "repeat_001": {
+        "round_001": {
+          "status": "decision_recorded",
+          "decision_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/feedback/torch_matmul/repeat_001/round_001/decisions/torch_matmul/repeat_001/round_001/feedback_decision.json",
+          "materialization_outcome": "not_attempted",
+          "run_disposition": "continue"
+        },
+        "round_002": {
+          "status": "decision_recorded",
+          "decision_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/feedback/torch_matmul/repeat_001/round_002/decisions/torch_matmul/repeat_001/round_002/feedback_decision.json",
+          "materialization_outcome": "not_attempted",
+          "run_disposition": "continue"
+        }
+      }
+    }
+  }
+}

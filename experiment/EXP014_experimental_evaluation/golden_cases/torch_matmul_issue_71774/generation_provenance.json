@@ -1,0 +1,18 @@
+{
+  "record_format_version": "1.0",
+  "record_type": "golden_case_generation_provenance",
+  "case_id": "golden_torch_matmul_issue_71774",
+  "groups": {
+    "structured_baseline": {
+      "repository_commit": "ed33841f18c4a5728fe63293b87cdffb0e53d717",
+      "working_tree_state": "dirty",
+      "local_working_tree_snapshot_hash": "b1da2c58cbca6e6860c2b690563fdd4819fa1ebc4c75790d05d4904ff321facf"
+    },
+    "bug_aware_static": {
+      "repository_commit": "ed33841f18c4a5728fe63293b87cdffb0e53d717",
+      "working_tree_state": "dirty",
+      "local_working_tree_snapshot_hash": "65d8093a004d2c6bbc05b80b0abbfa5b2cc0813b4a9b82b12df74ceb8c924ab0"
+    }
+  },
+  "disclosure": "The generated Harness records declare a dirty working tree. Raw working-tree snapshots remain local because they include unrelated untracked paths and diffs; their SHA-256 values are preserved here for audit comparison. A clean-commit rerun is required before paper-level measurement."
+}

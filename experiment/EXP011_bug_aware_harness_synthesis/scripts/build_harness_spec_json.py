@@ -195,6 +195,52 @@ def read_records(root: Path, schema: dict[str, Any], label: str) -> list[dict[st
     return records
 
 
+def read_helper_profile_set(
+    manifest_path: Path, schema: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Load only the exact Helper Profile revisions pinned by a set manifest."""
+
+    manifest = require_object(load_json(manifest_path), "Helper Profile set manifest")
+    if manifest.get("manifest_format_version") != "1.0":
+        raise InputError("Unsupported Helper Profile set manifest format")
+    entries = require_list(manifest.get("profiles"), "Helper Profile set profiles")
+    if not entries:
+        raise InputError("Helper Profile set manifest must pin at least one profile")
+
+    records: list[dict[str, Any]] = []
+    seen: set[tuple[str, int]] = set()
+    for index, value in enumerate(entries):
+        entry = require_object(value, f"Helper Profile set profiles[{index}]")
+        profile_id = require_string(entry.get("profile_id"), "profile_id")
+        revision = entry.get("revision")
+        if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+            raise InputError(f"Invalid Helper Profile revision for {profile_id}")
+        key = (profile_id, revision)
+        if key in seen:
+            raise InputError(f"Duplicate Helper Profile set entry: {key}")
+        seen.add(key)
+
+        file_ref = require_object(entry.get("record_file_ref"), "record_file_ref")
+        relative_path = require_string(file_ref.get("relative_path"), "relative_path")
+        declared_hash = require_string(file_ref.get("content_hash"), "content_hash")
+        path = Path(relative_path)
+        if path.is_absolute() or ".." in path.parts:
+            raise InputError(f"Unsafe Helper Profile path: {relative_path}")
+        if not path.is_file():
+            raise InputError(f"Pinned Helper Profile does not exist: {path}")
+        actual_hash = file_hash(path)
+        if actual_hash != declared_hash:
+            raise InputError(
+                f"Pinned Helper Profile hash mismatch for {path}: "
+                f"{actual_hash} != {declared_hash}"
+            )
+        record = validate_profile_record(load_json(path), schema, f"Helper Profile {path}")
+        if record.get("profile_id") != profile_id or record.get("revision") != revision:
+            raise InputError(f"Helper Profile identity mismatch for {path}")
+        records.append(record)
+    return records
+
+
 def profile_reference(profile: dict[str, Any]) -> dict[str, Any]:
     try:
         return {
@@ -488,6 +534,10 @@ def select_helper_profiles(
 def select_helpers(
     args: argparse.Namespace, helper_schema: dict[str, Any], api: dict[str, Any]
 ) -> HelperSelection:
+    if args.helper_profile_set is not None:
+        return select_helper_profiles(
+            api, read_helper_profile_set(args.helper_profile_set, helper_schema)
+        )
     return select_helper_profiles(
         api, read_records(args.helper_profiles, helper_schema, "Helper Profile")
     )
@@ -962,6 +1012,23 @@ def validate_target_requirement(
             parameters["upper_inclusive"], bool
         ):
             raise ValidationError(f"{label} range inclusivity flags must be booleans")
+
+    backend_scope = api.get("target", {}).get("backend_scope")
+    if (
+        isinstance(backend_scope, list)
+        and len(backend_scope) == 1
+        and isinstance(backend_scope[0], str)
+        and backend_scope[0]
+        and parameters.get("subject_ref") == "context.backend"
+        and parameters.get("property_ref") == "backend"
+        and parameters.get("operator") == "equals"
+        and parameters.get("expected_value") == backend_scope[0]
+    ):
+        raise ValidationError(
+            f"{label} restates the singleton API Profile backend_scope as a "
+            "Target Property; fixed context.backend belongs to target_context, "
+            "not an Activation Target"
+        )
     return requirement_type
 
 
@@ -1797,6 +1864,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--framework", default="pytorch")
     parser.add_argument("--target-api")
     parser.add_argument("--api-profile", type=Path, help="Explicit API Profile; overrides automatic profile discovery.")
+    parser.add_argument(
+        "--helper-profile-set",
+        type=Path,
+        help="Stable manifest pinning the only Helper Profile revisions eligible for synthesis.",
+    )
     parser.add_argument("--mode", choices=("controlled_baseline", "bug_aware_static", "bug_aware_adaptive"))
     parser.add_argument("--feedback-request", type=Path)
     parser.add_argument("--parent-spec", type=Path)

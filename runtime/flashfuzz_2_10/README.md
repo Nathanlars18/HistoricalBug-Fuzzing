@@ -21,6 +21,9 @@ using `torch.relu`.
 
 - `runtime_config.json`: machine-readable planned inputs, image names, and
   initial resource policy. It is not runtime evidence.
+- `harness_compile_profile.json`: deterministic Harness compile command pinned
+  to the validated PyTorch 2.10 fuzz-runtime image digest. The Harness Builder
+  records the profile hash as its exact build-environment reference.
 - `docker/torch-2.10-base.Dockerfile`: pins the source checkout and compiler
   foundation.
 - `docker/torch-2.10-fuzz-runtime.Dockerfile`: builds the instrumented CPU

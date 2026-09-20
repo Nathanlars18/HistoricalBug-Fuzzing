@@ -40,10 +40,10 @@ try:
     from jsonschema import Draft202012Validator, FormatChecker
 except ImportError as exc:
     raise SystemExit('Missing dependency; install environment/python-control-requirements.txt') from exc
-BUILDER_VERSION = 'strategy_plan_builder_v0.4'
+BUILDER_VERSION = 'strategy_plan_builder_v0.5'
 STRATEGY_SCHEMA_VERSION = '1.1'
 CONTRACT_VERSION = '1.5'
-RULES_VERSION = '1.1'
+RULES_VERSION = '1.2'
 DEFAULT_MODEL = 'deepseek-v4-pro'
 DEFAULT_API_URL = 'https://api.deepseek.com/chat/completions'
 DEFAULT_MAX_PROMPT_CHARS = 75000
@@ -1094,6 +1094,84 @@ def derive_failure_handlers(steps: list[dict[str, Any]], primitive_map: dict[str
             handlers.append({'failure_handler_id': f"fh_{step['step_id']}_{outcome['outcome_id']}", 'trigger': {'step_id': step['step_id'], 'outcome_id': outcome['outcome_id']}, 'terminal_action': outcome['terminal_action']})
     return handlers
 
+
+def literal_parameter_value(step: dict[str, Any], parameter_id: str) -> Any:
+    for binding in step['parameter_bindings']:
+        if (
+            binding['parameter_id'] == parameter_id
+            and binding['binding_kind'] == 'literal'
+        ):
+            return binding['binding_value']
+    return None
+
+
+def directly_fuzz_dependent_output_ports(step: dict[str, Any]) -> set[str]:
+    primitive_id = step['primitive_id']
+    if primitive_id == 'construct_tensor_from_fuzz':
+        return {'tensor', 'next_cursor'}
+    if primitive_id != 'construct_tensor_with_constraints':
+        return set()
+    shape = literal_parameter_value(step, 'shape_template')
+    fill_policy = literal_parameter_value(step, 'fill_policy')
+    consumes_fuzz_bytes = (
+        isinstance(shape, list)
+        and any(item == -1 for item in shape)
+    ) or fill_policy == 'fuzz_int64'
+    return {'tensor', 'next_cursor'} if consumes_fuzz_bytes else set()
+
+
+def validate_default_branch_fuzz_dependence(
+    spec: dict[str, Any],
+    source_id: str,
+    target_steps: list[str],
+    step_map: dict[str, dict[str, Any]],
+    primitive_map: dict[str, dict[str, Any]],
+    fuzz_dependent_values: set[str],
+) -> None:
+    source_branch = next(
+        branch
+        for branch in spec['exploration_plan']['branches']
+        if branch['branch_id'] == source_id
+    )
+    if source_branch['branch_kind'] != 'default':
+        return
+    for target_step_id in target_steps:
+        target_step = step_map[target_step_id]
+        target_primitive = primitive_map[target_step['primitive_id']]
+        input_bindings = {
+            binding['port_id']: binding['value_ref']
+            for binding in target_step['input_bindings']
+        }
+        tensor_ports = [
+            contract['port_id']
+            for contract in target_primitive['input_contract']
+            if any(
+                kind in {'tensor', 'tensor_list'}
+                for kind in contract['accepted_value_kinds']
+            )
+        ]
+        if tensor_ports:
+            missing = [
+                port_id
+                for port_id in tensor_ports
+                if input_bindings.get(port_id) not in fuzz_dependent_values
+            ]
+            if missing:
+                raise PlanValidationError(
+                    f'Default Branch {source_id} target tensor inputs do not '
+                    f'depend on consumed LibFuzzer bytes: {missing}'
+                )
+        elif not any(
+            value_ref in fuzz_dependent_values
+            for value_ref in input_bindings.values()
+        ):
+            raise PlanValidationError(
+                f'Default Branch {source_id} target inputs do not depend on '
+                'consumed LibFuzzer bytes'
+            )
+
+
+
 def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, catalog: dict[str, Any]) -> None:
     (branch_ids, element_map, required_elements, exposed_parameter_map) = build_spec_context(resolved.spec)
     primitive_map = {item['primitive_id']: item for item in resolved.candidate_primitives}
@@ -1112,6 +1190,7 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
         if len(step_map) != len(steps):
             raise PlanValidationError(f'Branch {source_id} has duplicate Step IDs')
         available_values = dict(builtin_kinds)
+        fuzz_dependent_values = {'data'}
         producer_by_value: dict[str, str] = {}
         consumers_by_value: dict[str, set[str]] = {}
         predecessors: dict[str, set[str]] = {step['step_id']: set() for step in steps}
@@ -1141,6 +1220,8 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
             input_bindings = validate_binding_set(step['input_bindings'], input_contract, 'port_id', 'required', f"Step {step['step_id']} input_bindings")
             output_bindings = validate_binding_set(step['output_bindings'], output_contract, 'port_id', 'binding_required', f"Step {step['step_id']} output_bindings")
             parameter_bindings = validate_binding_set(step['parameter_bindings'], parameter_contract, 'parameter_id', 'required', f"Step {step['step_id']} parameter_bindings")
+            input_has_fuzz_dependency = False
+            parameter_has_fuzz_dependency = False
             for (port_id, binding) in input_bindings.items():
                 if set(binding) != {'port_id', 'value_ref'}:
                     raise PlanValidationError('Input Binding has incorrect fields')
@@ -1149,6 +1230,7 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                     raise PlanValidationError(f"Step {step['step_id']} references an unavailable or later value {value_ref}")
                 if not any((value_kind_compatible(available_values[value_ref], expected) for expected in input_contract[port_id]['accepted_value_kinds'])):
                     raise PlanValidationError(f"Step {step['step_id']} has an incompatible input kind for {port_id}")
+                input_has_fuzz_dependency |= value_ref in fuzz_dependent_values
                 consumers_by_value.setdefault(value_ref, set()).add(step['step_id'])
                 producer = producer_by_value.get(value_ref)
                 if producer is not None:
@@ -1164,6 +1246,7 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                 if binding_kind == 'value_ref':
                     if binding_value not in available_values or not value_kind_compatible(available_values[binding_value], contract['value_kind']):
                         raise PlanValidationError(f"Step {step['step_id']} parameter value_ref is unavailable or type-incompatible")
+                    parameter_has_fuzz_dependency |= binding_value in fuzz_dependent_values
                     consumers_by_value.setdefault(binding_value, set()).add(step['step_id'])
                     producer = producer_by_value.get(binding_value)
                     if producer is not None:
@@ -1181,6 +1264,14 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                         raise PlanValidationError(f"Step {step['step_id']} literal is type-incompatible")
                     if 'allowed_values' in contract and binding_value not in contract['allowed_values']:
                         raise PlanValidationError(f"Step {step['step_id']} literal is outside allowed_values")
+            direct_fuzz_ports = directly_fuzz_dependent_output_ports(step)
+            propagate_fuzz_dependency = (
+                step['primitive_id'] not in {
+                    'construct_tensor_from_fuzz',
+                    'construct_tensor_with_constraints',
+                }
+                and (input_has_fuzz_dependency or parameter_has_fuzz_dependency)
+            )
             for (port_id, binding) in output_bindings.items():
                 if set(binding) != {'port_id', 'value_id'}:
                     raise PlanValidationError('Output Binding has incorrect fields')
@@ -1190,6 +1281,8 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                 available_values[value_id] = output_contract[port_id]['produced_value_kind']
                 producer_by_value[value_id] = step['step_id']
                 consumers_by_value.setdefault(value_id, set())
+                if port_id in direct_fuzz_ports or propagate_fuzz_dependency:
+                    fuzz_dependent_values.add(value_id)
         determinism_oracle_ids = bound_determinism_oracle_ids(
             resolved.spec, source_id, branch["spec_bindings"]
         )
@@ -1214,6 +1307,14 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                     f"Branch {source_id} determinism invocations must have "
                     "identical input and parameter bindings"
                 )
+        validate_default_branch_fuzz_dependence(
+            resolved.spec,
+            source_id,
+            target_steps,
+            step_map,
+            primitive_map,
+            fuzz_dependent_values,
+        )
         binding_keys: set[tuple[str, str, str]] = set()
         steps_used_by_bindings: set[str] = set()
         for binding in branch['spec_bindings']:
@@ -1300,9 +1401,39 @@ def strategy_id_for(spec: dict[str, Any]) -> str:
     source_revision = spec['revision_information']['revision_number']
     return f'st_{spec_id}_hsr{source_revision:03d}'
 
-def assemble_record(plan: dict[str, Any], resolved: ResolvedInputs, catalog: dict[str, Any], args: argparse.Namespace, run_id: str) -> dict[str, Any]:
+def assemble_record(
+    plan: dict[str, Any],
+    resolved: ResolvedInputs,
+    catalog: dict[str, Any],
+    args: argparse.Namespace,
+    run_id: str,
+    parent_strategy: dict[str, Any] | None,
+) -> dict[str, Any]:
     spec = resolved.spec
     identity = spec['identity']
+    parent_ref = (
+        None if parent_strategy is None else strategy_reference(parent_strategy)
+    )
+    if parent_strategy is None:
+        revision_information = {
+            'revision_number': 1,
+            'parent_revision_ref': None,
+            'revision_trigger': 'initial_creation',
+            'change_scopes': ['initial_definition'],
+            'change_summary': 'Initial Strategy synthesis for this HarnessSpec revision',
+        }
+    else:
+        revision_information = {
+            'revision_number': args.strategy_revision,
+            'parent_revision_ref': parent_ref,
+            'revision_trigger': 'validation_repair',
+            'change_scopes': [
+                'primitive_selection',
+                'dataflow',
+                'parameter_binding',
+            ],
+            'change_summary': 'Repair target-input LibFuzzer-byte dependence',
+        }
     return {
         'schema_version': STRATEGY_SCHEMA_VERSION,
         'identity': {
@@ -1311,19 +1442,9 @@ def assemble_record(plan: dict[str, Any], resolved: ResolvedInputs, catalog: dic
             'target_api': identity['target_api'],
             'spec_mode': identity['spec_mode'],
         },
-        'revision_information': {
-            'revision_number': 1,
-            'parent_revision_ref': None,
-            'revision_trigger': 'initial_creation',
-            'change_scopes': ['initial_definition'],
-            'change_summary': 'Initial Strategy synthesis for this HarnessSpec revision',
-        },
+        'revision_information': revision_information,
         'source_context': {
-            'harness_spec_ref': {
-                'spec_id': identity['spec_id'],
-                'revision_number': spec['revision_information']['revision_number'],
-                'content_hash': canonical_hash(spec),
-            },
+            'harness_spec_ref': harness_spec_reference(spec),
             'strategy_catalog_ref': {
                 'catalog_id': catalog['catalog_id'],
                 'catalog_version': catalog['catalog_version'],
@@ -1366,6 +1487,49 @@ def strategy_reference(strategy: dict[str, Any]) -> dict[str, Any]:
         'revision_number': strategy['revision_information']['revision_number'],
         'content_hash': canonical_hash(strategy),
     }
+
+
+
+def resolve_generation_parent(
+    args: argparse.Namespace,
+    spec: dict[str, Any],
+    catalog: dict[str, Any],
+    record_validator: Draft202012Validator,
+) -> dict[str, Any] | None:
+    if args.strategy_revision == 1:
+        return None
+    parent = require_object(
+        load_json(args.parent_strategy),
+        'parent Strategy Plan',
+    )
+    validate_against(
+        parent,
+        record_validator,
+        f'parent Strategy Plan {args.parent_strategy}',
+        ItemInputError,
+    )
+    expected_identity = {
+        'strategy_id': strategy_id_for(spec),
+        'framework': spec['identity']['framework'],
+        'target_api': spec['identity']['target_api'],
+        'spec_mode': spec['identity']['spec_mode'],
+    }
+    if parent['identity'] != expected_identity:
+        raise ItemInputError('Parent Strategy identity does not match this HarnessSpec')
+    if parent['revision_information']['revision_number'] != args.strategy_revision - 1:
+        raise ItemInputError('Parent Strategy is not the immediately preceding revision')
+    if parent['source_context']['harness_spec_ref'] != harness_spec_reference(spec):
+        raise ItemInputError('Parent Strategy does not reference the exact HarnessSpec')
+    expected_catalog_ref = {
+        'catalog_id': catalog['catalog_id'],
+        'catalog_version': catalog['catalog_version'],
+        'content_hash': canonical_hash(catalog),
+    }
+    if parent['source_context']['strategy_catalog_ref'] != expected_catalog_ref:
+        raise ItemInputError('Parent Strategy does not use the current Catalog')
+    if parent['review']['validation_status'] != 'passed':
+        raise ItemInputError('Parent Strategy validation_status is not passed')
+    return parent
 
 
 def feedback_semantic_projection(spec: dict[str, Any]) -> dict[str, Any]:
@@ -1653,10 +1817,34 @@ def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any]
         spec = resolved.spec
         target_api = spec['identity']['target_api']
         mode = spec['identity']['spec_mode']
+        parent_strategy = resolve_generation_parent(
+            args,
+            spec,
+            catalog,
+            record_validator,
+        )
         views = build_prompt_views(resolved, catalog)
         initial_prompt = build_prompt(contract, rules, views, [], args.max_prompt_chars)
         if args.dry_run:
-            summary = {'harness_spec': str(spec_path), 'target_api': target_api, 'mode': mode, 'strategy_id': strategy_id_for(spec), 'catalog_id': catalog['catalog_id'], 'catalog_version': catalog['catalog_version'], **prompt_statistics(views, initial_prompt, args.max_prompt_chars)}
+            summary = {
+                'harness_spec': str(spec_path),
+                'target_api': target_api,
+                'mode': mode,
+                'strategy_id': strategy_id_for(spec),
+                'strategy_revision': args.strategy_revision,
+                'parent_strategy_ref': (
+                    None
+                    if parent_strategy is None
+                    else strategy_reference(parent_strategy)
+                ),
+                'catalog_id': catalog['catalog_id'],
+                'catalog_version': catalog['catalog_version'],
+                **prompt_statistics(
+                    views,
+                    initial_prompt,
+                    args.max_prompt_chars,
+                ),
+            }
             print(json.dumps(summary, ensure_ascii=False, indent=2))
             return Outcome(harness_spec=str(spec_path), target_api=target_api, mode=mode, status='dry_run')
         if api_key is None:
@@ -1675,7 +1863,14 @@ def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any]
                 plan = normalize_materialized_plan(response, resolved, catalog)
                 materialize_failure_handlers(plan, resolved)
                 validate_materialized_plan(plan, resolved, catalog)
-                record = assemble_record(plan, resolved, catalog, args, run_id)
+                record = assemble_record(
+                    plan,
+                    resolved,
+                    catalog,
+                    args,
+                    run_id,
+                    parent_strategy,
+                )
                 validate_against(record, record_validator, 'Strategy Plan record', PlanValidationError)
                 output_path = strategy_destination(args.output_root, record)
                 atomic_write_json(output_path, record)
@@ -1708,6 +1903,17 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
     for (name, default) in DEFAULTS.items():
         parser.add_argument('--' + name.replace('_', '-'), type=Path, default=default)
+    parser.add_argument(
+        '--strategy-revision',
+        type=int,
+        default=1,
+        help='Immutable Strategy revision to create; defaults to 1.',
+    )
+    parser.add_argument(
+        '--parent-strategy',
+        type=Path,
+        help='Exact immediately preceding Strategy record for revision > 1.',
+    )
     parser.add_argument('--result-json', type=Path, help='Immutable machine-readable outcome selected by the orchestrator.')
     parser.add_argument('--model', default=DEFAULT_MODEL)
     parser.add_argument('--api-url', default=DEFAULT_API_URL)
@@ -1716,10 +1922,23 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--validate-catalog-only', action='store_true')
     args = parser.parse_args(argv)
+    if args.strategy_revision < 1:
+        parser.error('--strategy-revision must be positive')
+    if args.strategy_revision == 1 and args.parent_strategy is not None:
+        parser.error('--parent-strategy is forbidden for Strategy revision 1')
+    if args.strategy_revision > 1 and args.parent_strategy is None:
+        parser.error('--parent-strategy is required for Strategy revision > 1')
     if args.max_attempts < 1:
         parser.error('--max-attempts must be positive')
     if args.max_prompt_chars < 1:
         parser.error('--max-prompt-chars must be positive')
+    if args.rebind_from_strategy is not None and (
+        args.strategy_revision != 1 or args.parent_strategy is not None
+    ):
+        parser.error(
+            'Initial Strategy revision options cannot be combined with '
+            'deterministic feedback rebinding'
+        )
     if (args.rebind_from_strategy is None) != (args.rebind_source_spec is None):
         parser.error(
             '--rebind-from-strategy and --rebind-source-spec must be supplied together'
@@ -1772,6 +1991,10 @@ def main(argv: list[str] | None=None) -> int:
         spec_paths = read_spec_paths(args)
         if not spec_paths:
             raise GlobalInputError('Provide --harness-spec and/or --harness-spec-list')
+        if args.strategy_revision > 1 and len(spec_paths) != 1:
+            raise GlobalInputError(
+                'Strategy revision repair requires exactly one HarnessSpec'
+            )
         outcomes: list[Outcome] = []
         if args.rebind_from_strategy is not None:
             if len(spec_paths) != 1:

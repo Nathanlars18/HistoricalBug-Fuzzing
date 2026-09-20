@@ -1,0 +1,18 @@
+{
+  "run_id": "harness_generation_20260920T064411Z_f9e1806ed518",
+  "generator_id": "build_harness_artifact",
+  "generator_version": "0.8.0",
+  "started_at": "2026-09-20T06:44:11.238823Z",
+  "finished_at": "2026-09-20T06:44:23.184225Z",
+  "results": [
+    {
+      "strategy_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/strategy_plans/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r001.json",
+      "status": "generated",
+      "artifact_id": "ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1",
+      "artifact_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1/harness_artifact.json",
+      "compile_status": "passed"
+    }
+  ],
+  "status": "success",
+  "summary_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/run_summaries/harness_generation_20260920T064411Z_f9e1806ed518.json"
+}

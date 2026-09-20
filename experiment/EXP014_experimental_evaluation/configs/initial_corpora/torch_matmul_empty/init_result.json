@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "corpus_binding": {
+    "artifact_ref": {
+      "artifact_id": "corpus_torch_matmul_initial_v1",
+      "artifact_version": 1,
+      "content_hash": "d2133e3e52ce0927e8d653eb2266bf79bb84742de5da6bda819228d39c46d4e1"
+    },
+    "record_file_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/initial_corpora/torch_matmul_empty/corpus_manifest.json",
+      "content_hash": "41b06b9b82d378135903c2a8cf05aa4369c7d79ff88217e0e5c7ed5535d07878"
+    }
+  }
+}

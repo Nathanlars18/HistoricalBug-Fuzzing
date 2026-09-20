@@ -150,6 +150,15 @@ Property and use a linked Activation Target. Do not duplicate the same semantic
 state as both a Precondition and a Target Property; reserve Preconditions for
 independent feasibility or entry conditions.
 
+A context value already fixed by the supplied API Profile is not a state that
+the Harness deliberately generates or explores. In particular, when
+`target.backend_scope` contains exactly one backend, do not restate
+`context.backend == <that backend>` as a Target Property or Activation Target.
+Rely on `target_context.backend_scope`; use a backend Constraint only when it
+meaningfully narrows a broader supported scope. A context value may be a Target
+Property only when it can vary within the declared scope and the Harness can
+both control and observe it.
+
 Put a condition in the global set only when it applies to every branch. Do not
 treat an intentionally violated API condition as a Constraint of that invalid
 branch; express the violated state as a Target Property. Safety, resource,

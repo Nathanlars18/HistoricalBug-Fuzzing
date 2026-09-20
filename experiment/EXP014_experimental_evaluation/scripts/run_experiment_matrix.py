@@ -40,7 +40,7 @@ ARTIFACT_BUILDER = REPOSITORY_ROOT / (
     "experiment/EXP011_bug_aware_harness_synthesis/scripts/"
     "build_harness_artifact.py"
 )
-RUNNER_VERSION = "0.4.0"
+RUNNER_VERSION = "0.5.0"
 FEEDBACK_CONTROLLER = REPOSITORY_ROOT / (
     "experiment/EXP012_adaptive_feedback/scripts/"
     "run_feedback_controller.py"
@@ -492,6 +492,32 @@ def api_profile(entry: Mapping[str, Any]) -> tuple[dict[str, Any], Path]:
     return profile, path
 
 
+def evaluation_target_manifest(matrix: Mapping[str, Any]) -> Path:
+    """Resolve the common Target Manifest used by every generated Harness."""
+    shared = require_object(
+        matrix["inputs"].get("shared_artifact_refs"),
+        "inputs.shared_artifact_refs",
+    )
+    _, path = resolve_artifact_binding(
+        shared.get("evaluation_target_manifest"),
+        "shared artifact evaluation_target_manifest",
+    )
+    return path
+
+
+def helper_profile_set(matrix: Mapping[str, Any]) -> Path:
+    """Resolve the exact Helper Profile set shared by all synthesis groups."""
+    shared = require_object(
+        matrix["inputs"].get("shared_artifact_refs"),
+        "inputs.shared_artifact_refs",
+    )
+    _, path = resolve_artifact_binding(
+        shared.get("helper_profile_set"),
+        "shared artifact helper_profile_set",
+    )
+    return path
+
+
 def build_tasks(
     matrix: Mapping[str, Any],
     entries: Sequence[Mapping[str, Any]],
@@ -847,6 +873,7 @@ def prepare_group(
     max_attempts = matrix["synthesis"]["harness_spec"][
         "maximum_completed_responses"
     ]
+    helper_set_path = helper_profile_set(matrix)
 
     spec_path = run_builder_step(
         state_path=state_path,
@@ -860,6 +887,8 @@ def prepare_group(
             target_api,
             "--api-profile",
             str(profile_path),
+            "--helper-profile-set",
+            str(helper_set_path),
             "--mode",
             mode,
             "--max-attempts",
@@ -899,6 +928,7 @@ def prepare_group(
         entry.get("compile_profile_file_ref"),
         f"api_entries[{entry['api_id']}].compile_profile_file_ref",
     )
+    target_manifest_path = evaluation_target_manifest(matrix)
     artifact_path = run_builder_step(
         state_path=state_path,
         state=state,
@@ -909,6 +939,10 @@ def prepare_group(
             str(ARTIFACT_BUILDER),
             "--strategy-plan",
             str(strategy_path),
+            "--harness-spec-root",
+            str(operation_root / "harness_specs"),
+            "--evaluation-target-manifest",
+            str(target_manifest_path),
             "--compile-config",
             str(compile_path),
             "--output-root",
@@ -928,6 +962,8 @@ def prepare_group(
                 "target_api": target_api,
                 "group_id": group_id,
                 "harness_record": artifact_path,
+                "strategy_plan": strategy_path,
+                "harness_spec": spec_path,
             },
             attempt_dir,
         )
@@ -1019,9 +1055,22 @@ def prior_round_corpus(
         )
     )
     prior = require_object(state["tasks"].get(prior_key), f"prior task {prior_key}")
+    prior_status = prior.get("status")
+    if prior_status not in {"completed", "completed_with_abnormal_events"}:
+        raise RunnerError(
+            f"Cannot execute {task.key}; prior round {prior_key} did not "
+            f"complete successfully (status={prior_status!r})"
+        )
     return repository_path(
         require_string(prior.get("round_end_corpus_record"), "round_end_corpus_record")
     )
+
+
+def round_attempt_paths(
+    operation_root: Path, attempt_number: int
+) -> tuple[Path, Path]:
+    name = f"attempt_{attempt_number:03d}"
+    return operation_root / name, operation_root / "runner_processes" / name
 
 
 def structured_round_result(path: Path) -> dict[str, Any]:
@@ -1065,6 +1114,127 @@ def active_triplet(state: dict[str, Any], task: Task) -> dict[str, Any]:
         by_api[repeat_key] = current
     return require_object(current, "adaptive current triplet")
 
+
+
+def file_reference(path: Path) -> dict[str, str]:
+    resolved = path.resolve()
+    if not resolved.is_relative_to(REPOSITORY_ROOT):
+        raise ConfigurationError(f"Output path escapes repository: {resolved}")
+    return {
+        "relative_path": resolved.relative_to(REPOSITORY_ROOT).as_posix(),
+        "content_hash": file_hash(resolved),
+    }
+
+
+def runner_reference() -> dict[str, Any]:
+    return {
+        "artifact_id": "run_experiment_matrix",
+        "artifact_version": RUNNER_VERSION,
+        "content_hash": file_hash(Path(__file__).resolve()),
+    }
+
+
+def materialize_selected_round(
+    fragments: Sequence[Mapping[str, Any]],
+    operation_root: Path,
+    task: Task,
+) -> tuple[Path, Path | None]:
+    records: list[dict[str, Any]] = []
+    bundles: list[dict[str, Any]] = []
+    direct_round_path: Path | None = None
+    direct_bundle_path: Path | None = None
+    for fragment in fragments:
+        result = require_object(fragment.get("adapter_result"), "fragment adapter_result")
+        round_ref = result.get("round_record_file_ref")
+        if round_ref is None:
+            continue
+        round_path = verify_file_reference(round_ref, "fragment round record")
+        direct_round_path = round_path
+        record = require_object(load_json(round_path), "fragment round record")
+        records.append(record)
+        binding = result.get("candidate_bundle_binding")
+        if binding is not None:
+            bundle, bundle_path = resolve_artifact_binding(binding, "candidate_bundle_binding")
+            direct_bundle_path = bundle_path
+            if bundle.get("record_type") != "candidate_bundle":
+                raise ConfigurationError("Candidate binding does not identify a Candidate Bundle")
+            bundles.append(bundle)
+    if not records or direct_round_path is None:
+        raise ConfigurationError(f"No Fuzzing Round record is available for {task.key}")
+    if len(records) == 1:
+        return direct_round_path, direct_bundle_path
+
+    selected = json.loads(json.dumps(records[-1]))
+    selected["execution"]["started_at"] = records[0]["execution"]["started_at"]
+    selected["execution"]["actual_duration_seconds"] = round(
+        sum(float(item["execution"]["actual_duration_seconds"]) for item in records), 6
+    )
+    selected["attempt_selection"] = {
+        "status": "selected_as_round_result",
+        "reason_code": "deterministic_preference",
+    }
+    logs = {
+        json.dumps(ref, sort_keys=True): ref
+        for record in records
+        for ref in record["evidence"]["run_log_refs"]
+    }
+    selected["evidence"]["run_log_refs"] = [logs[key] for key in sorted(logs)]
+
+    bundle_path = None
+    if bundles:
+        candidates = [candidate for bundle in bundles for candidate in bundle["candidates"]]
+        candidate_ids = [item["candidate_id"] for item in candidates]
+        if len(candidate_ids) != len(set(candidate_ids)):
+            raise ConfigurationError("Candidate IDs collide across restarted attempts")
+        observations = [
+            observation
+            for record in records
+            for observation in record["evidence"]["candidate_evidence"]["observations"]
+        ]
+        if sorted(item["candidate_id"] for item in observations) != sorted(candidate_ids):
+            raise ConfigurationError("Candidate Bundle and Round observations disagree")
+        candidates.sort(key=lambda item: item["candidate_id"])
+        observations.sort(key=lambda item: item["candidate_id"])
+        bundle_id = "cb_" + content_hash({"task_key": task.key, "candidates": candidates})[:20]
+        bundle = {
+            "record_format_version": "1.0",
+            "record_type": "candidate_bundle",
+            "identity": {"bundle_id": bundle_id, "artifact_version": 1},
+            "round_context": {
+                "task_key": task.key,
+                "api_id": task.api_id,
+                "target_api_id": task.target_api,
+                "experimental_group": task.group_id,
+                "repeat_id": task.canonical_repeat_id,
+                "round_index": task.round_index,
+                "attempt_index": selected["identity"]["attempt_index"],
+                "execution_id": selected["identity"]["execution_id"],
+            },
+            "candidates": candidates,
+            "provenance": {
+                "producer_ref": runner_reference(),
+                "generated_at": selected["execution"]["ended_at"],
+            },
+        }
+        bundle_path = operation_root / "candidate_bundle.json"
+        write_or_verify_immutable_json(bundle_path, bundle)
+        selected["evidence"]["candidate_evidence"] = {
+            "status": "present",
+            "bundle_ref": {
+                "artifact_id": bundle_id,
+                "artifact_version": 1,
+                "content_hash": content_hash(bundle),
+            },
+            "bundle_file_ref": file_reference(bundle_path),
+            "observations": observations,
+        }
+    selected["provenance"] = {
+        "runner_artifact_ref": runner_reference(),
+        "generated_at": selected["execution"]["ended_at"],
+    }
+    selected_path = operation_root / "fuzzing_round_record.json"
+    write_or_verify_immutable_json(selected_path, selected)
+    return selected_path, bundle_path
 
 def execute_task(
     matrix: Mapping[str, Any],
@@ -1116,10 +1286,14 @@ def execute_task(
 
     while True:
         attempt_number = len(fragments) + 1
-        attempt_dir = operation_root / f"attempt_{attempt_number:03d}"
-        while attempt_dir.exists():
+        attempt_dir, process_dir = round_attempt_paths(
+            operation_root, attempt_number
+        )
+        while attempt_dir.exists() or process_dir.exists():
             attempt_number += 1
-            attempt_dir = operation_root / f"attempt_{attempt_number:03d}"
+            attempt_dir, process_dir = round_attempt_paths(
+                operation_root, attempt_number
+            )
         result_path = attempt_dir / "adapter_result.json"
         values = {
             "api_id": task.api_id,
@@ -1132,7 +1306,11 @@ def execute_task(
             "task_key": task.key,
             "seed": task.seed,
             "active_seconds": remaining,
+            "planned_final_round_index": matrix["execution"]["round_count"],
+            "attempt_index": attempt_number,
             "harness_record": prepared["artifact_path"],
+            "strategy_plan": prepared["strategy_path"],
+            "harness_spec": prepared["spec_path"],
             "round_start_corpus_record": current_corpus,
             "result_json": result_path,
             "attempt_dir": attempt_dir,
@@ -1143,7 +1321,7 @@ def execute_task(
         )
         process = run_command(
             argv,
-            attempt_dir,
+            process_dir,
             timeout_seconds=max(int(remaining) + 120, 180),
         )
         if not result_path.is_file():
@@ -1172,9 +1350,12 @@ def execute_task(
                 end_binding,
                 "round_end_corpus_binding",
             )
-            round_record_path = verify_file_reference(
+            verify_file_reference(
                 result.get("round_record_file_ref"),
                 "round result round_record_file_ref",
+            )
+            round_record_path, candidate_bundle_path = materialize_selected_round(
+                fragments, operation_root, task
             )
             runtime_snapshot_ref = result.get("runtime_snapshot_file_ref")
             runtime_snapshot_path = (
@@ -1195,6 +1376,7 @@ def execute_task(
                 "terminal_at": result["terminal_at"],
                 "round_record_path": str(round_record_path),
                 "runtime_snapshot_path": None if runtime_snapshot_path is None else str(runtime_snapshot_path),
+                "candidate_bundle_path": None if candidate_bundle_path is None else str(candidate_bundle_path),
             }
             persist_state(state_path, state)
             return
@@ -1220,14 +1402,32 @@ def execute_task(
             remaining = float(total_budget)
             continue
 
-        if process_restart >= maximum_restarts:
-            raise RunnerError(f"Process restart limit exhausted for {task.key}")
-        process_restart += 1
+        exhausted = process_restart >= maximum_restarts
         remaining = float(result["remaining_active_seconds"])
-        if remaining <= 0:
-            raise RunnerError(
-                f"Abnormal exit has no remaining budget for {task.key}"
+        if exhausted or remaining <= 0:
+            end_binding = result.get("resume_corpus_binding")
+            _, end_path = resolve_artifact_binding(end_binding, "resume_corpus_binding")
+            round_record_path, candidate_bundle_path = materialize_selected_round(
+                fragments, operation_root, task
             )
+            runtime_snapshot_ref = result.get("runtime_snapshot_file_ref")
+            runtime_snapshot_path = (
+                None if runtime_snapshot_ref is None
+                else verify_file_reference(runtime_snapshot_ref, "runtime snapshot")
+            )
+            state["tasks"][task.key] = {
+                "status": "completed_with_abnormal_events",
+                "seed": task.seed,
+                "fragments": fragments,
+                "round_end_corpus_record": end_path.relative_to(REPOSITORY_ROOT).as_posix(),
+                "terminal_at": result["terminal_at"],
+                "round_record_path": str(round_record_path),
+                "runtime_snapshot_path": None if runtime_snapshot_path is None else str(runtime_snapshot_path),
+                "candidate_bundle_path": None if candidate_bundle_path is None else str(candidate_bundle_path),
+            }
+            persist_state(state_path, state)
+            return
+        process_restart += 1
         resume_binding = result.get("resume_corpus_binding")
         _, current_corpus = resolve_artifact_binding(
             resume_binding,
@@ -1471,6 +1671,7 @@ def apply_feedback_after_round(
             entry.get("compile_profile_file_ref"),
             f"api_entries[{entry['api_id']}].compile_profile_file_ref",
         )
+        target_manifest_path = evaluation_target_manifest(matrix)
         failed_stage = "harness_materialization"
         candidate_artifact = run_builder_step(
             state_path=state_path,
@@ -1484,6 +1685,8 @@ def apply_feedback_after_round(
                 str(candidate_strategy),
                 "--harness-spec-root",
                 str(materialization_root / "harness_specs"),
+                "--evaluation-target-manifest",
+                str(target_manifest_path),
                 "--compile-config",
                 str(compile_path),
                 "--output-root",
@@ -1500,6 +1703,8 @@ def apply_feedback_after_round(
                 "target_api": task.target_api,
                 "group_id": task.group_id,
                 "harness_record": candidate_artifact,
+                "strategy_plan": candidate_strategy,
+                "harness_spec": candidate_spec,
             },
             materialization_root / "attempts" / "preflight" / "attempt_001",
         )

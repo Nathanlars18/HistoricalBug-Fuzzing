@@ -801,7 +801,8 @@
             "crash",
             "sanitizer",
             "target_exception",
-            "oracle_failure"
+            "oracle_failure",
+            "resource_anomaly"
           ]
         },
         "branch_ids": {
@@ -846,6 +847,16 @@
         "bundle_ref": {
           "$ref": "#/$defs/nullable_artifact_reference"
         },
+        "bundle_file_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/file_reference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "observations": {
           "type": "array",
           "uniqueItems": true,
@@ -871,6 +882,9 @@
               "bundle_ref": {
                 "$ref": "#/$defs/artifact_reference"
               },
+              "bundle_file_ref": {
+                "$ref": "#/$defs/file_reference"
+              },
               "observations": {
                 "minItems": 1
               }
@@ -879,6 +893,9 @@
           "else": {
             "properties": {
               "bundle_ref": {
+                "type": "null"
+              },
+              "bundle_file_ref": {
                 "type": "null"
               },
               "observations": {
@@ -946,7 +963,6 @@
             "instrumentation_version_mismatch",
             "snapshot_missing",
             "snapshot_invalid",
-            "snapshot_execution_mismatch",
             "snapshot_stale",
             "coverage_missing",
             "coverage_invalid",

@@ -1,0 +1,14 @@
+{
+  "config_format_version": "1.0",
+  "execution_id": "ex_8092bd9e59634605860982cecedad78e",
+  "api_id": "torch.matmul",
+  "target_api": "torch.matmul",
+  "task_key": "torch.matmul:structured_baseline:repeat_001:round_003",
+  "runtime_image": "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8",
+  "seed": 758296585,
+  "active_seconds": 5,
+  "harness_binary_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/harnesses/pytorch/torch_matmul/controlled_baseline/ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_92c2edaeac84/harness_binary",
+    "content_hash": "0e9c0c53c9a68ba3a7bd123a17f7217562d3d17d5b1a71de488c7a23aabfade2"
+  }
+}

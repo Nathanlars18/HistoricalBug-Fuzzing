@@ -1,4 +1,4 @@
-# HarnessSpec-to-Strategy Synthesis Rules v1.1
+# HarnessSpec-to-Strategy Synthesis Rules v1.2
 
 ## 1. Purpose and Boundary
 
@@ -162,7 +162,38 @@ The candidate path must provide:
 Every selected Step must contribute to dataflow, implement a Spec Element, or
 be one of the permitted target API invocations.
 
-### 4.4 Resolve Candidate Failure
+### 4.4 Preserve Fuzzer-Input Influence
+
+Binding the built-in `data`, `size`, or `offset` values to a Primitive does not
+by itself prove that the resulting API argument depends on LibFuzzer input.
+The selected Primitive and its parameters must actually consume bytes that can
+change the constructed value.
+
+For every `default` Branch:
+
+- each tensor-valued target-API input must transitively depend on bytes after
+  the Branch selector;
+- fixed Shape plus `fill_policy = zero` is not a fuzz-dependent tensor source;
+- `construct_tensor_from_fuzz` is fuzz-dependent;
+- `construct_tensor_with_constraints` is fuzz-dependent only when its Shape
+  contains a dynamic `-1` dimension or its `fill_policy` is `fuzz_int64`;
+- expected-valid multi-input calls must use compatible construction or an
+  explicit relation Guard so that fuzz dependence does not turn the intended
+  valid call into an unrelated invalid-input test.
+
+The selector byte only chooses a Branch. It does not count as target-input
+fuzz dependence.
+
+A `controlled_baseline` Branch must not fix an input merely to simplify
+materialization. For the same API Profile and Catalog, the default Branch in a
+Bug-aware plan must preserve the same general fuzz-input policy; historical
+Knowledge may affect only the additional Knowledge-directed Branches.
+
+For a Knowledge-directed Branch, fix only the properties required to realize
+its HarnessSpec conditions. Keep remaining supported dimensions or values
+fuzz-derived when doing so preserves validity and the required activation.
+
+### 4.5 Resolve Candidate Failure
 
 If a candidate combination produces an incompatible dataflow, impossible slot
 order, unsupported parameter binding, or semantic conflict, try the next

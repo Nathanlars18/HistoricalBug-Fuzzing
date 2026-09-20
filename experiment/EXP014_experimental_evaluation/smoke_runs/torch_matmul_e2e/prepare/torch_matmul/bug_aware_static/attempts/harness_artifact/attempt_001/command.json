@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/home/nathan/HistoricalBug-Fuzzing/.venv/bin/python",
+    "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/scripts/build_harness_artifact.py",
+    "--strategy-plan",
+    "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/strategy_plans/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r001.json",
+    "--harness-spec-root",
+    "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harness_specs",
+    "--evaluation-target-manifest",
+    "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest.json",
+    "--compile-config",
+    "/home/nathan/HistoricalBug-Fuzzing/runtime/flashfuzz_2_10/harness_compile_profile.json",
+    "--output-root",
+    "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses",
+    "--result-json",
+    "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/attempts/harness_artifact/attempt_001/builder_result.json"
+  ]
+}

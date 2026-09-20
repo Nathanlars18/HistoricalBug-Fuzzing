@@ -17,6 +17,8 @@ ROOT = Path("experiment/EXP011_bug_aware_harness_synthesis")
 SCRIPT = ROOT / "scripts/build_harness_spec_json.py"
 CONTRACT_PATH = ROOT / "schemas/harness_spec_synthesis_contract.json"
 RECORD_SCHEMA_PATH = ROOT / "schemas/harness_spec_record.schema.json"
+HELPER_SCHEMA_PATH = ROOT / "schemas/helper_profile_record.schema.json"
+HELPER_SET_PATH = ROOT / "helper_profiles/helper_profile_set__pytorch_2_10_cpu__v001.json"
 RULES_PATH = ROOT / "schemas/knowledge_to_harness_spec_rules.md"
 
 SPEC = importlib.util.spec_from_file_location("build_harness_spec_json", SCRIPT)
@@ -210,6 +212,14 @@ class HarnessSpecSemanticTests(unittest.TestCase):
     def test_record_schema_is_valid_draft_2020_12(self) -> None:
         Draft202012Validator.check_schema(self.record_schema)
 
+    def test_pinned_helper_profile_set_resolves_exact_revisions(self) -> None:
+        helper_schema = json.loads(HELPER_SCHEMA_PATH.read_text(encoding="utf-8"))
+        records = MODULE.read_helper_profile_set(HELPER_SET_PATH, helper_schema)
+        self.assertEqual(len(records), 12)
+        identities = {(item["profile_id"], item["revision"]) for item in records}
+        self.assertEqual(len(identities), 12)
+        self.assertEqual({revision for _, revision in identities}, {2})
+
     def test_builder_assembles_schema_valid_baseline_record(self) -> None:
         plan = valid_plan()
         plan["knowledge_plan"]["knowledge_decisions"] = []
@@ -357,6 +367,27 @@ class HarnessSpecSemanticTests(unittest.TestCase):
             "risk_dimensions"
         ] = ["dtype"]
         with self.assertRaisesRegex(MODULE.ValidationError, "non-empty subset"):
+            self.normalize_and_validate(plan)
+
+    def test_singleton_backend_scope_is_not_a_target_property(self) -> None:
+        plan = valid_plan()
+        branch = plan["exploration_plan"]["branches"][1]
+        branch["risk_dimensions"] = ["backend"]
+        target = branch["target_properties"][0]
+        target["risk_dimensions"] = ["backend"]
+        target["semantic_requirement"] = {
+            "requirement_type": "property_state",
+            "parameters": {
+                "subject_ref": "context.backend",
+                "property_ref": "backend",
+                "operator": "equals",
+                "expected_value": "cpu",
+            },
+            "description": "The execution backend is CPU.",
+        }
+        with self.assertRaisesRegex(
+            MODULE.ValidationError, "singleton API Profile backend_scope"
+        ):
             self.normalize_and_validate(plan)
 
     def test_helper_profile_cannot_be_semantic_evidence(self) -> None:

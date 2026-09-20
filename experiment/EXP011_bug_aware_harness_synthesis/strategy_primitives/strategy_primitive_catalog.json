@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "catalog_id": "pytorch_cpp_strategy_primitives",
-  "catalog_version": 2,
+  "catalog_version": 3,
   "target_language": "cpp",
   "template_interface": {
     "template_ref": {
@@ -349,7 +349,7 @@
         "helper_profile_ref": null
       },
       "limitations": [
-        "Initial implementation supports one Activation Target and one Observation Point per Branch."
+        "Supports one Observation Point per Activation Target and multiple independent Activation Targets per Branch."
       ]
     },
     {
@@ -375,6 +375,37 @@
       },
       "limitations": [
         "Initial implementation supports one directly returned value and trailing omitted defaults."
+      ]
+    },
+    {
+      "primitive_id": "evaluate_execution_survival",
+      "primitive_kind": "oracle_evaluate",
+      "summary": "Record no-crash success after control returns from the target API call.",
+      "semantic_support": {
+        "risk_dimensions": ["execution"],
+        "requirement_types": ["no_crash"],
+        "oracle_types": ["crash"]
+      },
+      "allowed_template_slots": ["oracle_check"],
+      "input_contract": [],
+      "output_contract": [
+        {
+          "port_id": "oracle_holds",
+          "produced_value_kind": "boolean",
+          "binding_required": true
+        }
+      ],
+      "parameter_contract": [],
+      "outcome_contract": {
+        "failure_outcomes": []
+      },
+      "implementation_binding": {
+        "kind": "generator_native",
+        "emitter_id": "emit_execution_survival_oracle",
+        "helper_profile_ref": null
+      },
+      "limitations": [
+        "A pass event is emitted only after the target API returns; process-terminating failures remain Runner and Crash-analysis evidence."
       ]
     },
     {
@@ -498,14 +529,14 @@
         "content_hash": "a2fc89fc6804d456b777a23f8e58dd30b9f5ab60a3c697bfde3e2e79331240d8"
       }
     ],
-    "generated_at": "2026-09-14T13:41:29Z"
+    "generated_at": "2026-09-16T02:05:04Z"
   },
   "review": {
     "validation_status": "passed",
     "validation_issues": [],
     "human_review_status": "approved",
     "reviewer_id": "nathan",
-    "reviewed_at": "2026-09-14T13:41:29Z",
-    "review_notes": "Primitive-to-emitter and template-slot mappings passed deterministic local validation. Compilation and runtime outcomes remain Harness Artifact evidence."
+    "reviewed_at": "2026-09-16T02:05:04Z",
+    "review_notes": "Primitive-to-emitter and template-slot mappings passed deterministic local validation, including joint multi-target activation and execution-survival Oracle support. Compilation and runtime outcomes remain Harness Artifact evidence."
   }
 }

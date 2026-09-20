@@ -1,12 +1,13 @@
 {
   "policy_format_version": "1.0",
   "policy_id": "crash_analysis_policy",
-  "policy_version": "0.2",
+  "policy_version": "0.3",
   "policy_status": "draft",
   "compatibility": {
     "crash_protocol_version": "1.0",
     "crash_case_record_version": "1.1",
-    "fuzzing_round_record_version": "1.0"
+    "fuzzing_round_record_version": "1.0",
+    "candidate_bundle_record_version": "1.0"
   },
   "algorithms": {
     "canonicalization": {

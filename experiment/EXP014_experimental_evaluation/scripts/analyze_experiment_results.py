@@ -28,7 +28,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 
 ANALYZER_ID = "analyze_experiment_results"
-ANALYZER_VERSION = "0.2.0"
+ANALYZER_VERSION = "0.3.0"
 MATRIX_FORMAT_VERSION = "0.4"
 TARGET_MANIFEST_FORMAT_VERSION = "1.0"
 GROUPS = (
@@ -109,7 +109,7 @@ class RoundResult:
     target_counts: Mapping[str, Mapping[str, int]]
     artifact_path: str
     round_record_path: str
-    snapshot_path: str
+    snapshot_path: str | None
 
 
 def no_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -538,17 +538,28 @@ def load_rounds(
         if key not in artifacts:
             raise InputError(f"Harness Artifact for Round {identity['round_id']} was not found")
         artifact, artifact_path = artifacts[key]
-        snapshot_path = repository_path(
-            require_string(task.get("runtime_snapshot_path"), f"{task_key}.runtime_snapshot_path"),
-            "runtime snapshot",
-        )
-        verify_snapshot_location(record, snapshot_path)
-        snapshot = validate_record(
-            load_json(snapshot_path),
-            snapshot_validator,
-            f"Runtime Snapshot {snapshot_path}",
-        )
-        states, counts = resolve_target_states(artifact, snapshot, targets[api_id])
+        snapshot_value = task.get("runtime_snapshot_path")
+        if record["evidence"]["runtime_snapshot"]["status"] == "missing":
+            if snapshot_value is not None:
+                raise InputError(f"{task_key} declares a snapshot path for missing evidence")
+            snapshot_path = None
+            states = {target_id: "instrumentation_error" for target_id in targets[api_id]}
+            counts = {
+                target_id: {kind: 0 for kind in TARGET_OUTCOME_EVENT_KINDS}
+                for target_id in targets[api_id]
+            }
+        else:
+            snapshot_path = repository_path(
+                require_string(snapshot_value, f"{task_key}.runtime_snapshot_path"),
+                "runtime snapshot",
+            )
+            verify_snapshot_location(record, snapshot_path)
+            snapshot = validate_record(
+                load_json(snapshot_path),
+                snapshot_validator,
+                f"Runtime Snapshot {snapshot_path}",
+            )
+            states, counts = resolve_target_states(artifact, snapshot, targets[api_id])
         results.append(
             RoundResult(
                 round_id=identity["round_id"],
@@ -560,7 +571,7 @@ def load_rounds(
                 target_counts=counts,
                 artifact_path=str(artifact_path),
                 round_record_path=str(round_path),
-                snapshot_path=str(snapshot_path),
+                snapshot_path=None if snapshot_path is None else str(snapshot_path),
             )
         )
     return results, attrition
@@ -1312,7 +1323,7 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
             Path(item.round_record_path) for item in rounds
         ),
         "runtime_snapshots": consumed_file_hashes(
-            Path(item.snapshot_path) for item in rounds
+            Path(item.snapshot_path) for item in rounds if item.snapshot_path is not None
         ),
         "crash_case_records": sorted(canonical_hash(case) for case in cases),
     }

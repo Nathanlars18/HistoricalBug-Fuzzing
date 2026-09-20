@@ -54,15 +54,18 @@ This protocol does not:
 The Runner:
 
 - captures abnormal runtime events;
-- preserves inputs, logs, commands, environment, and artifact references;
-- identifies the relevant execution, iteration, Branch, and Target API invocation;
-- forwards eligible events for Crash Triage;
+- writes an immutable Candidate Bundle for each attempt that produced Candidate artifacts;
+- preserves triggering inputs, diagnostics, commands, environment, and artifact references;
+- merges Candidate Bundles across process restarts into the selected logical Round;
+- records execution, iteration, Branch, Site, and Target API invocation identifiers only when directly available;
+- exposes the selected Round and Candidate Bundle through the execution index;
 - does not determine whether an event is a framework Bug.
 
 ### 3.2 Analyzer
 
 The deterministic Analyzer:
 
+- consumes only the execution index, selected Fuzzing Round, and referenced Candidate Bundle;
 - checks evidence availability;
 - computes hashes and normalized signatures;
 - performs exact deduplication;
@@ -250,6 +253,8 @@ Each Crash Case shall preserve references to:
 Large inputs and logs shall be stored as referenced artifacts rather than embedded records.
 
 Original evidence is immutable. Later analysis may append conclusions but shall not overwrite the original evidence.
+
+The production ingest path shall not accept semantic overrides from a manually authored intake manifest. Missing Branch, Site, iteration, or Target invocation identifiers remain null or empty rather than being inferred.
 
 One admitted occurrence is identified by its execution, iteration, Target API invocation, and primary anomaly signature. Cascading messages from the same occurrence are supporting diagnostics rather than automatically separate Candidate Events.
 

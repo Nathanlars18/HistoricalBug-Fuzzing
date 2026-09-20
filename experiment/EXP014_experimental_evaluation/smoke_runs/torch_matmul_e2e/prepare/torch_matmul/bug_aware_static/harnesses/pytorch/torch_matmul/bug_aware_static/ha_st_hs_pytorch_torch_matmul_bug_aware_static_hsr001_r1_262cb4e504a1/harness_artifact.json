@@ -1,0 +1,1494 @@
+{
+  "schema_version": "1.2",
+  "record_type": "harness_artifact",
+  "identity": {
+    "harness_artifact_id": "ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1",
+    "generation_key": "262cb4e504a1cee800db1781e66e07bfe2a4347bd4e6b8847c8be1b1d21bbe55"
+  },
+  "source_context": {
+    "strategy_revision_ref": {
+      "strategy_id": "st_hs_pytorch_torch_matmul_bug_aware_static_hsr001",
+      "revision_number": 1,
+      "content_hash": "2958211a94064e1443a18f9cca5e47bf1505c4f06a26ad1e8cfb7dddaf16a442"
+    }
+  },
+  "source_artifact": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1/main.cpp",
+    "content_hash": "8a8f94d8896e31aaa0e46d82f7b416776d7c6d76972037985dc71a80ac4a0b2c",
+    "encoding": "utf-8",
+    "newline": "lf",
+    "language": "cpp",
+    "entrypoint": "LLVMFuzzerTestOneInput"
+  },
+  "materialization_map": [
+    {
+      "branch_id": "br_default",
+      "step_id": "step_001",
+      "primitive_id": "construct_tensor_with_constraints",
+      "emitter_id": "emit_construct_tensor_with_constraints",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_default_001",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 63,
+        "end_line": 67
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_002",
+      "primitive_id": "construct_tensor_with_constraints",
+      "emitter_id": "emit_construct_tensor_with_constraints",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_default_002",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 68,
+        "end_line": 72
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_003",
+      "primitive_id": "invoke_profiled_target_api",
+      "emitter_id": "emit_profiled_target_api",
+      "template_slot": "target_call",
+      "emitted_segment_id": "seg_br_default_003",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 73,
+        "end_line": 82
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_004",
+      "primitive_id": "evaluate_execution_survival",
+      "emitter_id": "emit_execution_survival_oracle",
+      "template_slot": "oracle_check",
+      "emitted_segment_id": "seg_br_default_004",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 83,
+        "end_line": 88
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_001",
+      "primitive_id": "construct_tensor_with_constraints",
+      "emitter_id": "emit_construct_tensor_with_constraints",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_knowledge_001_001",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 92,
+        "end_line": 97
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_002",
+      "primitive_id": "construct_tensor_with_constraints",
+      "emitter_id": "emit_construct_tensor_with_constraints",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_knowledge_001_002",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 98,
+        "end_line": 103
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_003",
+      "primitive_id": "evaluate_tensor_property",
+      "emitter_id": "emit_evaluate_tensor_property",
+      "template_slot": "pre_call_observation",
+      "emitted_segment_id": "seg_br_knowledge_001_003",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 104,
+        "end_line": 111
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_004",
+      "primitive_id": "evaluate_tensor_property",
+      "emitter_id": "emit_evaluate_tensor_property",
+      "template_slot": "pre_call_observation",
+      "emitted_segment_id": "seg_br_knowledge_001_004",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 112,
+        "end_line": 119
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_005",
+      "primitive_id": "evaluate_tensor_property",
+      "emitter_id": "emit_evaluate_tensor_property",
+      "template_slot": "pre_call_observation",
+      "emitted_segment_id": "seg_br_knowledge_001_005",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 120,
+        "end_line": 127
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_006",
+      "primitive_id": "evaluate_tensor_property",
+      "emitter_id": "emit_evaluate_tensor_property",
+      "template_slot": "pre_call_observation",
+      "emitted_segment_id": "seg_br_knowledge_001_006",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 128,
+        "end_line": 139
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_007",
+      "primitive_id": "invoke_profiled_target_api",
+      "emitter_id": "emit_profiled_target_api",
+      "template_slot": "target_call",
+      "emitted_segment_id": "seg_br_knowledge_001_007",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 140,
+        "end_line": 149
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_008",
+      "primitive_id": "invoke_profiled_target_api",
+      "emitter_id": "emit_profiled_target_api",
+      "template_slot": "target_call",
+      "emitted_segment_id": "seg_br_knowledge_001_008",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 150,
+        "end_line": 154
+      }
+    },
+    {
+      "branch_id": "br_knowledge_001",
+      "step_id": "step_009",
+      "primitive_id": "evaluate_tensor_determinism",
+      "emitter_id": "emit_evaluate_tensor_determinism",
+      "template_slot": "oracle_check",
+      "emitted_segment_id": "seg_br_knowledge_001_009",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 155,
+        "end_line": 161
+      }
+    }
+  ],
+  "instrumentation_map": [
+    {
+      "instrumentation_binding_id": "ins_0001",
+      "runtime_site_id": 0,
+      "event_kind": "branch_entered",
+      "event_key": "br_default:branch_entered:entry",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "generator_infrastructure",
+        "owner_id": "branch_entry"
+      },
+      "source_span": {
+        "start_line": 62,
+        "end_line": 62
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0002",
+      "runtime_site_id": 1,
+      "event_kind": "input_constructed",
+      "event_key": "br_default:input_constructed:step_001",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_001"
+      },
+      "source_span": {
+        "start_line": 66,
+        "end_line": 66
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0003",
+      "runtime_site_id": 2,
+      "event_kind": "input_constructed",
+      "event_key": "br_default:input_constructed:step_002",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_002"
+      },
+      "source_span": {
+        "start_line": 71,
+        "end_line": 71
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0004",
+      "runtime_site_id": 3,
+      "event_kind": "activation_checked",
+      "event_key": "br_default:activation_checked:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 75,
+        "end_line": 75
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0005",
+      "runtime_site_id": 4,
+      "event_kind": "activation_true",
+      "event_key": "br_default:activation_true:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 76,
+        "end_line": 76
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0006",
+      "runtime_site_id": 5,
+      "event_kind": "activation_unevaluable",
+      "event_key": "br_default:activation_unevaluable:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 77,
+        "end_line": 77
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0007",
+      "runtime_site_id": 6,
+      "event_kind": "activation_check_error",
+      "event_key": "br_default:activation_check_error:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 78,
+        "end_line": 78
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0008",
+      "runtime_site_id": 7,
+      "event_kind": "target_api_reached",
+      "event_key": "br_default:target_api_reached:step_003",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 79,
+        "end_line": 79
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0009",
+      "runtime_site_id": 8,
+      "event_kind": "target_api_completed",
+      "event_key": "br_default:target_api_completed:step_003",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 81,
+        "end_line": 81
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0010",
+      "runtime_site_id": 9,
+      "event_kind": "oracle_evaluated",
+      "event_key": "br_default:oracle_evaluated:orc_br_default_001",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_default_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_004"
+      },
+      "source_span": {
+        "start_line": 85,
+        "end_line": 85
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0011",
+      "runtime_site_id": 10,
+      "event_kind": "oracle_passed",
+      "event_key": "br_default:oracle_passed:orc_br_default_001",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_default_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_004"
+      },
+      "source_span": {
+        "start_line": 86,
+        "end_line": 86
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0012",
+      "runtime_site_id": 11,
+      "event_kind": "oracle_failed",
+      "event_key": "br_default:oracle_failed:orc_br_default_001",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_default_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_004"
+      },
+      "source_span": {
+        "start_line": 87,
+        "end_line": 87
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0013",
+      "runtime_site_id": 12,
+      "event_kind": "branch_entered",
+      "event_key": "br_knowledge_001:branch_entered:entry",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "generator_infrastructure",
+        "owner_id": "branch_entry"
+      },
+      "source_span": {
+        "start_line": 91,
+        "end_line": 91
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0014",
+      "runtime_site_id": 13,
+      "event_kind": "input_constructed",
+      "event_key": "br_knowledge_001:input_constructed:step_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_001"
+      },
+      "source_span": {
+        "start_line": 96,
+        "end_line": 96
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0015",
+      "runtime_site_id": 14,
+      "event_kind": "input_constructed",
+      "event_key": "br_knowledge_001:input_constructed:step_002",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_002"
+      },
+      "source_span": {
+        "start_line": 102,
+        "end_line": 102
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0016",
+      "runtime_site_id": 15,
+      "event_kind": "observation_captured",
+      "event_key": "br_knowledge_001:observation_captured:act_br_knowledge_001_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_003"
+      },
+      "source_span": {
+        "start_line": 106,
+        "end_line": 106
+      },
+      "observation_locator": {
+        "observation_role": "evaluate",
+        "observation_point": "before_target_api_call"
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0017",
+      "runtime_site_id": 16,
+      "event_kind": "activation_checked",
+      "event_key": "br_knowledge_001:activation_checked:act_br_knowledge_001_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_003"
+      },
+      "source_span": {
+        "start_line": 107,
+        "end_line": 107
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0018",
+      "runtime_site_id": 17,
+      "event_kind": "activation_true",
+      "event_key": "br_knowledge_001:activation_true:act_br_knowledge_001_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_003"
+      },
+      "source_span": {
+        "start_line": 108,
+        "end_line": 108
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0019",
+      "runtime_site_id": 18,
+      "event_kind": "activation_unevaluable",
+      "event_key": "br_knowledge_001:activation_unevaluable:act_br_knowledge_001_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_003"
+      },
+      "source_span": {
+        "start_line": 109,
+        "end_line": 109
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0020",
+      "runtime_site_id": 19,
+      "event_kind": "activation_check_error",
+      "event_key": "br_knowledge_001:activation_check_error:act_br_knowledge_001_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_003"
+      },
+      "source_span": {
+        "start_line": 110,
+        "end_line": 110
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0021",
+      "runtime_site_id": 20,
+      "event_kind": "observation_captured",
+      "event_key": "br_knowledge_001:observation_captured:act_br_knowledge_001_002",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_004"
+      },
+      "source_span": {
+        "start_line": 114,
+        "end_line": 114
+      },
+      "observation_locator": {
+        "observation_role": "evaluate",
+        "observation_point": "before_target_api_call"
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0022",
+      "runtime_site_id": 21,
+      "event_kind": "activation_checked",
+      "event_key": "br_knowledge_001:activation_checked:act_br_knowledge_001_002",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_004"
+      },
+      "source_span": {
+        "start_line": 115,
+        "end_line": 115
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0023",
+      "runtime_site_id": 22,
+      "event_kind": "activation_true",
+      "event_key": "br_knowledge_001:activation_true:act_br_knowledge_001_002",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_004"
+      },
+      "source_span": {
+        "start_line": 116,
+        "end_line": 116
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0024",
+      "runtime_site_id": 23,
+      "event_kind": "activation_unevaluable",
+      "event_key": "br_knowledge_001:activation_unevaluable:act_br_knowledge_001_002",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_004"
+      },
+      "source_span": {
+        "start_line": 117,
+        "end_line": 117
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0025",
+      "runtime_site_id": 24,
+      "event_kind": "activation_check_error",
+      "event_key": "br_knowledge_001:activation_check_error:act_br_knowledge_001_002",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_004"
+      },
+      "source_span": {
+        "start_line": 118,
+        "end_line": 118
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0026",
+      "runtime_site_id": 25,
+      "event_kind": "observation_captured",
+      "event_key": "br_knowledge_001:observation_captured:act_br_knowledge_001_003",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_005"
+      },
+      "source_span": {
+        "start_line": 122,
+        "end_line": 122
+      },
+      "observation_locator": {
+        "observation_role": "evaluate",
+        "observation_point": "before_target_api_call"
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0027",
+      "runtime_site_id": 26,
+      "event_kind": "activation_checked",
+      "event_key": "br_knowledge_001:activation_checked:act_br_knowledge_001_003",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_005"
+      },
+      "source_span": {
+        "start_line": 123,
+        "end_line": 123
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0028",
+      "runtime_site_id": 27,
+      "event_kind": "activation_true",
+      "event_key": "br_knowledge_001:activation_true:act_br_knowledge_001_003",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_005"
+      },
+      "source_span": {
+        "start_line": 124,
+        "end_line": 124
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0029",
+      "runtime_site_id": 28,
+      "event_kind": "activation_unevaluable",
+      "event_key": "br_knowledge_001:activation_unevaluable:act_br_knowledge_001_003",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_005"
+      },
+      "source_span": {
+        "start_line": 125,
+        "end_line": 125
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0030",
+      "runtime_site_id": 29,
+      "event_kind": "activation_check_error",
+      "event_key": "br_knowledge_001:activation_check_error:act_br_knowledge_001_003",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_005"
+      },
+      "source_span": {
+        "start_line": 126,
+        "end_line": 126
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0031",
+      "runtime_site_id": 30,
+      "event_kind": "observation_captured",
+      "event_key": "br_knowledge_001:observation_captured:act_br_knowledge_001_004",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 130,
+        "end_line": 130
+      },
+      "observation_locator": {
+        "observation_role": "evaluate",
+        "observation_point": "before_target_api_call"
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0032",
+      "runtime_site_id": 31,
+      "event_kind": "activation_checked",
+      "event_key": "br_knowledge_001:activation_checked:act_br_knowledge_001_004",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 131,
+        "end_line": 131
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0033",
+      "runtime_site_id": 32,
+      "event_kind": "activation_true",
+      "event_key": "br_knowledge_001:activation_true:act_br_knowledge_001_004",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 132,
+        "end_line": 132
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0034",
+      "runtime_site_id": 33,
+      "event_kind": "activation_unevaluable",
+      "event_key": "br_knowledge_001:activation_unevaluable:act_br_knowledge_001_004",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 133,
+        "end_line": 133
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0035",
+      "runtime_site_id": 34,
+      "event_kind": "activation_check_error",
+      "event_key": "br_knowledge_001:activation_check_error:act_br_knowledge_001_004",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 134,
+        "end_line": 134
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0036",
+      "runtime_site_id": 35,
+      "event_kind": "branch_activation_checked",
+      "event_key": "br_knowledge_001:branch_activation_checked:br_knowledge_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 135,
+        "end_line": 135
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0037",
+      "runtime_site_id": 36,
+      "event_kind": "branch_activation_true",
+      "event_key": "br_knowledge_001:branch_activation_true:br_knowledge_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 136,
+        "end_line": 136
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0038",
+      "runtime_site_id": 37,
+      "event_kind": "branch_activation_unevaluable",
+      "event_key": "br_knowledge_001:branch_activation_unevaluable:br_knowledge_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 137,
+        "end_line": 137
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0039",
+      "runtime_site_id": 38,
+      "event_kind": "branch_activation_check_error",
+      "event_key": "br_knowledge_001:branch_activation_check_error:br_knowledge_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "activation_target",
+          "ref_id": "act_br_knowledge_001_004"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_001"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_002"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_003"
+        },
+        {
+          "ref_type": "target_property",
+          "ref_id": "tp_br_knowledge_001_004"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_006"
+      },
+      "source_span": {
+        "start_line": 138,
+        "end_line": 138
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0040",
+      "runtime_site_id": 39,
+      "event_kind": "activation_checked",
+      "event_key": "br_knowledge_001:activation_checked:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_007"
+      },
+      "source_span": {
+        "start_line": 142,
+        "end_line": 142
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0041",
+      "runtime_site_id": 40,
+      "event_kind": "activation_true",
+      "event_key": "br_knowledge_001:activation_true:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_007"
+      },
+      "source_span": {
+        "start_line": 143,
+        "end_line": 143
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0042",
+      "runtime_site_id": 41,
+      "event_kind": "activation_unevaluable",
+      "event_key": "br_knowledge_001:activation_unevaluable:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_007"
+      },
+      "source_span": {
+        "start_line": 144,
+        "end_line": 144
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0043",
+      "runtime_site_id": 42,
+      "event_kind": "activation_check_error",
+      "event_key": "br_knowledge_001:activation_check_error:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_007"
+      },
+      "source_span": {
+        "start_line": 145,
+        "end_line": 145
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0044",
+      "runtime_site_id": 43,
+      "event_kind": "target_api_reached",
+      "event_key": "br_knowledge_001:target_api_reached:step_007",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_007"
+      },
+      "source_span": {
+        "start_line": 146,
+        "end_line": 146
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0045",
+      "runtime_site_id": 44,
+      "event_kind": "target_api_completed",
+      "event_key": "br_knowledge_001:target_api_completed:step_007",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_007"
+      },
+      "source_span": {
+        "start_line": 148,
+        "end_line": 148
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0046",
+      "runtime_site_id": 45,
+      "event_kind": "target_api_reached",
+      "event_key": "br_knowledge_001:target_api_reached:step_008",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_008"
+      },
+      "source_span": {
+        "start_line": 151,
+        "end_line": 151
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0047",
+      "runtime_site_id": 46,
+      "event_kind": "target_api_completed",
+      "event_key": "br_knowledge_001:target_api_completed:step_008",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_008"
+      },
+      "source_span": {
+        "start_line": 153,
+        "end_line": 153
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0048",
+      "runtime_site_id": 47,
+      "event_kind": "oracle_evaluated",
+      "event_key": "br_knowledge_001:oracle_evaluated:orc_br_knowledge_001_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_knowledge_001_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_009"
+      },
+      "source_span": {
+        "start_line": 157,
+        "end_line": 157
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0049",
+      "runtime_site_id": 48,
+      "event_kind": "oracle_passed",
+      "event_key": "br_knowledge_001:oracle_passed:orc_br_knowledge_001_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_knowledge_001_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_009"
+      },
+      "source_span": {
+        "start_line": 158,
+        "end_line": 158
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0050",
+      "runtime_site_id": 49,
+      "event_kind": "oracle_failed",
+      "event_key": "br_knowledge_001:oracle_failed:orc_br_knowledge_001_001",
+      "branch_id": "br_knowledge_001",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_knowledge_001_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_knowledge_001_009"
+      },
+      "source_span": {
+        "start_line": 159,
+        "end_line": 159
+      }
+    }
+  ],
+  "validation": {
+    "static_validation": {
+      "status": "passed",
+      "checks": [
+        {
+          "check_id": "strategy_materialization_complete",
+          "status": "passed"
+        },
+        {
+          "check_id": "template_markers_resolved",
+          "status": "passed"
+        },
+        {
+          "check_id": "source_spans_resolved",
+          "status": "passed"
+        },
+        {
+          "check_id": "instrumentation_sites_contiguous",
+          "status": "passed"
+        }
+      ],
+      "issues": []
+    },
+    "compile_check": {
+      "status": "passed",
+      "command_argv": [
+        "docker",
+        "run",
+        "--rm",
+        "-e",
+        "HOST_UID=1000",
+        "-e",
+        "HOST_GID=1000",
+        "-v",
+        "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/.ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1.exde18l1:/artifact",
+        "-v",
+        "/home/nathan/HistoricalBug-Fuzzing:/repo:ro",
+        "-w",
+        "/artifact",
+        "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8",
+        "bash",
+        "-lc",
+        "set -euo pipefail; clang++ -fsanitize=fuzzer -fno-omit-frame-pointer -O0 -g -D_GLIBCXX_USE_CXX11_ABI=1 -I/root/pytorch/build-fuzz/include -I/root/pytorch/aten/src -I/root/pytorch/c10/core -I/root/pytorch -I/root/pytorch/build-fuzz -I/root/pytorch/build-fuzz/aten/src -I/root/pytorch/torch/csrc/api/include -I/repo/third_party/FlashFuzz/scripts/template/torch_cpu -I/repo/experiment/EXP011_bug_aware_harness_synthesis/runtime main.cpp /repo/experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp -Wl,-rpath,/root/pytorch/build-fuzz/lib -L/root/pytorch/build-fuzz/lib -ltorch -ltorch_cpu -lc10 -pthread -o harness_binary; chown \"$HOST_UID:$HOST_GID\" harness_binary"
+      ],
+      "build_environment_ref": {
+        "artifact_id": "pytorch_2_10_fuzz_docker_compile",
+        "artifact_version": 1,
+        "content_hash": "b81a72fad94f001eb2524305b0eeee56f8fbd19dd2797c3f4ecd5fb131d30320"
+      },
+      "exit_code": 0,
+      "skip_reason": null,
+      "diagnostics_ref": null,
+      "binary_artifact": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1/harness_binary",
+        "content_hash": "628078bcdfe872e9bc588822bddc78b1409ca2f10fb4f962d2f8dcf5882754f7"
+      }
+    },
+    "human_review": {
+      "status": "not_reviewed",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "review_note": null
+    }
+  },
+  "provenance": {
+    "generator": {
+      "generator_id": "build_harness_artifact",
+      "generator_version": "0.8.0",
+      "entrypoint_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_harness_artifact.py",
+        "content_hash": "69ff4f4640942b376978af319d9388f17620d78ec2adc36546c4123ecd649e31"
+      },
+      "component_refs": [
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp",
+          "content_hash": "1c85ba86f4948bac8fcfa85deb296808fa9ec5c70321f73cbe97e45f691a5eea"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.h",
+          "content_hash": "8b6d863763515577aba42bf0c006293b21258b1aa8499b1d370ab1822db27668"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/templates/libfuzzer_harness_v1.cpp.in",
+          "content_hash": "a2fc89fc6804d456b777a23f8e58dd30b9f5ab60a3c697bfde3e2e79331240d8"
+        },
+        {
+          "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest.json",
+          "content_hash": "1abf5359aa9bcf219694dfcd34203e2703099deb226b775ee466c8e94b560d75"
+        }
+      ]
+    },
+    "generation_run_id": "harness_generation_20260920T064411Z_f9e1806ed518",
+    "generated_at": "2026-09-20T06:44:23.165246Z",
+    "repository_commit": "ed33841f18c4a5728fe63293b87cdffb0e53d717",
+    "working_tree_state": "dirty",
+    "working_tree_diff_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/bug_aware_static/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_262cb4e504a1/working_tree_state.txt",
+      "content_hash": "65d8093a004d2c6bbc05b80b0abbfa5b2cc0813b4a9b82b12df74ceb8c924ab0"
+    }
+  }
+}

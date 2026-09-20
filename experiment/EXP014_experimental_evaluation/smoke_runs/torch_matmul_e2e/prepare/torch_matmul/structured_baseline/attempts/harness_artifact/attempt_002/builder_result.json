@@ -1,0 +1,18 @@
+{
+  "run_id": "harness_generation_20260920T061043Z_a9213edccc81",
+  "generator_id": "build_harness_artifact",
+  "generator_version": "0.8.0",
+  "started_at": "2026-09-20T06:10:43.802649Z",
+  "finished_at": "2026-09-20T06:10:56.211578Z",
+  "results": [
+    {
+      "strategy_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/strategy_plans/plans/pytorch/torch_matmul/controlled_baseline/st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r001.json",
+      "status": "generated",
+      "artifact_id": "ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_92c2edaeac84",
+      "artifact_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/harnesses/pytorch/torch_matmul/controlled_baseline/ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_92c2edaeac84/harness_artifact.json",
+      "compile_status": "passed"
+    }
+  ],
+  "status": "success",
+  "summary_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_e2e/prepare/torch_matmul/structured_baseline/harnesses/run_summaries/harness_generation_20260920T061043Z_a9213edccc81.json"
+}

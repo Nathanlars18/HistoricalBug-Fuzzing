@@ -1,0 +1,118 @@
+{
+  "manifest_format_version": "1.0",
+  "manifest_id": "helper_profile_set_pytorch_2_10_cpu",
+  "manifest_version": 1,
+  "target_environment": {
+    "framework": "pytorch",
+    "framework_version": "2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend": "cpu",
+    "provider": "flashfuzz_base",
+    "provider_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "configuration_id": "torch_2_10_cpu_debug_instrumented"
+  },
+  "selection_policy": {
+    "required_validation_status": "passed",
+    "required_execution_readiness": "ready",
+    "required_review_status": "approved",
+    "revision_policy": "explicit_pinned_revision"
+  },
+  "profiles": [
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_comparetensors_96f975d59bc7",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_comparetensors__sig_96f975d59bc7/helper_profile__fuzzer_utils_comparetensors__sig_96f975d59bc7__r002.json",
+        "content_hash": "c5f0121947dbd04f589b99187f903197fc87e54fefadaf9f548dbc797243dbf4"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_createtensor__sig_14110b37b225/helper_profile__fuzzer_utils_createtensor__sig_14110b37b225__r002.json",
+        "content_hash": "27a53039f11a231b6ae8dc2d6b10f1b0e6318d9c59e13eedcef668b4f2c2e90f"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_currenttimestamp_c81f2a7d32da",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_currenttimestamp__sig_c81f2a7d32da/helper_profile__fuzzer_utils_currenttimestamp__sig_c81f2a7d32da__r002.json",
+        "content_hash": "32953f2322383cfbf322177ec6ce2dbcb88f5f2b0a7dadbe2ebfb0be8ad263e1"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_ensure_log_directory_exists_0998a5920e8b",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_ensure_log_directory_exists__sig_0998a5920e8b/helper_profile__fuzzer_utils_ensure_log_directory_exists__sig_0998a5920e8b__r002.json",
+        "content_hash": "7645a503525d72e489d57f2d1b8de91cfc825e1c0908c5b3455496cf57ad2551"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_logerrormessage_ffbff3bb0e31",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_logerrormessage__sig_ffbff3bb0e31/helper_profile__fuzzer_utils_logerrormessage__sig_ffbff3bb0e31__r002.json",
+        "content_hash": "a56a9264f6e172afd62b1309b3bb201708e66953d1326d83cf0856ff28ed5153"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_parsedatatype__sig_54f7f7e39ec2/helper_profile__fuzzer_utils_parsedatatype__sig_54f7f7e39ec2__r002.json",
+        "content_hash": "5d1e3648030e9faf78bf1abfd271e200d0ff41189cc756d580ac62dbe8d4c7c4"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_parserank__sig_f3fec1bde48a/helper_profile__fuzzer_utils_parserank__sig_f3fec1bde48a__r002.json",
+        "content_hash": "e4d685ecb40cee34c0e72b7a6d75afccf4a50c1d7a1bb0c3feaa357695ea1a5c"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parseshape_bc0dff00f287",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_parseshape__sig_bc0dff00f287/helper_profile__fuzzer_utils_parseshape__sig_bc0dff00f287__r002.json",
+        "content_hash": "acb53e8fe13b6ae4b2bef32cc70fa517c8a8bc872bb55bf2e16bc40b47054ed1"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsetensordata_326eeb67c32d",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_parsetensordata__sig_326eeb67c32d/helper_profile__fuzzer_utils_parsetensordata__sig_326eeb67c32d__r002.json",
+        "content_hash": "02fe9b9af439ad73da24cc08e81a5a427cf46c7e543ae5460912d2e981b10678"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_sanitizedtimestamp_3462aebdca72",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_sanitizedtimestamp__sig_3462aebdca72/helper_profile__fuzzer_utils_sanitizedtimestamp__sig_3462aebdca72__r002.json",
+        "content_hash": "cfd1289edd08a8e4febce9227d34d6eec509fb1f1d5764b1a6401ec0c61aae7f"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_savediffinput_2413f328d009",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_savediffinput__sig_2413f328d009/helper_profile__fuzzer_utils_savediffinput__sig_2413f328d009__r002.json",
+        "content_hash": "6e4fd4e3385f464ca88ae4f9df02cf95091c15dd4f43096852399add6a6f6e00"
+      }
+    },
+    {
+      "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_saveerrorinput_315d3b0ca605",
+      "revision": 2,
+      "record_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/pytorch/2.10.0/cpu/flashfuzz_base/torch_2_10_cpu_debug_instrumented/fuzzer_utils_saveerrorinput__sig_315d3b0ca605/helper_profile__fuzzer_utils_saveerrorinput__sig_315d3b0ca605__r002.json",
+        "content_hash": "22555520a93e9d0a0043581454fdc1714bc72049fad03e11261272eb6cb3122d"
+      }
+    }
+  ]
+}

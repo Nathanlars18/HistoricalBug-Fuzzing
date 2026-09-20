@@ -1,0 +1,223 @@
+{
+  "schema_version": "1.1",
+  "identity": {
+    "strategy_id": "st_hs_pytorch_torch_matmul_controlled_baseline_hsr001",
+    "framework": "pytorch",
+    "target_api": "torch.matmul",
+    "spec_mode": "controlled_baseline"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_creation",
+    "change_scopes": [
+      "initial_definition"
+    ],
+    "change_summary": "Initial Strategy synthesis for this HarnessSpec revision"
+  },
+  "source_context": {
+    "harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.matmul_controlled_baseline",
+      "revision_number": 1,
+      "content_hash": "8a5b51e346418eb437139854c17cfa21e9472f07ea10d16c5a534341242f098f"
+    },
+    "strategy_catalog_ref": {
+      "catalog_id": "pytorch_cpp_strategy_primitives",
+      "catalog_version": 3,
+      "content_hash": "721556c832cd4cbb02db4c7df5838fa9c81174257e82ec94f054ae449e126c0b"
+    },
+    "derived_from_strategy_ref": null
+  },
+  "implementation_plan": {
+    "branch_strategies": [
+      {
+        "source_branch_id": "br_default",
+        "steps": [
+          {
+            "step_id": "step_001",
+            "primitive_id": "construct_tensor_with_constraints",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "offset"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_template",
+                "binding_kind": "literal",
+                "binding_value": [
+                  -1,
+                  4
+                ]
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "int64"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_int64"
+              },
+              {
+                "parameter_id": "max_dimension",
+                "binding_kind": "literal",
+                "binding_value": 4
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_001"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_002"
+              }
+            ]
+          },
+          {
+            "step_id": "step_002",
+            "primitive_id": "construct_tensor_with_constraints",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_002"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_template",
+                "binding_kind": "literal",
+                "binding_value": [
+                  4,
+                  -1
+                ]
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "int64"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_int64"
+              },
+              {
+                "parameter_id": "max_dimension",
+                "binding_kind": "literal",
+                "binding_value": 4
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_003"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_004"
+              }
+            ]
+          },
+          {
+            "step_id": "step_003",
+            "primitive_id": "invoke_profiled_target_api",
+            "template_slot": "target_call",
+            "input_bindings": [
+              {
+                "port_id": "binding_param_000_self",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "binding_param_001_other",
+                "value_ref": "value_003"
+              }
+            ],
+            "parameter_bindings": [],
+            "output_bindings": [
+              {
+                "port_id": "return_000",
+                "value_id": "value_005"
+              }
+            ]
+          },
+          {
+            "step_id": "step_004",
+            "primitive_id": "evaluate_execution_survival",
+            "template_slot": "oracle_check",
+            "input_bindings": [],
+            "parameter_bindings": [],
+            "output_bindings": [
+              {
+                "port_id": "oracle_holds",
+                "value_id": "value_006"
+              }
+            ]
+          }
+        ],
+        "spec_bindings": [
+          {
+            "spec_element_type": "oracle_requirement",
+            "spec_element_id": "orc_br_default_001",
+            "implementation_step_ids": [
+              "step_004"
+            ]
+          }
+        ],
+        "failure_handlers": []
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "hybrid",
+    "generator_name": "strategy_plan_builder_v0.5",
+    "model_name": "deepseek-v4-pro",
+    "generation_run_id": "run_20260920T055929505787Z_f58270df493e",
+    "script_ref": {
+      "artifact_id": "build_strategy_plan_json",
+      "artifact_version": "strategy_plan_builder_v0.5",
+      "content_hash": "03b662180ee26c0eb37042a3dcbf70cba77df84ff28cd0a7c1cb96b9df1a6d13"
+    },
+    "contract_ref": {
+      "artifact_id": "strategy_synthesis_contract",
+      "artifact_version": "1.5",
+      "content_hash": "6600d0c50219def674b1b66b52cc2a636e8e991673ef9671436bbc848ec66af4"
+    },
+    "rules_ref": {
+      "artifact_id": "harness_spec_to_strategy_rules",
+      "artifact_version": "1.2",
+      "content_hash": "97dd5ea93cded4d9c01f88e8585f7710878e9abe6759914e410bbd7521da6fc9"
+    },
+    "generated_at": "2026-09-20T06:01:01.853964Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

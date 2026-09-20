@@ -1,0 +1,21 @@
+{
+  "record_format_version": "1.0",
+  "record_type": "corpus_manifest",
+  "identity": {
+    "corpus_id": "corpus_torch_matmul_initial_v1",
+    "artifact_version": 1
+  },
+  "source": {
+    "kind": "initial",
+    "source_round_id": null
+  },
+  "files": [],
+  "provenance": {
+    "generator_ref": {
+      "artifact_id": "run_fuzzing_round",
+      "artifact_version": "0.1.0",
+      "content_hash": "b97cd4ced2d24a124531e748badfe6aeda3121185026d7d4676691fe34247932"
+    },
+    "generated_at": "2026-09-20T05:37:18.389808Z"
+  }
+}

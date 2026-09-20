@@ -1,0 +1,7 @@
+{
+  "format_version": "1.0",
+  "model": "deepseek-v4-pro",
+  "api_url": "https://api.deepseek.com/chat/completions",
+  "credential_env_var": "DEEPSEEK_API_KEY",
+  "purpose": "Model identity and endpoint metadata only; credentials are read from the process environment."
+}

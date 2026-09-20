@@ -13,30 +13,57 @@
     "unresolved_bindings"
   ],
   "properties": {
-    "format_version": {"const": "1.0"},
-    "manifest_id": {"$ref": "#/$defs/identifier"},
-    "revision": {"$ref": "#/$defs/positive_integer"},
-    "status": {"enum": ["draft", "frozen"]},
-    "detector_contract_version": {"$ref": "#/$defs/version_string"},
+    "format_version": {
+      "const": "1.0"
+    },
+    "manifest_id": {
+      "$ref": "#/$defs/identifier"
+    },
+    "revision": {
+      "$ref": "#/$defs/positive_integer"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "frozen"
+      ]
+    },
+    "detector_contract_version": {
+      "$ref": "#/$defs/version_string"
+    },
     "api_target_sets": {
       "type": "array",
-      "items": {"$ref": "#/$defs/api_target_set"}
+      "items": {
+        "$ref": "#/$defs/api_target_set"
+      }
     },
     "unresolved_bindings": {
       "type": "array",
-      "items": {"$ref": "#/$defs/unresolved_binding"}
+      "items": {
+        "$ref": "#/$defs/unresolved_binding"
+      }
     }
   },
   "allOf": [
     {
       "if": {
-        "properties": {"status": {"const": "frozen"}},
-        "required": ["status"]
+        "properties": {
+          "status": {
+            "const": "frozen"
+          }
+        },
+        "required": [
+          "status"
+        ]
       },
       "then": {
         "properties": {
-          "api_target_sets": {"minItems": 1},
-          "unresolved_bindings": {"maxItems": 0}
+          "api_target_sets": {
+            "minItems": 1
+          },
+          "unresolved_bindings": {
+            "maxItems": 0
+          }
         }
       }
     }
@@ -58,32 +85,165 @@
     "api_target_set": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["api_id", "targets"],
+      "required": [
+        "api_id",
+        "targets",
+        "excluded_knowledge"
+      ],
       "properties": {
-        "api_id": {"$ref": "#/$defs/identifier"},
+        "api_id": {
+          "$ref": "#/$defs/identifier"
+        },
         "targets": {
           "type": "array",
           "minItems": 1,
-          "items": {"$ref": "#/$defs/evaluation_target"}
+          "items": {
+            "$ref": "#/$defs/evaluation_target"
+          }
+        },
+        "excluded_knowledge": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/excluded_knowledge"
+          }
         }
       }
     },
     "evaluation_target": {
       "type": "object",
-      "required": ["evaluation_target_id"],
+      "additionalProperties": false,
+      "required": [
+        "evaluation_target_id",
+        "detector_id",
+        "authoritative_observation_point",
+        "parameter_bindings",
+        "source_knowledge_refs"
+      ],
       "properties": {
-        "evaluation_target_id": {"$ref": "#/$defs/identifier"}
-      },
-      "additionalProperties": true
+        "evaluation_target_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "detector_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "authoritative_observation_point": {
+          "const": "before_target_api_call"
+        },
+        "parameter_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/target_parameter_binding"
+          }
+        },
+        "source_knowledge_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/knowledge_reference"
+          }
+        }
+      }
     },
     "unresolved_binding": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["json_pointer", "expected_type", "required_before"],
+      "required": [
+        "json_pointer",
+        "expected_type",
+        "required_before"
+      ],
       "properties": {
-        "json_pointer": {"type": "string", "minLength": 1},
-        "expected_type": {"type": "string", "minLength": 1},
-        "required_before": {"type": "string", "minLength": 1}
+        "json_pointer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_before": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "target_parameter_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameter_role",
+        "binding_parameter_id"
+      ],
+      "properties": {
+        "parameter_role": {
+          "$ref": "#/$defs/identifier"
+        },
+        "binding_parameter_id": {
+          "$ref": "#/$defs/identifier"
+        }
+      }
+    },
+    "knowledge_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "knowledge_id",
+        "schema_version",
+        "file_ref"
+      ],
+      "properties": {
+        "knowledge_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/version_string"
+        },
+        "file_ref": {
+          "$ref": "#/$defs/file_reference"
+        }
+      }
+    },
+    "file_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relative_path",
+        "content_hash"
+      ],
+      "properties": {
+        "relative_path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$)).+"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "excluded_knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "knowledge_ref",
+        "reason_code"
+      ],
+      "properties": {
+        "knowledge_ref": {
+          "$ref": "#/$defs/knowledge_reference"
+        },
+        "reason_code": {
+          "enum": [
+            "unsupported_execution_configuration",
+            "unsupported_target_overload",
+            "unsupported_input_construction",
+            "no_reliable_runtime_detector"
+          ]
+        }
       }
     }
   }

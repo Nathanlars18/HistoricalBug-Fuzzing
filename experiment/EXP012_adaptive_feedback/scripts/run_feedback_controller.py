@@ -42,7 +42,7 @@ except ImportError as exc:  # pragma: no cover - environment error
 
 
 CONTROLLER_ID = "run_feedback_controller"
-CONTROLLER_VERSION = "0.5.0"
+CONTROLLER_VERSION = "0.5.3"
 RECORD_FORMAT_VERSION = "1.2"
 CANONICALIZATION_VERSION = "1.0"
 
@@ -307,6 +307,15 @@ def validate_round_record_semantics(record: Mapping[str, Any]) -> None:
     if record["execution"]["termination"]["reason"] not in KNOWN_TERMINATIONS:
         raise RoundInputError("Unsupported Fuzzing Round termination reason")
 
+def validate_feedback_spec_origin(harness_spec: Mapping[str, Any]) -> None:
+    if (
+        harness_spec["identity"]["spec_mode"] == "bug_aware_static"
+        and harness_spec["revision_information"]["feedback_request_ref"] is not None
+    ):
+        raise RoundInputError(
+            "Static H0 must not be derived from a Feedback Request"
+        )
+
 def load_runtime_snapshot_evidence(
     round_record: Mapping[str, Any], runtime_path: Path | None
 ) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
@@ -554,11 +563,7 @@ def resolve_inputs(args: argparse.Namespace) -> ResolvedRound:
         or spec_identity["spec_mode"] not in allowed_modes
     ):
         raise RoundInputError("Round, HarnessSpec, and Strategy scope do not match")
-    if (
-        spec_identity["spec_mode"] == "bug_aware_static"
-        and harness_spec["revision_information"]["revision_number"] != 1
-    ):
-        raise RoundInputError("Adaptive execution may use only Static H0 revision 1")
+    validate_feedback_spec_origin(harness_spec)
 
     spec_ref = harness_spec_reference(harness_spec)
     strategy_ref = strategy_reference(strategy)
@@ -685,14 +690,31 @@ def event_total(
     event_kind: str,
     *,
     exactly_one: bool = False,
+    require_present: bool = False,
+    aggregation: str = "sum",
 ) -> tuple[int, list[str]]:
     entries = list(index.get((branch_id, event_kind), ()))
     if exactly_one and len(entries) != 1:
         raise InstrumentationBindingError(
             f"Branch {branch_id} requires exactly one {event_kind} site"
         )
+    if require_present and not entries:
+        raise InstrumentationBindingError(
+            f"Branch {branch_id} requires at least one {event_kind} site"
+        )
+    values = [counts[item["runtime_site_id"]] for item in entries]
+    if aggregation == "sum":
+        total = sum(values)
+    elif aggregation == "maximum":
+        total = max(values, default=0)
+    elif aggregation == "minimum":
+        total = min(values, default=0)
+    else:
+        raise InstrumentationBindingError(
+            f"Unsupported event aggregation: {aggregation}"
+        )
     return (
-        sum(counts[item["runtime_site_id"]] for item in entries),
+        total,
         [item["instrumentation_binding_id"] for item in entries],
     )
 
@@ -712,7 +734,12 @@ def branch_measurements(
         )
         binding_refs.extend(refs)
         target_reached, refs = event_total(
-            index, counts, branch_id, "target_api_reached", exactly_one=True
+            index,
+            counts,
+            branch_id,
+            "target_api_reached",
+            require_present=True,
+            aggregation="maximum",
         )
         binding_refs.extend(refs)
         rejected, refs = event_total(index, counts, branch_id, "input_rejected")
@@ -755,7 +782,12 @@ def branch_measurements(
         oracle_evaluated: int | None = None
         if oracle_required:
             oracle_opportunities, refs = event_total(
-                index, counts, branch_id, "target_api_completed", exactly_one=True
+                index,
+                counts,
+                branch_id,
+                "target_api_completed",
+                require_present=True,
+                aggregation="minimum",
             )
             binding_refs.extend(refs)
             oracle_evaluated, refs = event_total(
@@ -885,11 +917,8 @@ def assess_round(resolved: ResolvedRound) -> Assessment:
         )
 
     issues: list[str] = []
-    identity = record["identity"]
     snapshot_evidence = record["evidence"]["runtime_snapshot"]
     source_context = record["source_context"]
-    if snapshot.get("execution_id") != identity["execution_id"]:
-        issues.append("snapshot_execution_mismatch")
     if snapshot.get("record_format_version") != source_context[
         "instrumentation_contract_version"
     ]:

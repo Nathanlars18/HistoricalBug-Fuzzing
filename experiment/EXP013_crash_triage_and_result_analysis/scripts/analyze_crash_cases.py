@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-"""Deterministic EXP013 Crash Case manager (initial implementation).
+"""Deterministic EXP013 Crash Case manager.
 
-It creates and validates Case revisions, performs exact deduplication, records
-externally executed replay attempts, and derives descriptive summaries. It does
-not call an LLM, run fuzzing, perform semantic deduplication, attribute faults,
-decide novelty, or submit reports.
-
-Because the current Fuzzing Round record does not yet expose every Candidate
-Bundle field required here, ``ingest`` temporarily accepts an operational intake
-manifest. It may be used only for development fixtures. Before the single-API
-pilot, Runner-owned Candidate Bundle fields must replace its semantic overrides.
+It ingests Runner-selected Candidate Bundles, creates and validates Case
+revisions, performs exact deduplication, records externally executed replay
+attempts, and derives descriptive summaries. It does not call an LLM, run
+fuzzing, perform semantic deduplication, attribute faults, decide novelty, or
+submit reports.
 """
 
 from __future__ import annotations
@@ -40,11 +36,12 @@ except ImportError as exc:  # pragma: no cover
     raise SystemExit("Install the repository control-plane requirements.") from exc
 
 ANALYZER_ID = "analyze_crash_cases"
-ANALYZER_VERSION = "0.2.0"
+ANALYZER_VERSION = "0.3.0"
 EXP_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = EXP_ROOT.parents[1]
 DEFAULT_CASE_SCHEMA = EXP_ROOT / "schemas/crash_case_record.schema.json"
 DEFAULT_ROUND_SCHEMA = REPO_ROOT / "experiment/EXP012_adaptive_feedback/schemas/fuzzing_round_record.schema.json"
+DEFAULT_BUNDLE_SCHEMA = EXP_ROOT / "schemas/candidate_bundle_record.schema.json"
 DEFAULT_POLICY = EXP_ROOT / "policies/crash_analysis_policy.json"
 DEFAULT_OUTPUT = EXP_ROOT / "results"
 ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
@@ -54,6 +51,7 @@ KIND_MAP = {
     "sanitizer": "sanitizer_finding",
     "target_exception": "target_exception",
     "oracle_failure": "oracle_violation",
+    "resource_anomaly": "resource_anomaly",
 }
 
 
@@ -88,6 +86,7 @@ class Context:
     policy: dict[str, Any]
     case_validator: Draft202012Validator
     round_validator: Draft202012Validator
+    bundle_validator: Draft202012Validator
 
 
 def now() -> str:
@@ -205,6 +204,8 @@ def policy(path: Path) -> dict[str, Any]:
         raise InputError("unsupported Crash Analysis Policy format")
     if value["compatibility"].get("crash_case_record_version") != "1.1":
         raise InputError("Policy is incompatible with Crash Case Record 1.1")
+    if value["compatibility"].get("candidate_bundle_record_version") != "1.0":
+        raise InputError("Policy is incompatible with Candidate Bundle Record 1.0")
     if value["policy_status"] not in {"draft", "frozen"}:
         raise InputError("unsupported policy_status")
     replay = value["replay"]
@@ -310,38 +311,58 @@ def admission(kind: str, tier: str | None, invocation: str | None, refs: list[di
     return {"status": "admitted" if action == "direct" and reached else "pending", "kind": action, "basis_code": basis, "condition_assessments": [{"condition_kind": "target_api_reached", "status": "satisfied" if reached else "unresolved", "evidence_refs": refs if reached else []}, {"condition_kind": "evidence_sufficient", "status": "satisfied", "evidence_refs": refs}], "rejection_reason_codes": [], "evidence_refs": refs}
 
 
-def initial_record(item: Mapping[str, Any], context: Context) -> dict[str, Any]:
-    round_path = repo_file(item["round_record_path"], "round_record_path")
-    input_path = repo_file(item["triggering_input_path"], "triggering_input_path")
-    diagnostic = repo_file(item["primary_diagnostic_path"], "primary_diagnostic_path") if item.get("primary_diagnostic_path") else None
-    round_record = load_json(round_path)
+def verified_location(value: Mapping[str, Any], label: str) -> tuple[dict[str, Any], Path]:
+    if not isinstance(value, dict) or set(value) != {"artifact_ref", "file_ref"}:
+        raise InputError(f"{label} must be an Evidence Location")
+    ref = value["file_ref"]
+    path = repo_file(ref.get("relative_path"), f"{label}.file_ref")
+    digest = hash_file(path)
+    if digest != ref.get("content_hash") or digest != value["artifact_ref"].get("content_hash"):
+        raise InputError(f"{label} hash mismatch")
+    return copy.deepcopy(dict(value)), path
+
+
+def initial_record(
+    round_path: Path,
+    round_record: Mapping[str, Any],
+    bundle: Mapping[str, Any],
+    candidate: Mapping[str, Any],
+    context: Context,
+) -> dict[str, Any]:
     errors = schema_errors(round_record, context.round_validator)
     if errors:
         raise InputError(f"invalid Fuzzing Round: {errors[0]}")
     if round_record["validation"]["validation_status"] != "passed" or round_record["attempt_selection"]["status"] != "selected_as_round_result":
         raise InputError("Fuzzing Round must be validated and selected")
-    candidate_id = identifier(item["candidate_id"], "candidate_id")
-    candidates = [entry for entry in round_record["evidence"]["candidate_evidence"]["observations"] if entry["candidate_id"] == candidate_id]
-    if len(candidates) != 1:
-        raise InputError("candidate_id must resolve to exactly one Round observation")
-    source = candidates[0]
+    candidate_id = identifier(candidate["candidate_id"], "candidate_id")
+    matches = [entry for entry in round_record["evidence"]["candidate_evidence"]["observations"] if entry["candidate_id"] == candidate_id]
+    if len(matches) != 1:
+        raise InputError("Candidate Bundle item must resolve to exactly one Round observation")
+    source = matches[0]
     kind = KIND_MAP.get(source["observation_kind"])
-    if kind is None:
-        raise InputError("unsupported Round observation_kind")
-    subtype = item.get("subtype", "unclassified")
-    if not isinstance(subtype, str) or not subtype.strip():
-        raise InputError("subtype must be non-empty")
-    invocation = item.get("target_invocation_id")
-    if invocation is not None:
-        identifier(invocation, "target_invocation_id")
-    iteration = item.get("iteration_index")
-    if iteration is not None and (isinstance(iteration, bool) or not isinstance(iteration, int) or iteration < 0):
-        raise InputError("iteration_index must be null or non-negative")
+    if kind is None or candidate["observation_kind"] != source["observation_kind"]:
+        raise InputError("Candidate Bundle and Round observation kinds disagree")
+    subtype = candidate["observation_subtype"]
+    invocation = candidate["target_invocation_id"]
+    iteration = candidate["iteration_index"]
+    tier = candidate["oracle_evidence_tier"]
+    input_ref, input_path = verified_location(candidate["triggering_input"], "triggering input")
+    diagnostic_value = candidate["primary_diagnostic"]
+    if diagnostic_value is None:
+        diagnostic_ref, diagnostic_path = None, None
+    else:
+        diagnostic_ref, diagnostic_path = verified_location(diagnostic_value, "primary diagnostic")
     refs = unique_refs(source["evidence_refs"])
-    tier = item.get("oracle_evidence_tier")
-    observation = {"observation_id": f"obs_{safe(candidate_id)}", "kind": kind, "subtype": subtype, "signature": signature(kind, subtype, diagnostic, context), "oracle_evidence_tier": tier if kind == "oracle_violation" else None, "threshold_config_ref": copy.deepcopy(round_record["source_context"]["fuzzing_config_ref"]) if kind == "resource_anomaly" else None, "evidence_refs": refs}
+    observation = {
+        "observation_id": f"obs_{safe(candidate_id)}",
+        "kind": kind,
+        "subtype": subtype,
+        "signature": signature(kind, subtype, diagnostic_path, context),
+        "oracle_evidence_tier": tier if kind == "oracle_violation" else None,
+        "threshold_config_ref": copy.deepcopy(round_record["source_context"]["fuzzing_config_ref"]) if kind == "resource_anomaly" else None,
+        "evidence_refs": refs,
+    }
     source_ref = round_ref(round_record, round_path)
-    input_ref = location(input_path, "input")
     case_key = canonical_hash({"fuzzing_round_content_hash": source_ref["content_hash"], "candidate_observation_id": candidate_id, "triggering_input_content_hash": input_ref["file_ref"]["content_hash"]})
     api_id = round_record["identity"]["target_api_id"]
     case_id = f"cc_{safe(api_id)}_{case_key[:16]}"
@@ -353,9 +374,9 @@ def initial_record(item: Mapping[str, Any], context: Context) -> dict[str, Any]:
         "revision": {"revision_number": 1, "created_at": now(), "parent_revision_ref": None, "revision_reason": "initial_capture"},
         "workflow_status": "captured",
         "origin": {"fuzzing_round_ref": source_ref, "feedback_decision_ref": None, "candidate_bundle_ref": copy.deepcopy(round_record["evidence"]["candidate_evidence"]["bundle_ref"]), "candidate_observation_id": candidate_id, "iteration_index": iteration, "target_invocation_id": invocation},
-        "candidate_event": {"observed_at": item.get("observed_at", round_record["execution"]["ended_at"]), "primary_observation_id": observation["observation_id"], "observations": [observation]},
+        "candidate_event": {"observed_at": candidate["observed_at"], "primary_observation_id": observation["observation_id"], "observations": [observation]},
         "admission": admission(kind, tier, invocation, refs, context),
-        "evidence": {"triggering_input_ref": input_ref, "primary_diagnostic_ref": location(diagnostic, "diagnostic") if diagnostic else None, "runtime_snapshot_ref": copy.deepcopy(runtime["location"]["artifact_ref"]) if runtime["status"] == "present" else None, "supporting_evidence_refs": supporting},
+        "evidence": {"triggering_input_ref": input_ref, "primary_diagnostic_ref": diagnostic_ref, "runtime_snapshot_ref": copy.deepcopy(runtime["location"]["artifact_ref"]) if runtime["status"] == "present" else None, "supporting_evidence_refs": supporting},
         "api_behavior_assessment": {"status": "not_assessed", "rationale": None, "evidence_refs": []},
         "fault_attribution": {"status": "not_assessed", "confidence": None, "rationale": None, "evidence_refs": []},
         "deduplication": {"status": "pending", "case_role": "unassigned", "cluster_id": None, "exact_fingerprint": None, "assignment_kind": "not_assigned", "representative_case_ref": None, "rationale": None},
@@ -366,10 +387,7 @@ def initial_record(item: Mapping[str, Any], context: Context) -> dict[str, Any]:
         "unresolved_questions": [], "validation": {"status": "not_run", "validator_version": None, "validated_at": None, "issues": []},
         "provenance": {"builder_artifact_ref": analyzer_ref(), "canonicalization_version": "1.0", "generated_at": now()},
     }
-    warning = []
-    if subtype == "unclassified":
-        warning = [{"issue_id": "vi_001_subtype_unclassified", "severity": "warning", "issue_code": "subtype_unclassified", "instance_path": "/candidate_event/observations/0/subtype", "message": "No deterministic subtype was supplied."}]
-    set_validation(record, context, warning)
+    set_validation(record, context)
     return record
 
 
@@ -485,38 +503,70 @@ def exact_fingerprint(record: Mapping[str, Any], round_record: Mapping[str, Any]
 
 
 def cmd_ingest(args: argparse.Namespace, context: Context, run: Run) -> None:
-    manifest = load_json(args.intake_manifest)
-    if not isinstance(manifest, dict) or set(manifest) != {"manifest_version", "items"} or manifest["manifest_version"] != "1.0" or not isinstance(manifest["items"], list):
-        raise InputError("invalid intake manifest")
-    required = {"round_record_path", "candidate_id", "triggering_input_path"}
-    allowed = required | {"primary_diagnostic_path", "subtype", "oracle_evidence_tier", "iteration_index", "target_invocation_id", "observed_at"}
-    for item in sorted(manifest["items"], key=lambda value: (value.get("round_record_path", ""), value.get("candidate_id", ""))):
-        label = f"{item.get('round_record_path')}#{item.get('candidate_id')}"
+    execution_index = load_json(args.execution_index)
+    tasks = execution_index.get("tasks") if isinstance(execution_index, dict) else None
+    if not isinstance(tasks, dict):
+        raise InputError("execution_index.tasks must be an object")
+    selected = set(args.round_id)
+    for task_key, task in sorted(tasks.items()):
         try:
-            if not isinstance(item, dict) or not required <= set(item) or not set(item) <= allowed:
-                raise InputError("invalid intake item fields")
-            record = initial_record(item, context)
-            case_id = record["identity"]["case_id"]
-            target = case_path(context, case_id, 1)
-            if args.dry_run:
-                if target.exists() and load_json(target)["identity"]["case_key"] == record["identity"]["case_key"]:
-                    run.skipped.append(label)
-                elif target.exists():
-                    raise ConflictError(f"Case collision: {target}")
-                else:
-                    run.created.append(str(target))
+            if not isinstance(task, dict) or not isinstance(task.get("round_record_path"), str):
                 continue
-            with locked(case_dir(context, case_id)):
-                if target.exists():
-                    if load_json(target)["identity"]["case_key"] == record["identity"]["case_key"]:
+            round_path = repo_file(task["round_record_path"], "round_record_path")
+            round_record = load_json(round_path)
+            round_id = round_record.get("identity", {}).get("round_id")
+            if selected and round_id not in selected:
+                continue
+            errors = schema_errors(round_record, context.round_validator)
+            if errors:
+                raise InputError(f"invalid Fuzzing Round: {errors[0]}")
+            evidence = round_record["evidence"]["candidate_evidence"]
+            if evidence["status"] == "absent":
+                run.skipped.append(str(round_id))
+                continue
+            bundle_file_ref = evidence.get("bundle_file_ref")
+            if not isinstance(bundle_file_ref, dict):
+                raise InputError("Candidate evidence has no bundle_file_ref")
+            bundle_path = repo_file(bundle_file_ref.get("relative_path"), "bundle_file_ref")
+            if hash_file(bundle_path) != bundle_file_ref.get("content_hash"):
+                raise InputError("Candidate Bundle file hash mismatch")
+            bundle = load_json(bundle_path)
+            bundle_errors = schema_errors(bundle, context.bundle_validator)
+            if bundle_errors:
+                raise InputError(f"invalid Candidate Bundle: {bundle_errors[0]}")
+            bundle_ref = evidence["bundle_ref"]
+            identity = bundle["identity"]
+            if bundle_ref != artifact_ref(identity["bundle_id"], identity["artifact_version"], canonical_hash(bundle)):
+                raise InputError("Candidate Bundle Artifact Reference mismatch")
+            bundle_ids = [item["candidate_id"] for item in bundle["candidates"]]
+            round_ids = [item["candidate_id"] for item in evidence["observations"]]
+            if len(bundle_ids) != len(set(bundle_ids)) or sorted(bundle_ids) != sorted(round_ids):
+                raise InputError("Candidate Bundle and Round candidate sets disagree")
+            for candidate in sorted(bundle["candidates"], key=lambda value: value["candidate_id"]):
+                label = f"{round_id}#{candidate['candidate_id']}"
+                record = initial_record(round_path, round_record, bundle, candidate, context)
+                case_id = record["identity"]["case_id"]
+                target = case_path(context, case_id, 1)
+                if args.dry_run:
+                    if target.exists() and load_json(target)["identity"]["case_key"] == record["identity"]["case_key"]:
                         run.skipped.append(label)
-                        continue
-                    raise ConflictError(f"Case collision: {target}")
-                write_atomic(target, record)
-            run.created.append(str(target))
+                    elif target.exists():
+                        raise ConflictError(f"Case collision: {target}")
+                    else:
+                        run.created.append(str(target))
+                    continue
+                with locked(case_dir(context, case_id)):
+                    if target.exists():
+                        if load_json(target)["identity"]["case_key"] == record["identity"]["case_key"]:
+                            run.skipped.append(label)
+                            continue
+                        raise ConflictError(f"Case collision: {target}")
+                    write_atomic(target, record)
+                run.created.append(str(target))
         except AnalyzerError as exc:
-            run.fail(label, exc)
-            if args.fail_fast: raise
+            run.fail(task_key, exc)
+            if args.fail_fast:
+                raise
 
 
 def cmd_validate(args: argparse.Namespace, context: Context, run: Run) -> None:
@@ -716,9 +766,9 @@ def save_run(run: Run, context: Context) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--case-schema", type=Path, default=DEFAULT_CASE_SCHEMA); parser.add_argument("--round-schema", type=Path, default=DEFAULT_ROUND_SCHEMA); parser.add_argument("--policy", type=Path, default=DEFAULT_POLICY); parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT); parser.add_argument("--dry-run", action="store_true"); parser.add_argument("--fail-fast", action="store_true")
+    parser.add_argument("--case-schema", type=Path, default=DEFAULT_CASE_SCHEMA); parser.add_argument("--round-schema", type=Path, default=DEFAULT_ROUND_SCHEMA); parser.add_argument("--candidate-bundle-schema", type=Path, default=DEFAULT_BUNDLE_SCHEMA); parser.add_argument("--policy", type=Path, default=DEFAULT_POLICY); parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT); parser.add_argument("--dry-run", action="store_true"); parser.add_argument("--fail-fast", action="store_true")
     commands = parser.add_subparsers(dest="command", required=True)
-    command = commands.add_parser("ingest"); command.add_argument("--intake-manifest", type=Path, required=True)
+    command = commands.add_parser("ingest"); command.add_argument("--execution-index", type=Path, required=True); command.add_argument("--round-id", action="append", default=[])
     command = commands.add_parser("validate"); command.add_argument("--case-id", action="append", default=[])
     command = commands.add_parser("deduplicate"); command.add_argument("--case-id", action="append", default=[]); command.add_argument("--round-root", type=Path, action="append", required=True)
     command = commands.add_parser("replay"); command.add_argument("--replay-manifest", type=Path, required=True)
@@ -731,7 +781,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         output = confined(args.output_root, REPO_ROOT, "output root")
-        context = Context(output, args.policy.resolve(), policy(args.policy), validator(args.case_schema), validator(args.round_schema))
+        context = Context(output, args.policy.resolve(), policy(args.policy), validator(args.case_schema), validator(args.round_schema), validator(args.candidate_bundle_schema))
         run = Run(args.command)
         {"ingest": cmd_ingest, "validate": cmd_validate, "deduplicate": cmd_deduplicate, "replay": cmd_replay, "revise": cmd_revise, "summarize": cmd_summarize}[args.command](args, context, run)
         if not args.dry_run: save_run(run, context)

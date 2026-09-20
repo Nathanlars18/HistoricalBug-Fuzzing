@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://historicalbug-fuzzing.local/schemas/candidate_bundle_record.schema.json",
+  "title": "Candidate Bundle Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record_format_version", "record_type", "identity", "round_context", "candidates", "provenance"],
+  "properties": {
+    "record_format_version": { "const": "1.0" },
+    "record_type": { "const": "candidate_bundle" },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bundle_id", "artifact_version"],
+      "properties": {
+        "bundle_id": { "$ref": "#/$defs/identifier" },
+        "artifact_version": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "round_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_key", "api_id", "target_api_id", "experimental_group", "repeat_id", "round_index", "attempt_index", "execution_id"],
+      "properties": {
+        "task_key": { "$ref": "#/$defs/identifier" },
+        "api_id": { "$ref": "#/$defs/identifier" },
+        "target_api_id": { "$ref": "#/$defs/identifier" },
+        "experimental_group": { "enum": ["structured_baseline", "bug_aware_static", "bug_aware_adaptive"] },
+        "repeat_id": { "$ref": "#/$defs/identifier" },
+        "round_index": { "type": "integer", "minimum": 1 },
+        "attempt_index": { "type": "integer", "minimum": 1 },
+        "execution_id": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "candidates": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/candidate" } },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer_ref", "generated_at"],
+      "properties": {
+        "producer_ref": { "$ref": "#/$defs/artifact_reference" },
+        "generated_at": { "$ref": "#/$defs/timestamp" }
+      }
+    }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "artifact_reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_id", "artifact_version", "content_hash"],
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/identifier" },
+        "artifact_version": { "oneOf": [{ "type": "integer", "minimum": 1 }, { "type": "string", "minLength": 1 }] },
+        "content_hash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "file_reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["relative_path", "content_hash"],
+      "properties": {
+        "relative_path": { "type": "string", "minLength": 1 },
+        "content_hash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "evidence_location": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_ref", "file_ref"],
+      "properties": {
+        "artifact_ref": { "$ref": "#/$defs/artifact_reference" },
+        "file_ref": { "$ref": "#/$defs/file_reference" }
+      }
+    },
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "source_attempt_index", "observation_kind", "observation_subtype", "observed_at", "triggering_input", "primary_diagnostic", "branch_ids", "site_ids", "iteration_index", "target_invocation_id", "oracle_evidence_tier"],
+      "properties": {
+        "candidate_id": { "$ref": "#/$defs/identifier" },
+        "source_attempt_index": { "type": "integer", "minimum": 1 },
+        "observation_kind": { "enum": ["crash", "sanitizer", "target_exception", "oracle_failure", "resource_anomaly"] },
+        "observation_subtype": { "type": "string", "minLength": 1 },
+        "observed_at": { "$ref": "#/$defs/timestamp" },
+        "triggering_input": { "$ref": "#/$defs/evidence_location" },
+        "primary_diagnostic": { "oneOf": [{ "$ref": "#/$defs/evidence_location" }, { "type": "null" }] },
+        "branch_ids": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/identifier" } },
+        "site_ids": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/identifier" } },
+        "iteration_index": { "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }] },
+        "target_invocation_id": { "oneOf": [{ "$ref": "#/$defs/identifier" }, { "type": "null" }] },
+        "oracle_evidence_tier": { "oneOf": [{ "enum": ["tier_1_exact", "tier_2_validated", "tier_3_heuristic", "unevaluable"] }, { "type": "null" }] }
+      }
+    }
+  }
+}

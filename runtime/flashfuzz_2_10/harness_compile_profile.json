@@ -1,0 +1,24 @@
+{
+  "profile_id": "pytorch_2_10_fuzz_docker_compile",
+  "profile_version": 1,
+  "command_argv": [
+    "docker",
+    "run",
+    "--rm",
+    "-e",
+    "HOST_UID={host_uid}",
+    "-e",
+    "HOST_GID={host_gid}",
+    "-v",
+    "{artifact_dir}:/artifact",
+    "-v",
+    "{repository_root}:/repo:ro",
+    "-w",
+    "/artifact",
+    "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8",
+    "bash",
+    "-lc",
+    "set -euo pipefail; clang++ -fsanitize=fuzzer -fno-omit-frame-pointer -O0 -g -D_GLIBCXX_USE_CXX11_ABI=1 -I/root/pytorch/build-fuzz/include -I/root/pytorch/aten/src -I/root/pytorch/c10/core -I/root/pytorch -I/root/pytorch/build-fuzz -I/root/pytorch/build-fuzz/aten/src -I/root/pytorch/torch/csrc/api/include -I/repo/third_party/FlashFuzz/scripts/template/torch_cpu -I/repo/experiment/EXP011_bug_aware_harness_synthesis/runtime {source} /repo/experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp -Wl,-rpath,/root/pytorch/build-fuzz/lib -L/root/pytorch/build-fuzz/lib -ltorch -ltorch_cpu -lc10 -pthread -o {binary}; chown \"$HOST_UID:$HOST_GID\" {binary}"
+  ],
+  "timeout_seconds": 300
+}

@@ -164,6 +164,92 @@ class StrategyBuilderTests(unittest.TestCase):
         schema = json.loads(CATALOG_SCHEMA.read_text(encoding="utf-8"))
         Draft202012Validator.check_schema(schema)
 
+    def test_fuzz_constructor_marks_tensor_and_cursor_dependent(self) -> None:
+        candidate = {
+            'primitive_id': 'construct_tensor_from_fuzz',
+            'parameter_bindings': [],
+        }
+        self.assertEqual(
+            MODULE.directly_fuzz_dependent_output_ports(candidate),
+            {'tensor', 'next_cursor'},
+        )
+
+    def test_fixed_zero_constrained_tensor_is_not_fuzz_dependent(self) -> None:
+        candidate = {
+            'primitive_id': 'construct_tensor_with_constraints',
+            'parameter_bindings': [
+                {
+                    'parameter_id': 'shape_template',
+                    'binding_kind': 'literal',
+                    'binding_value': [4, 2],
+                },
+                {
+                    'parameter_id': 'fill_policy',
+                    'binding_kind': 'literal',
+                    'binding_value': 'zero',
+                },
+            ],
+        }
+        self.assertEqual(
+            MODULE.directly_fuzz_dependent_output_ports(candidate),
+            set(),
+        )
+        candidate['parameter_bindings'][0]['binding_value'] = [-1, 2]
+        self.assertEqual(
+            MODULE.directly_fuzz_dependent_output_ports(candidate),
+            {'tensor', 'next_cursor'},
+        )
+        candidate['parameter_bindings'][0]['binding_value'] = [4, 2]
+        candidate['parameter_bindings'][1]['binding_value'] = 'fuzz_int64'
+        self.assertEqual(
+            MODULE.directly_fuzz_dependent_output_ports(candidate),
+            {'tensor', 'next_cursor'},
+        )
+
+    def test_default_branch_requires_fuzz_dependent_target_tensors(self) -> None:
+        spec = harness_spec()
+        spec['exploration_plan']['branches'][0]['branch_kind'] = 'default'
+        target_step = {
+            'step_id': 's_api',
+            'primitive_id': 'p_api',
+            'input_bindings': [
+                {'port_id': 'left', 'value_ref': 'lhs'},
+                {'port_id': 'right', 'value_ref': 'rhs'},
+            ],
+        }
+        target_primitive = {
+            'input_contract': [
+                {
+                    'port_id': 'left',
+                    'accepted_value_kinds': ['tensor'],
+                },
+                {
+                    'port_id': 'right',
+                    'accepted_value_kinds': ['tensor'],
+                },
+            ],
+        }
+        with self.assertRaisesRegex(
+            MODULE.PlanValidationError,
+            'do not depend on consumed LibFuzzer bytes',
+        ):
+            MODULE.validate_default_branch_fuzz_dependence(
+                spec,
+                'br_test',
+                ['s_api'],
+                {'s_api': target_step},
+                {'p_api': target_primitive},
+                {'lhs'},
+            )
+        MODULE.validate_default_branch_fuzz_dependence(
+            spec,
+            'br_test',
+            ['s_api'],
+            {'s_api': target_step},
+            {'p_api': target_primitive},
+            {'lhs', 'rhs'},
+        )
+
     def test_exposed_parameters_exclude_runtime_references(self) -> None:
         parameters = MODULE.exposed_parameters(
             MODULE.all_element_entries(harness_spec())

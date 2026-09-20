@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "corpus_manifest.schema.json",
+  "title": "Corpus Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_format_version",
+    "record_type",
+    "identity",
+    "source",
+    "files",
+    "provenance"
+  ],
+  "properties": {
+    "record_format_version": {"const": "1.0"},
+    "record_type": {"const": "corpus_manifest"},
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["corpus_id", "artifact_version"],
+      "properties": {
+        "corpus_id": {"$ref": "#/$defs/identifier"},
+        "artifact_version": {"type": "integer", "minimum": 1}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "source_round_id"],
+      "properties": {
+        "kind": {"enum": ["initial", "round_output"]},
+        "source_round_id": {
+          "oneOf": [
+            {"$ref": "#/$defs/identifier"},
+            {"type": "null"}
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"kind": {"const": "initial"}},
+            "required": ["kind"]
+          },
+          "then": {"properties": {"source_round_id": {"type": "null"}}},
+          "else": {"properties": {"source_round_id": {"$ref": "#/$defs/identifier"}}}
+        }
+      ]
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["corpus_relative_path", "file_ref", "size_bytes"],
+        "properties": {
+          "corpus_relative_path": {"$ref": "#/$defs/relative_path"},
+          "file_ref": {"$ref": "#/$defs/file_reference"},
+          "size_bytes": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generator_ref", "generated_at"],
+      "properties": {
+        "generator_ref": {"$ref": "#/$defs/artifact_reference"},
+        "generated_at": {"$ref": "#/$defs/timestamp"}
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "allOf": [
+        {"not": {"pattern": "^/"}},
+        {"not": {"pattern": "^[A-Za-z]:"}},
+        {"not": {"pattern": "\\\\"}},
+        {"not": {"pattern": "(^|/)\\.\\.(/|$)"}}
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "file_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relative_path", "content_hash"],
+      "properties": {
+        "relative_path": {"$ref": "#/$defs/relative_path"},
+        "content_hash": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "artifact_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "artifact_version", "content_hash"],
+      "properties": {
+        "artifact_id": {"$ref": "#/$defs/identifier"},
+        "artifact_version": {
+          "oneOf": [
+            {"type": "integer", "minimum": 1},
+            {"type": "string", "minLength": 1, "pattern": "^\\S+$", "not": {"pattern": "^0+$"}}
+          ]
+        },
+        "content_hash": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

@@ -23,7 +23,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 
 BUILDER_ID = "build_harness_artifact"
-BUILDER_VERSION = "0.6.0"
+BUILDER_VERSION = "0.8.0"
 ARTIFACT_SCHEMA_VERSION = "1.2"
 
 EXP_ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +36,13 @@ DEFAULTS = {
     "api_profile_schema": EXP_ROOT / "schemas" / "api_profile_record.schema.json",
     "helper_profile_schema": EXP_ROOT / "schemas" / "helper_profile_record.schema.json",
     "artifact_schema": EXP_ROOT / "schemas" / "harness_artifact_record.schema.json",
+    "evaluation_target_schema": (
+        REPOSITORY_ROOT
+        / "experiment"
+        / "EXP014_experimental_evaluation"
+        / "schemas"
+        / "evaluation_target_manifest.schema.json"
+    ),
     "catalog": EXP_ROOT / "strategy_primitives" / "strategy_primitive_catalog.json",
     "harness_specs": EXP_ROOT / "harness_specs",
     "api_profiles": EXP_ROOT / "api_profiles",
@@ -211,6 +218,7 @@ class EmitterContext:
     output_names: Mapping[str, str]
     spec_bindings: tuple[Mapping[str, Any], ...]
     failure_handlers: tuple[Mapping[str, Any], ...]
+    strategy_branch: Mapping[str, Any]
     harness_spec: Mapping[str, Any]
     api_profile: Mapping[str, Any]
     helper_profile: Mapping[str, Any] | None
@@ -526,33 +534,129 @@ def activation_context(
     context: EmitterContext,
 ) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
     activation_binding = one_spec_binding(context, "activation_target")
-    property_binding = one_spec_binding(context, "target_property")
     branch = harness_spec_branch(context)
     activation_id = activation_binding["spec_element_id"]
-    property_id = property_binding["spec_element_id"]
     activations = [
         item
         for item in branch["activation_targets"]
         if item["activation_target_id"] == activation_id
     ]
+    if len(activations) != 1:
+        raise MaterializationError(
+            "Activation Target binding does not resolve exactly once"
+        )
+    property_id = activations[0]["target_property_id"]
     properties = [
         item
         for item in branch["target_properties"]
         if item["target_property_id"] == property_id
     ]
-    if len(activations) != 1 or len(properties) != 1:
+    if len(properties) != 1:
         raise MaterializationError(
-            "Activation or Target Property binding does not resolve exactly once"
-        )
-    if activations[0]["target_property_id"] != property_id:
-        raise MaterializationError(
-            "Activation Target does not reference the bound Target Property"
-        )
-    if len(branch["activation_targets"]) != 1:
-        raise MaterializationError(
-            "The minimal observation Emitter supports one Activation Target per Branch"
+            "Activation Target does not resolve one Target Property"
         )
     return activations[0], properties[0]
+
+
+def branch_activation_atoms(context: EmitterContext) -> tuple[EventAtom, ...]:
+    """Emit one joint Branch Activation quartet after its last target check."""
+
+    spec_branch = harness_spec_branch(context)
+    activations = spec_branch["activation_targets"]
+    if not activations:
+        return ()
+
+    steps = context.strategy_branch["steps"]
+    step_by_id = {step["step_id"]: step for step in steps}
+    activation_step_ids: list[str] = []
+    condition_names: list[str] = []
+
+    for activation in activations:
+        activation_id = activation["activation_target_id"]
+        bindings = [
+            binding
+            for binding in context.strategy_branch["spec_bindings"]
+            if binding["spec_element_type"] == "activation_target"
+            and binding["spec_element_id"] == activation_id
+        ]
+        if len(bindings) != 1 or len(bindings[0]["implementation_step_ids"]) != 1:
+            raise MaterializationError(
+                "Each Activation Target must resolve to exactly one observation Step"
+            )
+        step_id = bindings[0]["implementation_step_ids"][0]
+        step = step_by_id.get(step_id)
+        if step is None or step["primitive_id"] != "evaluate_tensor_property":
+            raise MaterializationError(
+                "Joint Branch Activation v1 requires tensor-property observation Steps"
+            )
+        outputs = [
+            output
+            for output in step["output_bindings"]
+            if output["port_id"] == "property_holds"
+        ]
+        if len(outputs) != 1:
+            raise MaterializationError(
+                "Each Activation observation Step must expose property_holds once"
+            )
+        activation_step_ids.append(step_id)
+        condition_names.append(
+            f"hbfg_{safe_component(context.branch_id)}_{outputs[0]['value_id']}"
+        )
+
+    activation_step_set = set(activation_step_ids)
+    ordered_activation_steps = [
+        step["step_id"]
+        for step in steps
+        if step["step_id"] in activation_step_set
+    ]
+    if context.step["step_id"] != ordered_activation_steps[-1]:
+        return ()
+
+    target_properties = {
+        item["target_property_id"]: item
+        for item in spec_branch["target_properties"]
+    }
+    refs: list[TraceRef] = []
+    for activation in activations:
+        property_id = activation["target_property_id"]
+        if property_id not in target_properties:
+            raise MaterializationError(
+                "Branch Activation references an unknown Target Property"
+            )
+        refs.extend(
+            (
+                TraceRef("activation_target", activation["activation_target_id"]),
+                TraceRef("target_property", property_id),
+            )
+        )
+
+    joint_condition = "(" + " && ".join(condition_names) + ")"
+    branch_refs = tuple(refs)
+    return (
+        EventAtom(
+            "branch_activation_checked",
+            context.branch_id,
+            trace_refs=branch_refs,
+        ),
+        EventAtom(
+            "branch_activation_true",
+            context.branch_id,
+            condition_expression=joint_condition,
+            trace_refs=branch_refs,
+        ),
+        EventAtom(
+            "branch_activation_unevaluable",
+            context.branch_id,
+            condition_expression="false",
+            trace_refs=branch_refs,
+        ),
+        EventAtom(
+            "branch_activation_check_error",
+            context.branch_id,
+            condition_expression="false",
+            trace_refs=branch_refs,
+        ),
+    )
 
 
 @register_emitter("emit_evaluate_tensor_property")
@@ -601,13 +705,10 @@ def emit_evaluate_tensor_property(
 
     activation_id = activation["activation_target_id"]
     property_id = target_property["target_property_id"]
-    evaluation_id = f"eval_{activation_id}"
+    # HarnessSpec observations are diagnostic. Formal cross-group Evaluation
+    # Targets are injected from the manifest after synthesis, so the Baseline
+    # generator never receives Knowledge-derived guidance.
     refs = (
-        TraceRef("evaluation_target", evaluation_id),
-        TraceRef("activation_target", activation_id),
-        TraceRef("target_property", property_id),
-    )
-    branch_refs = (
         TraceRef("activation_target", activation_id),
         TraceRef("target_property", property_id),
     )
@@ -642,30 +743,7 @@ def emit_evaluate_tensor_property(
                 condition_expression="false",
                 trace_refs=refs,
             ),
-            EventAtom(
-                "branch_activation_checked",
-                context.branch_id,
-                trace_refs=branch_refs,
-            ),
-            EventAtom(
-                "branch_activation_true",
-                context.branch_id,
-                condition_expression=output_name,
-                trace_refs=branch_refs,
-            ),
-            EventAtom(
-                "branch_activation_unevaluable",
-                context.branch_id,
-                condition_expression="false",
-                trace_refs=branch_refs,
-            ),
-            EventAtom(
-                "branch_activation_check_error",
-                context.branch_id,
-                condition_expression="false",
-                trace_refs=branch_refs,
-            ),
-        ),
+        ) + branch_activation_atoms(context),
         outputs={
             "property_holds": BoundValue(output_name, "boolean"),
         },
@@ -847,6 +925,60 @@ def emit_profiled_target_api(context: EmitterContext) -> EmissionResult:
             EventAtom("target_api_completed", context.step["step_id"]),
         ),
         outputs={output_port: BoundValue(output_name, output_kind)},
+    )
+
+
+@register_emitter("emit_execution_survival_oracle")
+def emit_execution_survival_oracle(
+    context: EmitterContext,
+) -> EmissionResult:
+    """Record no-crash only after control returns from the target API call."""
+
+    binding = one_spec_binding(context, "oracle_requirement")
+    oracle_id = binding["spec_element_id"]
+    branch = harness_spec_branch(context)
+    matches = [
+        oracle
+        for oracle in branch["oracle_requirements"]
+        if oracle["oracle_requirement_id"] == oracle_id
+    ]
+    if len(matches) != 1:
+        raise MaterializationError(
+            "Execution-survival Oracle binding does not resolve exactly once"
+        )
+    oracle = matches[0]
+    if (
+        oracle["oracle_type"] != "crash"
+        or oracle["expected_behavior"]["requirement_type"] != "no_crash"
+        or oracle["observation_subjects"] != ["context.execution"]
+    ):
+        raise MaterializationError(
+            "Execution-survival Emitter supports only crash/no_crash over "
+            "context.execution"
+        )
+
+    output_name = context.output_names["oracle_holds"]
+    refs = (TraceRef("oracle_requirement", oracle_id),)
+    return EmissionResult(
+        atoms=(
+            f"const bool {output_name} = true;",
+            EventAtom("oracle_evaluated", oracle_id, trace_refs=refs),
+            EventAtom(
+                "oracle_passed",
+                oracle_id,
+                condition_expression=output_name,
+                trace_refs=refs,
+            ),
+            EventAtom(
+                "oracle_failed",
+                oracle_id,
+                condition_expression="false",
+                trace_refs=refs,
+            ),
+        ),
+        outputs={
+            "oracle_holds": BoundValue(output_name, "boolean"),
+        },
     )
 
 
@@ -1064,6 +1196,51 @@ def file_reference(
         "relative_path": repository_relative(reference_path or content_path),
         "content_hash": file_hash(content_path),
     }
+
+
+def evaluation_targets_for_api(
+    manifest: Mapping[str, Any] | None,
+    api_id: str,
+) -> tuple[Mapping[str, Any], ...]:
+    if manifest is None:
+        return ()
+    if manifest.get("unresolved_bindings") not in (None, []):
+        raise InputError("Evaluation Target Manifest has unresolved bindings")
+    sets = manifest.get("api_target_sets")
+    if not isinstance(sets, list):
+        raise InputError("Evaluation Target Manifest api_target_sets is invalid")
+    matches = [item for item in sets if item.get("api_id") == api_id]
+    if len(matches) != 1:
+        raise InputError(
+            f"Evaluation Target Manifest must contain exactly one API set for {api_id}"
+        )
+    targets = matches[0].get("targets")
+    if not isinstance(targets, list) or not targets:
+        raise InputError(f"Evaluation Target set for {api_id} is empty")
+    seen: set[str] = set()
+    for target in targets:
+        target_id = target.get("evaluation_target_id")
+        if not isinstance(target_id, str) or not target_id or target_id in seen:
+            raise InputError(f"Evaluation Target IDs are invalid or duplicated for {api_id}")
+        seen.add(target_id)
+        if target.get("detector_id") != "matmul_empty_inner_long_pair_v1":
+            raise InputError(
+                f"Unsupported Evaluation Target detector: {target.get('detector_id')!r}"
+            )
+        roles = {
+            item.get("parameter_role")
+            for item in target.get("parameter_bindings", [])
+        }
+        if roles != {"left", "right"}:
+            raise InputError(
+                f"matmul detector requires left/right parameter bindings: {target_id}"
+            )
+        for source in target.get("source_knowledge_refs", []):
+            file_ref = source.get("file_ref", {})
+            path = REPOSITORY_ROOT / file_ref.get("relative_path", "")
+            if not path.is_file() or file_hash(path) != file_ref.get("content_hash"):
+                raise InputError(f"Evaluation Target source hash is invalid: {path}")
+    return tuple(targets)
 
 
 def profile_key(reference: Mapping[str, Any]) -> tuple[str, int, str]:
@@ -1305,6 +1482,7 @@ def generator_components(
     template: Path,
     runtime_header: Path,
     runtime_source: Path,
+    evaluation_target_manifest: Path | None = None,
 ) -> tuple[dict[str, str], list[dict[str, str]]]:
     entrypoint = file_reference(Path(__file__).resolve())
 
@@ -1313,6 +1491,8 @@ def generator_components(
         file_reference(runtime_header),
         file_reference(runtime_source),
     ]
+    if evaluation_target_manifest is not None:
+        components.append(file_reference(evaluation_target_manifest))
     components.sort(key=lambda item: item["relative_path"])
 
     return entrypoint, components
@@ -1721,10 +1901,9 @@ def validate_event_semantics(
         property_ref_count = sum(
             item["ref_type"] == "target_property" for item in trace_refs
         )
-        if evaluation_ref_count != 1:
+        if evaluation_ref_count not in {0, 1}:
             raise MaterializationError(
-                f"{event.event_kind} requires exactly one Evaluation Target "
-                "reference"
+                f"{event.event_kind} resolves more than one Evaluation Target"
             )
         if (activation_ref_count, property_ref_count) not in {(0, 0), (1, 1)}:
             raise MaterializationError(
@@ -1849,10 +2028,68 @@ def indent_lines(lines: Sequence[str], spaces: int) -> list[str]:
     ]
 
 
+def evaluation_target_atoms(
+    target: Mapping[str, Any],
+    branch_id: str,
+    inputs: Mapping[str, BoundValue],
+) -> tuple[CodeAtom, ...]:
+    bindings = {
+        item["parameter_role"]: item["binding_parameter_id"]
+        for item in target["parameter_bindings"]
+    }
+    left = inputs.get(bindings["left"])
+    right = inputs.get(bindings["right"])
+    if (
+        left is None
+        or right is None
+        or left.value_kind != "tensor"
+        or right.value_kind != "tensor"
+    ):
+        raise MaterializationError(
+            f"Evaluation Target {target['evaluation_target_id']} "
+            "cannot resolve tensor inputs"
+        )
+    target_id = target["evaluation_target_id"]
+    name = f"hbfg_{safe_component(branch_id)}_{safe_component(target_id)}"
+    left_expr = left.cpp_expression
+    right_expr = right.cpp_expression
+    condition = (
+        f"({left_expr}.dim() >= 2 && {right_expr}.dim() >= 2 && "
+        f"{left_expr}.size({left_expr}.dim() - 1) == 0 && "
+        f"{right_expr}.size({right_expr}.dim() - 2) == 0 && "
+        f"{left_expr}.scalar_type() == torch::kInt64 && "
+        f"{right_expr}.scalar_type() == torch::kInt64)"
+    )
+    refs = (TraceRef("evaluation_target", target_id),)
+    return (
+        f"const bool {name} = {condition};",
+        EventAtom("activation_checked", target_id, trace_refs=refs),
+        EventAtom(
+            "activation_true",
+            target_id,
+            condition_expression=name,
+            trace_refs=refs,
+        ),
+        EventAtom(
+            "activation_unevaluable",
+            target_id,
+            condition_expression="false",
+            trace_refs=refs,
+        ),
+        EventAtom(
+            "activation_check_error",
+            target_id,
+            condition_expression="false",
+            trace_refs=refs,
+        ),
+    )
+
+
 def materialize_strategy(
     resolved: ResolvedInputs,
     selector_ranges: Mapping[str, tuple[int, int]],
     template_path: Path,
+    evaluation_targets: Sequence[Mapping[str, Any]] = (),
 ) -> tuple[
     str,
     list[dict[str, Any]],
@@ -1878,6 +2115,7 @@ def materialize_strategy(
     ):
         branch_id = branch["source_branch_id"]
         start, end = selector_ranges[branch_id]
+        evaluation_injected = False
         slot_indexes = [
             SLOT_ORDER.index(step["template_slot"])
             for step in branch["steps"]
@@ -1994,6 +2232,7 @@ def materialize_strategy(
                 output_names=output_names,
                 spec_bindings=step_bindings,
                 failure_handlers=step_handlers,
+                strategy_branch=branch,
                 harness_spec=harness_spec,
                 api_profile=resolved.api_profile,
                 helper_profile=resolve_helper_profile(
@@ -2026,6 +2265,21 @@ def materialize_strategy(
             state.includes.update(emission.includes)
             add_support_blocks(state, emission.support_blocks)
 
+            injected_atoms: tuple[CodeAtom, ...] = ()
+            if (
+                evaluation_targets
+                and not evaluation_injected
+                and step["template_slot"] == "target_call"
+            ):
+                injected_atoms = tuple(
+                    atom
+                    for target in evaluation_targets
+                    for atom in evaluation_target_atoms(
+                        target, branch_id, inputs
+                    )
+                )
+                evaluation_injected = True
+
             segment_id = (
                 f"seg_{safe_component(branch_id)}_{step_index:03d}"
             )
@@ -2033,7 +2287,7 @@ def materialize_strategy(
                 f"// HBFG_SEGMENT_BEGIN:{segment_id}",
             ]
 
-            for atom in emission.atoms:
+            for atom in (*injected_atoms, *emission.atoms):
                 if isinstance(atom, str):
                     if not atom.strip():
                         segment_lines.append("")
@@ -2255,6 +2509,7 @@ def validate_materialization_maps(
     harness_spec: Mapping[str, Any],
     materialization_map: Sequence[Mapping[str, Any]],
     instrumentation_map: Sequence[Mapping[str, Any]],
+    evaluation_target_ids: Sequence[str] = (),
 ) -> None:
     expected_steps = [
         (
@@ -2599,9 +2854,11 @@ def validate_materialization_maps(
             for ref in event["trace_refs"]
             if ref["ref_type"] == "evaluation_target"
         ]
+        if not evaluation_refs:
+            continue
         if len(evaluation_refs) != 1:
             raise MaterializationError(
-                f"{event['event_kind']} must resolve one Evaluation Target"
+                f"{event['event_kind']} must resolve at most one Evaluation Target"
             )
         target_groups.setdefault(
             (event["branch_id"], evaluation_refs[0]), []
@@ -2618,6 +2875,26 @@ def validate_materialization_maps(
                 "Evaluation Target event quartet is incomplete or duplicated for "
                 f"Branch {branch_id}, Target {evaluation_target_id}: {counts}"
             )
+    if evaluation_target_ids:
+        expected_target_ids = set(evaluation_target_ids)
+        for branch_id in branch_ids:
+            for target_id in expected_target_ids:
+                events = [
+                    event
+                    for event in instrumentation_map
+                    if event["branch_id"] == branch_id
+                    and event["event_kind"] in target_event_kinds
+                    and ("evaluation_target", target_id)
+                    in {
+                        (ref["ref_type"], ref["ref_id"])
+                        for ref in event["trace_refs"]
+                    }
+                ]
+                if len(events) != 4:
+                    raise MaterializationError(
+                        f"Branch {branch_id} must materialize one quartet "
+                        f"for {target_id}"
+                    )
 
 
 def git_snapshot() -> tuple[str, str, str | None]:
@@ -2753,6 +3030,8 @@ def resolve_compile_argv(
         "{runtime_header_dir}": str(runtime_header.resolve().parent),
         "{repository_root}": str(REPOSITORY_ROOT.resolve()),
         "{artifact_dir}": str(staging_dir.resolve()),
+        "{host_uid}": str(os.getuid()),
+        "{host_gid}": str(os.getgid()),
     }
 
     result: list[str] = []
@@ -3094,6 +3373,8 @@ def build_one(
     template_path: Path,
     runtime_header: Path,
     runtime_source: Path,
+    evaluation_target_manifest: Path | None,
+    evaluation_target_record: Mapping[str, Any] | None,
     output_root: Path,
     compile_config: CompileConfiguration | None,
     run_id: str,
@@ -3114,10 +3395,15 @@ def build_one(
     )
 
     strategy_ref = strategy_reference(strategy)
+    evaluation_targets = evaluation_targets_for_api(
+        evaluation_target_record,
+        strategy["identity"]["target_api"],
+    )
     entrypoint_ref, component_refs = generator_components(
         template_path,
         runtime_header,
         runtime_source,
+        evaluation_target_manifest,
     )
     key = generation_key(
         strategy_ref,
@@ -3164,6 +3450,7 @@ def build_one(
             resolved,
             selector_ranges,
             template_path,
+            evaluation_targets,
         )
     )
     source = finalize_source(
@@ -3182,6 +3469,7 @@ def build_one(
         resolved.harness_spec,
         materialization_map,
         instrumentation_map,
+        [item["evaluation_target_id"] for item in evaluation_targets],
     )
 
     final_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -3367,6 +3655,18 @@ def parse_arguments() -> argparse.Namespace:
         default=DEFAULTS["artifact_schema"],
     )
     parser.add_argument(
+        "--evaluation-target-manifest",
+        type=Path,
+        help=(
+            "Manifest used for deterministic post-synthesis target checks."
+        ),
+    )
+    parser.add_argument(
+        "--evaluation-target-schema",
+        type=Path,
+        default=DEFAULTS["evaluation_target_schema"],
+    )
+    parser.add_argument(
         "--result-json",
         type=Path,
         help="Machine-readable outcome selected by the orchestrator.",
@@ -3390,6 +3690,19 @@ def main() -> int:
         api_profile_validator = load_validator(args.api_profile_schema)
         helper_profile_validator = load_validator(args.helper_profile_schema)
         artifact_validator = load_validator(args.artifact_schema)
+        evaluation_target_record = None
+        if args.evaluation_target_manifest is not None:
+            evaluation_target_validator = load_validator(
+                args.evaluation_target_schema
+            )
+            evaluation_target_record = load_json(
+                args.evaluation_target_manifest
+            )
+            validate_record(
+                evaluation_target_record,
+                evaluation_target_validator,
+                "Evaluation Target Manifest",
+            )
 
         catalog = load_json(args.catalog)
         validate_record(catalog, catalog_validator, "Strategy Catalog")
@@ -3456,6 +3769,8 @@ def main() -> int:
                 template_path=args.template,
                 runtime_header=args.runtime_header,
                 runtime_source=args.runtime_source,
+                evaluation_target_manifest=args.evaluation_target_manifest,
+                evaluation_target_record=evaluation_target_record,
                 output_root=args.output_root,
                 compile_config=compile_config,
                 run_id=run_id,

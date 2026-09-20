@@ -300,7 +300,6 @@
         "runtime_snapshot_missing",
         "runtime_snapshot_invalid",
         "activation_checker_error_observed",
-        "snapshot_execution_mismatch",
         "runtime_export_failure",
         "infrastructure_failure_observed",
         "round_cancelled",

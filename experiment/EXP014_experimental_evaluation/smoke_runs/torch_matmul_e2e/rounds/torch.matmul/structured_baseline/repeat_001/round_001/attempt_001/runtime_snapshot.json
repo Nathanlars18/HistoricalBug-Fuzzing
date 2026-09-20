@@ -1,0 +1,28 @@
+{
+  "record_format_version": "1.0",
+  "runtime_version": "1.0",
+  "artifact_id": "ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_92c2edaeac84",
+  "generation_key": "92c2edaeac84c0ca5772d63355dcc8dfe429d5a053ef1d019c035fa3378abd1a",
+  "snapshot_kind": "final",
+  "snapshot_interval": 65536,
+  "site_count": 12,
+  "started_iterations": 539,
+  "finished_iterations": 539,
+  "unwound_iterations": 0,
+  "invalid_site_records": 0,
+  "export_failures": 0,
+  "site_counts": [
+    539,
+    539,
+    539,
+    539,
+    0,
+    0,
+    0,
+    539,
+    539,
+    539,
+    539,
+    0
+  ]
+}

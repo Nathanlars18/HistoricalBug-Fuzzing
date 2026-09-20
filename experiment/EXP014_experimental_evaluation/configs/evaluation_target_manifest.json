@@ -1,15 +1,75 @@
 {
   "format_version": "1.0",
   "manifest_id": "etm_pytorch_2_10_pilot",
-  "revision": 1,
-  "status": "draft",
+  "revision": 2,
+  "status": "frozen",
   "detector_contract_version": "1.0",
-  "api_target_sets": [],
-  "unresolved_bindings": [
+  "api_target_sets": [
     {
-      "json_pointer": "/api_target_sets",
-      "expected_type": "non_empty_array",
-      "required_before": "frozen"
+      "api_id": "torch.matmul",
+      "targets": [
+        {
+          "evaluation_target_id": "et_pytorch_torch_matmul_empty_inner_long_pair",
+          "detector_id": "matmul_empty_inner_long_pair_v1",
+          "authoritative_observation_point": "before_target_api_call",
+          "parameter_bindings": [
+            {
+              "parameter_role": "left",
+              "binding_parameter_id": "binding_param_000_self"
+            },
+            {
+              "parameter_role": "right",
+              "binding_parameter_id": "binding_param_001_other"
+            }
+          ],
+          "source_knowledge_refs": [
+            {
+              "knowledge_id": "kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001",
+              "schema_version": "2.1",
+              "file_ref": {
+                "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/torch.matmul/kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001.json",
+                "content_hash": "c42ac85e686e046ab72947d72df6048bff846e65b59a285f89892bd55bf41900"
+              }
+            }
+          ]
+        }
+      ],
+      "excluded_knowledge": [
+        {
+          "knowledge_ref": {
+            "knowledge_id": "kn_pt_torch_matmul_mps_non_contiguous_out_write_correctness_k001",
+            "schema_version": "2.1",
+            "file_ref": {
+              "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/torch.matmul/kn_pt_torch_matmul_mps_non_contiguous_out_write_correctness_k001.json",
+              "content_hash": "15e9707916bc68a40077cd23519971c0c12d7769df6e70f0bf9382d4006d8798"
+            }
+          },
+          "reason_code": "unsupported_execution_configuration"
+        },
+        {
+          "knowledge_ref": {
+            "knowledge_id": "kn_pt_torch_matmul_undersized_out_view_storage_capacity_mismatch_k001",
+            "schema_version": "2.1",
+            "file_ref": {
+              "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/torch.matmul/kn_pt_torch_matmul_undersized_out_view_storage_capacity_mismatch_k001.json",
+              "content_hash": "7848fd18b41948e4a5d30cc509f8116144877048fee20f80f88063e5ffd3a6d1"
+            }
+          },
+          "reason_code": "unsupported_target_overload"
+        },
+        {
+          "knowledge_ref": {
+            "knowledge_id": "kn_pt_torch_matmul_unaligned_fp32_rhs_cpu_blas_alignment_crash_risk_k001",
+            "schema_version": "2.1",
+            "file_ref": {
+              "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/torch.matmul/kn_pt_torch_matmul_unaligned_fp32_rhs_cpu_blas_alignment_crash_risk_k001.json",
+              "content_hash": "d58a40ea90675c76f895ea983203795a07b51c8ef9c4ab1e15119f8f03e5b5c0"
+            }
+          },
+          "reason_code": "unsupported_input_construction"
+        }
+      ]
     }
-  ]
+  ],
+  "unresolved_bindings": []
 }

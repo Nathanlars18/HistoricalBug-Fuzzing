@@ -21,6 +21,14 @@ SCRIPT = ROOT / "scripts/build_harness_artifact.py"
 CATALOG_PATH = ROOT / "strategy_primitives/strategy_primitive_catalog.json"
 CATALOG_SCHEMA_PATH = ROOT / "schemas/strategy_catalog_record.schema.json"
 TEMPLATE_PATH = ROOT / "templates/libfuzzer_harness_v1.cpp.in"
+TARGET_SCHEMA_PATH = Path(
+    "experiment/EXP014_experimental_evaluation/schemas/"
+    "evaluation_target_manifest.schema.json"
+)
+TARGET_MANIFEST_PATH = Path(
+    "experiment/EXP014_experimental_evaluation/configs/"
+    "evaluation_target_manifest.json"
+)
 
 SPEC = importlib.util.spec_from_file_location("build_harness_artifact", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
@@ -222,7 +230,7 @@ def strategy() -> dict:
                 "spec_element_type": "target_property",
                 "spec_element_id": "tp_zero_reduction",
                 "implementation_step_ids": [
-                    "step_observe_zero_dimension"
+                    "step_construct_left"
                 ],
             },
             {
@@ -262,10 +270,35 @@ def resolved_inputs(
     )
 
 
-def materialize(resolved: object) -> tuple[str, list[dict], list[dict]]:
+def evaluation_target() -> dict:
+    return {
+        "evaluation_target_id":
+            "et_pytorch_torch_matmul_empty_inner_long_pair",
+        "detector_id": "matmul_empty_inner_long_pair_v1",
+        "authoritative_observation_point": "before_target_api_call",
+        "parameter_bindings": [
+            {
+                "parameter_role": "left",
+                "binding_parameter_id": "binding_param_000_self",
+            },
+            {
+                "parameter_role": "right",
+                "binding_parameter_id": "binding_param_001_other",
+            },
+        ],
+        "source_knowledge_refs": [],
+    }
+
+
+def materialize(
+    resolved: object,
+    evaluation_targets: tuple[dict, ...] = (),
+) -> tuple[str, list[dict], list[dict]]:
     ranges = {"br_zero_reduction": (0, 255)}
     source, materialization_map, instrumentation_map = (
-        MODULE.materialize_strategy(resolved, ranges, TEMPLATE_PATH)
+        MODULE.materialize_strategy(
+            resolved, ranges, TEMPLATE_PATH, evaluation_targets
+        )
     )
     source = MODULE.finalize_source(
         source,
@@ -283,6 +316,7 @@ def materialize(resolved: object) -> tuple[str, list[dict], list[dict]]:
         resolved.harness_spec,
         materialization_map,
         instrumentation_map,
+        [target["evaluation_target_id"] for target in evaluation_targets],
     )
     return source, materialization_map, instrumentation_map
 
@@ -310,6 +344,55 @@ class HarnessArtifactBuilderTests(unittest.TestCase):
             "approved",
         )
 
+    def test_evaluation_target_manifest_is_valid_and_resolved(self) -> None:
+        schema = json.loads(TARGET_SCHEMA_PATH.read_text(encoding="utf-8"))
+        manifest = json.loads(
+            TARGET_MANIFEST_PATH.read_text(encoding="utf-8")
+        )
+        Draft202012Validator.check_schema(schema)
+        errors = list(
+            Draft202012Validator(
+                schema, format_checker=FormatChecker()
+            ).iter_errors(manifest)
+        )
+        self.assertEqual(errors, [])
+        targets = MODULE.evaluation_targets_for_api(
+            manifest, "torch.matmul"
+        )
+        self.assertEqual(len(targets), 1)
+        self.assertEqual(
+            targets[0]["evaluation_target_id"],
+            "et_pytorch_torch_matmul_empty_inner_long_pair",
+        )
+
+    def test_manifest_target_is_injected_as_one_read_only_quartet(self) -> None:
+        target = evaluation_target()
+        source, _, instrumentation = materialize(
+            resolved_inputs(), (target,)
+        )
+        target_id = target["evaluation_target_id"]
+        target_events = [
+            event
+            for event in instrumentation
+            if {
+                (ref["ref_type"], ref["ref_id"])
+                for ref in event["trace_refs"]
+            }.issuperset({("evaluation_target", target_id)})
+        ]
+        self.assertEqual(
+            {event["event_kind"] for event in target_events},
+            {
+                "activation_checked",
+                "activation_true",
+                "activation_unevaluable",
+                "activation_check_error",
+            },
+        )
+        self.assertEqual(len(target_events), 4)
+        self.assertIn(".scalar_type() == torch::kInt64", source)
+        self.assertIn(".dim() - 1) == 0", source)
+        self.assertIn(".dim() - 2) == 0", source)
+
     def test_minimal_emitters_are_registered(self) -> None:
         expected = {
             "emit_construct_tensor_from_fuzz",
@@ -317,6 +400,7 @@ class HarnessArtifactBuilderTests(unittest.TestCase):
             "emit_enforce_dimension_relation",
             "emit_evaluate_tensor_property",
             "emit_profiled_target_api",
+            "emit_execution_survival_oracle",
             "emit_evaluate_output_property",
             "emit_evaluate_tensor_determinism",
         }
@@ -356,6 +440,153 @@ class HarnessArtifactBuilderTests(unittest.TestCase):
             }.issubset(event_kinds)
         )
 
+
+    def test_multiple_activation_targets_emit_one_joint_branch_result(self) -> None:
+        spec_record = harness_spec()
+        spec_branch = spec_record["exploration_plan"]["branches"][0]
+        spec_branch["target_properties"].append(
+            {"target_property_id": "tp_right_zero_reduction"}
+        )
+        spec_branch["activation_targets"].append(
+            {
+                "activation_target_id": "at_right_zero_reduction",
+                "target_property_id": "tp_right_zero_reduction",
+                "observation_points": [
+                    {
+                        "observation_role": "before",
+                        "observation_point": "before_target_api_call",
+                    }
+                ],
+            }
+        )
+
+        strategy_record = strategy()
+        branch = strategy_record["implementation_plan"]["branch_strategies"][0]
+        branch["steps"].insert(
+            3,
+            {
+                "step_id": "step_observe_right_zero_dimension",
+                "primitive_id": "evaluate_tensor_property",
+                "template_slot": "pre_call_observation",
+                "input_bindings": [
+                    {"port_id": "subject", "value_ref": "right_tensor"}
+                ],
+                "parameter_bindings": [
+                    literal("property_kind", "dimension_size_equals"),
+                    literal("axis", 0),
+                    literal("expected_integer", 0),
+                ],
+                "output_bindings": [
+                    {
+                        "port_id": "property_holds",
+                        "value_id": "right_zero_dimension_observed",
+                    }
+                ],
+            },
+        )
+        branch["spec_bindings"].extend(
+            [
+                {
+                    "spec_element_type": "target_property",
+                    "spec_element_id": "tp_right_zero_reduction",
+                    "implementation_step_ids": [
+                        "step_construct_right"
+                    ],
+                },
+                {
+                    "spec_element_type": "activation_target",
+                    "spec_element_id": "at_right_zero_reduction",
+                    "implementation_step_ids": [
+                        "step_observe_right_zero_dimension"
+                    ],
+                },
+            ]
+        )
+
+        source, _, events = materialize(
+            resolved_inputs(
+                strategy_record=strategy_record,
+                harness_spec_record=spec_record,
+            )
+        )
+        joint_events = [
+            event
+            for event in events
+            if event["event_kind"].startswith("branch_activation_")
+        ]
+        self.assertEqual(len(joint_events), 4)
+        true_event = next(
+            event
+            for event in joint_events
+            if event["event_kind"] == "branch_activation_true"
+        )
+        self.assertEqual(len(true_event["trace_refs"]), 4)
+        self.assertIn("zero_dimension_observed", source)
+        self.assertIn("right_zero_dimension_observed", source)
+        self.assertIn("&&", source)
+
+    def test_execution_survival_oracle_materializes_after_target_call(self) -> None:
+        spec_record = harness_spec()
+        spec_branch = spec_record["exploration_plan"]["branches"][0]
+        spec_branch["oracle_requirements"] = [
+            {
+                "oracle_requirement_id": "or_no_crash",
+                "oracle_type": "crash",
+                "observation_subjects": ["context.execution"],
+                "expected_behavior": {"requirement_type": "no_crash"},
+            }
+        ]
+
+        strategy_record = strategy()
+        branch = strategy_record["implementation_plan"]["branch_strategies"][0]
+        branch["steps"].append(
+            {
+                "step_id": "step_oracle_no_crash",
+                "primitive_id": "evaluate_execution_survival",
+                "template_slot": "oracle_check",
+                "input_bindings": [],
+                "parameter_bindings": [],
+                "output_bindings": [
+                    {
+                        "port_id": "oracle_holds",
+                        "value_id": "no_crash_holds",
+                    }
+                ],
+            }
+        )
+        branch["spec_bindings"].append(
+            {
+                "spec_element_type": "oracle_requirement",
+                "spec_element_id": "or_no_crash",
+                "implementation_step_ids": ["step_oracle_no_crash"],
+            }
+        )
+
+        source, materialization_map, events = materialize(
+            resolved_inputs(
+                strategy_record=strategy_record,
+                harness_spec_record=spec_record,
+            )
+        )
+        step_order = [entry["step_id"] for entry in materialization_map]
+        self.assertLess(
+            step_order.index("step_call_matmul"),
+            step_order.index("step_oracle_no_crash"),
+        )
+        oracle_events = [
+            event
+            for event in events
+            if any(
+                ref["ref_type"] == "oracle_requirement"
+                and ref["ref_id"] == "or_no_crash"
+                for ref in event["trace_refs"]
+            )
+        ]
+        self.assertEqual(
+            {event["event_kind"] for event in oracle_events},
+            {"oracle_evaluated", "oracle_passed", "oracle_failed"},
+        )
+        self.assertIn("no_crash_holds = true", source)
 
     def test_determinism_materializes_two_identical_calls_and_comparison(self) -> None:
         spec_record = harness_spec()
@@ -554,6 +785,31 @@ class HarnessArtifactBuilderTests(unittest.TestCase):
             "template-slot order",
         ):
             materialize(resolved_inputs(strategy_record=strategy_record))
+
+    def test_compile_argv_expands_host_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            staging = Path(temporary)
+            argv = MODULE.resolve_compile_argv(
+                (
+                    "docker",
+                    "-e",
+                    "HOST_UID={host_uid}",
+                    "-e",
+                    "HOST_GID={host_gid}",
+                    "-v",
+                    "{artifact_dir}:/artifact",
+                    "{source}",
+                    "{binary}",
+                ),
+                staging,
+                ROOT / "runtime/harness_instrumentation.h",
+                ROOT / "runtime/harness_instrumentation.cpp",
+            )
+
+        self.assertIn(f"HOST_UID={MODULE.os.getuid()}", argv)
+        self.assertIn(f"HOST_GID={MODULE.os.getgid()}", argv)
+        self.assertIn(f"{staging.resolve()}:/artifact", argv)
+        self.assertEqual(argv[-2:], ["main.cpp", "harness_binary"])
 
     def test_compile_failure_keeps_diagnostics_without_binary(self) -> None:
         config = MODULE.CompileConfiguration(
