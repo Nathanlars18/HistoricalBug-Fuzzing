@@ -40,7 +40,7 @@ ARTIFACT_BUILDER = REPOSITORY_ROOT / (
     "experiment/EXP011_bug_aware_harness_synthesis/scripts/"
     "build_harness_artifact.py"
 )
-RUNNER_VERSION = "0.5.0"
+RUNNER_VERSION = "0.6.0"
 FEEDBACK_CONTROLLER = REPOSITORY_ROOT / (
     "experiment/EXP012_adaptive_feedback/scripts/"
     "run_feedback_controller.py"
@@ -281,6 +281,82 @@ def group_map(matrix: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     return result
 
 
+def validate_controlled_design(matrix: Mapping[str, Any]) -> None:
+    """Reject matrix settings that break the three-group causal comparison."""
+    groups = group_map(matrix)
+    expected = {
+        "structured_baseline": {
+            "harness_spec_builder_mode": "controlled_baseline",
+            "knowledge_exposure": "none",
+            "feedback_mode": "disabled",
+            "initial_harness_policy": "independent_structured_baseline",
+        },
+        "bug_aware_static": {
+            "harness_spec_builder_mode": "bug_aware_static",
+            "knowledge_exposure": "api_specific",
+            "feedback_mode": "observe_only",
+            "initial_harness_policy": "shared_bug_aware_h0",
+        },
+        "bug_aware_adaptive": {
+            "harness_spec_builder_mode": "reuse_bug_aware_static_h0",
+            "knowledge_exposure": "api_specific",
+            "feedback_mode": "adaptive",
+            "initial_harness_policy": "reference_bug_aware_static_h0",
+        },
+    }
+    for group_id, fields in expected.items():
+        group = groups[group_id]
+        for field, expected_value in fields.items():
+            if group.get(field) != expected_value:
+                raise ConfigurationError(
+                    f"core_groups[{group_id}].{field} must be "
+                    f"{expected_value!r}"
+                )
+
+    seed_policy = require_object(matrix.get("seed_policy"), "seed_policy")
+    if seed_policy.get("group_id_excluded") is not True:
+        raise ConfigurationError(
+            "seed_policy.group_id_excluded must be true for paired groups"
+        )
+
+    corpus_policy = require_object(matrix.get("corpus_policy"), "corpus_policy")
+    for field, expected_value in {
+        "independent_copy_per_group_and_repeat": True,
+        "inherit_within_repeat": True,
+        "share_runtime_corpus_across_groups": False,
+        "share_runtime_corpus_across_repeats": False,
+    }.items():
+        if corpus_policy.get(field) is not expected_value:
+            raise ConfigurationError(
+                f"corpus_policy.{field} must be {str(expected_value).lower()}"
+            )
+
+    feedback = require_object(matrix.get("feedback"), "feedback")
+    shared = require_object(
+        feedback.get("shared_initial_state"),
+        "feedback.shared_initial_state",
+    )
+    if shared.get("source_group") != "bug_aware_static":
+        raise ConfigurationError(
+            "feedback.shared_initial_state.source_group must be bug_aware_static"
+        )
+    for field in (
+        "reuse_exact_harness_spec",
+        "reuse_exact_strategy",
+        "reuse_exact_core_source",
+        "reuse_exact_instrumented_source",
+        "reuse_exact_binary",
+    ):
+        if shared.get(field) is not True:
+            raise ConfigurationError(
+                f"feedback.shared_initial_state.{field} must be true"
+            )
+    if feedback.get("extend_fuzzing_budget_after_revision_failure") is not False:
+        raise ConfigurationError(
+            "feedback.extend_fuzzing_budget_after_revision_failure must be false"
+        )
+
+
 def execution_readiness_issues(matrix: Mapping[str, Any]) -> list[str]:
     issues: list[str] = []
     lifecycle = require_object(matrix.get("lifecycle"), "lifecycle")
@@ -377,6 +453,8 @@ def validate_matrix(matrix: Mapping[str, Any]) -> list[str]:
         != "first_8_bytes_unsigned_big_endian"
     ):
         raise ConfigurationError("Unsupported seed derivation encoding")
+
+    validate_controlled_design(matrix)
 
     return execution_readiness_issues(matrix)
 
@@ -827,6 +905,49 @@ def preflight(
         raise RunnerError(f"Preflight failed: {result}")
 
 
+def default_branch_spec_hash(path: Path) -> str:
+    record = require_object(load_json(path), f"HarnessSpec {path}")
+    plan = require_object(record.get("exploration_plan"), "exploration_plan")
+    branches = plan.get("branches")
+    if not isinstance(branches, list):
+        raise RunnerError("HarnessSpec exploration_plan.branches must be an array")
+    defaults = [
+        branch
+        for branch in branches
+        if isinstance(branch, dict) and branch.get("branch_kind") == "default"
+    ]
+    if len(defaults) != 1:
+        raise RunnerError("HarnessSpec must contain exactly one default Branch")
+    projection = dict(defaults[0])
+    projection.pop("budget_share", None)
+    return content_hash(projection)
+
+
+def default_branch_strategy_hash(spec_path: Path, strategy_path: Path) -> str:
+    spec = require_object(load_json(spec_path), f"HarnessSpec {spec_path}")
+    default_id = require_string(
+        require_object(spec.get("exploration_plan"), "exploration_plan").get(
+            "default_branch_id"
+        ),
+        "default_branch_id",
+    )
+    strategy = require_object(load_json(strategy_path), f"Strategy {strategy_path}")
+    implementation = require_object(
+        strategy.get("implementation_plan"), "implementation_plan"
+    )
+    branches = implementation.get("branch_strategies")
+    if not isinstance(branches, list):
+        raise RunnerError("Strategy branch_strategies must be an array")
+    defaults = [
+        branch
+        for branch in branches
+        if isinstance(branch, dict) and branch.get("source_branch_id") == default_id
+    ]
+    if len(defaults) != 1:
+        raise RunnerError("Strategy must implement exactly one default Branch")
+    return content_hash(defaults[0])
+
+
 def prepare_group(
     matrix: Mapping[str, Any],
     entry: Mapping[str, Any],
@@ -849,7 +970,13 @@ def prepare_group(
             raise RunnerError("Adaptive H0 requires completed Static preparation")
         triplet = {
             key: static[key]
-            for key in ("spec_path", "strategy_path", "artifact_path")
+            for key in (
+                "spec_path",
+                "strategy_path",
+                "artifact_path",
+                "default_branch_spec_hash",
+                "default_branch_strategy_hash",
+            )
         }
         step_state.update(
             {
@@ -874,6 +1001,20 @@ def prepare_group(
         "maximum_completed_responses"
     ]
     helper_set_path = helper_profile_set(matrix)
+    baseline = api_state.get("structured_baseline")
+    canonical_spec_args: list[str] = []
+    canonical_strategy_args: list[str] = []
+    if group_id == "bug_aware_static":
+        if not isinstance(baseline, dict) or baseline.get("status") != "success":
+            raise RunnerError("Static preparation requires completed Baseline preparation")
+        canonical_spec_args = [
+            "--canonical-default-spec",
+            require_string(baseline.get("spec_path"), "baseline spec_path"),
+        ]
+        canonical_strategy_args = [
+            "--canonical-default-strategy",
+            require_string(baseline.get("strategy_path"), "baseline strategy_path"),
+        ]
 
     spec_path = run_builder_step(
         state_path=state_path,
@@ -893,6 +1034,7 @@ def prepare_group(
             mode,
             "--max-attempts",
             str(max_attempts),
+            *canonical_spec_args,
             *model_args,
             "--output-root",
             str(operation_root / "harness_specs"),
@@ -916,6 +1058,7 @@ def prepare_group(
             str(spec_path),
             "--max-attempts",
             str(strategy_attempts),
+            *canonical_strategy_args,
             *model_args,
             "--output-root",
             str(operation_root / "strategy_plans"),
@@ -923,6 +1066,18 @@ def prepare_group(
         log_root=operation_root / "attempts",
         output_reader=strategy_output_path,
     )
+
+    default_spec_hash = default_branch_spec_hash(spec_path)
+    default_strategy_hash = default_branch_strategy_hash(spec_path, strategy_path)
+    if group_id == "bug_aware_static":
+        for field, value in (
+            ("default_branch_spec_hash", default_spec_hash),
+            ("default_branch_strategy_hash", default_strategy_hash),
+        ):
+            if value != baseline.get(field):
+                raise RunnerError(
+                    f"Static {field} differs from the controlled baseline"
+                )
 
     compile_path = verify_file_reference(
         entry.get("compile_profile_file_ref"),
@@ -987,6 +1142,8 @@ def prepare_group(
                     "artifact_path": str(artifact_path),
                 }
             ),
+            "default_branch_spec_hash": default_spec_hash,
+            "default_branch_strategy_hash": default_strategy_hash,
         }
     )
     persist_state(state_path, state)

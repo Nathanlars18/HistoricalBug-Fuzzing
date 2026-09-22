@@ -175,6 +175,12 @@ class MatrixRunnerPrepareTests(unittest.TestCase):
             mock.patch.object(
                 MODULE, "run_builder_step", side_effect=fake_builder_step
             ),
+            mock.patch.object(
+                MODULE, "default_branch_spec_hash", return_value="a" * 64
+            ),
+            mock.patch.object(
+                MODULE, "default_branch_strategy_hash", return_value="b" * 64
+            ),
             mock.patch.object(MODULE, "preflight"),
             mock.patch.object(MODULE, "persist_state"),
         ):
@@ -204,3 +210,94 @@ class MatrixRunnerPrepareTests(unittest.TestCase):
             / "harness_specs"
         )
         self.assertEqual(argv[option_index + 1], str(expected))
+
+    def test_static_builders_receive_canonical_baseline_artifacts(self) -> None:
+        matrix = {
+            "core_groups": [
+                {
+                    "group_id": "structured_baseline",
+                    "harness_spec_builder_mode": "controlled_baseline",
+                },
+                {
+                    "group_id": "bug_aware_static",
+                    "harness_spec_builder_mode": "bug_aware_static",
+                },
+                {
+                    "group_id": "bug_aware_adaptive",
+                    "harness_spec_builder_mode": "reuse_bug_aware_static_h0",
+                },
+            ],
+            "synthesis": {
+                "harness_spec": {"maximum_completed_responses": 3},
+                "strategy": {"maximum_completed_responses": 3},
+            },
+        }
+        baseline_spec = "/tmp/baseline_spec.json"
+        baseline_strategy = "/tmp/baseline_strategy.json"
+        state = {
+            "preparation": {
+                "torch.matmul": {
+                    "structured_baseline": {
+                        "status": "success",
+                        "spec_path": baseline_spec,
+                        "strategy_path": baseline_strategy,
+                        "artifact_path": "/tmp/baseline_artifact.json",
+                        "default_branch_spec_hash": "a" * 64,
+                        "default_branch_strategy_hash": "b" * 64,
+                    }
+                }
+            }
+        }
+        captured: dict[str, list[str]] = {}
+
+        def fake_builder_step(**kwargs: object) -> Path:
+            step_name = str(kwargs["step_name"])
+            captured[step_name] = list(kwargs["argv"])  # type: ignore[arg-type]
+            return Path(f"/tmp/static_{step_name}.json")
+
+        profile = {"target": {"python_api": "torch.matmul"}}
+        with (
+            mock.patch.object(MODULE, "api_profile", return_value=(profile, Path("/tmp/api.json"))),
+            mock.patch.object(MODULE, "model_arguments", return_value=[]),
+            mock.patch.object(MODULE, "helper_profile_set", return_value=Path("/tmp/helpers.json")),
+            mock.patch.object(MODULE, "verify_file_reference", return_value=Path("/tmp/compile.json")),
+            mock.patch.object(MODULE, "evaluation_target_manifest", return_value=Path("/tmp/targets.json")),
+            mock.patch.object(MODULE, "run_builder_step", side_effect=fake_builder_step),
+            mock.patch.object(MODULE, "preflight"),
+            mock.patch.object(MODULE, "persist_state"),
+            mock.patch.object(MODULE, "default_branch_spec_hash", return_value="a" * 64),
+            mock.patch.object(MODULE, "default_branch_strategy_hash", return_value="b" * 64),
+        ):
+            MODULE.prepare_group(
+                matrix,
+                {"api_id": "torch.matmul", "compile_profile_file_ref": {}},
+                "bug_aware_static",
+                Path("/tmp/index.json"),
+                state,
+                Path("/tmp/run"),
+                "python",
+            )
+
+        spec_argv = captured["harness_spec"]
+        self.assertEqual(
+            spec_argv[spec_argv.index("--canonical-default-spec") + 1],
+            baseline_spec,
+        )
+        strategy_argv = captured["strategy"]
+        self.assertEqual(
+            strategy_argv[strategy_argv.index("--canonical-default-strategy") + 1],
+            baseline_strategy,
+        )
+
+    def test_formal_matrix_satisfies_controlled_design(self) -> None:
+        matrix = MODULE.load_json(MODULE.DEFAULT_MATRIX)
+        MODULE.validate_controlled_design(matrix)
+
+    def test_controlled_design_rejects_group_dependent_seeds(self) -> None:
+        matrix = MODULE.load_json(MODULE.DEFAULT_MATRIX)
+        matrix["seed_policy"]["group_id_excluded"] = False
+        with self.assertRaisesRegex(
+            MODULE.ConfigurationError,
+            "group_id_excluded must be true",
+        ):
+            MODULE.validate_controlled_design(matrix)

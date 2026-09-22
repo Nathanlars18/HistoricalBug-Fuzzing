@@ -1,0 +1,176 @@
+{
+  "schema_version": "1.7",
+  "identity": {
+    "spec_id": "hs_pytorch_torch.matmul_controlled_baseline",
+    "framework": "pytorch",
+    "target_api": "torch.matmul",
+    "spec_mode": "controlled_baseline"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "derived_from_spec_ref": null,
+    "feedback_request_ref": null,
+    "revision_trigger": "initial_creation",
+    "change_scopes": [
+      "initial_definition"
+    ],
+    "change_summary": "Initial HarnessSpec synthesis",
+    "lifecycle_status": "draft"
+  },
+  "target_context": {
+    "api_profile_ref": {
+      "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.matmul:python_default:aten.matmul.default",
+      "revision": 2,
+      "content_hash": "0e9d01a4597450a71656eada7be3b2989fbbe56fd55766eec324598f4ccc4bd6"
+    },
+    "available_helper_profile_refs": [
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_comparetensors_96f975d59bc7",
+        "revision": 2,
+        "content_hash": "3a023fbd4f2abef1efebf74da7c09a39820fb5bcaf87108f06115dcaeaa9c7af"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+        "revision": 2,
+        "content_hash": "77ba0a7b4446c33e3dce2e9c738edb1b113013315817a75cfa00c8321f0b1f1e"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_currenttimestamp_c81f2a7d32da",
+        "revision": 2,
+        "content_hash": "ec490726fa6f4b7ef9bd2a590b3dfa352cfb9ab0f571edc48934d339daf8cccd"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_ensure_log_directory_exists_0998a5920e8b",
+        "revision": 2,
+        "content_hash": "ec5d435bfd631ae34cac1ef70c71eca7ba91352a354689b1b4da987604f6106c"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_logerrormessage_ffbff3bb0e31",
+        "revision": 2,
+        "content_hash": "225e26b459e805214d62aa15b3fcebe3ad4b5f4452adb17460d67abafdcfb7d9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+        "revision": 2,
+        "content_hash": "d24f50a2b9ee76d060d46d3cd29e88d93a4e7c4afc1dd4775fbb964553aeafc6"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+        "revision": 2,
+        "content_hash": "883cb198e4fea076f62b4d8d4a585115c7a7841ea27323959b28c7dde95a6910"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parseshape_bc0dff00f287",
+        "revision": 2,
+        "content_hash": "45ec76ea73190c533ebf6a8cedef5cf44c08278d9002a648f9166b85fd54bc2d"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsetensordata_326eeb67c32d",
+        "revision": 2,
+        "content_hash": "7c13a00d198673107c2a960c6372ae9884298aa09aedcf2609c2d5d45e2807cb"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_sanitizedtimestamp_3462aebdca72",
+        "revision": 2,
+        "content_hash": "2513caf9c97e44f09e903b2c0d9bbe74341defee995561980dd45cbd86141dc9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_savediffinput_2413f328d009",
+        "revision": 2,
+        "content_hash": "6a45475e9d31bb95c9ad693af4b8366ef7ea671252b9d1fbb137ecd2b80d0608"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_saveerrorinput_315d3b0ca605",
+        "revision": 2,
+        "content_hash": "abd8268e9d0019a9a75c95eb96ac0d6b94eeba2e45a9b0ee3e832b1b2fc45086"
+      }
+    ],
+    "framework_version": "v2.10.0",
+    "backend_scope": [
+      "cpu"
+    ]
+  },
+  "knowledge_plan": {
+    "knowledge_decisions": [],
+    "resolution_records": []
+  },
+  "validity_constraints": {
+    "global_constraints": []
+  },
+  "exploration_plan": {
+    "default_branch_id": "br_default",
+    "budget_policy_ref": null,
+    "branches": [
+      {
+        "branch_id": "br_default",
+        "branch_kind": "default",
+        "input_validity_intent": "expected_valid",
+        "source_knowledge_ids": [],
+        "exploration_goal": "Canonical API-valid invocation of torch.matmul on CPU without historical risk activation.",
+        "risk_dimensions": [
+          "execution"
+        ],
+        "target_properties": [],
+        "branch_preconditions": [],
+        "branch_constraints": [],
+        "activation_targets": [],
+        "oracle_requirements": [
+          {
+            "oracle_requirement_id": "orc_br_default_001",
+            "oracle_type": "crash",
+            "observation_subjects": [
+              "context.execution"
+            ],
+            "oracle_preconditions": [],
+            "expected_behavior": {
+              "requirement_type": "no_crash",
+              "parameters": {},
+              "description": "The target API invocation must complete without a crash."
+            },
+            "source_refs": [
+              {
+                "source_type": "api_profile",
+                "source_id": "api_prof:pytorch:v2.10.0:cpu:torch.matmul:python_default:aten.matmul.default",
+                "source_version": 2,
+                "content_hash": "0e9d01a4597450a71656eada7be3b2989fbbe56fd55766eec324598f4ccc4bd6"
+              }
+            ],
+            "requirement_level": "required"
+          }
+        ],
+        "budget_share": 1.0
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "llm",
+    "generator_name": "harness_spec_builder_v0.11",
+    "model_name": "deepseek-v4-pro",
+    "generation_run_id": "run_20260922T103718Z_d7906b252326",
+    "script_ref": {
+      "artifact_id": "build_harness_spec_json.py",
+      "artifact_version": "harness_spec_builder_v0.11",
+      "content_hash": "9c08af77e3ad0c30335b3caed01b1efca7bcf9d42c7fe1b4c82ed77868396e62"
+    },
+    "contract_ref": {
+      "artifact_id": "harness_spec_synthesis_contract.json",
+      "artifact_version": "1.8",
+      "content_hash": "a0b2f5aa35b63b1e820a4e6751ea598646e65eb68bb8b2f8e0f401c41d0b813b"
+    },
+    "rules_ref": {
+      "artifact_id": "knowledge_to_harness_spec_rules.md",
+      "artifact_version": "1.7",
+      "content_hash": "9c196890da8b804a059d6486a378e410137e39d516e06736beb4df194f57f89d"
+    },
+    "generated_at": "2026-09-22T10:37:41.841355Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

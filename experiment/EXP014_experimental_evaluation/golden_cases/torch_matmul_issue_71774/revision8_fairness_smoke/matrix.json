@@ -1,9 +1,9 @@
 {
   "matrix_format_version": "0.4",
-  "matrix_id": "pytorch_2_10_bug_aware_pilot",
+  "matrix_id": "pytorch_2_10_torch_matmul_revision8_smoke",
   "matrix_revision": {
-    "revision_number": 8,
-    "change_reason": "freeze shared generic-branch, paired-seed, corpus-isolation, and equal-budget controls"
+    "revision_number": 1,
+    "change_reason": "validate revision 8 fairness controls with one five-second repeat"
   },
   "lifecycle": {
     "status": "frozen",
@@ -219,9 +219,9 @@
     }
   },
   "execution": {
-    "repeat_count": 3,
+    "repeat_count": 1,
     "round_count": 3,
-    "active_fuzzing_seconds_per_round": 300,
+    "active_fuzzing_seconds_per_round": 5,
     "restart_fuzzer_at_round_boundary": true,
     "maximum_parallel_main_jobs": 1,
     "runner_file_ref": {
@@ -297,22 +297,6 @@
           "structured_baseline",
           "bug_aware_static",
           "bug_aware_adaptive"
-        ]
-      },
-      {
-        "repeat_id": 2,
-        "group_order": [
-          "bug_aware_static",
-          "bug_aware_adaptive",
-          "structured_baseline"
-        ]
-      },
-      {
-        "repeat_id": 3,
-        "group_order": [
-          "bug_aware_adaptive",
-          "structured_baseline",
-          "bug_aware_static"
         ]
       }
     ]

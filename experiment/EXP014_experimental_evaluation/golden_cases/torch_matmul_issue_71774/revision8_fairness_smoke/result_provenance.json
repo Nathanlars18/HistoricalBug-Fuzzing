@@ -1,0 +1,9 @@
+{
+  "runner_version": "0.6.0",
+  "matrix_id": "pytorch_2_10_torch_matmul_revision8_smoke",
+  "matrix_content_hash": "b23a0fa3af24a134f821c6c7c65f85da780d3947eec4e172aff2e94072692b18",
+  "last_terminal_core_run_at": "2026-09-22T10:51:05.316411Z",
+  "analysis_cutoff_at": "2026-09-22T10:51:06.316411Z",
+  "finalized_at": "2026-09-22T10:51:26Z",
+  "task_count": 9
+}

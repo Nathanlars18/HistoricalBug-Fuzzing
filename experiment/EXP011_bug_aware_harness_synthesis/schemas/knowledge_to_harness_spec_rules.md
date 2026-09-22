@@ -179,6 +179,15 @@ Create exactly one `default` branch. It must:
 - represent the canonical API-valid path;
 - include at least one required Oracle.
 
+The `controlled_baseline` default branch is the canonical definition of this
+generic path. For an initial bug-aware record, the Builder replaces the LLM's
+proposed default-branch semantics with that exact baseline branch before
+validation and artifact generation. It preserves only the bug-aware branch
+budget allocation. Thus Knowledge can add Knowledge-directed branches but
+cannot silently change the generic path used for the controlled comparison.
+This rule concerns semantic branch content, not a requirement to reproduce a
+historical Issue input exactly.
+
 For `controlled_baseline`, return exactly this default branch. Do not create `generic_exploration` or `knowledge_directed` branches.
 
 A `generic_exploration` branch is available only in bug-aware modes. It uses only API/Profile information and contains no
@@ -193,6 +202,11 @@ because no Knowledge was selected.
 A `knowledge_directed` branch corresponds to one compatible group of selected
 Knowledge contributions and references every selected Knowledge record that
 supports that group.
+
+Fix only the conditions directly supported by those records. At least one
+target-API input degree of freedom must remain derived from Fuzzer bytes unless
+the cited condition itself requires that input to be fixed; a selector byte does
+not count as a target-input degree of freedom.
 
 Do not create one branch per Knowledge automatically. Apply the merge-default
 and split conditions in Relationship Resolution. A single branch may cover

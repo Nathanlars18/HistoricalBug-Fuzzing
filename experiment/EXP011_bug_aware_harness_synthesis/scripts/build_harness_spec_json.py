@@ -32,7 +32,7 @@ except ImportError as exc:  # pragma: no cover
     ) from exc
 
 
-BUILDER_VERSION = "harness_spec_builder_v0.10"
+BUILDER_VERSION = "harness_spec_builder_v0.11"
 SCHEMA_VERSION = "1.7"
 CONTRACT_VERSION = "1.8"
 RULES_VERSION = "1.7"
@@ -1784,7 +1784,7 @@ def assemble_record(plan: dict[str, Any], args: argparse.Namespace, api: dict[st
         decision["knowledge_ref"] = references[decision.pop("knowledge_id")]
     framework = api["target"]["framework"]
     spec_id = spec_id_for(framework, args.target_api, args.mode)
-    return {
+    record = {
         "schema_version": SCHEMA_VERSION,
         "identity": {"spec_id": spec_id, "framework": framework, "target_api": args.target_api, "spec_mode": args.mode},
         "revision_information": {
@@ -1804,6 +1804,81 @@ def assemble_record(plan: dict[str, Any], args: argparse.Namespace, api: dict[st
         "provenance": {"generation_method": "llm", "generator_name": BUILDER_VERSION, "model_name": args.model, "generation_run_id": run_id, "script_ref": artifact_ref(Path(__file__).resolve(), BUILDER_VERSION), "contract_ref": artifact_ref(args.contract, CONTRACT_VERSION), "rules_ref": artifact_ref(args.rules, RULES_VERSION), "generated_at": utc_now()},
         "review": {"validation_status": "passed", "validation_issues": [], "human_review_status": "not_reviewed", "reviewer_id": None, "reviewed_at": None, "review_notes": None},
     }
+    return record
+
+
+def default_branch(record: dict[str, Any], label: str) -> dict[str, Any]:
+    branches = require_list(record["exploration_plan"].get("branches"), f"{label}.branches")
+    defaults = [
+        require_object(branch, f"{label}.branch")
+        for branch in branches
+        if isinstance(branch, dict) and branch.get("branch_kind") == "default"
+    ]
+    if len(defaults) != 1:
+        raise InputError(f"{label} must contain exactly one default Branch")
+    return defaults[0]
+
+
+def default_branch_projection(branch: dict[str, Any]) -> dict[str, Any]:
+    """Return budget-independent Branch semantics for cross-group comparison."""
+    projected = copy.deepcopy(branch)
+    projected.pop("budget_share", None)
+    return projected
+
+
+def resolve_canonical_default_spec(
+    args: argparse.Namespace,
+    schema: dict[str, Any],
+    api: dict[str, Any],
+    helpers: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if args.mode == "controlled_baseline":
+        return None
+    canonical = validate_profile_record(
+        load_json(args.canonical_default_spec), schema, "canonical default HarnessSpec"
+    )
+    identity = canonical["identity"]
+    if (
+        identity.get("spec_mode") != "controlled_baseline"
+        or identity.get("framework") != api["target"]["framework"]
+        or identity.get("target_api") != api["target"]["python_api"]
+    ):
+        raise InputError("Canonical default HarnessSpec identity is incompatible")
+    if canonical["review"].get("validation_status") != "passed":
+        raise InputError("Canonical default HarnessSpec is not validated")
+    context = canonical["target_context"]
+    if context.get("api_profile_ref") != profile_reference(api):
+        raise InputError("Canonical default HarnessSpec uses a different API Profile")
+    expected_helpers = [profile_reference(item) for item in helpers]
+    if context.get("available_helper_profile_refs") != expected_helpers:
+        raise InputError("Canonical default HarnessSpec uses a different Helper Profile set")
+    if len(canonical["exploration_plan"]["branches"]) != 1:
+        raise InputError("Canonical baseline HarnessSpec must contain only its default Branch")
+    default_branch(canonical, "canonical default HarnessSpec")
+    return canonical
+
+
+def apply_canonical_default_branch(
+    record: dict[str, Any], canonical: dict[str, Any] | None
+) -> None:
+    if canonical is None:
+        return
+    current = default_branch(record, "bug-aware HarnessSpec")
+    shared = copy.deepcopy(default_branch(canonical, "canonical default HarnessSpec"))
+    shared["budget_share"] = current["budget_share"]
+    branches = record["exploration_plan"]["branches"]
+    index = next(
+        index
+        for index, branch in enumerate(branches)
+        if branch.get("branch_kind") == "default"
+    )
+    branches[index] = shared
+    record["exploration_plan"]["default_branch_id"] = shared["branch_id"]
+    record["provenance"]["generation_method"] = "hybrid"
+    if default_branch_projection(shared) != default_branch_projection(
+        default_branch(canonical, "canonical default HarnessSpec")
+    ):
+        raise ValidationError("Canonical default Branch was not preserved exactly")
 
 
 def validate_record(record: dict[str, Any], schema: dict[str, Any]) -> None:
@@ -1869,6 +1944,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         type=Path,
         help="Stable manifest pinning the only Helper Profile revisions eligible for synthesis.",
     )
+    parser.add_argument(
+        "--canonical-default-spec",
+        type=Path,
+        help=(
+            "Exact validated controlled-baseline HarnessSpec whose default Branch "
+            "is reused by an initial bug-aware HarnessSpec."
+        ),
+    )
     parser.add_argument("--mode", choices=("controlled_baseline", "bug_aware_static", "bug_aware_adaptive"))
     parser.add_argument("--feedback-request", type=Path)
     parser.add_argument("--parent-spec", type=Path)
@@ -1905,6 +1988,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
             args.revision != 1 or args.revision_trigger is not None
             or args.change_scope is not None or args.change_summary is not None
             or args.budget_policy is not None
+            or args.canonical_default_spec is not None
         ):
             parser.error("API Profile refresh owns revision and change metadata")
         return args
@@ -1920,11 +2004,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
             or args.change_scope is not None
             or args.change_summary is not None
             or args.budget_policy is not None
+            or args.canonical_default_spec is not None
         ):
             parser.error("feedback application owns revision and budget metadata")
         return args
     if args.mode is None or args.target_api is None:
         parser.error("initial synthesis requires --mode and --target-api")
+    if args.mode == "controlled_baseline" and args.canonical_default_spec is not None:
+        parser.error("controlled baseline cannot use --canonical-default-spec")
+    if args.mode != "controlled_baseline" and args.canonical_default_spec is None:
+        parser.error("bug-aware initial synthesis requires --canonical-default-spec")
     if args.revision == 1:
         if args.revision_trigger not in (None, "initial_creation"):
             parser.error("revision 1 requires --revision-trigger initial_creation")
@@ -1984,6 +2073,9 @@ def main(argv: list[str] | None = None) -> int:
         knowledge = [] if args.mode == "controlled_baseline" else select_knowledge(args.knowledge_root, args.framework, args.target_api)
         if args.mode != "controlled_baseline" and not knowledge:
             raise InputError("Bug-aware synthesis requires at least one API-specific Knowledge record")
+        canonical_default = resolve_canonical_default_spec(
+            args, record_schema, api, helpers.available
+        )
         parent_ref = parent_reference(args, api, record_schema)
         run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{uuid.uuid4().hex[:12]}"
         if args.dry_run:
@@ -2025,6 +2117,11 @@ def main(argv: list[str] | None = None) -> int:
                     "max_prompt_chars": args.max_prompt_chars,
                     "parent_revision_ref": parent_ref,
                     "budget_policy_ref": None if policy_path is None else artifact_ref(policy_path, policy["policy_version"]),
+                    "canonical_default_spec_ref": (
+                        None
+                        if canonical_default is None
+                        else harness_spec_reference(canonical_default)
+                    ),
                     "generation_run_id": run_id,
                 },
             )
@@ -2050,6 +2147,7 @@ def main(argv: list[str] | None = None) -> int:
                     parent_ref,
                     run_id,
                 )
+                apply_canonical_default_branch(record, canonical_default)
                 validate_record(record, record_schema)
                 path = destination(args.output_root, record)
                 write_json(path, record)

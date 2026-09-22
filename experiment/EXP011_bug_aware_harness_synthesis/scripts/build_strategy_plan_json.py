@@ -40,7 +40,7 @@ try:
     from jsonschema import Draft202012Validator, FormatChecker
 except ImportError as exc:
     raise SystemExit('Missing dependency; install environment/python-control-requirements.txt') from exc
-BUILDER_VERSION = 'strategy_plan_builder_v0.5'
+BUILDER_VERSION = 'strategy_plan_builder_v0.6'
 STRATEGY_SCHEMA_VERSION = '1.1'
 CONTRACT_VERSION = '1.5'
 RULES_VERSION = '1.2'
@@ -1171,6 +1171,34 @@ def validate_default_branch_fuzz_dependence(
             )
 
 
+def validate_knowledge_branch_fuzz_dependence(
+    spec: dict[str, Any],
+    source_id: str,
+    target_steps: list[str],
+    step_map: dict[str, dict[str, Any]],
+    fuzz_dependent_values: set[str],
+) -> None:
+    """Require a real post-selector fuzz degree of freedom in Knowledge paths."""
+    source_branch = next(
+        branch
+        for branch in spec['exploration_plan']['branches']
+        if branch['branch_id'] == source_id
+    )
+    if source_branch['branch_kind'] != 'knowledge_directed':
+        return
+    target_inputs = {
+        binding['value_ref']
+        for step_id in target_steps
+        for binding in step_map[step_id]['input_bindings']
+    }
+    if not target_inputs.intersection(fuzz_dependent_values):
+        raise PlanValidationError(
+            f'Knowledge-directed Branch {source_id} fixes every target input; '
+            'at least one meaningful target-input degree of freedom must depend '
+            'on consumed LibFuzzer bytes'
+        )
+
+
 
 def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, catalog: dict[str, Any]) -> None:
     (branch_ids, element_map, required_elements, exposed_parameter_map) = build_spec_context(resolved.spec)
@@ -1313,6 +1341,13 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
             target_steps,
             step_map,
             primitive_map,
+            fuzz_dependent_values,
+        )
+        validate_knowledge_branch_fuzz_dependence(
+            resolved.spec,
+            source_id,
+            target_steps,
+            step_map,
             fuzz_dependent_values,
         )
         binding_keys: set[tuple[str, str, str]] = set()
@@ -1487,6 +1522,86 @@ def strategy_reference(strategy: dict[str, Any]) -> dict[str, Any]:
         'revision_number': strategy['revision_information']['revision_number'],
         'content_hash': canonical_hash(strategy),
     }
+
+
+def canonical_default_strategy_branch(
+    strategy: dict[str, Any], label: str
+) -> dict[str, Any]:
+    branches = strategy['implementation_plan']['branch_strategies']
+    if len(branches) != 1:
+        raise ItemInputError(f'{label} must contain exactly one Branch strategy')
+    return branches[0]
+
+
+def resolve_canonical_default_strategy(
+    args: argparse.Namespace,
+    resolved: ResolvedInputs,
+    catalog: dict[str, Any],
+    record_validator: Draft202012Validator,
+) -> dict[str, Any] | None:
+    mode = resolved.spec['identity']['spec_mode']
+    if mode == 'controlled_baseline':
+        if args.canonical_default_strategy is not None:
+            raise ItemInputError(
+                'Controlled baseline cannot consume --canonical-default-strategy'
+            )
+        return None
+    if args.canonical_default_strategy is None:
+        raise ItemInputError(
+            'Initial bug-aware Strategy synthesis requires '
+            '--canonical-default-strategy'
+        )
+    canonical = require_object(
+        load_json(args.canonical_default_strategy),
+        'canonical default Strategy',
+    )
+    validate_against(
+        canonical,
+        record_validator,
+        f'canonical default Strategy {args.canonical_default_strategy}',
+        ItemInputError,
+    )
+    identity = canonical['identity']
+    current = resolved.spec['identity']
+    if (
+        identity.get('spec_mode') != 'controlled_baseline'
+        or identity.get('framework') != current['framework']
+        or identity.get('target_api') != current['target_api']
+    ):
+        raise ItemInputError('Canonical default Strategy identity is incompatible')
+    expected_catalog = {
+        'catalog_id': catalog['catalog_id'],
+        'catalog_version': catalog['catalog_version'],
+        'content_hash': canonical_hash(catalog),
+    }
+    if canonical['source_context']['strategy_catalog_ref'] != expected_catalog:
+        raise ItemInputError('Canonical default Strategy uses a different Catalog')
+    if canonical['review']['validation_status'] != 'passed':
+        raise ItemInputError('Canonical default Strategy is not validated')
+    canonical_default_strategy_branch(canonical, 'canonical default Strategy')
+    return canonical
+
+
+def apply_canonical_default_strategy(
+    plan: dict[str, Any], canonical: dict[str, Any] | None
+) -> None:
+    if canonical is None:
+        return
+    shared = copy.deepcopy(
+        canonical_default_strategy_branch(canonical, 'canonical default Strategy')
+    )
+    shared.pop('failure_handlers', None)
+    branches = plan['branch_strategies']
+    indexes = [
+        index
+        for index, branch in enumerate(branches)
+        if branch.get('source_branch_id') == shared['source_branch_id']
+    ]
+    if len(indexes) != 1:
+        raise PlanValidationError(
+            'Bug-aware plan must contain exactly one canonical default strategy'
+        )
+    branches[indexes[0]] = shared
 
 
 
@@ -1823,6 +1938,9 @@ def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any]
             catalog,
             record_validator,
         )
+        canonical_default = resolve_canonical_default_strategy(
+            args, resolved, catalog, record_validator
+        )
         views = build_prompt_views(resolved, catalog)
         initial_prompt = build_prompt(contract, rules, views, [], args.max_prompt_chars)
         if args.dry_run:
@@ -1861,6 +1979,7 @@ def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any]
                     diagnostic_path = write_diagnostic(args.output_root, run_id, 'blocked', spec_path, spec, catalog, attempt, gaps=gaps)
                     return Outcome(harness_spec=str(spec_path), target_api=target_api, mode=mode, status='blocked', attempts=attempt, diagnostics_path=str(diagnostic_path), message='Strategy synthesis returned validated blocking gaps')
                 plan = normalize_materialized_plan(response, resolved, catalog)
+                apply_canonical_default_strategy(plan, canonical_default)
                 materialize_failure_handlers(plan, resolved)
                 validate_materialized_plan(plan, resolved, catalog)
                 record = assemble_record(
@@ -1901,6 +2020,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         type=Path,
         help='Exact HarnessSpec implemented by --rebind-from-strategy.',
     )
+    parser.add_argument(
+        '--canonical-default-strategy',
+        type=Path,
+        help=(
+            'Exact validated controlled-baseline Strategy whose br_default '
+            'implementation is reused by initial bug-aware synthesis.'
+        ),
+    )
     for (name, default) in DEFAULTS.items():
         parser.add_argument('--' + name.replace('_', '-'), type=Path, default=default)
     parser.add_argument(
@@ -1933,7 +2060,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     if args.max_prompt_chars < 1:
         parser.error('--max-prompt-chars must be positive')
     if args.rebind_from_strategy is not None and (
-        args.strategy_revision != 1 or args.parent_strategy is not None
+        args.strategy_revision != 1
+        or args.parent_strategy is not None
+        or args.canonical_default_strategy is not None
     ):
         parser.error(
             'Initial Strategy revision options cannot be combined with '

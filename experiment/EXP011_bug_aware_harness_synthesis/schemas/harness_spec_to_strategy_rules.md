@@ -186,12 +186,16 @@ fuzz dependence.
 
 A `controlled_baseline` Branch must not fix an input merely to simplify
 materialization. For the same API Profile and Catalog, the default Branch in a
-Bug-aware plan must preserve the same general fuzz-input policy; historical
-Knowledge may affect only the additional Knowledge-directed Branches.
+Bug-aware plan is replaced by the Builder with the exact validated
+controlled-baseline default-branch implementation. Historical Knowledge may
+affect only additional Knowledge-directed Branches. This preserves the shared
+generic implementation while permitting different branch-budget allocation.
 
 For a Knowledge-directed Branch, fix only the properties required to realize
 its HarnessSpec conditions. Keep remaining supported dimensions or values
-fuzz-derived when doing so preserves validity and the required activation.
+fuzz-derived when doing so preserves validity and the required activation. At
+least one target-API input must retain a transitive Fuzzer-byte dependency; the
+Branch selector alone is insufficient.
 
 ### 4.5 Resolve Candidate Failure
 

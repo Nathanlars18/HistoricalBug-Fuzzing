@@ -259,6 +259,44 @@ class HarnessSpecSemanticTests(unittest.TestCase):
         )
         MODULE.validate_record(record, self.record_schema)
 
+    def test_canonical_default_branch_replaces_llm_default_but_keeps_budget(self) -> None:
+        canonical_branch = {
+            "branch_id": "br_default",
+            "branch_kind": "default",
+            "exploration_goal": "Canonical API-valid exploration.",
+            "budget_share": 1.0,
+        }
+        canonical = {
+            "exploration_plan": {
+                "default_branch_id": "br_default",
+                "branches": [canonical_branch],
+            }
+        }
+        record = {
+            "exploration_plan": {
+                "default_branch_id": "br_default",
+                "branches": [
+                    {
+                        "branch_id": "br_default",
+                        "branch_kind": "default",
+                        "exploration_goal": "LLM-generated alternative.",
+                        "budget_share": 0.5,
+                    },
+                    {
+                        "branch_id": "br_knowledge_001",
+                        "branch_kind": "knowledge_directed",
+                        "budget_share": 0.5,
+                    },
+                ],
+            },
+            "provenance": {"generation_method": "llm"},
+        }
+        MODULE.apply_canonical_default_branch(record, canonical)
+        default = MODULE.default_branch(record, "record")
+        self.assertEqual(default["exploration_goal"], canonical_branch["exploration_goal"])
+        self.assertEqual(default["budget_share"], 0.5)
+        self.assertEqual(record["provenance"]["generation_method"], "hybrid")
+
     def test_valid_plan_normalizes_local_ids_and_passes(self) -> None:
         plan = self.normalize_and_validate(valid_plan())
         branches = plan["exploration_plan"]["branches"]

@@ -1,0 +1,406 @@
+{
+  "schema_version": "1.2",
+  "record_type": "harness_artifact",
+  "identity": {
+    "harness_artifact_id": "ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_cc7f82d790cd",
+    "generation_key": "cc7f82d790cd222278dfc57ff01d182076c38beed71c0f06e53bd88479d3e2c9"
+  },
+  "source_context": {
+    "strategy_revision_ref": {
+      "strategy_id": "st_hs_pytorch_torch_matmul_controlled_baseline_hsr001",
+      "revision_number": 1,
+      "content_hash": "4663f6d35c6a531ad9d709331e7e9e25637e99bb0ed731747771c6a5cfdb028d"
+    }
+  },
+  "source_artifact": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_revision8_fairness/prepare/torch_matmul/structured_baseline/harnesses/pytorch/torch_matmul/controlled_baseline/ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_cc7f82d790cd/main.cpp",
+    "content_hash": "58d4d1132e7136b7831e904512f4fb677c633de220c88465da2b64a6f98fca6c",
+    "encoding": "utf-8",
+    "newline": "lf",
+    "language": "cpp",
+    "entrypoint": "LLVMFuzzerTestOneInput"
+  },
+  "materialization_map": [
+    {
+      "branch_id": "br_default",
+      "step_id": "step_001",
+      "primitive_id": "construct_tensor_with_constraints",
+      "emitter_id": "emit_construct_tensor_with_constraints",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_default_001",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 62,
+        "end_line": 66
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_002",
+      "primitive_id": "construct_tensor_with_constraints",
+      "emitter_id": "emit_construct_tensor_with_constraints",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_default_002",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 67,
+        "end_line": 71
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_003",
+      "primitive_id": "invoke_profiled_target_api",
+      "emitter_id": "emit_profiled_target_api",
+      "template_slot": "target_call",
+      "emitted_segment_id": "seg_br_default_003",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 72,
+        "end_line": 81
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_004",
+      "primitive_id": "evaluate_execution_survival",
+      "emitter_id": "emit_execution_survival_oracle",
+      "template_slot": "oracle_check",
+      "emitted_segment_id": "seg_br_default_004",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 82,
+        "end_line": 87
+      }
+    }
+  ],
+  "instrumentation_map": [
+    {
+      "instrumentation_binding_id": "ins_0001",
+      "runtime_site_id": 0,
+      "event_kind": "branch_entered",
+      "event_key": "br_default:branch_entered:entry",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "generator_infrastructure",
+        "owner_id": "branch_entry"
+      },
+      "source_span": {
+        "start_line": 61,
+        "end_line": 61
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0002",
+      "runtime_site_id": 1,
+      "event_kind": "input_constructed",
+      "event_key": "br_default:input_constructed:step_001",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_001"
+      },
+      "source_span": {
+        "start_line": 65,
+        "end_line": 65
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0003",
+      "runtime_site_id": 2,
+      "event_kind": "input_constructed",
+      "event_key": "br_default:input_constructed:step_002",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_002"
+      },
+      "source_span": {
+        "start_line": 70,
+        "end_line": 70
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0004",
+      "runtime_site_id": 3,
+      "event_kind": "activation_checked",
+      "event_key": "br_default:activation_checked:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 74,
+        "end_line": 74
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0005",
+      "runtime_site_id": 4,
+      "event_kind": "activation_true",
+      "event_key": "br_default:activation_true:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 75,
+        "end_line": 75
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0006",
+      "runtime_site_id": 5,
+      "event_kind": "activation_unevaluable",
+      "event_key": "br_default:activation_unevaluable:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 76,
+        "end_line": 76
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0007",
+      "runtime_site_id": 6,
+      "event_kind": "activation_check_error",
+      "event_key": "br_default:activation_check_error:et_pytorch_torch_matmul_empty_inner_long_pair",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_torch_matmul_empty_inner_long_pair"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 77,
+        "end_line": 77
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0008",
+      "runtime_site_id": 7,
+      "event_kind": "target_api_reached",
+      "event_key": "br_default:target_api_reached:step_003",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 78,
+        "end_line": 78
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0009",
+      "runtime_site_id": 8,
+      "event_kind": "target_api_completed",
+      "event_key": "br_default:target_api_completed:step_003",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 80,
+        "end_line": 80
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0010",
+      "runtime_site_id": 9,
+      "event_kind": "oracle_evaluated",
+      "event_key": "br_default:oracle_evaluated:orc_br_default_001",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_default_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_004"
+      },
+      "source_span": {
+        "start_line": 84,
+        "end_line": 84
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0011",
+      "runtime_site_id": 10,
+      "event_kind": "oracle_passed",
+      "event_key": "br_default:oracle_passed:orc_br_default_001",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_default_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_004"
+      },
+      "source_span": {
+        "start_line": 85,
+        "end_line": 85
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0012",
+      "runtime_site_id": 11,
+      "event_kind": "oracle_failed",
+      "event_key": "br_default:oracle_failed:orc_br_default_001",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "oracle_requirement",
+          "ref_id": "orc_br_default_001"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_004"
+      },
+      "source_span": {
+        "start_line": 86,
+        "end_line": 86
+      }
+    }
+  ],
+  "validation": {
+    "static_validation": {
+      "status": "passed",
+      "checks": [
+        {
+          "check_id": "strategy_materialization_complete",
+          "status": "passed"
+        },
+        {
+          "check_id": "template_markers_resolved",
+          "status": "passed"
+        },
+        {
+          "check_id": "source_spans_resolved",
+          "status": "passed"
+        },
+        {
+          "check_id": "instrumentation_sites_contiguous",
+          "status": "passed"
+        }
+      ],
+      "issues": []
+    },
+    "compile_check": {
+      "status": "passed",
+      "command_argv": [
+        "docker",
+        "run",
+        "--rm",
+        "-e",
+        "HOST_UID=1000",
+        "-e",
+        "HOST_GID=1000",
+        "-v",
+        "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_revision8_fairness/prepare/torch_matmul/structured_baseline/harnesses/pytorch/torch_matmul/controlled_baseline/.ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_cc7f82d790cd.gv5yqckg:/artifact",
+        "-v",
+        "/home/nathan/HistoricalBug-Fuzzing:/repo:ro",
+        "-w",
+        "/artifact",
+        "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8",
+        "bash",
+        "-lc",
+        "set -euo pipefail; clang++ -fsanitize=fuzzer -fno-omit-frame-pointer -O0 -g -D_GLIBCXX_USE_CXX11_ABI=1 -I/root/pytorch/build-fuzz/include -I/root/pytorch/aten/src -I/root/pytorch/c10/core -I/root/pytorch -I/root/pytorch/build-fuzz -I/root/pytorch/build-fuzz/aten/src -I/root/pytorch/torch/csrc/api/include -I/repo/third_party/FlashFuzz/scripts/template/torch_cpu -I/repo/experiment/EXP011_bug_aware_harness_synthesis/runtime main.cpp /repo/experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp -Wl,-rpath,/root/pytorch/build-fuzz/lib -L/root/pytorch/build-fuzz/lib -ltorch -ltorch_cpu -lc10 -pthread -o harness_binary; chown \"$HOST_UID:$HOST_GID\" harness_binary"
+      ],
+      "build_environment_ref": {
+        "artifact_id": "pytorch_2_10_fuzz_docker_compile",
+        "artifact_version": 1,
+        "content_hash": "b81a72fad94f001eb2524305b0eeee56f8fbd19dd2797c3f4ecd5fb131d30320"
+      },
+      "exit_code": 0,
+      "skip_reason": null,
+      "diagnostics_ref": null,
+      "binary_artifact": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_revision8_fairness/prepare/torch_matmul/structured_baseline/harnesses/pytorch/torch_matmul/controlled_baseline/ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_cc7f82d790cd/harness_binary",
+        "content_hash": "b9e8ac856aa4cd6128a7756069a6995d7f476e01986e509e1bc7fdd7316dfd4e"
+      }
+    },
+    "human_review": {
+      "status": "not_reviewed",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "review_note": null
+    }
+  },
+  "provenance": {
+    "generator": {
+      "generator_id": "build_harness_artifact",
+      "generator_version": "0.8.0",
+      "entrypoint_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_harness_artifact.py",
+        "content_hash": "69ff4f4640942b376978af319d9388f17620d78ec2adc36546c4123ecd649e31"
+      },
+      "component_refs": [
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp",
+          "content_hash": "1c85ba86f4948bac8fcfa85deb296808fa9ec5c70321f73cbe97e45f691a5eea"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.h",
+          "content_hash": "8b6d863763515577aba42bf0c006293b21258b1aa8499b1d370ab1822db27668"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/templates/libfuzzer_harness_v1.cpp.in",
+          "content_hash": "a2fc89fc6804d456b777a23f8e58dd30b9f5ab60a3c697bfde3e2e79331240d8"
+        },
+        {
+          "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest.json",
+          "content_hash": "1abf5359aa9bcf219694dfcd34203e2703099deb226b775ee466c8e94b560d75"
+        }
+      ]
+    },
+    "generation_run_id": "harness_generation_20260922T103951Z_4e66f4270549",
+    "generated_at": "2026-09-22T10:40:04.692417Z",
+    "repository_commit": "c0024deb76c8288c0a8ea4082d40c59c90e73c52",
+    "working_tree_state": "dirty",
+    "working_tree_diff_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_revision8_fairness/prepare/torch_matmul/structured_baseline/harnesses/pytorch/torch_matmul/controlled_baseline/ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r1_cc7f82d790cd/working_tree_state.txt",
+      "content_hash": "d434c1397621648c28b4a66607cb11f877ab7bd75a7b65c3bab1fac1f66f6839"
+    }
+  }
+}

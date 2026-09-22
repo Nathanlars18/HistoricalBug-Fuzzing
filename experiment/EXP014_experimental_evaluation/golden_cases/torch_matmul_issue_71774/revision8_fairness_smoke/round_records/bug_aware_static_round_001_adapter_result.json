@@ -1,0 +1,26 @@
+{
+  "status": "completed",
+  "terminal_at": "2026-09-22T10:50:18.348935Z",
+  "active_seconds_consumed": 5.0,
+  "remaining_active_seconds": 0.0,
+  "round_end_corpus_binding": {
+    "artifact_ref": {
+      "artifact_id": "corpus_998ced5fd6f0cc17",
+      "artifact_version": 1,
+      "content_hash": "0071ee6c5f6a0280092c3f0dc55150ce248e6c5e5dc82013878f12a725425fa0"
+    },
+    "record_file_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_revision8_fairness/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "content_hash": "c4761c032481bd445e5007f2959abb7c970eac7c2d93da4da42f857db5eb9ed4"
+    }
+  },
+  "round_record_file_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_revision8_fairness/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+    "content_hash": "dd0be44bd7d2ddf616709697440ebd9d9662f7620f5b89ba4d2bbd8184a3034f"
+  },
+  "runtime_snapshot_file_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/smoke_runs/torch_matmul_revision8_fairness/rounds/torch.matmul/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+    "content_hash": "ef6a212cb507c5fcd03231c76933e33adb65a5b5cce47437bb13f94a1bdf499e"
+  },
+  "candidate_bundle_binding": null
+}

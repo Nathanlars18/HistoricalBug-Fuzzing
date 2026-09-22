@@ -1,0 +1,4 @@
+api_id,group_id,repeat_id,completed,completion_status,completed_round_count,target_count,activated_target_count,target_activation_coverage,reproducible_anomaly_yield,post_feedback_anomaly_yield
+torch.matmul,structured_baseline,repeat_001,True,complete,3,1,0,0.0,0,0
+torch.matmul,bug_aware_static,repeat_001,True,complete,3,1,1,1.0,0,0
+torch.matmul,bug_aware_adaptive,repeat_001,True,complete,3,1,1,1.0,0,0

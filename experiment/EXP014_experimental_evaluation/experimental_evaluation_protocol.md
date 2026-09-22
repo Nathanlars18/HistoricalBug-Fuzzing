@@ -108,6 +108,26 @@ Primary metrics:
 
 FlashFuzz Original is an auxiliary external baseline on compatible overlapping APIs. It is reported separately whenever environment, API, Harness, or execution differences prevent a controlled comparison. Other fuzzers are discussed as related work or in a capability table unless they can be reproduced under the same evaluation conditions.
 
+### 4.5 Shared generic path and Knowledge scope
+
+The main experiment is not a historical-Issue reproducer benchmark. A
+historical reproducer may be retained as a separate fidelity fixture, but it is
+outside the primary fuzzing budget and effectiveness metrics. In the main
+experiment, historical evidence supplies only supported constraints, activation
+targets, and Oracles; it does not authorize hard-coding a whole historical
+input.
+
+For each API, Structured Baseline defines one API-valid generic default branch.
+Bug-aware Static and Adaptive use its same semantic HarnessSpec branch and exact
+Strategy implementation; only its branch-budget share differs because the
+bug-aware Harness also has Knowledge-directed branches. The generic branch must
+derive its target inputs from LibFuzzer bytes. Each Knowledge-directed branch
+must also preserve at least one fuzz-derived target-input degree of freedom and
+may fix only conditions supported by its cited Knowledge. Static and Adaptive
+may add or revise Knowledge-directed branches, but cannot alter the generic
+branch implementation. All three groups receive the same total active-fuzzing
+budget, paired seeds, environment, and independent corpus copies.
+
 ## 5. API Selection
 
 ### 5.1 Candidate Sources

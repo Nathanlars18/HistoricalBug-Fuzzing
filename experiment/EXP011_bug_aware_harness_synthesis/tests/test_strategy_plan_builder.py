@@ -250,6 +250,34 @@ class StrategyBuilderTests(unittest.TestCase):
             {'lhs', 'rhs'},
         )
 
+    def test_knowledge_branch_requires_a_fuzz_dependent_target_input(self) -> None:
+        spec = harness_spec()
+        target_step = {
+            'step_id': 's_api',
+            'input_bindings': [
+                {'port_id': 'left', 'value_ref': 'lhs'},
+                {'port_id': 'right', 'value_ref': 'rhs'},
+            ],
+        }
+        with self.assertRaisesRegex(
+            MODULE.PlanValidationError,
+            'fixes every target input',
+        ):
+            MODULE.validate_knowledge_branch_fuzz_dependence(
+                spec,
+                'br_test',
+                ['s_api'],
+                {'s_api': target_step},
+                set(),
+            )
+        MODULE.validate_knowledge_branch_fuzz_dependence(
+            spec,
+            'br_test',
+            ['s_api'],
+            {'s_api': target_step},
+            {'rhs'},
+        )
+
     def test_exposed_parameters_exclude_runtime_references(self) -> None:
         parameters = MODULE.exposed_parameters(
             MODULE.all_element_entries(harness_spec())

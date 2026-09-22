@@ -1,0 +1,160 @@
+{
+  "record_format_version": "1.2",
+  "canonicalization_version": "1.0",
+  "decision_id": "fd:torch.matmul:repeat_001:round2",
+  "decision_key": "fce354a00dfda6326c001242f4ca27008386520bd8957ec604c9bedfa76eb4df",
+  "scope": {
+    "target_api_id": "torch.matmul",
+    "experimental_group": "bug_aware_adaptive",
+    "independent_repeat_id": "repeat_001",
+    "observed_round_index": 2,
+    "effective_from_round_index": 3
+  },
+  "input_references": {
+    "current_harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.matmul_bug_aware_static",
+      "revision_number": 1,
+      "content_hash": "8ee2571108a5d582a6e92c6a897f986ce1f8de4bd549500f9753ce1676816fea"
+    },
+    "current_strategy_ref": {
+      "strategy_id": "st_hs_pytorch_torch_matmul_bug_aware_static_hsr001",
+      "revision_number": 1,
+      "content_hash": "7ca25d9e525b4a00454aca609feee3e10bdda5c450e15fb477a7c360d133bd9b"
+    },
+    "current_harness_artifact_ref": {
+      "artifact_id": "ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr001_r1_7ae6170271c9",
+      "artifact_version": "1.2",
+      "content_hash": "80cec1c0faece99dd0cb9ae097985e215bde7411202e64a13a23a6e2d7b3bef0"
+    },
+    "fuzzing_round_ref": {
+      "artifact_id": "torch.matmul:bug_aware_adaptive:repeat_001:round_002",
+      "artifact_version": "1.0",
+      "content_hash": "8e4f18f0e9f02f61f35a6c8166b1405b3ebf2aa26a8cd99fb0868e222706ff22"
+    },
+    "runtime_snapshot_ref": {
+      "artifact_id": "runtime_snapshot_ex_d7d6c57f3b6247daa676a6e5b99f22d9",
+      "artifact_version": "1.0",
+      "content_hash": "96b9522a9ce404c038ab684bbc475aad88150085350a384213992bfe3544711d"
+    },
+    "coverage_summary_ref": null,
+    "output_corpus_ref": {
+      "artifact_id": "corpus_4ae2d0dee456f611",
+      "artifact_version": 1,
+      "content_hash": "4d6fde204416f4acc1a592b02f8faf2b3bf9c6a7e5761a600d2b94101ec84129"
+    },
+    "feedback_policy_ref": {
+      "artifact_id": "adaptive_branch_budget_pilot",
+      "artifact_version": "0.4",
+      "content_hash": "33757f6a9364deef774bc3c7a1eef3284658d043702dc6f95d0ca35e029bbebf"
+    },
+    "controller_ref": {
+      "artifact_id": "run_feedback_controller",
+      "artifact_version": "0.5.3",
+      "content_hash": "bbaf2383cc433f286dd6e865758db359c5832e59e818a89a638ff33586a40d8f"
+    },
+    "prior_feedback_decision_refs": [
+      {
+        "decision_id": "fd:torch.matmul:repeat_001:round1",
+        "content_hash": "40437880d628989728e5016fcf68bc6b271c8b11b514153366515543535afb48"
+      }
+    ]
+  },
+  "round_assessment": {
+    "round_gate": {
+      "result": "eligible",
+      "issue_codes": []
+    },
+    "branch_diagnoses": [
+      {
+        "branch_id": "br_default",
+        "primary_status": "branch_healthy",
+        "supporting_statuses": [],
+        "measurements": {
+          "branch_selected_count": 7679,
+          "target_reached_count": 7679,
+          "input_rejected_count": 0,
+          "activation_required": false,
+          "activation_checked_count": null,
+          "activation_true_count": null,
+          "activation_unevaluable_count": null,
+          "activation_check_error_count": null,
+          "oracle_required": true,
+          "oracle_opportunity_count": 7679,
+          "oracle_evaluated_count": 7679
+        },
+        "instrumentation_binding_refs": [
+          "ins_0001",
+          "ins_0008",
+          "ins_0009",
+          "ins_0010"
+        ]
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "primary_status": "branch_healthy",
+        "supporting_statuses": [],
+        "measurements": {
+          "branch_selected_count": 11294,
+          "target_reached_count": 11294,
+          "input_rejected_count": 0,
+          "activation_required": true,
+          "activation_checked_count": 11294,
+          "activation_true_count": 11294,
+          "activation_unevaluable_count": 0,
+          "activation_check_error_count": 0,
+          "oracle_required": true,
+          "oracle_opportunity_count": 11294,
+          "oracle_evaluated_count": 11294
+        },
+        "instrumentation_binding_refs": [
+          "ins_0013",
+          "ins_0036",
+          "ins_0037",
+          "ins_0038",
+          "ins_0039",
+          "ins_0044",
+          "ins_0045",
+          "ins_0046",
+          "ins_0047",
+          "ins_0048"
+        ]
+      }
+    ],
+    "coverage_assessment": {
+      "trend": "coverage_unavailable",
+      "coverage_summary_ref": null
+    }
+  },
+  "budget_decision": {
+    "budget_action": "retain_current",
+    "transition_kind": "none",
+    "no_change_reason": "no_eligible_recipient",
+    "current_allocation": [
+      {
+        "branch_id": "br_default",
+        "selector_slots": 128
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "selector_slots": 128
+      }
+    ],
+    "proposed_allocation": null,
+    "transfers": [],
+    "pre_boost_decision_ref": null
+  },
+  "materialization": {
+    "outcome": "not_attempted",
+    "candidate_harness_spec_ref": null,
+    "candidate_strategy_ref": null,
+    "candidate_harness_artifact_ref": null,
+    "failed_stage": null,
+    "warning_refs": [],
+    "failure_diagnostic_refs": []
+  },
+  "run_disposition": {
+    "value": "continue",
+    "disposition_reason": null,
+    "handoff_ref": null
+  }
+}
