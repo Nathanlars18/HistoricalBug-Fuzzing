@@ -1,0 +1,451 @@
+{
+  "matrix_format_version": "0.4",
+  "matrix_id": "pytorch_2_10_torch_matmul_300s_single_repeat_preflight",
+  "matrix_revision": {
+    "revision_number": 1,
+    "change_reason": "single-repeat preflight with three 300-second rounds"
+  },
+  "lifecycle": {
+    "status": "frozen",
+    "phase": "pilot"
+  },
+  "protocol_file_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/experimental_evaluation_protocol.md",
+    "content_hash": "878fc37777e1cfb870bbd6dbbd2ea5746974d7a5d5375dfb8b9b34b5d3b02100"
+  },
+  "unresolved_bindings": [],
+  "core_groups": [
+    {
+      "group_id": "structured_baseline",
+      "harness_spec_builder_mode": "controlled_baseline",
+      "knowledge_exposure": "none",
+      "feedback_mode": "disabled",
+      "initial_harness_policy": "independent_structured_baseline"
+    },
+    {
+      "group_id": "bug_aware_static",
+      "harness_spec_builder_mode": "bug_aware_static",
+      "knowledge_exposure": "api_specific",
+      "feedback_mode": "observe_only",
+      "initial_harness_policy": "shared_bug_aware_h0"
+    },
+    {
+      "group_id": "bug_aware_adaptive",
+      "harness_spec_builder_mode": "reuse_bug_aware_static_h0",
+      "knowledge_exposure": "api_specific",
+      "feedback_mode": "adaptive",
+      "initial_harness_policy": "reference_bug_aware_static_h0",
+      "feedback_candidate_spec_mode": "bug_aware_adaptive"
+    }
+  ],
+  "api_entries": [
+    {
+      "api_id": "torch.matmul",
+      "enabled": true,
+      "target_api": "torch.matmul",
+      "target_manifest_entry_id": "torch.matmul",
+      "api_profile_binding": {
+        "artifact_ref": {
+          "artifact_id": "api_prof_pytorch_2_10_cpu_torch_matmul_aten_matmul_default_r002",
+          "artifact_version": 2,
+          "content_hash": "4c0fd33405d3ded5e26846de7d473c20112cadd0dd706bcf7c2aac203f4942fe"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/pytorch/v2.10.0/cpu/torch.matmul/api_profile__aten.matmul.default__r002.json",
+          "content_hash": "b825b95af5e497268f30fe2423e2fd331f7fefffb800569744343ba43348541b"
+        }
+      },
+      "compile_profile_file_ref": {
+        "relative_path": "runtime/flashfuzz_2_10/harness_compile_profile.json",
+        "content_hash": "b81a72fad94f001eb2524305b0eeee56f8fbd19dd2797c3f4ecd5fb131d30320"
+      },
+      "initial_corpus_binding": {
+        "artifact_ref": {
+          "artifact_id": "corpus_torch_matmul_initial_v1",
+          "artifact_version": 1,
+          "content_hash": "d2133e3e52ce0927e8d653eb2266bf79bb84742de5da6bda819228d39c46d4e1"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/configs/initial_corpora/torch_matmul_empty/corpus_manifest.json",
+          "content_hash": "41b06b9b82d378135903c2a8cf05aa4369c7d79ff88217e0e5c7ed5535d07878"
+        }
+      }
+    }
+  ],
+  "inputs": {
+    "shared_file_refs": {
+      "harness_template": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/templates/libfuzzer_harness_v1.cpp.in",
+        "content_hash": "a2fc89fc6804d456b777a23f8e58dd30b9f5ab60a3c697bfde3e2e79331240d8"
+      },
+      "runtime_instrumentation_header": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.h",
+        "content_hash": "8b6d863763515577aba42bf0c006293b21258b1aa8499b1d370ab1822db27668"
+      },
+      "runtime_instrumentation_source": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp",
+        "content_hash": "1c85ba86f4948bac8fcfa85deb296808fa9ec5c70321f73cbe97e45f691a5eea"
+      },
+      "initial_branch_budget_policy": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/schemas/initial_branch_budget_policy.json",
+        "content_hash": "e0d09200c9eb83565f0153e71a6a025ce17ea29904592b75256af9714a9eb8c9"
+      },
+      "crash_analysis_policy": {
+        "relative_path": "experiment/EXP013_crash_triage_and_result_analysis/policies/crash_analysis_policy.json",
+        "content_hash": "d07287316ddc83076c757950f84661c0559bef43d2fd54d45d407f4b950deba8"
+      },
+      "round_adapter": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/scripts/run_fuzzing_round.py",
+        "content_hash": "a14aa22b62e119bd86e527291650fc3aeb7b8079925b945297f4eb2aeef1c6d1"
+      },
+      "fuzzing_round_schema": {
+        "relative_path": "experiment/EXP012_adaptive_feedback/schemas/fuzzing_round_record.schema.json",
+        "content_hash": "c1d50b0220273836da454b0c9e731e2f0df5ff7e13a3bb19f7f4553ae5203803"
+      },
+      "candidate_bundle_schema": {
+        "relative_path": "experiment/EXP013_crash_triage_and_result_analysis/schemas/candidate_bundle_record.schema.json",
+        "content_hash": "63da7456be93f3181064f09f1d808e29580c17ccce418589df311ee196a82344"
+      }
+    },
+    "shared_artifact_refs": {
+      "capability_snapshot": {
+        "artifact_ref": {
+          "artifact_id": "capability_snapshot_pytorch_2_10_torch_matmul",
+          "artifact_version": 3,
+          "content_hash": "721556c832cd4cbb02db4c7df5838fa9c81174257e82ec94f054ae449e126c0b"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/strategy_primitive_catalog.json",
+          "content_hash": "04e690b78cb682f57c20b99c98daa8972932ced60cb2c1d1cc0101ec3769e150"
+        }
+      },
+      "evaluation_target_manifest": {
+        "artifact_ref": {
+          "artifact_id": "etm_pytorch_2_10_pilot",
+          "artifact_version": 2,
+          "content_hash": "1d7be9fb37b758ac1fa1afce3d72214ab9c3d348bb6425f44fd43f4cdbe90801"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest.json",
+          "content_hash": "1abf5359aa9bcf219694dfcd34203e2703099deb226b775ee466c8e94b560d75"
+        }
+      },
+      "helper_profile_set": {
+        "artifact_ref": {
+          "artifact_id": "helper_profile_set_pytorch_2_10_cpu",
+          "artifact_version": 1,
+          "content_hash": "0b54434c4bfb7b5bb2cf8c453106e0daa6618703c5d8c89698ad4cc0e82fcf33"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/helper_profile_set__pytorch_2_10_cpu__v001.json",
+          "content_hash": "4e23fde9c19c692f461ebe0066b823b7e8d94ff4bd5d6c34fb0188fc6c9d1cbe"
+        }
+      },
+      "strategy_primitive_catalog": {
+        "artifact_ref": {
+          "artifact_id": "pytorch_cpp_strategy_primitives",
+          "artifact_version": 3,
+          "content_hash": "721556c832cd4cbb02db4c7df5838fa9c81174257e82ec94f054ae449e126c0b"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/strategy_primitive_catalog.json",
+          "content_hash": "04e690b78cb682f57c20b99c98daa8972932ced60cb2c1d1cc0101ec3769e150"
+        }
+      }
+    }
+  },
+  "synthesis": {
+    "model_configuration_file_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/pilot_model_configuration.json",
+      "content_hash": "c31704027d64350f6a0b57dde865b6770e7cbdc2ff678075177e7cf69669c590"
+    },
+    "harness_spec": {
+      "maximum_completed_responses": 3,
+      "contract_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/schemas/harness_spec_synthesis_contract.json",
+        "content_hash": "a0b2f5aa35b63b1e820a4e6751ea598646e65eb68bb8b2f8e0f401c41d0b813b"
+      },
+      "builder_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_harness_spec_json.py",
+        "content_hash": "9c08af77e3ad0c30335b3caed01b1efca7bcf9d42c7fe1b4c82ed77868396e62"
+      }
+    },
+    "strategy": {
+      "maximum_completed_responses": 3,
+      "contract_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/schemas/strategy_synthesis_contract.json",
+        "content_hash": "6600d0c50219def674b1b66b52cc2a636e8e991673ef9671436bbc848ec66af4"
+      },
+      "builder_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_strategy_plan_json.py",
+        "content_hash": "ccb6303906eb949a10f4e2df5d7851d6786d633bb7723e0c13c5052d848ce92a"
+      }
+    },
+    "repair_input": "normalized_deduplicated_validator_diagnostics",
+    "artifact_materialization_attempts": 1,
+    "artifact_builder_file_ref": {
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_harness_artifact.py",
+      "content_hash": "69ff4f4640942b376978af319d9388f17620d78ec2adc36546c4123ecd649e31"
+    }
+  },
+  "execution_environment": {
+    "framework_name": "pytorch",
+    "framework_version": "2.10",
+    "fuzz_environment_snapshot_ref": {
+      "artifact_ref": {
+        "artifact_id": "runtime_config_pytorch_2_10_cpu",
+        "artifact_version": 1,
+        "content_hash": "9006cfc2edf33d73b38f1a7dcd40e88ec22fff2e2e247f0f4d0f3c67bada6415"
+      },
+      "record_file_ref": {
+        "relative_path": "runtime/flashfuzz_2_10/runtime_config.json",
+        "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f"
+      }
+    },
+    "coverage_environment_snapshot_ref": {
+      "artifact_ref": {
+        "artifact_id": "runtime_config_pytorch_2_10_cpu",
+        "artifact_version": 1,
+        "content_hash": "9006cfc2edf33d73b38f1a7dcd40e88ec22fff2e2e247f0f4d0f3c67bada6415"
+      },
+      "record_file_ref": {
+        "relative_path": "runtime/flashfuzz_2_10/runtime_config.json",
+        "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f"
+      }
+    },
+    "resource_profile_file_ref": {
+      "relative_path": "runtime/flashfuzz_2_10/runtime_config.json",
+      "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f"
+    }
+  },
+  "execution": {
+    "repeat_count": 1,
+    "round_count": 3,
+    "active_fuzzing_seconds_per_round": 300,
+    "restart_fuzzer_at_round_boundary": true,
+    "maximum_parallel_main_jobs": 1,
+    "runner_file_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/scripts/run_experiment_matrix.py",
+      "content_hash": "b00e1c2e546002a6ac1559d9ee0a99c020bdfa98cf5a834b8a5ec2fa887791e4"
+    },
+    "runner_adapters": {
+      "round_argv_template": [
+        ".venv/bin/python",
+        "-B",
+        "experiment/EXP014_experimental_evaluation/scripts/run_fuzzing_round.py",
+        "run",
+        "--harness-record",
+        "{harness_record}",
+        "--strategy-plan",
+        "{strategy_plan}",
+        "--harness-spec",
+        "{harness_spec}",
+        "--api-id",
+        "{api_id}",
+        "--target-api",
+        "{target_api}",
+        "--group-id",
+        "{group_id}",
+        "--repeat-id",
+        "{repeat_id}",
+        "--repeat-index",
+        "{repeat_index}",
+        "--round-id",
+        "{round_id}",
+        "--round-index",
+        "{round_index}",
+        "--planned-final-round-index",
+        "{planned_final_round_index}",
+        "--attempt-index",
+        "{attempt_index}",
+        "--task-key",
+        "{task_key}",
+        "--seed",
+        "{seed}",
+        "--active-seconds",
+        "{active_seconds}",
+        "--round-start-corpus-record",
+        "{round_start_corpus_record}",
+        "--attempt-dir",
+        "{attempt_dir}",
+        "--result-json",
+        "{result_json}",
+        "--runtime-image",
+        "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8"
+      ],
+      "preflight_argv_template": [
+        ".venv/bin/python",
+        "-B",
+        "experiment/EXP014_experimental_evaluation/scripts/run_fuzzing_round.py",
+        "preflight",
+        "--harness-record",
+        "{harness_record}",
+        "--strategy-plan",
+        "{strategy_plan}",
+        "--harness-spec",
+        "{harness_spec}",
+        "--runtime-image",
+        "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8",
+        "--result-json",
+        "{result_json}"
+      ]
+    },
+    "group_order_by_repeat": [
+      {
+        "repeat_id": 1,
+        "group_order": [
+          "structured_baseline",
+          "bug_aware_static",
+          "bug_aware_adaptive"
+        ]
+      }
+    ]
+  },
+  "seed_policy": {
+    "derivation_algorithm": "sha256_modulo_supported_range_v1",
+    "derivation_inputs": [
+      "master_seed",
+      "api_id",
+      "fuzz_repeat_id",
+      "round_id"
+    ],
+    "group_id_excluded": true,
+    "record_actual_runtime_seed": true,
+    "master_seed": 20260920,
+    "supported_seed_minimum": 1,
+    "supported_seed_maximum": 2147483647,
+    "canonical_input_encoding": "utf8_nul_separated_v1",
+    "digest_projection": "first_8_bytes_unsigned_big_endian"
+  },
+  "corpus_policy": {
+    "initial_corpus_source": "api_entry.initial_corpus_binding",
+    "independent_copy_per_group_and_repeat": true,
+    "inherit_within_repeat": true,
+    "share_runtime_corpus_across_groups": false,
+    "share_runtime_corpus_across_repeats": false,
+    "record_round_start_manifest": true,
+    "record_round_end_manifest": true
+  },
+  "instrumentation_policy": {
+    "insert_after_core_harness_generation": true,
+    "shared_evaluation_targets_across_groups": true,
+    "read_only_target_checkers": true,
+    "preserve_core_source_hash": true,
+    "record_instrumented_source_hash": true,
+    "record_binary_hash": true
+  },
+  "feedback": {
+    "shared_initial_state": {
+      "source_group": "bug_aware_static",
+      "reuse_exact_harness_spec": true,
+      "reuse_exact_strategy": true,
+      "reuse_exact_core_source": true,
+      "reuse_exact_instrumented_source": true,
+      "reuse_exact_binary": true
+    },
+    "controller_file_ref": {
+      "relative_path": "experiment/EXP012_adaptive_feedback/scripts/run_feedback_controller.py",
+      "content_hash": "bbaf2383cc433f286dd6e865758db359c5832e59e818a89a638ff33586a40d8f"
+    },
+    "policy_file_ref": {
+      "relative_path": "experiment/EXP012_adaptive_feedback/policies/adaptive_feedback_policy.json",
+      "content_hash": "33757f6a9364deef774bc3c7a1eef3284658d043702dc6f95d0ca35e029bbebf"
+    },
+    "applicable_group": "bug_aware_adaptive",
+    "decision_after_rounds": [
+      1,
+      2
+    ],
+    "maximum_revisions_per_repeat": 2,
+    "materialization_pipeline": {
+      "uses_llm": false,
+      "harness_spec_operation": "apply_feedback_request",
+      "strategy_operation": "deterministic_rebind",
+      "harness_operation": "materialize_compile_preflight",
+      "orchestrator": "run_experiment_matrix"
+    },
+    "rollback_to_latest_valid_harness": true,
+    "extend_fuzzing_budget_after_revision_failure": false
+  },
+  "coverage": {
+    "enabled": false,
+    "replay_after_each_round": false,
+    "input": "frozen_round_end_corpus",
+    "cumulative_merge": "set_union",
+    "scope_file_ref": null
+  },
+  "failure_handling": {
+    "method_failure_extra_attempts": 0,
+    "infrastructure_retry": {
+      "retryable_categories": [
+        "model_transport_no_response",
+        "container_start_failure",
+        "pre_active_fuzzing_io_failure",
+        "scheduler_interruption"
+      ],
+      "maximum_retries_per_operation": 1,
+      "round_retry_mode": "restart_from_frozen_round_start",
+      "reuse_original_paired_seed": true,
+      "exclude_partial_attempt_from_primary_metrics": true,
+      "preserve_all_attempt_records": true,
+      "rerun_paired_counterpart": false
+    },
+    "abnormal_exit": {
+      "target_or_framework_exit_action": "record_candidate_isolate_input_and_resume_remaining_budget",
+      "fuzzer_infrastructure_exit_action": "apply_infrastructure_retry_policy",
+      "reuse_current_harness": true,
+      "preserve_all_failure_records": true,
+      "maximum_process_restarts_per_round": 1,
+      "repeated_event_suppression_policy_file_ref": {
+        "relative_path": "experiment/EXP013_crash_triage_and_result_analysis/policies/crash_analysis_policy.json",
+        "content_hash": "d07287316ddc83076c757950f84661c0559bef43d2fd54d45d407f4b950deba8"
+      }
+    }
+  },
+  "analysis": {
+    "analysis_cutoff_policy": {
+      "mode": "relative_to_last_terminal_core_run",
+      "delay_seconds": 1
+    },
+    "resolved_cutoff_location": "result_provenance",
+    "main_statistical_unit": "api",
+    "repeat_aggregation": "median",
+    "rq2_pair": [
+      "structured_baseline",
+      "bug_aware_static"
+    ],
+    "rq3_pair": [
+      "bug_aware_static",
+      "bug_aware_adaptive"
+    ],
+    "unresolved_cases_in_primary_anomaly_metrics": false,
+    "analyzer_file_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/scripts/analyze_experiment_results.py",
+      "content_hash": "e874653e85ebed65230c8ef4ffbf44b0710a5cad6d30ffc0e08d2ff5f3530bf6"
+    },
+    "input_schema_file_refs": {
+      "evaluation_target_manifest": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/schemas/evaluation_target_manifest.schema.json",
+        "content_hash": "a6ec6ba2b31fdde01986ba83391c54167353e9cb0c8a92b85f438a69c41ed491"
+      },
+      "execution_index": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/schemas/execution_index.schema.json",
+        "content_hash": "518cdbe2689ddd20e6e48f7cc2dc8f80668fc021e0dc7dddd70f5ffc034f1581"
+      },
+      "result_provenance": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/schemas/result_provenance.schema.json",
+        "content_hash": "e470ddce6fc8b45e7af8c1cd527ff2127c5077e24161f96cffb0e2f7d0095263"
+      },
+      "runtime_snapshot": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/schemas/runtime_snapshot.schema.json",
+        "content_hash": "4bdbb691176de42cec186572b84ab6be07a3427d9def8290b5dd9bf10a5acdfb"
+      }
+    }
+  },
+  "auxiliary_flashfuzz_comparison": {
+    "enabled": false,
+    "api_ids": [],
+    "require_deviation_record": true,
+    "include_in_core_group_statistics": false
+  }
+}

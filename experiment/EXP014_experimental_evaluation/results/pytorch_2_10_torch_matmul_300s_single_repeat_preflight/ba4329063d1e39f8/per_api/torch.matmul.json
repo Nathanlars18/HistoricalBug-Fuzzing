@@ -1,0 +1,96 @@
+{
+  "api_id": "torch.matmul",
+  "runs": [
+    {
+      "api_id": "torch.matmul",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "completed": true,
+      "completion_status": "complete",
+      "completed_round_count": 3,
+      "target_count": 1,
+      "activated_target_count": 0,
+      "target_activation_coverage": 0.0,
+      "cumulative_activation_by_round": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0
+      },
+      "reproducible_anomaly_yield": 0,
+      "post_feedback_anomaly_yield": 0,
+      "cluster_first_round": {}
+    },
+    {
+      "api_id": "torch.matmul",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "completed": true,
+      "completion_status": "complete",
+      "completed_round_count": 3,
+      "target_count": 1,
+      "activated_target_count": 1,
+      "target_activation_coverage": 1.0,
+      "cumulative_activation_by_round": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0
+      },
+      "reproducible_anomaly_yield": 0,
+      "post_feedback_anomaly_yield": 0,
+      "cluster_first_round": {}
+    },
+    {
+      "api_id": "torch.matmul",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "completed": true,
+      "completion_status": "complete",
+      "completed_round_count": 3,
+      "target_count": 1,
+      "activated_target_count": 1,
+      "target_activation_coverage": 1.0,
+      "cumulative_activation_by_round": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0
+      },
+      "reproducible_anomaly_yield": 0,
+      "post_feedback_anomaly_yield": 0,
+      "cluster_first_round": {}
+    }
+  ],
+  "paired_results": [
+    {
+      "api_id": "torch.matmul",
+      "repeat_id": "repeat_001",
+      "rq2_pair_complete": true,
+      "rq3_pair_complete": true,
+      "rq2_activation_difference": 1.0,
+      "rq2_anomaly_yield_difference": 0,
+      "rq3_adaptive_activation_gain": 0.0,
+      "rq3_post_feedback_anomaly_gain": 0
+    }
+  ],
+  "aggregates": {
+    "median_structured_baseline_target_activation_coverage": 0.0,
+    "computable_structured_baseline_target_activation_coverage_repeat_count": 1,
+    "median_structured_baseline_reproducible_anomaly_yield": 0,
+    "computable_structured_baseline_reproducible_anomaly_yield_repeat_count": 1,
+    "median_bug_aware_static_target_activation_coverage": 1.0,
+    "computable_bug_aware_static_target_activation_coverage_repeat_count": 1,
+    "median_bug_aware_static_reproducible_anomaly_yield": 0,
+    "computable_bug_aware_static_reproducible_anomaly_yield_repeat_count": 1,
+    "median_bug_aware_adaptive_target_activation_coverage": 1.0,
+    "computable_bug_aware_adaptive_target_activation_coverage_repeat_count": 1,
+    "median_bug_aware_adaptive_reproducible_anomaly_yield": 0,
+    "computable_bug_aware_adaptive_reproducible_anomaly_yield_repeat_count": 1,
+    "median_rq2_activation_difference": 1.0,
+    "computable_rq2_activation_difference_repeat_count": 1,
+    "median_rq2_anomaly_yield_difference": 0,
+    "computable_rq2_anomaly_yield_difference_repeat_count": 1,
+    "median_rq3_adaptive_activation_gain": 0.0,
+    "computable_rq3_adaptive_activation_gain_repeat_count": 1,
+    "median_rq3_post_feedback_anomaly_gain": 0,
+    "computable_rq3_post_feedback_anomaly_gain_repeat_count": 1
+  }
+}

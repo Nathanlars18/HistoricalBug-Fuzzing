@@ -1,0 +1,2 @@
+api_id,repeat_id,rq2_pair_complete,rq3_pair_complete,rq2_activation_difference,rq2_anomaly_yield_difference,rq3_adaptive_activation_gain,rq3_post_feedback_anomaly_gain
+torch.matmul,repeat_001,True,True,1.0,0,0.0,0
