@@ -21,6 +21,17 @@ from typing import Any, Mapping, Sequence
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+try:
+    from coverage_replay import CoverageError, load_scope, replay as replay_coverage
+except ModuleNotFoundError as exc:
+    if exc.name != "coverage_replay":
+        raise
+    from experiment.EXP014_experimental_evaluation.scripts.coverage_replay import (
+        CoverageError,
+        load_scope,
+        replay as replay_coverage,
+    )
+
 
 ADAPTER_ID = "run_fuzzing_round"
 ADAPTER_VERSION = "0.2.0"
@@ -568,6 +579,7 @@ def build_round_record(
     run_log_path: Path,
     candidate_binding: Mapping[str, Any] | None,
     candidate_observations: Sequence[Mapping[str, Any]],
+    coverage_evidence: Mapping[str, Any],
     round_validator: Draft202012Validator,
 ) -> dict[str, Any]:
     artifact = resolved.artifact
@@ -639,11 +651,7 @@ def build_round_record(
                 "snapshot_kind": None if snapshot is None else snapshot["snapshot_kind"],
                 "staleness_iterations": None if snapshot is None else (0 if snapshot["snapshot_kind"] == "final" else 1),
             },
-            "coverage_summary": {
-                "status": "not_collected",
-                "location": None,
-                "diagnostic_refs": [],
-            },
+            "coverage_summary": dict(coverage_evidence),
             "output_corpus": {
                 "status": "present",
                 "location": output_location,
@@ -755,6 +763,11 @@ def command_run(args: argparse.Namespace) -> int:
             raise InputError("round_id does not match round_index")
         if not IDENTIFIER_RE.fullmatch(args.task_key):
             raise InputError("task_key is not a valid Round identifier")
+        if args.coverage_scope is not None:
+            try:
+                load_scope(args.coverage_scope.resolve())
+            except (CoverageError, OSError, ValueError) as exc:
+                raise InputError(f"Invalid coverage scope: {exc}") from exc
 
         attempt_dir = args.attempt_dir.resolve()
         repository_relative(attempt_dir)
@@ -846,6 +859,31 @@ def command_run(args: argparse.Namespace) -> int:
             validators["corpus"],
         )
 
+        coverage_evidence: dict[str, Any] = {
+            "status": "not_collected", "location": None, "diagnostic_refs": []
+        }
+        if args.coverage_scope is not None:
+            try:
+                coverage_path = replay_coverage(
+                    scope_path=args.coverage_scope.resolve(),
+                    corpus_manifest=output_manifest,
+                    corpus_dir=corpus_dir,
+                    harness_binary=resolved.binary_path,
+                    output_dir=attempt_dir / "coverage",
+                )
+                coverage_evidence = {
+                    "status": "present",
+                    "location": evidence_location(coverage_path, "coverage_summary"),
+                    "diagnostic_refs": [],
+                }
+            except (CoverageError, OSError, ValueError) as exc:
+                diagnostic_path = attempt_dir / "coverage_failure.log"
+                diagnostic_path.write_text(str(exc) + "\n", encoding="utf-8")
+                coverage_evidence = {
+                    "status": "collection_failed", "location": None,
+                    "diagnostic_refs": [evidence_location(diagnostic_path, "coverage_failure")["artifact_ref"]],
+                }
+
         _, candidate_binding, candidate_observations = build_candidate_bundle(
             args=args,
             execution_id=execution_id,
@@ -890,6 +928,7 @@ def command_run(args: argparse.Namespace) -> int:
                 run_log_path=run_log,
                 candidate_binding=candidate_binding,
                 candidate_observations=candidate_observations,
+                coverage_evidence=coverage_evidence,
                 round_validator=validators["round"],
             )
             round_record_path = attempt_dir / "fuzzing_round_record.json"
@@ -920,6 +959,7 @@ def command_run(args: argparse.Namespace) -> int:
             run_log_path=run_log,
             candidate_binding=candidate_binding,
             candidate_observations=candidate_observations,
+            coverage_evidence=coverage_evidence,
             round_validator=validators["round"],
         )
         round_record_path = attempt_dir / "fuzzing_round_record.json"
@@ -1048,6 +1088,7 @@ def parse_arguments() -> argparse.Namespace:
     run_parser.add_argument("--attempt-dir", type=Path, required=True)
     run_parser.add_argument("--result-json", type=Path, required=True)
     run_parser.add_argument("--runtime-image", default=DEFAULT_IMAGE)
+    run_parser.add_argument("--coverage-scope", type=Path)
     run_parser.add_argument("--timeout-grace-seconds", type=int, default=60)
     run_parser.add_argument("--runtime-config", type=Path, default=DEFAULTS["runtime_config"])
     run_parser.add_argument(

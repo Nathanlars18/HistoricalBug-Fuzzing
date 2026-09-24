@@ -1,0 +1,13 @@
+{
+  "scope_version": 1,
+  "pytorch_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+  "coverage_image": "sha256:97e81068dd854e60dfc6d6fd5c215935681c6cc4d3e31b959f330a1402b803e9",
+  "source_prefix": "/root/pytorch/aten/src/ATen/",
+  "objects": [
+    "/root/pytorch/build-cov/lib/libtorch_cpu.so"
+  ],
+  "object_build_ids": {
+    "/root/pytorch/build-cov/lib/libtorch_cpu.so": "2e2146e7ec626c0e5d93b46257e8118d6b5f23ea"
+  },
+  "replay_batch_size": 64
+}

@@ -577,6 +577,63 @@ def load_rounds(
     return results, attrition
 
 
+def coverage_diagnostics(
+    rounds: Sequence[RoundResult], matrix: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    """Verify replay artifacts and report C++ coverage separately from RQ metrics."""
+    enabled = matrix["coverage"]["enabled"]
+    scope_hash = (
+        file_hash(verify_file_reference(matrix["coverage"]["scope_file_ref"], "coverage scope"))
+        if enabled else None
+    )
+    rows: list[dict[str, Any]] = []
+    for item in rounds:
+        record = load_json(Path(item.round_record_path))
+        evidence = record["evidence"]["coverage_summary"]
+        status = evidence["status"]
+        if enabled and status == "not_collected":
+            raise InputError(f"Enabled coverage was not attempted for {item.round_id}")
+        row: dict[str, Any] = {
+            "api_id": item.api_id,
+            "group_id": item.group_id,
+            "repeat_id": item.repeat_id,
+            "round_index": item.round_index,
+            "status": status,
+            "quality_status": None,
+            "source_file_count": None,
+            "corpus_file_count": None,
+            "lines_covered": None,
+            "lines_total": None,
+            "branches_covered": None,
+            "branches_total": None,
+            "warning_count": None,
+        }
+        if status == "present":
+            location = require_object(evidence["location"], "coverage location")
+            path = verify_file_reference(location["file_ref"], "coverage summary")
+            if location["artifact_ref"]["content_hash"] != file_hash(path):
+                raise InputError(f"Coverage Artifact hash differs from summary: {path}")
+            summary = require_object(load_json(path), "coverage summary")
+            if enabled and summary.get("scope_hash") != scope_hash:
+                raise InputError(f"Coverage scope differs from frozen matrix: {path}")
+            profile_path = path.with_name("coverage.profdata")
+            if file_hash(profile_path) != summary.get("profile_hash"):
+                raise InputError(f"Coverage profile hash differs from summary: {profile_path}")
+            measures = require_object(summary.get("measurements"), "coverage measurements")
+            row.update({
+                "quality_status": summary.get("quality_status"),
+                "source_file_count": summary.get("source_file_count"),
+                "corpus_file_count": summary.get("corpus_file_count"),
+                "lines_covered": measures["lines"]["covered"],
+                "lines_total": measures["lines"]["total"],
+                "branches_covered": measures["branches"]["covered"],
+                "branches_total": measures["branches"]["total"],
+                "warning_count": len(summary.get("warnings", [])),
+            })
+        rows.append(row)
+    return rows
+
+
 def latest_cases_at_cutoff(
     case_root: Path,
     cutoff: datetime,
@@ -1196,6 +1253,8 @@ def render_summary(
         f"- Valid Round records: {counts['round_record_count']}",
         f"- Attrited or missing tasks: {counts['attrited_task_count']}",
         f"- Unresolved current-run cases/clusters: {counts['unresolved_case_or_cluster_count']}",
+        f"- Coverage replay present: {counts['coverage_present_round_count']}/{counts['round_record_count']} rounds (diagnostic only)",
+        f"- Coverage replay with LLVM warnings: {counts['coverage_warning_round_count']} rounds",
         "",
         "## RQ1",
         "",
@@ -1300,6 +1359,7 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
         round_validator,
         snapshot_validator,
     )
+    coverage_rows = coverage_diagnostics(rounds, matrix)
     cutoff_cases = latest_cases_at_cutoff(case_root, cutoff, case_validator)
     cases = relevant_cases(cutoff_cases, rounds)
     validate_candidate_case_coverage(rounds, cases)
@@ -1353,6 +1413,8 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
             "attrited_task_count": len(attrition),
             "cutoff_case_count": len(cases),
             "unresolved_case_or_cluster_count": unresolved_cases,
+            "coverage_present_round_count": sum(row["status"] == "present" for row in coverage_rows),
+            "coverage_warning_round_count": sum(row["quality_status"] == "partial_warning" for row in coverage_rows),
         },
         "attrition": attrition,
         "rq_summary": summary,
@@ -1371,6 +1433,16 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
             "completed_round_count", "target_count",
             "activated_target_count", "target_activation_coverage",
             "reproducible_anomaly_yield", "post_feedback_anomaly_yield",
+        ),
+    )
+    write_csv(
+        output / "tables" / "coverage_diagnostics.csv",
+        coverage_rows,
+        (
+            "api_id", "group_id", "repeat_id", "round_index", "status",
+            "quality_status", "source_file_count", "corpus_file_count",
+            "lines_covered", "lines_total", "branches_covered", "branches_total",
+            "warning_count",
         ),
     )
     write_csv(

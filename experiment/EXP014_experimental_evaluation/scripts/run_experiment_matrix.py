@@ -456,6 +456,31 @@ def validate_matrix(matrix: Mapping[str, Any]) -> list[str]:
 
     validate_controlled_design(matrix)
 
+    coverage = require_object(matrix.get("coverage"), "coverage")
+    if not isinstance(coverage.get("enabled"), bool):
+        raise ConfigurationError("coverage.enabled must be boolean")
+    if coverage["enabled"]:
+        if coverage.get("replay_after_each_round") is not True:
+            raise ConfigurationError("Enabled coverage requires replay_after_each_round")
+        if coverage.get("input") != "frozen_round_end_corpus":
+            raise ConfigurationError("Coverage must replay the frozen round-end corpus")
+        if coverage.get("cumulative_merge") != "set_union":
+            raise ConfigurationError("Unsupported cumulative coverage merge")
+        scope_path = verify_file_reference(coverage.get("scope_file_ref"), "coverage scope")
+        try:
+            from coverage_replay import CoverageError, load_scope
+        except ModuleNotFoundError as exc:
+            if exc.name != "coverage_replay":
+                raise
+            from experiment.EXP014_experimental_evaluation.scripts.coverage_replay import (
+                CoverageError,
+                load_scope,
+            )
+        try:
+            load_scope(scope_path)
+        except (CoverageError, OSError, ValueError) as exc:
+            raise ConfigurationError(f"Invalid coverage scope: {exc}") from exc
+
     return execution_readiness_issues(matrix)
 
 
@@ -648,6 +673,16 @@ def expand_argv(
         raise ConfigurationError(
             f"Unknown runner template placeholder: {exc.args[0]}"
         ) from exc
+
+
+def round_adapter_argv(matrix: Mapping[str, Any], values: Mapping[str, Any]) -> list[str]:
+    argv = expand_argv(
+        matrix["execution"]["runner_adapters"]["round_argv_template"], values
+    )
+    if matrix["coverage"]["enabled"]:
+        scope_path = verify_file_reference(matrix["coverage"]["scope_file_ref"], "coverage scope")
+        argv.extend(("--coverage-scope", str(scope_path)))
+    return argv
 
 
 def run_command(
@@ -1472,14 +1507,12 @@ def execute_task(
             "result_json": result_path,
             "attempt_dir": attempt_dir,
         }
-        argv = expand_argv(
-            matrix["execution"]["runner_adapters"]["round_argv_template"],
-            values,
-        )
+        argv = round_adapter_argv(matrix, values)
+        coverage_enabled = matrix["coverage"]["enabled"]
         process = run_command(
             argv,
             process_dir,
-            timeout_seconds=max(int(remaining) + 120, 180),
+            timeout_seconds=max(int(remaining) + (3600 if coverage_enabled else 120), 180),
         )
         if not result_path.is_file():
             raise RunnerError(
