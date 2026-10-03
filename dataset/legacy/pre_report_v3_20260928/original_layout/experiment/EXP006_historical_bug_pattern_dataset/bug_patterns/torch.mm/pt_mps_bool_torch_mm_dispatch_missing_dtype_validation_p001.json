@@ -1,0 +1,146 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_mps_bool_torch_mm_dispatch_missing_dtype_validation_p001",
+    "canonical_name": "mps_bool_torch_mm_dispatch_missing_dtype_validation",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_191693",
+        "report_hash": "sha256:640330eb77bc75874b6eb830a5195411bbd3dcdbd1a36fe594d6f5afd50ce18c"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_191693",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_22b5bfcdedcc",
+          "ev_art_primary_report_api_reference_b5dd21d8da0d",
+          "ev_art_primary_report_observed_output_d514eda31332",
+          "ev_art_primary_report_expected_behavior_dcb1e0c04d26",
+          "ev_art_primary_report_source_metadata_aa421b671013"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes a single MPS-specific dtype-dispatch failure for torch.mm with bool inputs; no independent trigger-mechanism-failure combinations were present.",
+    "unresolved_information": [
+      "Fix status and official confirmation are not available in the report.",
+      "Whether the opaque RuntimeError affects other unsupported dtypes or non-MPS backends is not established."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.mm",
+    "confirmed_apis": [
+      "torch.mm"
+    ],
+    "operator": null,
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "backend_dispatch_boundary",
+    "secondary_defect_classes": [
+      "api_contract_boundary"
+    ],
+    "risk_dimensions": [
+      "dtype",
+      "device",
+      "backend",
+      "api_contract"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "shape",
+        "subject": "torch.mm input tensors",
+        "predicate": "are 2D",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_b5dd21d8da0d"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "dtype",
+        "subject": "torch.mm input tensors",
+        "predicate": "have dtype torch.bool",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_b5dd21d8da0d"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "device",
+        "subject": "torch.mm input tensors",
+        "predicate": "are on MPS device",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_b5dd21d8da0d"
+        ],
+        "condition_id": "tc_03"
+      }
+    ],
+    "operation_context": {
+      "description": "Reproduction creates two 4x4 torch.bool tensors on MPS and then calls torch.mm(a, b).",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_api_reference_b5dd21d8da0d"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": [
+      {
+        "layer": "backend",
+        "description": "MPS backend dispatch lacks proper dtype validation for bool matrix multiplication, allowing the call to reach the MPS matmul implementation and fail while creating a function state object for matmul_bool.",
+        "status": "source_reported",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_dcb1e0c04d26"
+        ],
+        "confidence": "medium",
+        "hypothesis_id": "dm_01"
+      }
+    ]
+  },
+  "observed_failure": {
+    "failure_type": "exception",
+    "description": "torch.mm on MPS bool tensors raises RuntimeError: Failed to create function state object for: matmul_bool",
+    "historical_oracle": {
+      "kind": "exception_class",
+      "condition": "RuntimeError: Failed to create function state object for: matmul_bool",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_observed_output_d514eda31332"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_d514eda31332"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "medium",
+    "oracle_confidence": "high"
+  }
+}

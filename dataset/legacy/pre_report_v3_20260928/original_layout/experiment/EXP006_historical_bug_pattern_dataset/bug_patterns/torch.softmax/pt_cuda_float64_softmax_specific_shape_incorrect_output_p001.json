@@ -1,0 +1,154 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_cuda_float64_softmax_specific_shape_incorrect_output_p001",
+    "canonical_name": "cuda_float64_softmax_specific_shape_incorrect_output",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_147284",
+        "report_hash": "sha256:eca6e80bc1a4b98be147e682b53d3c8ecab3d1235b9f61e5a28dd1c13d8f5f61"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_147284",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_source_metadata_f82f5ea48bfc",
+          "ev_art_primary_report_bug_description_1c69e4b17a93"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "Abstracts a CUDA-specific float64 softmax failure triggered by a narrow shape condition: more than one row and reduction dimension 781.",
+    "unresolved_information": [
+      "Exact root cause is not confirmed in the report.",
+      "No explicit historical oracle or actual output values are recorded."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.softmax",
+    "confirmed_apis": [
+      "torch.softmax"
+    ],
+    "operator": "softmax",
+    "module": "torch"
+  },
+  "defect_classification": {
+    "primary_defect_class": "numerical_edge_case",
+    "secondary_defect_classes": [
+      "shape_boundary",
+      "backend_dispatch_boundary"
+    ],
+    "risk_dimensions": [
+      "shape",
+      "dtype",
+      "device",
+      "backend"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "device",
+        "subject": "input tensor device",
+        "predicate": "is CUDA",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_8f287ca4c8de",
+          "ev_art_primary_report_reproduction_38620e1bf39e"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "dtype",
+        "subject": "input tensor dtype",
+        "predicate": "is torch.float64",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_8f287ca4c8de",
+          "ev_art_primary_report_reproduction_38620e1bf39e"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "shape",
+        "subject": "input tensor shape[0]",
+        "predicate": "is greater than 1",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_8f287ca4c8de",
+          "ev_art_primary_report_reproduction_38620e1bf39e"
+        ],
+        "condition_id": "tc_03"
+      },
+      {
+        "dimension": "shape",
+        "subject": "input tensor reduction dimension size",
+        "predicate": "equals 781",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_8f287ca4c8de",
+          "ev_art_primary_report_reproduction_38620e1bf39e"
+        ],
+        "condition_id": "tc_04"
+      }
+    ],
+    "operation_context": {
+      "description": "torch.softmax(torch.zeros(c, 781, dtype=torch.float64, device='cuda'), dim=1) for c > 1.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_38620e1bf39e",
+        "ev_art_primary_report_bug_description_1c69e4b17a93"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": [
+      {
+        "layer": "kernel",
+        "description": "The reporter suspects a CUDA-specific issue related to the float64 implementation of softmax.",
+        "status": "source_reported",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_4dc1f794b03b"
+        ],
+        "confidence": "medium",
+        "hypothesis_id": "dm_01"
+      }
+    ]
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "torch.softmax over a CUDA float64 input of shape (c, 781) with c > 1 and dim=1 returns incorrect output values instead of a valid row-wise probability distribution.",
+    "historical_oracle": null,
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_8f287ca4c8de",
+      "ev_art_primary_report_reproduction_38620e1bf39e"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "medium",
+    "oracle_confidence": "low"
+  }
+}

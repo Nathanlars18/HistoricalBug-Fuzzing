@@ -1,0 +1,265 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_154501",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "154501",
+        "url": "https://github.com/pytorch/pytorch/issues/154501",
+        "local_path": "dataset/interim/github_issue_collection/torch.add/issue_154501_complex_inf_add.txt",
+        "title": "torch.add and torch.sub return incorrect results when computing complex numbers containing inf on both CPU and GPU\n\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/154501",
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:9d823531d329f129f469eb9ebd47bc8070544e50354dd88c5bc1e4b7f44ed752"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_6702220ba586",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 1,
+        "end_line": 3
+      },
+      "excerpt": "Issue ID:\n154501\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:3334843023e1d1a14c9ebcf0fe9be5d666355d56b7f465d6711c4667dc63ef22"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_0652e860f4fe",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 31,
+        "end_line": 34
+      },
+      "excerpt": "Description:\n\ntorch.add produces incorrect results when adding complex tensors containing infinite values.\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:3eda23042b6216ebc58d1b75e0cb38e96e988f43fba35f9049683b979cb51fed"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_1836ced79736",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 62,
+        "end_line": 70
+      },
+      "excerpt": "Observed:\n\nCPU:\ntensor(inf+nanj)\n\nCUDA:\ntensor(inf+nanj)\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:a79a4c087628915f8acfb5344a7297f93e9d31cd37528c72c3c07f10c225b0a5"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_9cf0aba8821a",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 4,
+        "end_line": 11
+      },
+      "excerpt": "Title:\ntorch.add and torch.sub return incorrect results when computing complex numbers containing inf on both CPU and GPU\n\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/154501\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:9a5f8c97562ed61b1dc5d58143a6afa9057ce7b001dd7fd280170f0ea685976c"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_d6289b50d7ef",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 35,
+        "end_line": 37
+      },
+      "excerpt": "Example:\n(inf+1j) + (inf+2j)\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:30badbb2a2419da3ec4241ebd761a4f02c6c9644e7c98a81f102e4faee537bf5"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_6b5868235e1b",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 38,
+        "end_line": 44
+      },
+      "excerpt": "Expected:\ninf+3j\n\nActual:\ninf+nanj\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:6ed47f3e354b0853745a096b5e48512372d10570b05bc101b9c5536e1a9c22e8"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_d6fd3dd80ccc",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 27,
+        "end_line": 30
+      },
+      "excerpt": "Environment:\nPyTorch 2.5.1\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:b560da6186c23398a1586280af59792e47930202e4362c8c7cc94f69db173e7b"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.add",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_9cf0aba8821a"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_002",
+        "api_name": "torch.sub",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_9cf0aba8821a"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "unknown",
+        "statement": "CPU:\ntensor(inf+nanj)\n\nCUDA:\ntensor(inf+nanj)",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_1836ced79736"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "inf+3j\n\nActual:\ninf+nanj",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_6b5868235e1b"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [],
+    "reproduction": {
+      "availability": "steps_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_d6289b50d7ef"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_0652e860f4fe",
+        "ev_art_primary_report_source_metadata_6702220ba586"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_environment_format_001",
+      "field_path": "/reported_behavior/environment_facts",
+      "description": "Environment text is present but has no recognized key-value facts.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_environment_d6fd3dd80ccc"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:da0beb9513988f965eb090dd3ecb07ecf8f2aed6203cfd663b077e5b31a36399"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

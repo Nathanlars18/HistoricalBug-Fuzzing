@@ -1,0 +1,137 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_sparse_coo_singleton_broadcast_mul_silently_drops_data_p001",
+    "canonical_name": "sparse_coo_singleton_broadcast_mul_silently_drops_data",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_188900",
+        "report_hash": "sha256:f239b6f8fc9f436a045d73bbcdd114d2a24b828ce26630a9d01f69bd3fa5b961"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_188900",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_source_metadata_ee60f8bf04c0",
+          "ev_art_primary_report_bug_description_d0a2628046cd",
+          "ev_art_primary_report_api_reference_0a35bf07cae3",
+          "ev_art_primary_report_expected_behavior_aa23542163a3",
+          "ev_art_primary_report_environment_c09350bdec3f"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes a single torch.mul defect unit: sparse COO singleton-dimension broadcasting silently produces incomplete output slices. No independent split condition is present.",
+    "unresolved_information": [
+      "Root cause is not reported, so no mechanism hypothesis could be extracted.",
+      "Fix status is unknown.",
+      "The report does not state whether the issue is specific to sparse COO or also affects other sparse layouts."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.mul",
+    "confirmed_apis": [
+      "torch.mul"
+    ],
+    "operator": "mul",
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "shape_boundary",
+    "secondary_defect_classes": [
+      "api_contract_boundary",
+      "memory_layout_boundary"
+    ],
+    "risk_dimensions": [
+      "shape",
+      "layout"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "layout",
+        "subject": "torch.mul operand",
+        "predicate": "is a sparse COO tensor",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_d0a2628046cd"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "shape",
+        "subject": "sparse COO operand",
+        "predicate": "has a size-1 dimension that is broadcast up against the other operand",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_d0a2628046cd"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "shape",
+        "subject": "other operand",
+        "predicate": "has corresponding broadcast dimension with size greater than 1",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_d0a2628046cd"
+        ],
+        "condition_id": "tc_03"
+      }
+    ],
+    "operation_context": {
+      "description": "Elementwise multiplication via `s1 * d` in the reproducer, where `s1` is a sparse COO tensor with a trailing singleton dimension created by `s[:, :, None]` and `d` is the dense tensor `torch.ones(1, 1, 3)`.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_d0a2628046cd"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "torch.mul silently returns an incorrect dense result when the sparse COO operand has a size-1 dimension broadcast up: only the index == 0 slice along the broadcast dimension is populated and all other slices are zero. No error or warning is raised.",
+    "historical_oracle": {
+      "kind": "differential_reference",
+      "condition": "Compare the sparse/dense broadcast result against the dense reference produced by broadcasting the dense equivalent of the sparse COO operand with the same dense tensor; max abs err > 0 indicates the failure.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_d0a2628046cd",
+        "ev_art_primary_report_expected_behavior_aa23542163a3"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_bug_description_d0a2628046cd",
+      "ev_art_primary_report_expected_behavior_aa23542163a3"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "high"
+  }
+}

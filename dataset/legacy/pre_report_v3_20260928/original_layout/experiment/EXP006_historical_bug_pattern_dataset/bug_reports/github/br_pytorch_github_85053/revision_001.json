@@ -1,0 +1,350 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_85053",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "85053",
+        "url": "https://github.com/pytorch/pytorch/issues/85053",
+        "local_path": "dataset/interim/github_issue_collection/torch.mul/issue_85053_mul_out_shape_mismatch_segfault.txt",
+        "title": "torch.div crash with segmentation fault",
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:8eb2a98e9dc9753bcd968566bb6be25835bb08b80f24813c96fd61034892e140"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_924b9a34af74",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 1,
+        "end_line": 3
+      },
+      "excerpt": "Issue ID:\n85053\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:61b9d0c071754807e9ebc65fa896d190b8373810ae3388a888bc5ed8441baa92"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_874e3c5e5047",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 18,
+        "end_line": 49
+      },
+      "excerpt": "Description:\n\nThe issue reports that torch.div crashes with segmentation fault when using an incompatible out tensor shape.\n\nThe same behavior is also observed in torch.mul and torch.remainder.\n\n\nReproducer:\n\nimport torch\n\ntorch.div(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n\ntorch.mul(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n\ntorch.remainder(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:825c7417f6accc350ec676cf20758491fa861205964b71515a0d42af26bf8051"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_9203002381ab",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 50,
+        "end_line": 61
+      },
+      "excerpt": "Observed Behavior:\n\nExecution terminates with:\n\nSegmentation fault (core dumped)\n\n\nAffected API:\n\ntorch.mul\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:95d058d0e1fd634bfb08ded2d5aa6db469a2ec0406b035992073ee3afa7361a2"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_90a4a8a7e2f8",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 18,
+        "end_line": 49
+      },
+      "excerpt": "Description:\n\nThe issue reports that torch.div crashes with segmentation fault when using an incompatible out tensor shape.\n\nThe same behavior is also observed in torch.mul and torch.remainder.\n\n\nReproducer:\n\nimport torch\n\ntorch.div(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n\ntorch.mul(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n\ntorch.remainder(\n    input=torch.ones([1]),\n    other=1,\n    out=torch.ones([5,1,1,1])\n)\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:825c7417f6accc350ec676cf20758491fa861205964b71515a0d42af26bf8051"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_8985693ca73a",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 4,
+        "end_line": 6
+      },
+      "excerpt": "Title:\ntorch.div crash with segmentation fault\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:c41fe335ef44a93e28ec2317793e36115d70ddeee3a7120d581fa68ca21fe3f3"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_b25c7f17603f",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 128,
+        "end_line": 149
+      },
+      "excerpt": "Example:\n\ninput:\ntorch.ones([1])\n\nother:\n1\n\nout:\ntorch.ones([5,1,1,1])\n\n\nExecute:\n\ntorch.mul(input, other, out=out)\n\n\nDetect:\n\nSIGSEGV or abnormal process termination.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:46cc7775378c6b31137909b45d300afc2434203ea92c1ea7af1030c5aa662f22"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_869b177f71c8",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 117,
+        "end_line": 127
+      },
+      "excerpt": "Expected:\nPyTorch should raise a proper error for invalid out tensor shape.\n\nActual:\nProcess crashes with segmentation fault.\n\n\nHarness Idea:\n\nConstruct a valid input tensor and provide an incompatible out tensor.\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:398d0126dfce2d28a25a1104c208db76ccff6b059e39455505cfffb85257632f"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_43ae8d333ca9",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 158,
+        "end_line": 164
+      },
+      "excerpt": "status:\nfixed\n\n\nRelated PR:\n\n#85294",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:a18948dd382ffe9fa9153a473d1fb601311576f8ae631b0016ade917ba5d575f"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_b54c71421c61",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 14,
+        "end_line": 17
+      },
+      "excerpt": "Created:\n2022-09-15\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:c0f2769de99fec0a5301d8f4de1d1a71b605b2cd8b1045f738411149569514c4"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_78fb9b9e892e",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 93,
+        "end_line": 105
+      },
+      "excerpt": "Environment:\n\nOS:\nUbuntu 18.04.4 LTS\n\nPython:\n3.7.6\n\n\nCUDA:\nNot available\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:6c87da220f2fff08b309da8c896b09a3f0ff67d2ea0f38338a7a30896ac38c71"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.mul",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_90a4a8a7e2f8"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_002",
+        "api_name": "torch.div",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_8985693ca73a"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "crash",
+        "statement": "Execution terminates with:\n\nSegmentation fault (core dumped)\n\n\nAffected API:\n\ntorch.mul",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_9203002381ab"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "PyTorch should raise a proper error for invalid out tensor shape.\n\nActual:\nProcess crashes with segmentation fault.\n\n\nHarness Idea:\n\nConstruct a valid input tensor and provide an incompatible out tensor.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_869b177f71c8"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "OS",
+        "value": "Ubuntu 18.04.4 LTS",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_78fb9b9e892e"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "Python",
+        "value": "3.7.6",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_78fb9b9e892e"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "CUDA",
+        "value": "Not available",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_78fb9b9e892e"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_b25c7f17603f"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_874e3c5e5047",
+        "ev_art_primary_report_source_metadata_924b9a34af74"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_state_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_native_state",
+      "description": "The captured state value is not a recognized native Issue state.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_43ae8d333ca9"
+      ]
+    },
+    {
+      "unresolved_id": "unresolved_issue_created_at_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_created_at",
+      "description": "The captured creation time is incomplete or lacks a timezone.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_b54c71421c61"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:1cdd8dd100359c47448e0776fc40e0030c8e18e1b9e8f557075983ea4d7e1235"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

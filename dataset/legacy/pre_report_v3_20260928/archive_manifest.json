@@ -1,0 +1,1271 @@
+{
+  "archive_reason": "Separate historical curated inputs and derived artifacts from raw-source Report v3 calibration.",
+  "original_layout_root": "dataset/legacy/pre_report_v3_20260928/original_layout",
+  "moved_directories": [
+    "dataset/raw/DLFrameBRCode_PyTorch",
+    "dataset/raw/exp006_matmul_reports",
+    "dataset/interim/bug_selection",
+    "dataset/interim/github_issue_collection",
+    "experiment/EXP006_historical_bug_pattern_dataset/bug_reports",
+    "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns",
+    "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base",
+    "experiment/EXP006_historical_bug_pattern_dataset/quality/report_build_runs"
+  ],
+  "files": [
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/18215_summary_with_code.txt",
+      "bytes": 1988,
+      "sha256": "643ead336235569b2dbbb3e9398d1b1898144df4730262be56ff2297269684b5"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/23580_summary_with_code.txt",
+      "bytes": 661,
+      "sha256": "be5f441a649789a92bce4d76f9fe7e4894b32588af96ae8099296e3e5e263b5c"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/23642_summary_with_code.txt",
+      "bytes": 5407,
+      "sha256": "9b7c8fec401fabc755df708444bbd43bfb3a387c9ad7de6cc7eaf6932d47dcb1"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/27074_summary_with_code.txt",
+      "bytes": 1074,
+      "sha256": "b41f3fe293357013604aa6ccde4af42b02d4bee370c3cb8389627525b04e67c0"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/28010_summary_with_code.txt",
+      "bytes": 1465,
+      "sha256": "24348e3e5219eebf501dd4032424565610ba9e298fb67a884863b3182fa1bd63"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/28623_summary_with_code.txt",
+      "bytes": 1256,
+      "sha256": "a6a683e2ab0128473506613b22bebdd606b5442ec16a6c819eeeca1a50b66316"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/31108_summary_with_code.txt",
+      "bytes": 3352,
+      "sha256": "7f75cf109dfae8d5a70ced74ecd9062c456082bd6f3ad41f459e3e15d6312127"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/31271_summary_with_code.txt",
+      "bytes": 1093,
+      "sha256": "f0d5849ee159a207d2e2fe7eae894e27856e6ff031f3d67f083d42cdd31accd4"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/34191_summary_with_code.txt",
+      "bytes": 2791,
+      "sha256": "4a416bdc2c271816b55f4de6049f9b3d389c84bc1cdd49adf2a630aa1b9c515e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/37403_summary_with_code.txt",
+      "bytes": 2833,
+      "sha256": "d321baae7fb934fa222e24be83ebde8e7b24b72d98e72f6ead416c013c001c4b"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/37680_summary_with_code.txt",
+      "bytes": 774,
+      "sha256": "141c34a2b68245bc1dc68e26108cb49423d19fa9a93965ab625acc9aee4b174e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/37844_summary_with_code.txt",
+      "bytes": 2312,
+      "sha256": "f9b46bcd7c59bdc34cd0179ecf31045601c097461178b79de625375322ba54db"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/37930_summary_with_code.txt",
+      "bytes": 877,
+      "sha256": "a3845b38bd605e69cc380fa984248255adb543c3e30757be2bf058a094a2bccd"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/38605_summary_with_code.txt",
+      "bytes": 3012,
+      "sha256": "dc5ccd8a15ae98cc9c912b59b2c7b53b0c5b78393e5096ceae4113cb430ac4a7"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/41115_summary_with_code.txt",
+      "bytes": 1165,
+      "sha256": "5d8f562e84c2246f6477518c4562c8c0c891054df729cdcaba08ed4b06519a57"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/45721_summary_with_code.txt",
+      "bytes": 1872,
+      "sha256": "14a8901a082b4e31ab5dba3ed032e341253301c2c943e4661f38dd737d4ca9c4"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/46242_summary_with_code.txt",
+      "bytes": 4112,
+      "sha256": "9fc667be6b4d6e96c8a12639e0006a2416b2602d528d852867f8df3689254a02"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/47007_summary_with_code.txt",
+      "bytes": 1371,
+      "sha256": "66a8e14955cb3268ec38d210f17142239ac86292a14aeef529f8d82d39010d3e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/47054_summary_with_code.txt",
+      "bytes": 1925,
+      "sha256": "cc0002e0042f5e924e679746c2f8b76b73a66c53937a0e9f378fc604ba50e977"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/47090_summary_with_code.txt",
+      "bytes": 485,
+      "sha256": "5bce91033be490bce398a2a78622c727c000eae5ca42d8cc332a48ede2f0f547"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/47358_summary_with_code.txt",
+      "bytes": 812,
+      "sha256": "5ebe51e28cb54a6d2e111d301c2d10c288343ce2b0e74f911261dab4d28c017b"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/48674_summary_with_code.txt",
+      "bytes": 464,
+      "sha256": "f277ab6c6563d0c4f27e1c33c83513c5ed395ccab6e470a54129b8d4a4a5cd35"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/51206_summary_with_code.txt",
+      "bytes": 8480,
+      "sha256": "886e1342b37058f3ef0b8c128430af771eb03801ebecbe5d62ae7b205244d0d8"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/53368_summary_with_code.txt",
+      "bytes": 1796,
+      "sha256": "d1e4be4e8713a5e39a4697ac08dde58516c3e7cb0d1f57300a5cf225c1f739bc"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/55027_summary_with_code.txt",
+      "bytes": 20872,
+      "sha256": "ef38214ed6084030a0146bb20048128d9b23fe5bc8176d8e1c34accd017078e3"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/58545_summary_with_code.txt",
+      "bytes": 2747,
+      "sha256": "2438e2ef0ba1ae6c625281696cd1bf69513cfaac97489c1f3f1643c39b27dbbb"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/60179_summary_with_code.txt",
+      "bytes": 6372,
+      "sha256": "01e621e227e81a10e1611c2218dd5c343a0c80aaccf16f0314f84a06dafd52e0"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/60417_summary_with_code.txt",
+      "bytes": 1353,
+      "sha256": "329bb7429271ab5713c52194d772fa79e5f3c8a127c1fbd6e475e0abbf448d1c"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/61291_summary_with_code.txt",
+      "bytes": 3674,
+      "sha256": "738b2f83cd4db4688d682555366dbac4aa3f9ca94d9549d76e976476c2539e1b"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/61345_summary_with_code.txt",
+      "bytes": 3481,
+      "sha256": "42ea982d4ba223fe5917b1924751958ca97bfa41f07f43e92949c7397eb2a6f0"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/61754_summary_with_code.txt",
+      "bytes": 2840,
+      "sha256": "6d81ab72f66fe0c918d2d7462246be19499b1cf002257fcbddf3e25413791684"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/61755_summary_with_code.txt",
+      "bytes": 900,
+      "sha256": "16fb408ec80bdf47a5bafb676bd8719a3d17fd6d7dd5692a971914cecdd6c7e6"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/65696_summary_with_code.txt",
+      "bytes": 4255,
+      "sha256": "d15b4adbe3deb4aa0fc2350f986f6a86c14760581c37118729671ca63e855fe7"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/65709_summary_with_code.txt",
+      "bytes": 1638,
+      "sha256": "5f1d887c50ff03c15a89ba47dbc2928050c41865fb668c282c015b58f2282be7"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/65808_summary_with_code.txt",
+      "bytes": 930,
+      "sha256": "df03e43e5a63c55897ba447c81bb5fee497fcdaf66f9c7d3ed200e9bc25c2bc6"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/66086_summary_with_code.txt",
+      "bytes": 1868,
+      "sha256": "b76a4207bef38672de52519aa198da57466a75751b4218498c31e5c1a6ad54b4"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7178_summary_with_code.txt",
+      "bytes": 1451,
+      "sha256": "aa8223cf7882555de402e4b97bdc9bc638ac56bc432b7ec2a0bd832fbfde6a1e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7332_summary_with_code.txt",
+      "bytes": 1031,
+      "sha256": "7aa86343540e8b96e423454145659f7e600c948ab9d3af5b29b8391baecc7eda"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7559_summary_with_code.txt",
+      "bytes": 1170,
+      "sha256": "24fcf2b49be7e553016d43864949c4997797d00bf4b2d9aeb34220b93dc28825"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7568_summary_with_code.txt",
+      "bytes": 1866,
+      "sha256": "178a40dc117b85180b32c1c90cfad6d3a05cd6dac02ecd6096d47c00f7f95877"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7639_summary_with_code.txt",
+      "bytes": 274,
+      "sha256": "798291a0e01f2b90a3bb15d3dd10d878c54231e5cfa24f4c55bbc8e72fb7a9da"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7650_summary_with_code.txt",
+      "bytes": 1922,
+      "sha256": "6515b32aaa1075d2ebc339f441472b1604cf8a03c3b6da0d391a5ed1d961f5bd"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7763_summary_with_code.txt",
+      "bytes": 864,
+      "sha256": "64e72a1a0d5d91e6ed129749c79c5f8faf7b557b2e8d1e8c1a9e0d570aa140e1"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7849_summary_with_code.txt",
+      "bytes": 1305,
+      "sha256": "f023111d389e0d1d59c656462dfa1a4463b78128d4747cfbc5b22bce6ffcdb57"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7868_summary_with_code.txt",
+      "bytes": 648,
+      "sha256": "9232cd72a346645d7759f484c233f46dcd804fb2c30d5a49f0664aeb4e33246f"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7882_summary_with_code.txt",
+      "bytes": 1753,
+      "sha256": "d5c67bf55d3237d0005671ca38921d4224c2c931397ad0ea50a22aef8fcdbc85"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7947_summary_with_code.txt",
+      "bytes": 601,
+      "sha256": "72d82ce0557f119be1ef887883f9f30aa16e93692dd3d4e42c476ff836368d13"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/7961_summary_with_code.txt",
+      "bytes": 1464,
+      "sha256": "d2c000f3209ddaa65d7e4746edd01b72b5726a1545f3643dd9237a58aa76888f"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/8077_summary_with_code.txt",
+      "bytes": 1635,
+      "sha256": "de03fbfc365a67a3f18c2206986729aa79cea592b43bbf070bfbd37caaeef0ba"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/8111_summary_with_code.txt",
+      "bytes": 2211,
+      "sha256": "92ca32a957ae053b35b0d2b1a59301c5264a62f26e9948cbef4946c1aff5e515"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/8508_summary_with_code.txt",
+      "bytes": 3007,
+      "sha256": "e94cdfd06db29cae034699f8a4a9dccb8023daff5d69c45b2fb879192caed27e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/8626_summary_with_code.txt",
+      "bytes": 414,
+      "sha256": "55518d0b35a51d635898842fbee242834679d87bc45243bbbd34ffe2182bdc4d"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reports/8693_summary_with_code.txt",
+      "bytes": 255,
+      "sha256": "d457da3eeb45e5cb18846d5de9cae67b4e13c67cee12b8988072751f1423200c"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/18215.py",
+      "bytes": 1481,
+      "sha256": "cc7a9683c3d0e07c3824417c888027bcdb180d7567d47b0ef9c1352eaabe972e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/23580.py",
+      "bytes": 177,
+      "sha256": "273bdb85d844d5ecd403b9a82647775c8a2bdf8b27882475680613e91358e302"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/23642.py",
+      "bytes": 463,
+      "sha256": "61df9e6d529baf854c83b3aac0e788ec9230c1329e1faf00c2f38d6d439a03b1"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/27074.py",
+      "bytes": 56,
+      "sha256": "07558e33692c4d6ffcbbdaa7abb34a5d205b1067e0d7f0f4d7735890b9ec0ec6"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/28010.py",
+      "bytes": 189,
+      "sha256": "c43818db01cc28a5668b1292fa26bbe9a0ee3b1caa259380d98f2f6ecd491f04"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/28623.py",
+      "bytes": 109,
+      "sha256": "3aee6383d6c8df245a807e60cccd46a8379976c668c667f35348848c9aa115ef"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/31108.py",
+      "bytes": 731,
+      "sha256": "ac36772c773437fad8c34946c30fbafd14f1223d596eab77ab1f3ec9d4d6227e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/31271.py",
+      "bytes": 339,
+      "sha256": "3460b511a5fc9dead6240f5d61f5169d0aeb5f5d616c991b69541258974a2237"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/34191.py",
+      "bytes": 378,
+      "sha256": "378138bf43566aaac5585078831b4a8f36fadf2666c25cecd4cd2fbbe1af6e88"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/37403.py",
+      "bytes": 873,
+      "sha256": "ec148e2981b02569aebac1a7b46c05fdd602757e8074427c2ccefb69bfe988fa"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/37680.py",
+      "bytes": 140,
+      "sha256": "d198d46bf09a30538fbc76fa2d8d695e05d6b1cc5c973eafe41db21d9cf7b3ec"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/37844.py",
+      "bytes": 522,
+      "sha256": "d664e65440824bab1ebaceb8d64fa3e5a5b4bc8afe6823ea6e9d96aa14f9f759"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/37930.py",
+      "bytes": 309,
+      "sha256": "ef0e8296bcbb70b73bab7f4b4f8aa6a5f85576adc0f5d8429bade71277a2c406"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/38605.py",
+      "bytes": 560,
+      "sha256": "efaea9cfebda4a51daeb2cb18df1db94e94386dd11b9b2d4eb3c48bc683d5e3f"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/41115.py",
+      "bytes": 333,
+      "sha256": "c71f8559f4d8f8aa0bb021b6f8564f27848abbe14dbbb754c93d0b71710a8a7e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/45721.py",
+      "bytes": 111,
+      "sha256": "7a8ad89c9b01f3cb3755abdccad1acd6f697273639a811db2437be865ba47774"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/46242.py",
+      "bytes": 988,
+      "sha256": "a421fb38919416ab463685edd2f950a8b8c70b5b9ba45aa4e4a3dc62fecf8380"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/47007.py",
+      "bytes": 86,
+      "sha256": "aa4ff836b5afc9e9095b99836b585a01f7673eaae29164a9e16ab9a647ab272b"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/47054.py",
+      "bytes": 114,
+      "sha256": "40bf0ff9d1fc6c8e4ff59b4a649f3a4d25db0d63ec87aec8aea649c9a7685e6f"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/47090.py",
+      "bytes": 103,
+      "sha256": "3ce81e0786ecb0af27dfcd4b1d3af4d230e6894dac04dd8fab70598d13824bb7"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/47358.py",
+      "bytes": 568,
+      "sha256": "68e55f0a411a3f92386a84ee5190ff9096a07a357f01d5a8ec33d8b177b60dc2"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/48674.py",
+      "bytes": 125,
+      "sha256": "34b46f42d7566e8c0949ffaedd470995e44c1c1a7963a22de700d4e60c73082e"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/51206.py",
+      "bytes": 4359,
+      "sha256": "dc3b2b2e5d02b8936baefdd85844e56b91a5af5730606a01587494e76588af72"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/53368.py",
+      "bytes": 211,
+      "sha256": "34e68d9c04daf72d021fd6fcf3cebc1e96eebb093f3c0a92d8fa15d0dcc604fe"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/55027.py",
+      "bytes": 1000,
+      "sha256": "87f98b451d7ce5f50236c6a9900a860b52230dd587978e5fcfd094ecf4b9beda"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/58545.py",
+      "bytes": 247,
+      "sha256": "f06dd113653d441a077cfad42f3d9e660713e865175fc056821809b9049b4ba0"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/60179.py",
+      "bytes": 1821,
+      "sha256": "dca138a80c71d50b5387589b7d5f7de0689f923a569770587640c775598b8a98"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/60417.py",
+      "bytes": 673,
+      "sha256": "7a87631220ff54c6603d70aa8f08f2ea8e53677f02eb07c6fbe8029c8f341b98"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/61291.py",
+      "bytes": 286,
+      "sha256": "c1ec70bc0506600027dd13b1399906029ec97dcab6c74cdf5cbdd5e3fcc9e3ea"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/61345.py",
+      "bytes": 1106,
+      "sha256": "dbe73b6646fb5d79347dea5155f6b7c1f2b61bb447080036ef43c2b727b10c41"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/61754.py",
+      "bytes": 264,
+      "sha256": "ae01ce45dca78dde8bde9508c6cefa06a7c5ea5530b1eebb057d8af90b2cfe4f"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/61755.py",
+      "bytes": 92,
+      "sha256": "f11c77b0ab94635eea0fdf8d8bec49db78048fa142f1f4bf7470258dc68b27a0"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/65696.py",
+      "bytes": 174,
+      "sha256": "86fb4df1ed275108043a2fccd046304abb239714e6146fb9435180156ab1d3d4"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/65709.py",
+      "bytes": 79,
+      "sha256": "f9ebd64c8b8b2ccc705e9f15e98b2001180a6df1c2c022c6e63e45cda8034f78"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/65808.py",
+      "bytes": 473,
+      "sha256": "a142e57e7e73345f65c14c355b25e3e78b6eeacbc635a45ba25ba294412b484b"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/66086.py",
+      "bytes": 95,
+      "sha256": "0406972ba2e7d5089d2e71257bf1fdd71f5673cd41196d22eba1497fe82b8059"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7178.py",
+      "bytes": 371,
+      "sha256": "1f5be17df675c4ec0323f7b9827268467f26b91e258a756ad9574761bfcf7ac9"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7332.py",
+      "bytes": 341,
+      "sha256": "99225a2f9f335ea748fcc913d3fc2bf8e341bc81cf8a25e161a0ea524566644c"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7559.py",
+      "bytes": 292,
+      "sha256": "72fbc494e6e9e62f32150525ac307efd2afc16bfb6975cb66b2e55c68a737921"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7568.py",
+      "bytes": 327,
+      "sha256": "1eef113a6bf65c0ba87072003407d41c63d3ce9a3f9526c909f9f10ad8608e63"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7639.py",
+      "bytes": 51,
+      "sha256": "3bf16bd97430e272638bb52425e4cae080ceee7e1cbddcdf0f1550c902f8c893"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7650.py",
+      "bytes": 260,
+      "sha256": "420c7f04656a0935e3e4307bc2eae6d6ab1e72b827161d18b5b4f5c889daf33d"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7763.py",
+      "bytes": 188,
+      "sha256": "a638cbaa37b0a0c37fe7f22cceb106fdf7aa87ddd5a0b62380cfa8c97ed526c1"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7849.py",
+      "bytes": 114,
+      "sha256": "e757d24ebe4050acbdc66b45a8cdb7c99f5dc8eb0b8c019aecebceab2ef8e36b"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7868.py",
+      "bytes": 194,
+      "sha256": "4963a97c2ff98e6966122055bc421643d8ac3b10d3fa40b26f1477d7fb822b87"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7882.py",
+      "bytes": 425,
+      "sha256": "2e31335c7d96c1dde6c8d25af1fc040f291164e2cc40f724ec3773fca28eb12d"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7947.py",
+      "bytes": 354,
+      "sha256": "452e9e5ae895890e5c66915666673607fe8c2b2d919b558f763d033de5239f92"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/7961.py",
+      "bytes": 672,
+      "sha256": "dbd611624934aeb6a58ed5621aed01827d5500fe305e40ff913278491e85c112"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/8077.py",
+      "bytes": 349,
+      "sha256": "1261e902ff0409c3b33cb1bac1d1d0719bb8e5fda5cde0a2c68036e24b62e6a7"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/8111.py",
+      "bytes": 443,
+      "sha256": "6f965570d7db7ab006d3c941c29766cc555e9f42d4fad2488891bdae118e2ddd"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/8508.py",
+      "bytes": 1728,
+      "sha256": "54140f03162657a2364470d7d74d9598ddf294e0922af5f223d04edb85b94ea6"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/8626.py",
+      "bytes": 517,
+      "sha256": "d392b450e6269b20faa4e7031f591738157c73266a6b1d02d47c982228420597"
+    },
+    {
+      "original_path": "dataset/raw/DLFrameBRCode_PyTorch/reproduction_code/8693.py",
+      "bytes": 233,
+      "sha256": "a262266a94a3e6689abaee85def51f3d10b3f8419a08b3c5c4c6e131ad9414b2"
+    },
+    {
+      "original_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_001.md",
+      "bytes": 4215,
+      "sha256": "dd5e5ce4baa08fa5d95fe75b549bfa01def87e66a205a653818afd1ce166ccb1"
+    },
+    {
+      "original_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_002.md",
+      "bytes": 2506,
+      "sha256": "6d97ae1f86ae7b46e200814c15569e3134c28082235039b93115d5399d44a31e"
+    },
+    {
+      "original_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_003.md",
+      "bytes": 1952,
+      "sha256": "0cac5dce3e7e9300f327bff7bf06aba9396fa2738ca303ca6db3f43e8dbe9020"
+    },
+    {
+      "original_path": "dataset/raw/exp006_matmul_reports/pytorch/torch.matmul/matmul_bug_004.md",
+      "bytes": 2052,
+      "sha256": "bb8daec17eb607fc256df2737606c215181c35e4953697d2ee305b08263794ee"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/bug_selection_analysis.csv",
+      "bytes": 2473,
+      "sha256": "5b823c927f398676fc2dae720eeb0f7170b2295c8069e0ba91e2654345be8fec"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/bug_selection_auto.csv",
+      "bytes": 7797,
+      "sha256": "6433944f47648f9a19f3d6b4adf601adb05cb5aebe271f696b2e8a8a3c740d20"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/bug_selection_llm.csv",
+      "bytes": 23990,
+      "sha256": "93fa27edbe5f9952d0c4fb76855eabad86c4124a8996c26a290ca0cb3177f46c"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/18215.json",
+      "bytes": 715,
+      "sha256": "51cecb3671dd37e1dae44f43bc26b7f341b3b8f027eb642ebb53e4257f6fff37"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/23580.json",
+      "bytes": 486,
+      "sha256": "e86cc403d7197a3172e28c6834fc389416b5985fc4bd10e68e6e2294758f204c"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/23642.json",
+      "bytes": 625,
+      "sha256": "2eee681a8cadf269848f4044bd29438cc14536855a3b731d708d5b61171e622a"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/27074.json",
+      "bytes": 698,
+      "sha256": "90984262ce4f0008433f51764c61525646fe5bca8c29b9327569331ea1f198d1"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/28010.json",
+      "bytes": 658,
+      "sha256": "1ddd9029099d8d5e9767352f09c22d3429fae1e26b80bd74bef09a97e6124d26"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/28623.json",
+      "bytes": 545,
+      "sha256": "38d41e2bd5a3cd5146a9dad68208eb880926e15216886b79400cc8afc31102dd"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/31108.json",
+      "bytes": 705,
+      "sha256": "3cbe8df139c40a566e8e99375cad9976c8e3e7794afa0f6462c41bead843791f"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/31271.json",
+      "bytes": 523,
+      "sha256": "9e4a977619f0748f4d5f546ca42140904fdd1e7a92ec71793d7834bec3d39d75"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/34191.json",
+      "bytes": 653,
+      "sha256": "91a5fb5c05d2d430e6cc83fbacc2d0cb831ffe0c2bd86f79f9010ad28b896524"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/37403.json",
+      "bytes": 826,
+      "sha256": "284b8d7f8d4ce0172db1cafef5c46c01c5851fa0b2bade8385e2e9b76e15c076"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/37680.json",
+      "bytes": 732,
+      "sha256": "e8505495338edc98fb082c84c5f3d47aa7167bd324a847f434b109b5b6e4b7da"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/37844.json",
+      "bytes": 681,
+      "sha256": "de3bcf14f7400c45f70914bb97f9776c4ebc49cdb5cb463895027c0b216cd8d9"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/37930.json",
+      "bytes": 839,
+      "sha256": "8027ad33e8a1a62b266372b991bf204b8fb580293d92265ad4e29ddda2e8a77d"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/38605.json",
+      "bytes": 759,
+      "sha256": "7b5395018c6ad65cb9c636cd4deb0ab236faeda76f9d573986d100f942c80686"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/41115.json",
+      "bytes": 711,
+      "sha256": "47d761851833d13ab732c3477c26a9eb513f95e3d3af2421eb641c2bbdf1712c"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/45721.json",
+      "bytes": 785,
+      "sha256": "84480de743149fc678527521bc6f854d7f4c03003c3105d681c27e49ab0681d3"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/46242.json",
+      "bytes": 716,
+      "sha256": "1207d4b57011ca7a92d66f1dfb900bfb370e2ebecc0e11e7ea328fb7bce494c2"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/47007.json",
+      "bytes": 611,
+      "sha256": "f71edf94116721669ad7bfb0d584b4923c79696abde50ae502a2556f42aa0211"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/47054.json",
+      "bytes": 687,
+      "sha256": "cc366f4855b63a2a141136dad96e410f10e7ed2169af98b1ec4e16e02feb290d"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/47090.json",
+      "bytes": 626,
+      "sha256": "6d3ccb2b71454562f7e2dffd774db45d34ab0ae0ef2f2ad20b6f2463f8b2dbe7"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/47358.json",
+      "bytes": 773,
+      "sha256": "ef329fd0ce35f4f9f23b45752eab0eff5beef4d0885212a7e37c1574338d0b8f"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/48674.json",
+      "bytes": 571,
+      "sha256": "00bc48d9546020ce60584963ae75af14ad4aef4398d23373f9cd31b408e27654"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/51206.json",
+      "bytes": 664,
+      "sha256": "e78c02011e8153f0e82d110687059f5588af538cf233432f22a4f1c30e64591f"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/53368.json",
+      "bytes": 694,
+      "sha256": "78622a56c3b1a0249f9d784d8edc2fd301b43f4da2a935825b2cef2c753bde41"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/55027.json",
+      "bytes": 796,
+      "sha256": "cb2bc74c242b0f27263e37618855c2dc468900f21e8016f36838a106ac6db4ff"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/58545.json",
+      "bytes": 654,
+      "sha256": "53026433782ce67cedb2320dfb44ddd1ff9dd10458b632da821058d29a9e8970"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/60179.json",
+      "bytes": 797,
+      "sha256": "06d5142413768e1ffc2b87dfefdae4ab8cc784a1901d548bbff7b7cd36e39dd3"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/60417.json",
+      "bytes": 845,
+      "sha256": "e9bcdbbeb3a92df188a68715e1f51673b3f12f4489d9c71b4a1b66fef048f7da"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/61291.json",
+      "bytes": 729,
+      "sha256": "5256ba7cc879234167c1ce577411f3e013ed67b969f5e42873ada855af94b945"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/61345.json",
+      "bytes": 703,
+      "sha256": "ba2226f6e70e4dbd60e44c05a132e69bb9b8ea0664e9e560f81cb712038c423b"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/61754.json",
+      "bytes": 666,
+      "sha256": "242b3ccaa74e5c80caca71345920bcfd33db46762eee48ac1bd62f98112965b4"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/61755.json",
+      "bytes": 609,
+      "sha256": "84eafdc9f6263b2a28ea1cfa15cb1fe7fa9ededa55ba9ca6e68bfb6d1db952c5"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/65696.json",
+      "bytes": 810,
+      "sha256": "a2a8eac09d749151ec4678054151cf69ff26f64dc84319132cbb8d77f0127199"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/65709.json",
+      "bytes": 644,
+      "sha256": "a90cc8b706cf48ce328327fb0a244c30286a0320b563f96aed15be78ba7251c4"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/65808.json",
+      "bytes": 889,
+      "sha256": "25700cd8ea5ce895af1dadfac6dd4d7cda334d0007254c6efb27ae99ef30a322"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/66086.json",
+      "bytes": 651,
+      "sha256": "a0ea5d67067d0b56b577b6ba3ddff450998c0e7f0395640f885656ce0e454cac"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7178.json",
+      "bytes": 666,
+      "sha256": "439172cc766c7bd3c3c37174e7c3ac64ef19818ef3b9d05010b3bb4f76de32b8"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7332.json",
+      "bytes": 641,
+      "sha256": "5a81af96be6bdfb30eb8931632ba8fc85d090a0900e57755e603f363efef36e2"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7559.json",
+      "bytes": 704,
+      "sha256": "81ce4d256f09bf2d43fef414531c028243dc6208f0a30f3d0a00033d9d91470a"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7568.json",
+      "bytes": 781,
+      "sha256": "bbbdd8f9acd76ca98450b5eeb7074be0a2b9c42204c08099fb06c4bb869c445f"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7639.json",
+      "bytes": 629,
+      "sha256": "f78ce869dcaf708a5e154fe0a4ade4af5cd49aede5216ef5ad233fbb7f54e092"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7650.json",
+      "bytes": 869,
+      "sha256": "15ee7bcb4a8c0e6f14b28370c6c289beed4b3a70fcb1df924d9c76bdf6553982"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7763.json",
+      "bytes": 784,
+      "sha256": "bb84c38041b221075a0bb75dacfc50581cf02de2565b194c3f39bf8ae139040f"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7849.json",
+      "bytes": 796,
+      "sha256": "702f678d282645b65a848c7ac7b49de4a5eb5b418b9193e5ccb52435a5e003de"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7868.json",
+      "bytes": 758,
+      "sha256": "e990f5784493dcef0b87c8538d5c6849bef754be29afc56e5b200599e5b70fa1"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7882.json",
+      "bytes": 35862,
+      "sha256": "3545c515ccccfff9524384c0edfb45c45c41ae4626598512f57a4b02221feda2"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7947.json",
+      "bytes": 699,
+      "sha256": "a4bab0bb09d17a446897381dc5e85cb1f04493c12ea5e34ae761d02b4c085aad"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/7961.json",
+      "bytes": 33535,
+      "sha256": "393438caee2f5906d97e83a0cad78b7ac24e29eb9819c4dcceb7fd5415ba8410"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/8077.json",
+      "bytes": 844,
+      "sha256": "f5669b501e38506af6f85c9abf350f16298fd0836481049d6fa1b7e402cb23b6"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/8111.json",
+      "bytes": 675,
+      "sha256": "a8a617072a7e16743dabb2df672ab28e6d7fba91a3b439fe7c43188229fc959c"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/8508.json",
+      "bytes": 697,
+      "sha256": "804a132ef739268d1b9ff8a99a66487b0e37ffb182e6b208dda9cd5ec0568354"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/8626.json",
+      "bytes": 781,
+      "sha256": "879b13f5af9afd6880d50050a3b03d3437051691ab7dec8e3fbeaf635238933f"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/llm_responses/8693.json",
+      "bytes": 694,
+      "sha256": "0d29f2894705cdd0481e0ebad468cf12a41fdb3dc3237bcb12250db800050a6f"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/prompts/bug_selection_prompt.md",
+      "bytes": 1925,
+      "sha256": "3b1ede1e343ef5efb737033f54d554ade626e22802bdc7344396595c04eb3e8e"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/selected_bug_candidates.csv",
+      "bytes": 18353,
+      "sha256": "2bb1574b519e25106272e2bdebbe7f71b632e529bda8184ffb86e1c14fb0bbfb"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/selected_bug_review.csv",
+      "bytes": 18667,
+      "sha256": "fee839d52980595318d46a9cdc2e484d3d5514801454c22980339b4e136b6ac9"
+    },
+    {
+      "original_path": "dataset/interim/bug_selection/selected_bug_review_final.csv",
+      "bytes": 35316,
+      "sha256": "80b43359298ba851ac5f3ae60aed936bc963980a06496314d5bb8f47e3d98852"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/excluded/issue_106665_linear_api_mismatch.txt",
+      "bytes": 2260,
+      "sha256": "dd86e331f9a7e54a1ac96469871490fab95847bba64998a5dc54bd0fc51c489b"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.add/issue_152731_float16_overflow_cpu_cuda.txt",
+      "bytes": 1273,
+      "sha256": "ea0e5233679650a1a0dbb940ade3f3c88e449eb713b401bd0dab64b7e5616a48"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.add/issue_154501_complex_inf_add.txt",
+      "bytes": 1360,
+      "sha256": "9d823531d329f129f469eb9ebd47bc8070544e50354dd88c5bc1e4b7f44ed752"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.add/issue_170573_out_view_buffer_overflow.txt",
+      "bytes": 1086,
+      "sha256": "d68132d39d50ecd03e8efa8a58386292ab07e61c2a25363310cdb0c3b376a715"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.addmm/issue_138906_out_alias_addmm.txt",
+      "bytes": 1437,
+      "sha256": "b47385317e8f2d18d06235359459b4b649d7b7efc86676b4cae526e257962f79"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.addmm/issue_183887_int64_compile_addmm.txt",
+      "bytes": 3362,
+      "sha256": "177ced2efc8b9a57ce604d42339dc551b98ed27b5bf27ce769ba2358a62a595d"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.addmm/issue_183899_beta0_shape_addmm.txt",
+      "bytes": 2571,
+      "sha256": "a3ccdbc572a8a447d83411bbabeafb3754d4358e084de3e499c8ec66b7a87a08"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.addmm/issue_48900_out_alias_addmm.txt",
+      "bytes": 2433,
+      "sha256": "f16b099db4a3e97b488167ea45c9a2fe1984acaddf67331cd8eb9a70a0b3ff65"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.cat/issue_118970_cat.txt",
+      "bytes": 2368,
+      "sha256": "2ab338957d6864313b4b07f94094de51b36f23eda0d6aa879a8e2cd54be9af53"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.cat/issue_139609_cat.txt",
+      "bytes": 2950,
+      "sha256": "9c4fdc5060ac33ce1b8e8c1f330d85d8ec93a65b04b2fd0bb5a54c22272cd22f"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.cat/issue_60997_cat.txt",
+      "bytes": 3163,
+      "sha256": "692cf5363788a8fc8bb86fdad88349f5fef8b8cfc31af3e6e20db4637bc2f8bc"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.cat/issue_63998_cat.txt",
+      "bytes": 2735,
+      "sha256": "0388091801ce006a24837f370cc0b38065b03ab253b1c0ca9ff21e68020a8aa8"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.cat/issue_86918_cat.txt",
+      "bytes": 2091,
+      "sha256": "01d1346e4c5caa5dddb9d518ba46c69530e930beb250d75c87b8f8982b507776"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.index_select/issue_121251_index_select.txt",
+      "bytes": 3075,
+      "sha256": "61f3e50b71b145ebd7f704d535350d36b6fd3cf63d1c5d0439ad4a70ebb01378"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.index_select/issue_154235_index_select.txt",
+      "bytes": 1214,
+      "sha256": "ee1d3b5e41eaf35cfd9ce620d49740ce9edd970631c5158018d59135400f516a"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.index_select/issue_169779_index_select.txt",
+      "bytes": 2337,
+      "sha256": "eb9d7360eb6f8d900bed8f82306cc18a14a611eb66ef45415e33048c93dcf23f"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.index_select/issue_188756_index_select.txt",
+      "bytes": 2083,
+      "sha256": "dfc429cffa1c577cf9e000315a14443478781f3019cc947dc9e059e240b0f2e3"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.mm/issue_191693_bool_mps_mm.txt",
+      "bytes": 3094,
+      "sha256": "ed1f8310c8048aa53c1c71eaabf2274a080118efe50595c63057b21467f93a3b"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.mm/issue_85852_out_alias_mm.txt",
+      "bytes": 845,
+      "sha256": "d77301b7728a9d9c8e447a140f88abf103ef80d174aa51505599fca019169c49"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.mul/issue_115731_empty_float16_mul_crash.txt",
+      "bytes": 2333,
+      "sha256": "5b9f381a1434bb3bbd20a54e6e818c4bb4f42291c8ab74887e2de659255d56a0"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.mul/issue_188900_sparse_broadcast_mul.txt",
+      "bytes": 4418,
+      "sha256": "b0548cf885b241986b3c0611b1166679bbed5fc798311880bdcf275516e77c04"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.mul/issue_85053_mul_out_shape_mismatch_segfault.txt",
+      "bytes": 1814,
+      "sha256": "8eb2a98e9dc9753bcd968566bb6be25835bb08b80f24813c96fd61034892e140"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.relu/issue_117544_relu_sinh_nan_inconsistency.txt",
+      "bytes": 2882,
+      "sha256": "557cdd1d743a79eb9072601e8469809ea6f23f8e48ff936cc2ea068523628bb0"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.relu/issue_49536_relu_vulkan_backend_crash.txt",
+      "bytes": 1975,
+      "sha256": "97247ce5292aebf58feb89e0dbf1edb9e5975a75cb0e5867676412d740b27fa5"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.relu/issue_61519_relu_inplace_backward_hook.txt",
+      "bytes": 2989,
+      "sha256": "c73d2684059682863224789f5d07a548ff62b12bbc8d83f4f12528c7d74a7c93"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.reshape/issue_194050_reshape.txt",
+      "bytes": 3816,
+      "sha256": "d7f932262be8f9dc734475e8dce2a622ce196d034004fa544523a228489b79eb"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.reshape/issue_194051_reshape.txt",
+      "bytes": 3720,
+      "sha256": "ead695c9192192f931931b5c7305a9478df32f0f7008bb267b29254ff7fa9c90"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.reshape/issue_89068_reshape.txt",
+      "bytes": 2602,
+      "sha256": "d3ca6db282df10400535cc33b52b67ab96ce5843eb5379f3823aa82ef54e26b4"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.softmax/issue_123911_softmax_dtype_fp16_inconsistency.txt",
+      "bytes": 3617,
+      "sha256": "e9151889c2ea27e272b512618f4f37ad69d9af61e7016325ce3997dab4d2841a"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.softmax/issue_139701_softmax_permute_transpose_inconsistency.txt",
+      "bytes": 1596,
+      "sha256": "3fba0d640c52e43c59aaa136b7404afaca640e4cd4854cb3d8390338b54a2983"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.softmax/issue_147284_softmax_cuda_double_wrong_result.txt",
+      "bytes": 2353,
+      "sha256": "03de794d6118bd0ad6cd5b01a17a66c7ade7a90ad29cd0574383341a75bbcc45"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.softmax/issue_55056_safe_softmax_all_inf_nan.txt",
+      "bytes": 2967,
+      "sha256": "b4460b8a7f5cfb8b999601729461e7412ae18ab77fd5c25d55aaba63783f8d6d"
+    },
+    {
+      "original_path": "dataset/interim/github_issue_collection/torch.softmax/issue_75923_softmax_non_contiguous_out.txt",
+      "bytes": 3258,
+      "sha256": "6e5fff06693235f17e45d41b306b2915916379650fe1cfefb3caff2f54b8ed55"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_104832/revision_001.json",
+      "bytes": 8798,
+      "sha256": "ff22c20829d1bb5b3e62aa3258dc1ed8236f584e43b998102bd3c645cf9c02f6"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_104832/revision_002.json",
+      "bytes": 11950,
+      "sha256": "8c17cbb57b231fec40e7130b7311fc442ad955085adc0531487e335e15b59ccc"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_104832/revision_003.json",
+      "bytes": 11402,
+      "sha256": "129841458b689a88c07d83d4addd52d18be6f4c44e0778e43422c0f25280d0cd"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_115731/revision_001.json",
+      "bytes": 15392,
+      "sha256": "d984b616e8bf9ef2aae8c4820184ea411d92d3fa30efbf2f37fb4a27c0cd97e7"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_123911/revision_001.json",
+      "bytes": 15164,
+      "sha256": "926bd9d20f7fc5313f2f04f1375f5ef03b27c0e47f0ada3fddc01001bf738555"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_139701/revision_001.json",
+      "bytes": 11846,
+      "sha256": "e4b2d74e8fb093bb459bd3bece8287f3f67ae5d65bb1c6d4de28713f0132ea7d"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_147284/revision_001.json",
+      "bytes": 12555,
+      "sha256": "6a0b5125be7c031f8fcc25db9d11a9ee33da1f18543ddd5281d001ea865d96d9"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_152731/revision_001.json",
+      "bytes": 8164,
+      "sha256": "9f0e0ce8ed3da31fad0f40f0ea077a538a350800f78e47c076f2919164946698"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_154501/revision_001.json",
+      "bytes": 8855,
+      "sha256": "4a7bc49f9313875b4eeb6ad8ec48e0e50d40070ee9589421b53950b537f0cb1a"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_170573/revision_001.json",
+      "bytes": 11526,
+      "sha256": "18e82aed0900f0b6c184fde7f8df5d221cee6a82df394cdedb4b5b0081030925"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_170573/revision_002.json",
+      "bytes": 11176,
+      "sha256": "6eb7ded09dfcabbdc11b13576b64deed92ece9508d3db4370027f5dfcf453654"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_170573/revision_003.json",
+      "bytes": 11181,
+      "sha256": "759741fdaefd9b9e04d5d9833eb4f1f63b9455bdc9b4b04a99d374c212daf4c5"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_188900/revision_001.json",
+      "bytes": 14446,
+      "sha256": "5a3710a65e46a72e973cc0a0f54422b9b94ee6ec0663ac8e88dcc940a17fd0eb"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_191238/revision_001.json",
+      "bytes": 8546,
+      "sha256": "f31613070ee75775c69d314978cb1f90b49212fd6ba574604302d4e321f4704f"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_191238/revision_002.json",
+      "bytes": 13554,
+      "sha256": "6ac7c8e55b19e6c24ba8a1c6a9b4b5318f989f4504a66cec97805cada0da4ca9"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_191238/revision_003.json",
+      "bytes": 13554,
+      "sha256": "26e8a6725089d41dbaffe2747008635b33251009e9e82789ff47444349283f3d"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_191693/revision_001.json",
+      "bytes": 9923,
+      "sha256": "c1a648c07f16e9db42ffc598762438c7d2ca63f4f69c82cac138fc6f8ab33a3a"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_55056/revision_001.json",
+      "bytes": 11902,
+      "sha256": "ffb9e4ee727acf5b2b9341fc07998d3f9f7c3209982a4613580ecfa31c51ecd4"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_71774/revision_001.json",
+      "bytes": 6118,
+      "sha256": "629fdbe83ee326d062f1588009fd6feab57fc9433ba8fcb5926e989f80bb5713"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_71774/revision_002.json",
+      "bytes": 11752,
+      "sha256": "be200369eee8d52329464e56885ed917bf6b896c8e2e4d68bbc6eeb5fd1aaa6c"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_71774/revision_003.json",
+      "bytes": 11761,
+      "sha256": "c2c70181d36220a86ceb70d437c53dc5ee3d497ba9aa02b1adb400ee9f9dfa9d"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_75923/revision_001.json",
+      "bytes": 12149,
+      "sha256": "bc1ad18298a1e747756638ed257019e9f24fc1176f7788f22d09cabe55195613"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_85053/revision_001.json",
+      "bytes": 12928,
+      "sha256": "5dcb4f137914ea6d0bc0377b79afddf19d32b6ee63e2525cac45a9baeca5d36d"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_reports/github/br_pytorch_github_85852/revision_001.json",
+      "bytes": 7720,
+      "sha256": "ab7df4038fef05eb779f569814214273db922e57833b324486d38a669035d4cd"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.add/pt_complex_inf_addition_incorrect_imaginary_p001.json",
+      "bytes": 4646,
+      "sha256": "7b17e0389c92b70d492a4d23881c69d2ff1b5ed42b0d310fed8b4310e0f91a9b"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.add/pt_float16_overflow_backend_inconsistency_p001.json",
+      "bytes": 5296,
+      "sha256": "5c9a66926dc60ab5acf4a05c02e2464ca309fd5ce7a85a698b976dfbf57c09c7"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.matmul/pt_mps_matmul_non_contiguous_out_incorrect_output_p001.json",
+      "bytes": 4987,
+      "sha256": "2250cd22051898402f11c7e9ac010c0f9125a3a41265c36f0456e71708408a43"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.matmul/pt_unaligned_fp32_rhs_large_matmul_m1_sigbus_p001.json",
+      "bytes": 7524,
+      "sha256": "085c9473c332acc72f71effa299da637e7e6099f194189f735e97feb76e42579"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.matmul/pt_undersized_out_view_implicit_resize_memory_overflow_p001.json",
+      "bytes": 5011,
+      "sha256": "69ee2c2a96636da0771c769007d7da5dea8b450d35d70ec9a0097756419b9c10"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.matmul/pt_zero_inner_dimension_long_matmul_nondeterministic_output_p001.json",
+      "bytes": 5539,
+      "sha256": "a7a3943984813af36bff3ac7728b1b74cc4477b1549e54d699fc9ac8bc50204c"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.mm/pt_mps_bool_torch_mm_dispatch_missing_dtype_validation_p001.json",
+      "bytes": 4847,
+      "sha256": "d17e9de5f76c369b02b3598a7e163405a26c54aa6b0c700a6c74fb8e7089f487"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.mm/pt_torch_mm_output_alias_input_incorrect_output_p001.json",
+      "bytes": 3455,
+      "sha256": "f5a5f48b30f398595e177762c1575a53bb6b97c44f65d44ae4a6cd29ad29a819"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.mul/pt_empty_float16_tensor_mul_cpu_segmentation_fault_p001.json",
+      "bytes": 4852,
+      "sha256": "1676a316d17954abc862482ac32f988931e2d5b802acaad3cad43a1ef53484e9"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.mul/pt_sparse_coo_singleton_broadcast_mul_silently_drops_data_p001.json",
+      "bytes": 5049,
+      "sha256": "ec61444ebb46e1a1e9570b105e6129096e447791e569442117260fbc2871d796"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.mul/pt_torch_mul_incompatible_out_tensor_shape_segfault_p001.json",
+      "bytes": 5099,
+      "sha256": "f5db9f7ef8b547c561f2ff7107aa73fb76b2f893a5d3acac6206dde85a1d64cc"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.softmax/pt_cuda_float64_softmax_specific_shape_incorrect_output_p001.json",
+      "bytes": 5005,
+      "sha256": "ef91dc47bb5ec3edc291265ffb1020c799a286f2405bb094f9d612d5868c735e"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.softmax/pt_fp16_softmax_dtype_cast_numerical_inconsistency_p001.json",
+      "bytes": 5866,
+      "sha256": "56c03630ba479b4651eff8fbeb8e1943b8c62e3547b17fbb8ec47d754e6f3ff5"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.softmax/pt_softmax_all_negative_infinity_produces_nan_p001.json",
+      "bytes": 4377,
+      "sha256": "62bb33f4e4c212aa5db423605609d4f24cb2e0b31c1274d04b7d5bd4217914f3"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.softmax/pt_softmax_non_contiguous_out_tensor_incorrect_output_p001.json",
+      "bytes": 4547,
+      "sha256": "c0a3054b65150b3518ae0d3531a899bbba77f89df14c17c323dde52ac75e3e8f"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/bug_patterns/torch.softmax/pt_softmax_permute_transpose_numerical_commutation_discrepancy_p001.json",
+      "bytes": 4981,
+      "sha256": "274c3e9e764e28a193f3d4b84185833c5ab58daec07511fc2e37c583be1b9696"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/torch.matmul/kn_pt_torch_matmul_empty_inner_dimension_long_dtype_determinism_k001.json",
+      "bytes": 8419,
+      "sha256": "c42ac85e686e046ab72947d72df6048bff846e65b59a285f89892bd55bf41900"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/torch.matmul/kn_pt_torch_matmul_mps_non_contiguous_out_write_correctness_k001.json",
+      "bytes": 8208,
+      "sha256": "15e9707916bc68a40077cd23519971c0c12d7769df6e70f0bf9382d4006d8798"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/torch.matmul/kn_pt_torch_matmul_unaligned_fp32_rhs_cpu_blas_alignment_crash_risk_k001.json",
+      "bytes": 10903,
+      "sha256": "d58a40ea90675c76f895ea983203795a07b51c8ef9c4ab1e15119f8f03e5b5c0"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/torch.matmul/kn_pt_torch_matmul_undersized_out_view_storage_capacity_mismatch_k001.json",
+      "bytes": 7795,
+      "sha256": "7848fd18b41948e4a5d30cc509f8116144877048fee20f80f88063e5ffd3a6d1"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/quality/report_build_runs/report-build-20260914T021918493523Z-1f500e85.json",
+      "bytes": 1693,
+      "sha256": "a1b7dd291a0ace06466b30fcc641aa13a5ab710bc28eaee66d8f75b9f8be5c3f"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/quality/report_build_runs/report-build-20260914T033504698201Z-59f620f7.json",
+      "bytes": 1693,
+      "sha256": "91175d630fd98eee233273e5af5c634b1a4685b7ab886a1a382f3aaf72e3e2c3"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/quality/report_build_runs/report-build-20260914T034045755979Z-6b9b62a1.json",
+      "bytes": 1693,
+      "sha256": "9fe40716cd1a37730b9a9920004258911e181052abe9154d7f578ae1e24e91ff"
+    },
+    {
+      "original_path": "experiment/EXP006_historical_bug_pattern_dataset/quality/report_build_runs/report-build-20260924T061350019446Z-a48e8fe6.json",
+      "bytes": 4680,
+      "sha256": "ba57c02d4181566cb4af68e6e9e399e7c214c2604d3c19b68b2b73663c473912"
+    }
+  ]
+}

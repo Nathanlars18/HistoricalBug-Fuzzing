@@ -1,0 +1,122 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_softmax_all_negative_infinity_produces_nan_p001",
+    "canonical_name": "softmax_all_negative_infinity_produces_nan",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_55056",
+        "report_hash": "sha256:06ca2f75b63b02c9883da4038570d660169e82cd8f99054b9e32571d82114480"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_55056",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_53698d429e10",
+          "ev_art_primary_report_observed_output_a7f709008cda",
+          "ev_art_primary_report_reproduction_b01f26648193",
+          "ev_art_primary_report_expected_behavior_0a592a6c7297"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "Single numerical edge case pattern for torch.softmax when all input values are negative infinity, causing zero-over-zero normalization and NaN output.",
+    "unresolved_information": [
+      "Fix status is unknown; the proposed safe-softmax zero-output behavior is not confirmed as implemented.",
+      "The report does not confirm whether the same behavior occurs for related APIs such as torch.nn.functional.softmax and torch.nn.Softmax."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.softmax",
+    "confirmed_apis": [
+      "torch.softmax"
+    ],
+    "operator": null,
+    "module": "torch.nn"
+  },
+  "defect_classification": {
+    "primary_defect_class": "numerical_edge_case",
+    "secondary_defect_classes": [],
+    "risk_dimensions": [
+      "value"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "value",
+        "subject": "input tensor",
+        "predicate": "all values are negative infinity",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_53698d429e10",
+          "ev_art_primary_report_reproduction_b01f26648193"
+        ],
+        "condition_id": "tc_01"
+      }
+    ],
+    "operation_context": {
+      "description": "torch.softmax(x, dim=0) where x is a 1-D tensor of three negative-infinity values.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_b01f26648193"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": [
+      {
+        "layer": "numerical",
+        "description": "The reporter states that torch.softmax internally performs exponential normalization. For an all negative-infinity input, exp(-inf) becomes 0, producing a denominator of 0+0+0; the resulting 0/0 computation yields NaN.",
+        "status": "source_reported",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_53698d429e10"
+        ],
+        "confidence": "medium",
+        "hypothesis_id": "dm_01"
+      }
+    ]
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "torch.softmax on an all-negative-infinity input returns a tensor of NaN values where the reporter expected zeros.",
+    "historical_oracle": {
+      "kind": "output_property",
+      "condition": "Observed printed output is tensor([nan, nan, nan]); the report also uses torch.isnan(y) and expects tensor([0, 0, 0]).",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_observed_output_a7f709008cda",
+        "ev_art_primary_report_expected_behavior_0a592a6c7297",
+        "ev_art_primary_report_reproduction_b01f26648193"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_a7f709008cda",
+      "ev_art_primary_report_bug_description_53698d429e10"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "medium",
+    "oracle_confidence": "high"
+  }
+}

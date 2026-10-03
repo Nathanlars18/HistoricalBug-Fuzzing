@@ -1,0 +1,304 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_139701",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "139701",
+        "url": "https://github.com/pytorch/pytorch/issues/139701",
+        "local_path": "dataset/interim/github_issue_collection/torch.softmax/issue_139701_softmax_permute_transpose_inconsistency.txt",
+        "title": "softmax fails to commute with permute / transpose",
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:3fba0d640c52e43c59aaa136b7404afaca640e4cd4854cb3d8390338b54a2983"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_c9b6781bb26b",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 4,
+        "end_line": 10
+      },
+      "excerpt": "Issue:\n#139701\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/139701\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:00f3a86a379ad51adc6cc5e1cf8c6b8586f0e8c4f55cf18a498e41459dfdd47f"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_5224b2f6ea91",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 11,
+        "end_line": 19
+      },
+      "excerpt": "Description:\n\n🐛 Describe the bug\n\nThe result of applying softmax before and after an inverse permutation should be mathematically equivalent.\n\nHowever, torch.softmax produces slightly different results when using permute or transpose operations.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:737c5f1bda6986b3225eba71e2c665bb82d6676557e874b40a385dbb5580507e"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_e8b41bd5f1d9",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 11,
+        "end_line": 19
+      },
+      "excerpt": "Description:\n\n🐛 Describe the bug\n\nThe result of applying softmax before and after an inverse permutation should be mathematically equivalent.\n\nHowever, torch.softmax produces slightly different results when using permute or transpose operations.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:737c5f1bda6986b3225eba71e2c665bb82d6676557e874b40a385dbb5580507e"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_91a07548ea15",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 20,
+        "end_line": 43
+      },
+      "excerpt": "Reproduction:\n\n```python\nimport torch\n\nval = torch.tensor(\n    [[7.76308536529541015625,\n      7.17303562164306640625,\n      5.13778305053710937500]],\n    dtype=torch.float32,\n    device='cpu'\n)\n\nval1 = val.softmax(dim=1, dtype=torch.float32).permute(1, 0)\n\nval2 = val.permute(1, 0).softmax(dim=0, dtype=torch.float32)\n\nprint(val1)\n\nprint(val2)\n\nprint((val1 - val2).abs().max())\nObserved output:\ntensor(2.9802e-08)",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:3050426082adedcb02cb0b121e525dbe1db13ef0d7d6befffa067c48504575f0"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_eebd101cf11b",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 44,
+        "end_line": 59
+      },
+      "excerpt": "Expected behavior:\nThe following two computations should produce identical results:\ntensor.softmax(dim=d)\n\ntensor.permute(...).softmax(dim=0).permute(...)\nAdditional example:\nThe issue also appears with float64:\ntorch.tensor(\n    [[0, -0.5, float.fromhex('-0x1.205p+1')]],\n    dtype=torch.float64,\n    device='cpu'\n)\nAffected conditions:\n- softmax operation\n- permute / transpose tensor layout changes\n- floating point tensors",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:6eeded2c42dda4024a8f040bfe0c4b195a880e34b6158547a5908f9166ca6e5e"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_4f93c6e54ef7",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 60,
+        "end_line": 76
+      },
+      "excerpt": "Environment:\nPyTorch version:\n2.4.1\nCUDA:\nNot available\nOS:\nmacOS 15.0.1\nPython:\n3.11.9\nHardware:\nApple M3 Pro\nRelevant libraries:\ntorch==2.4.1\ntorchvision==0.19.1\nInvestigation:\nThe issue is related to numerical differences caused by tensor layout transformations.\nThe same computation using scipy.special.softmax does not show the discrepancy.",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:dcdc2dd2ba96c6d4df86864ae1656805129f8d3df44a769b6375f31293af2935"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.softmax",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_e8b41bd5f1d9"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "incorrect_output",
+        "statement": "🐛 Describe the bug\n\nThe result of applying softmax before and after an inverse permutation should be mathematically equivalent.\n\nHowever, torch.softmax produces slightly different results when using permute or transpose operations.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_5224b2f6ea91"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "The following two computations should produce identical results:\ntensor.softmax(dim=d)\n\ntensor.permute(...).softmax(dim=0).permute(...)\nAdditional example:\nThe issue also appears with float64:\ntorch.tensor(\n    [[0, -0.5, float.fromhex('-0x1.205p+1')]],\n    dtype=torch.float64,\n    device='cpu'\n)\nAffected conditions:\n- softmax operation\n- permute / transpose tensor layout changes\n- floating point tensors",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_eebd101cf11b"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "PyTorch version",
+        "value": "2.4.1",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4f93c6e54ef7"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "CUDA",
+        "value": "Not available",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4f93c6e54ef7"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "OS",
+        "value": "macOS 15.0.1",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4f93c6e54ef7"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_004",
+        "property": "Python",
+        "value": "3.11.9",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4f93c6e54ef7"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_005",
+        "property": "Hardware",
+        "value": "Apple M3 Pro",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4f93c6e54ef7"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_006",
+        "property": "Relevant libraries",
+        "value": "torch==2.4.1",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4f93c6e54ef7"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_007",
+        "property": "Investigation",
+        "value": "The issue is related to numerical differences caused by tensor layout transformations.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4f93c6e54ef7"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_91a07548ea15"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_5224b2f6ea91",
+        "ev_art_primary_report_source_metadata_c9b6781bb26b"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_91a07548ea15"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:09ce6c94e9c3d8c24e4590b9a328e28450c0c2d3b70468245f1ccff27a717db8"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

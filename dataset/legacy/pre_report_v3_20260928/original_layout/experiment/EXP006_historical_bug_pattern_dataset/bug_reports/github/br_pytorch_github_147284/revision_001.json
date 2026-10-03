@@ -1,0 +1,320 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_147284",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "147284",
+        "url": "https://github.com/pytorch/pytorch/issues/147284",
+        "local_path": "dataset/interim/github_issue_collection/torch.softmax/issue_147284_softmax_cuda_double_wrong_result.txt",
+        "title": "torch.softmax gives wierd result under specific condition on cuda double tensors with multiple rows and 781 columns.",
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:03de794d6118bd0ad6cd5b01a17a66c7ade7a90ad29cd0574383341a75bbcc45"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_f82f5ea48bfc",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 4,
+        "end_line": 10
+      },
+      "excerpt": "Issue:\n#147284\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/147284\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:5def4899e4d78d915189d482a818e864adaa4506560b1f653390e69cedd371d3"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_1c69e4b17a93",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 11,
+        "end_line": 17
+      },
+      "excerpt": "Description:\n\n🐛 Describe the bug\n\ntorch.softmax(torch.zeros(c,781, dtype=torch.float64, device='cuda'),dim=1) gives wrong answer for c > 1.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:afcb08d68357987e44d8399cd73ae72a9f429cd66f3c5f5c857381ec9d09f5d2"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_8f287ca4c8de",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 36,
+        "end_line": 41
+      },
+      "excerpt": "Observed behavior:\nThe output values are incorrect when:\n- device is CUDA\n- dtype is float64\n- number of rows is greater than 1\n- dimension size is 781",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:56f81cc89fd444ab1810b20f3ef3c7f37533300e8d8c65f8223bb7dada058b52"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_a39f708209a7",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 1,
+        "end_line": 3
+      },
+      "excerpt": "Title:\ntorch.softmax gives wierd result under specific condition on cuda double tensors with multiple rows and 781 columns.\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:2750fbb9b6b62e6c2f24b8d1b2281625ce724c265946a9674b6cd70f8ddea16a"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_38620e1bf39e",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 18,
+        "end_line": 35
+      },
+      "excerpt": "Reproduction:\n\n```python\nimport torch\n\nprint(torch.softmax(torch.zeros(1,781, dtype=torch.float64, device='cuda'),dim=1)) # correct\n\nprint(torch.softmax(torch.zeros(2,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong\n\nprint(torch.softmax(torch.zeros(3,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong\n\nprint(torch.softmax(torch.zeros(4,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong\n\nprint(torch.softmax(torch.zeros(5,781, dtype=torch.float64, device='cuda'),dim=1)) # wrong\n\nprint(torch.softmax(torch.zeros(2,780, dtype=torch.float64, device='cuda'),dim=1)) # correct\n\nprint(torch.softmax(torch.zeros(2,782, dtype=torch.float64, device='cuda'),dim=1)) # correct",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:15a9d7c1ae0873ab96f3a095f83d5f35c56310d3be181036e34bcd90a0a7b58e"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_4dc1f794b03b",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 42,
+        "end_line": 53
+      },
+      "excerpt": "Expected behavior:\nThe output of softmax should be a valid probability distribution where each row sums to 1.\nAdditional investigation:\nThe issue appears to be CUDA-specific and related to the float64 implementation of softmax.\nWorkarounds:\n1. Use float32 instead of float64:\ntensor = torch.zeros(c, 781, dtype=torch.float32, device=\"cuda\")\n2. Compute softmax on CPU:\nresult = torch.softmax(tensor.cpu(), dim=1).cuda()\n3. Pad the dimension:\ntensor = torch.zeros(c, 782, dtype=torch.float64, device=\"cuda\")\nresult = torch.softmax(tensor, dim=1)",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:22951d3522b383e69072adf6e9c2a200da43d0767e43849e4ecfb97bb45bc1ac"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_9a2e35509a7b",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 54,
+        "end_line": 69
+      },
+      "excerpt": "Environment:\nPyTorch version:\n2.5.1+cu124\nCUDA used to build PyTorch:\n12.4\nOS:\nUbuntu 22.04.5 LTS\nPython:\n3.12.8\nCUDA available:\nTrue\nGPU:\nNVIDIA GeForce RTX 4060 Laptop GPU\nRelevant libraries:\ntorch==2.5.1\ntriton==3.2.0",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:2f126a9b9451b7915c173f4bc18160957b7bc410bcabc8651d79593e59690636"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.softmax",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_a39f708209a7"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "incorrect_output",
+        "statement": "The output values are incorrect when:\n- device is CUDA\n- dtype is float64\n- number of rows is greater than 1\n- dimension size is 781",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_8f287ca4c8de"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "The output of softmax should be a valid probability distribution where each row sums to 1.\nAdditional investigation:\nThe issue appears to be CUDA-specific and related to the float64 implementation of softmax.\nWorkarounds:\n1. Use float32 instead of float64:\ntensor = torch.zeros(c, 781, dtype=torch.float32, device=\"cuda\")\n2. Compute softmax on CPU:\nresult = torch.softmax(tensor.cpu(), dim=1).cuda()\n3. Pad the dimension:\ntensor = torch.zeros(c, 782, dtype=torch.float64, device=\"cuda\")\nresult = torch.softmax(tensor, dim=1)",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_4dc1f794b03b"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "PyTorch version",
+        "value": "2.5.1+cu124",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_9a2e35509a7b"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "CUDA used to build PyTorch",
+        "value": "12.4",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_9a2e35509a7b"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "OS",
+        "value": "Ubuntu 22.04.5 LTS",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_9a2e35509a7b"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_004",
+        "property": "Python",
+        "value": "3.12.8",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_9a2e35509a7b"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_005",
+        "property": "CUDA available",
+        "value": "True",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_9a2e35509a7b"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_006",
+        "property": "GPU",
+        "value": "NVIDIA GeForce RTX 4060 Laptop GPU",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_9a2e35509a7b"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_007",
+        "property": "Relevant libraries",
+        "value": "torch==2.5.1",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_9a2e35509a7b"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_38620e1bf39e"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_1c69e4b17a93",
+        "ev_art_primary_report_source_metadata_f82f5ea48bfc"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_38620e1bf39e"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:5d96d17f9d95b2f5a4bceed8c97ed68401a65cedd04ef4eccf8c3877f6dd07b6"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_softmax_permute_transpose_numerical_commutation_discrepancy_p001",
+    "canonical_name": "softmax_permute_transpose_numerical_commutation_discrepancy",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_139701",
+        "report_hash": "sha256:ab5c499a1a8eefc8afb8c09e55a82b1293cfe1e242df22838064e7a7b02b8053"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_139701",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_source_metadata_c9b6781bb26b",
+          "ev_art_primary_report_bug_description_5224b2f6ea91"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "Single-API pattern for torch.softmax: mathematically equivalent permute or transpose reorderings around a softmax operation can produce small numerical differences.",
+    "unresolved_information": [
+      "The report does not provide an official root cause or fix status; root_cause_claims is empty and fix_status is unknown.",
+      "The captured reproduction text contains an unclosed code fence, so the reproduction snippet may be truncated.",
+      "The report environment is CPU-only and does not state whether the discrepancy also occurs on CUDA or other backends."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.softmax",
+    "confirmed_apis": [
+      "torch.softmax"
+    ],
+    "operator": null,
+    "module": "torch"
+  },
+  "defect_classification": {
+    "primary_defect_class": "numerical_edge_case",
+    "secondary_defect_classes": [
+      "memory_layout_boundary"
+    ],
+    "risk_dimensions": [
+      "layout",
+      "dtype",
+      "value"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "layout",
+        "subject": "input tensor",
+        "predicate": "is permuted or transposed before or after torch.softmax",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_5224b2f6ea91"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "dtype",
+        "subject": "input tensor",
+        "predicate": "uses a floating-point dtype (float32 or float64)",
+        "necessity": "contributing",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_reproduction_91a07548ea15",
+          "ev_art_primary_report_expected_behavior_eebd101cf11b"
+        ],
+        "condition_id": "tc_02"
+      }
+    ],
+    "operation_context": {
+      "description": "The reporter compared torch.softmax applied along the original dimension before a row/column permute against torch.softmax applied along dimension 0 after the permute.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_91a07548ea15"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": [
+      {
+        "layer": "numerical",
+        "description": "Numerical differences arise when torch.softmax is evaluated on tensors whose layout has been changed by permute or transpose, so mathematically equivalent orders do not produce identical outputs.",
+        "status": "source_reported",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4f93c6e54ef7"
+        ],
+        "confidence": "medium",
+        "hypothesis_id": "dm_01"
+      }
+    ]
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "torch.softmax produces slightly different results when applied before versus after an inverse permutation or transpose; the float32 example shows a max absolute difference of 2.9802e-08.",
+    "historical_oracle": {
+      "kind": "output_property",
+      "condition": "The two computation orders should produce identical results; the reporter observed a nonzero max absolute difference of 2.9802e-08 for the float32 example.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_91a07548ea15",
+        "ev_art_primary_report_expected_behavior_eebd101cf11b"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_bug_description_5224b2f6ea91",
+      "ev_art_primary_report_reproduction_91a07548ea15"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "medium",
+    "oracle_confidence": "high"
+  }
+}

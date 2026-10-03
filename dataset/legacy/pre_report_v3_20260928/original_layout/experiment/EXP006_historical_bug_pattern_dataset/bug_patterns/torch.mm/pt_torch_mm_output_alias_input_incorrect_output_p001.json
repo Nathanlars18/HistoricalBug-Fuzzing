@@ -1,0 +1,109 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_torch_mm_output_alias_input_incorrect_output_p001",
+    "canonical_name": "torch_mm_output_alias_input_incorrect_output",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_85852",
+        "report_hash": "sha256:d54dfaf864b52c66bdfc95ae0ee78978ff93e6d4501d8fe30b3a13a559ed8858"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_85852",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_source_metadata_1e3ecba8704d",
+          "ev_art_primary_report_bug_description_484593b48360",
+          "ev_art_primary_report_observed_output_276d954ee644",
+          "ev_art_primary_report_expected_behavior_1f7388206596"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes torch.mm producing incorrect output when the output tensor aliases an input tensor. The pattern abstracts the historical trigger condition as output/input aliasing during torch.mm execution and the observed failure as incorrect output.",
+    "unresolved_information": [
+      "No root cause or fix status information is available.",
+      "Exact alias configuration and call sequence are not provided; no reproducer is present.",
+      "The necessity of the CPU device condition is unclear from the report."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.mm",
+    "confirmed_apis": [
+      "torch.mm"
+    ],
+    "operator": null,
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "memory_layout_boundary",
+    "secondary_defect_classes": [
+      "api_contract_boundary"
+    ],
+    "risk_dimensions": [
+      "aliasing",
+      "output_tensor"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "device",
+        "subject": "torch.mm",
+        "predicate": "executes on CPU",
+        "necessity": "unknown",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_source_metadata_1e3ecba8704d"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "aliasing",
+        "subject": "output tensor",
+        "predicate": "aliases an input tensor",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_484593b48360"
+        ],
+        "condition_id": "tc_02"
+      }
+    ],
+    "operation_context": null
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "Output differs from reference.",
+    "historical_oracle": null,
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_276d954ee644"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "low"
+  }
+}

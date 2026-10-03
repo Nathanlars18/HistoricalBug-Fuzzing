@@ -1,0 +1,121 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_softmax_non_contiguous_out_tensor_incorrect_output_p001",
+    "canonical_name": "softmax_non_contiguous_out_tensor_incorrect_output",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_75923",
+        "report_hash": "sha256:0e53610ecac003ac5f1572fd2f1fef89e14da5e5706a5eeec3816d4ecb167d96"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_75923",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_2a94037762ed",
+          "ev_art_primary_report_source_metadata_02abd9f53121",
+          "ev_art_primary_report_reproduction_a097ac83a4a4",
+          "ev_art_primary_report_expected_behavior_0314fd996e46",
+          "ev_art_primary_report_observed_output_5923b86bc641",
+          "ev_art_primary_report_api_reference_99acfdf94fb0"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "A single reporter-described defect mechanism links a non-contiguous output tensor via the out parameter to incorrect softmax output; no independent split is supported by the report.",
+    "unresolved_information": [
+      "Exact root cause and fix status are unknown; the defect mechanism is reporter-described and not officially confirmed.",
+      "The report only describes CPU behavior; whether the same defect affects other backends is not stated."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.softmax",
+    "confirmed_apis": [
+      "torch.softmax"
+    ],
+    "operator": "softmax",
+    "module": "torch"
+  },
+  "defect_classification": {
+    "primary_defect_class": "memory_layout_boundary",
+    "secondary_defect_classes": [],
+    "risk_dimensions": [
+      "layout",
+      "memory",
+      "output_tensor"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "layout",
+        "subject": "output tensor provided through the out parameter",
+        "predicate": "is non-contiguous",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_2a94037762ed",
+          "ev_art_primary_report_source_metadata_02abd9f53121"
+        ],
+        "condition_id": "tc_01"
+      }
+    ],
+    "operation_context": null
+  },
+  "defect_mechanism": {
+    "hypotheses": [
+      {
+        "layer": "kernel",
+        "description": "The internal aten::_softmax.out implementation writes partially into incorrect memory locations when the out tensor is non-contiguous, leaving some elements unchanged and producing invalid softmax values including negative values.",
+        "status": "source_reported",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_2a94037762ed"
+        ],
+        "confidence": "medium",
+        "hypothesis_id": "dm_01"
+      }
+    ]
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "The output tensor is incorrect. The actual tensor contains invalid softmax values including negative values, and some output positions are not updated correctly relative to the expected softmax result.",
+    "historical_oracle": {
+      "kind": "differential_reference",
+      "condition": "Expected softmax output contains only positive probabilities; actual non-contiguous out output differs and contains negative values such as -2.9375.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_expected_behavior_0314fd996e46",
+        "ev_art_primary_report_observed_output_5923b86bc641",
+        "ev_art_primary_report_reproduction_a097ac83a4a4"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_5923b86bc641",
+      "ev_art_primary_report_reproduction_a097ac83a4a4",
+      "ev_art_primary_report_bug_description_2a94037762ed"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "medium",
+    "oracle_confidence": "high"
+  }
+}

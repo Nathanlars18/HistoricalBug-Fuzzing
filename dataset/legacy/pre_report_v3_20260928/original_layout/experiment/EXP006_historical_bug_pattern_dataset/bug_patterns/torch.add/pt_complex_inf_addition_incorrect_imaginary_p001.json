@@ -1,0 +1,130 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_complex_inf_addition_incorrect_imaginary_p001",
+    "canonical_name": "complex_inf_addition_incorrect_imaginary",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_154501",
+        "report_hash": "sha256:53c9a213e652c31c9cfdcf51ef7ac2c34221351ac69b288668e48d3f80f5f3e8"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_154501",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_source_metadata_6702220ba586",
+          "ev_art_primary_report_bug_description_0652e860f4fe",
+          "ev_art_primary_report_observed_output_1836ced79736",
+          "ev_art_primary_report_api_reference_9cf0aba8821a",
+          "ev_art_primary_report_reproduction_d6289b50d7ef",
+          "ev_art_primary_report_expected_behavior_6b5868235e1b",
+          "ev_art_primary_report_environment_d6fd3dd80ccc"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The selected API torch.add is directly asserted as primary. The report provides explicit reproduction and expected/actual output for complex operands containing inf, supporting a numerical edge-case defect pattern without a reported root cause.",
+    "unresolved_information": [
+      "Root cause for torch.add returning inf+nanj is not reported.",
+      "Report title also mentions torch.sub, but this pattern is restricted to the primary selected API torch.add."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.add",
+    "confirmed_apis": [
+      "torch.add"
+    ],
+    "operator": "add",
+    "module": "torch"
+  },
+  "defect_classification": {
+    "primary_defect_class": "numerical_edge_case",
+    "secondary_defect_classes": [
+      "api_contract_boundary"
+    ],
+    "risk_dimensions": [
+      "value",
+      "dtype"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "dtype",
+        "subject": "torch.add input operands",
+        "predicate": "are complex-valued",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_0652e860f4fe",
+          "ev_art_primary_report_reproduction_d6289b50d7ef"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "value",
+        "subject": "real component of complex torch.add input operands",
+        "predicate": "contains positive infinity",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_0652e860f4fe",
+          "ev_art_primary_report_reproduction_d6289b50d7ef"
+        ],
+        "condition_id": "tc_02"
+      }
+    ],
+    "operation_context": {
+      "description": "Reported reproducer expression (inf+1j) + (inf+2j); observed on both CPU and CUDA.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_d6289b50d7ef",
+        "ev_art_primary_report_observed_output_1836ced79736"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "incorrect_output",
+    "description": "torch.add produced tensor(inf+nanj) on CPU and CUDA for complex operands (inf+1j) and (inf+2j); expected result was inf+3j.",
+    "historical_oracle": {
+      "kind": "output_property",
+      "condition": "For complex addition (inf+1j) + (inf+2j), the imaginary component should be 3j, yielding inf+3j; actual output was inf+nanj.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_expected_behavior_6b5868235e1b",
+        "ev_art_primary_report_observed_output_1836ced79736"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_1836ced79736",
+      "ev_art_primary_report_expected_behavior_6b5868235e1b",
+      "ev_art_primary_report_bug_description_0652e860f4fe"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "high"
+  }
+}

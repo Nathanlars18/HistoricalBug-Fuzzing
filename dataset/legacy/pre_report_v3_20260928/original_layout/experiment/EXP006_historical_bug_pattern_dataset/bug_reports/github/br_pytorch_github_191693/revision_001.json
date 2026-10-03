@@ -1,0 +1,255 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_191693",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "191693",
+        "url": "https://github.com/pytorch/pytorch/issues/191693",
+        "local_path": "dataset/interim/github_issue_collection/torch.mm/issue_191693_bool_mps_mm.txt",
+        "title": "[MPS] torch.mm raises opaque function-state RuntimeError for bool matrices",
+        "source_native_state": "closed",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:ed1f8310c8048aa53c1c71eaabf2274a080118efe50595c63057b21467f93a3b"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_aa421b671013",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 5,
+        "end_line": 7
+      },
+      "excerpt": "Issue ID:\n191693\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:949efc5af7a43c00ed6724a1a63dff0daf23c7f2e53647434c329e3f28b0b277"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_d514eda31332",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 117,
+        "end_line": 126
+      },
+      "excerpt": "Observed Behavior\n--------------------------------------------------\n\nRuntimeError:\n\nFailed to create function state object for:\nmatmul_bool\n\n\n--------------------------------------------------",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:a58c1324499b8d57f5b2947cbcd41f4a02455d7a526c0a49bd9d9e1ed6243933"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_22b5bfcdedcc",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 23,
+        "end_line": 26
+      },
+      "excerpt": "Title:\n[MPS] torch.mm raises opaque function-state RuntimeError for bool matrices\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:4714fa3fd9f36b0f7af27f51d1276ec65abcb08255c46aef62dab6aaa8bfecdc"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_b5dd21d8da0d",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 70,
+        "end_line": 116
+      },
+      "excerpt": "API:\ntorch.mm\n\n\nInput:\n2D tensors\n\n\ndtype:\ntorch.bool\n\n\ndevice:\nmps\n\n\nOperation:\n\ntorch.mm(input, mat2)\n\n\n--------------------------------------------------\nReproduction\n--------------------------------------------------\n\nimport torch\n\na = torch.randint(\n    0,\n    2,\n    (4,4),\n    dtype=torch.bool,\n    device=\"mps\"\n)\n\nb = torch.randint(\n    0,\n    2,\n    (4,4),\n    dtype=torch.bool,\n    device=\"mps\"\n)\n\ntorch.mm(a,b)\n\n\n--------------------------------------------------",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:0047e0150c40939cb6fb1d94d8ba3779286eecaa859afc4f4107e5640fc7be6e"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_dcb1e0c04d26",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 127,
+        "end_line": 145
+      },
+      "excerpt": "Expected Behavior\n--------------------------------------------------\n\nThe operation should reject unsupported dtype\nwith a clear error message, similar to CPU behavior.\n\n\n--------------------------------------------------\nRoot Cause Hint\n--------------------------------------------------\n\nBackend dispatch lacks proper dtype validation\nbefore entering MPS matmul implementation.\n\n\n--------------------------------------------------\nPotential Bug Pattern\n--------------------------------------------------\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:67c449a030600c37e40e3ede37379e749bcef3b1551cfe74ad5046d9d45413a0"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_c06406e5f103",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 31,
+        "end_line": 34
+      },
+      "excerpt": "Created:\n2026-xx-xx\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:76ebc34e0b2e2ab2e6ad78eee1b0b2feb3805ce03e23bb6bd3aa26556bf62184"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.mm",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_22b5bfcdedcc"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_002",
+        "api_name": "torch.bool",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_b5dd21d8da0d"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_003",
+        "api_name": "torch.randint",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_b5dd21d8da0d"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "exception",
+        "statement": "--------------------------------------------------\n\nRuntimeError:\n\nFailed to create function state object for:\nmatmul_bool\n\n\n--------------------------------------------------",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_d514eda31332"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "--------------------------------------------------\n\nThe operation should reject unsupported dtype\nwith a clear error message, similar to CPU behavior.\n\n\n--------------------------------------------------\nRoot Cause Hint\n--------------------------------------------------\n\nBackend dispatch lacks proper dtype validation\nbefore entering MPS matmul implementation.\n\n\n--------------------------------------------------\nPotential Bug Pattern\n--------------------------------------------------",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_dcb1e0c04d26"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [],
+    "reproduction": {
+      "availability": "absent",
+      "source_evidence_refs": [],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_aa421b671013"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_created_at_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_created_at",
+      "description": "The captured creation time is incomplete or lacks a timezone.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_c06406e5f103"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:9d5e3fc4e6d380a90c2d16997268bf54c892b62bc38f50277893a642095d1142"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

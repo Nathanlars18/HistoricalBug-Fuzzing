@@ -1,0 +1,146 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_float16_overflow_backend_inconsistency_p001",
+    "canonical_name": "float16_overflow_backend_inconsistency",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_152731",
+        "report_hash": "sha256:cc7dde092bb0452508723ac38a1f45819be19dfef5d0675b192480344153213c"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_152731",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_source_metadata_901d316cb526",
+          "ev_art_primary_report_bug_description_f6329e72411a",
+          "ev_art_primary_report_observed_output_8880b4db3b74",
+          "ev_art_primary_report_api_reference_402f50cd26bf",
+          "ev_art_primary_report_reproduction_a290b83ce25a",
+          "ev_art_primary_report_environment_0726dd4c8f66"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes a single torch.add float16 overflow inconsistency across CPU and CUDA backends with extremely large alpha. No independent trigger-mechanism-failure units justify splitting.",
+    "unresolved_information": [
+      "Root cause is not officially diagnosed in the report; the backend mechanism is analyst_inferred from observed CPU/CUDA behavior.",
+      "The curated local Issue text does not contain its canonical URL."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.add",
+    "confirmed_apis": [
+      "torch.add"
+    ],
+    "operator": null,
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "backend_dispatch_boundary",
+    "secondary_defect_classes": [
+      "dtype_boundary",
+      "numerical_edge_case"
+    ],
+    "risk_dimensions": [
+      "dtype",
+      "value",
+      "device",
+      "backend"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "dtype",
+        "subject": "input tensor dtype",
+        "predicate": "is torch.float16",
+        "necessity": "required",
+        "evidence_status": "code_derived",
+        "evidence_refs": [
+          "ev_art_primary_report_reproduction_a290b83ce25a",
+          "ev_art_primary_report_bug_description_f6329e72411a"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "value",
+        "subject": "alpha",
+        "predicate": "is extremely large, e.g. 1.04119e32, causing float16 overflow in the CPU computation path",
+        "necessity": "required",
+        "evidence_status": "code_derived",
+        "evidence_refs": [
+          "ev_art_primary_report_reproduction_a290b83ce25a",
+          "ev_art_primary_report_observed_output_8880b4db3b74"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "device",
+        "subject": "execution backend",
+        "predicate": "runs on CPU or CUDA; CPU raises a float16 overflow RuntimeError while CUDA silently succeeds for the same inputs",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_f6329e72411a",
+          "ev_art_primary_report_observed_output_8880b4db3b74"
+        ],
+        "condition_id": "tc_03"
+      }
+    ],
+    "operation_context": {
+      "description": "torch.add(tensor1, tensor2, alpha=alpha) where tensor1 and tensor2 are torch.float16 tensors of shape (8,1,1,1) and alpha=1.04119e32",
+      "evidence_status": "code_derived",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_a290b83ce25a"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": [
+      {
+        "layer": "backend",
+        "description": "The CPU and CUDA backends appear to differ in overflow handling for torch.add with float16 tensors and large alpha: the CPU backend raises a runtime overflow error, while the CUDA backend does not enforce the same check and silently completes.",
+        "status": "analyst_inferred",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_f6329e72411a",
+          "ev_art_primary_report_observed_output_8880b4db3b74"
+        ],
+        "confidence": "medium",
+        "hypothesis_id": "dm_01"
+      }
+    ]
+  },
+  "observed_failure": {
+    "failure_type": "exception",
+    "description": "On CPU, torch.add with float16 inputs and alpha=1.04119e32 raises RuntimeError: value cannot be converted to type at::Half without overflow. On CUDA, the same operation succeeds silently.",
+    "historical_oracle": null,
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_8880b4db3b74",
+      "ev_art_primary_report_bug_description_f6329e72411a"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "medium",
+    "oracle_confidence": "low"
+  }
+}

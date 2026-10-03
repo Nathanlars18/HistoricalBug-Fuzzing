@@ -1,0 +1,343 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_75923",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "75923",
+        "url": "https://github.com/pytorch/pytorch/issues/75923",
+        "local_path": "dataset/interim/github_issue_collection/torch.softmax/issue_75923_softmax_non_contiguous_out.txt",
+        "title": "aten::_softmax.out doesn't work with non-contiguous Tensors\n\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/75923\n\n\nProject:\npytorch/pytorch",
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:6e5fff06693235f17e45d41b306b2915916379650fe1cfefb3caff2f54b8ed55"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_02abd9f53121",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 5,
+        "end_line": 16
+      },
+      "excerpt": "Title:\naten::_softmax.out doesn't work with non-contiguous Tensors\n\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/75923\n\n\nProject:\npytorch/pytorch\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:61d4b29640c35752ab1e6d848b8d31ff50323171a7fc2a4a64a07e59db694768"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_2a94037762ed",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 54,
+        "end_line": 65
+      },
+      "excerpt": "Description:\n\nThe internal aten::_softmax.out implementation produces incorrect results\nwhen the output tensor provided through the out parameter is non-contiguous.\n\nThe generated output is partially written into incorrect memory locations,\ncausing some elements to remain unchanged.\n\nThe resulting tensor contains invalid softmax values,\nincluding negative values that should never appear in softmax output.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:272c0384d096edbc55aade1a6c04849b23699fa6e08755213f4890b606c8aa29"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_5923b86bc641",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 131,
+        "end_line": 132
+      },
+      "excerpt": "Observed Behavior:\nThe output tensor is incorrect.",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:c070d212164a990ab4917d894018abf1b6b94d7d978adcce9c5df3214070406b"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_99acfdf94fb0",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 17,
+        "end_line": 25
+      },
+      "excerpt": "API:\naten::_softmax.out\n\n\nRelated APIs:\ntorch.softmax\ntorch.nn.functional.softmax\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:ce943377837a1816d759baaa38f331789b0ce7ee712bd74b61f58f3671d3a48c"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_219698e2f3ce",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 5,
+        "end_line": 16
+      },
+      "excerpt": "Title:\naten::_softmax.out doesn't work with non-contiguous Tensors\n\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/75923\n\n\nProject:\npytorch/pytorch\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:61d4b29640c35752ab1e6d848b8d31ff50323171a7fc2a4a64a07e59db694768"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_a097ac83a4a4",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 133,
+        "end_line": 138
+      },
+      "excerpt": "Example:\nActual:\ntensor([\n    [0.5257, 0.4881, 0.3627],\n    [-2.9375, 8.6783, 7.0183]\n])",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:739a60e850eb5ff15327540fbf09654fe2b3a191d1c36f750d2a1dcb89ba069e"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_0314fd996e46",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 139,
+        "end_line": 144
+      },
+      "excerpt": "Expected:\ntensor([\n    [0.5257, 0.6373, 0.4881],\n    [0.4743, 0.3627, 0.5119]\n])\nSome output positions are not updated correctly.",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:cdd8ec212ec1cfcac3b82e7696a55ffee7c1d645ba0adc6e87eb341341737895"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_f540c0b83f5d",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 34,
+        "end_line": 41
+      },
+      "excerpt": "Status:\nTriaged\n\n\nReported Date:\n2022-04-16\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:13f20bda2690fd9ae6118a7f2b66709f4d8f4046d376e43a500d28b114961bac"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_8d00d355a750",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 42,
+        "end_line": 53
+      },
+      "excerpt": "Environment:\n\nPyTorch version:\n1.12.0a0+gitfab098d\n\nDevice:\nCPU\n\nDebug build:\nTrue\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:44b218025eb78ef0f74a0c85cfa9385537a3aebd97e584819242bb3583c3b664"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.softmax",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_99acfdf94fb0"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_002",
+        "api_name": "aten::_softmax.out",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_219698e2f3ce"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_003",
+        "api_name": "torch.nn.functional.softmax",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_99acfdf94fb0"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "incorrect_output",
+        "statement": "The output tensor is incorrect.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_5923b86bc641"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "tensor([\n    [0.5257, 0.6373, 0.4881],\n    [0.4743, 0.3627, 0.5119]\n])\nSome output positions are not updated correctly.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_0314fd996e46"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "PyTorch version",
+        "value": "1.12.0a0+gitfab098d",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_8d00d355a750"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "Device",
+        "value": "CPU",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_8d00d355a750"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "Debug build",
+        "value": "True",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_8d00d355a750"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "steps_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_a097ac83a4a4"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_2a94037762ed",
+        "ev_art_primary_report_source_metadata_02abd9f53121"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_state_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_native_state",
+      "description": "The captured state value is not a recognized native Issue state.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_f540c0b83f5d"
+      ]
+    },
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_a097ac83a4a4"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:c1d12306a955f09c83973e95e6f262774f4ef451187fd1f9cf72ba88ca471bbd"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

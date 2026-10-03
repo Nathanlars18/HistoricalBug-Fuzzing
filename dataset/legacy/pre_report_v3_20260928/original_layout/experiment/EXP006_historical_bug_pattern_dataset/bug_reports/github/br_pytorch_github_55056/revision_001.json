@@ -1,0 +1,336 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_55056",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "55056",
+        "url": "https://github.com/pytorch/pytorch/issues/55056",
+        "local_path": "dataset/interim/github_issue_collection/torch.softmax/issue_55056_safe_softmax_all_inf_nan.txt",
+        "title": "[FR] Safe softmax\n\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/55056\n\n\nProject:\npytorch/pytorch",
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:b4460b8a7f5cfb8b999601729461e7412ae18ab77fd5c25d55aaba63783f8d6d"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_ad615a663295",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 5,
+        "end_line": 16
+      },
+      "excerpt": "Title:\n[FR] Safe softmax\n\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/55056\n\n\nProject:\npytorch/pytorch\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:2ee21e009ab6c434c03ee74fa7518cb51fd389493cd8a1848ca6bd3eeaf1d304"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_53698d429e10",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 54,
+        "end_line": 81
+      },
+      "excerpt": "Description:\n\nWhen softmax is applied to an input tensor where all values are negative infinity,\nthe output contains NaN values.\n\nThe reason is that softmax internally performs exponential normalization.\n\nFor an input:\n\n[-inf, -inf, -inf]\n\nthe computation becomes:\n\nexp(-inf) = 0\n\nand:\n\n0 / (0 + 0 + 0)\n\nwhich results in NaN.\n\nThis behavior can occur in transformer attention mechanisms where attention masks\nremove all valid positions for a query.\n\nThe issue proposes a safer softmax behavior where fully masked rows return zeros\ninstead of NaN.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:488945a46b5febe9060fbcface7e6468a1be9509eccde4e13d5f4dec8097d108"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_a7f709008cda",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 114,
+        "end_line": 122
+      },
+      "excerpt": "Observed:\n\ntensor([\n    nan,\n    nan,\n    nan\n])\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:855ae4350fb5df381833b32cac8ab6a8655c25e1d9b3d201b4952f9a0f729cf3"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_f20584a5e092",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 17,
+        "end_line": 26
+      },
+      "excerpt": "API:\ntorch.softmax\n\n\nRelated APIs:\ntorch.nn.functional.softmax\ntorch.nn.Softmax\ntorch.nn.MultiheadAttention\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:f7255b0d626a8fd403e65f10d5745afbc2399727b422f6e6f18207b5e01bfb12"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_b01f26648193",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 123,
+        "end_line": 139
+      },
+      "excerpt": "Minimal Reproduction:\n\n```python\nimport torch\n\nx = torch.tensor(\n    [\n        float(\"-inf\"),\n        float(\"-inf\"),\n        float(\"-inf\")\n    ]\n)\n\ny = torch.softmax(x, dim=0)\n\nprint(y)\nprint(torch.isnan(y))",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:b8706c887c8cd1f7725e786c9742d0bb383e44d6c8925ac3e3ec88aeb18fb901"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_0a592a6c7297",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 105,
+        "end_line": 113
+      },
+      "excerpt": "Expected:\n\ntensor([\n    0,\n    0,\n    0\n])\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:9d4ec2dd976ca44fa106a98a8792fa861524f3c1e0da258fbf119e83e5b410ab"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_39b66d330548",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 35,
+        "end_line": 42
+      },
+      "excerpt": "Status:\nTriaged\n\n\nReported Date:\n2021-03-31\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:9467a7db21e9caa0bd1066444f37dd48bf86ba6db8e4fb4322d0e617a2cf0ea3"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_bc79a4a0d580",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 43,
+        "end_line": 53
+      },
+      "excerpt": "Environment:\nPyTorch version:\nNot explicitly specified\n\nDevice:\nCPU/GPU independent\n\nRelated module:\ntorch.nn\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:bd43df549a8d4294cd48ee15953edf65b000c060ac88023ba178b1188bfb0812"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.softmax",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_f20584a5e092"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_002",
+        "api_name": "torch.nn.functional.softmax",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_f20584a5e092"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_003",
+        "api_name": "torch.nn.MultiheadAttention",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_f20584a5e092"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_004",
+        "api_name": "torch.nn.Softmax",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_f20584a5e092"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "unknown",
+        "statement": "tensor([\n    nan,\n    nan,\n    nan\n])",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_a7f709008cda"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "tensor([\n    0,\n    0,\n    0\n])",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_0a592a6c7297"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "PyTorch version",
+        "value": "Not explicitly specified",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_bc79a4a0d580"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "Device",
+        "value": "CPU/GPU independent",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_bc79a4a0d580"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "Related module",
+        "value": "torch.nn",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_bc79a4a0d580"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_b01f26648193"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_53698d429e10",
+        "ev_art_primary_report_source_metadata_ad615a663295"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_state_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_native_state",
+      "description": "The captured state value is not a recognized native Issue state.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_39b66d330548"
+      ]
+    },
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_b01f26648193"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:151d63c3654509c0c4c29f75385146cc2a0fd45806c653aa658ef08a3dae045d"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

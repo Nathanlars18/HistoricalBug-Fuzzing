@@ -1,0 +1,379 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_123911",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "123911",
+        "url": "https://github.com/pytorch/pytorch/issues/123911",
+        "local_path": "dataset/interim/github_issue_collection/torch.softmax/issue_123911_softmax_dtype_fp16_inconsistency.txt",
+        "title": "torch.softmax(inp, dtype=torch.float32).to(torch.float16) is not equivalent to torch.softmax(inp) for fp16 input\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/123911\n\n\nProject:\npytorch/pytorch",
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:e9151889c2ea27e272b512618f4f37ad69d9af61e7016325ce3997dab4d2841a"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_0d098bb5836b",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 4,
+        "end_line": 14
+      },
+      "excerpt": "Title:\ntorch.softmax(inp, dtype=torch.float32).to(torch.float16) is not equivalent to torch.softmax(inp) for fp16 input\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/123911\n\n\nProject:\npytorch/pytorch\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:d0edd8ea64a325429aa59f25161f3f266f04410ccb982398d30795fbae39f6a4"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_ccd2ef7fac68",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 57,
+        "end_line": 74
+      },
+      "excerpt": "Description:\n\nThe behavior of:\n\ntorch.softmax(inp, dtype=torch.float32).to(torch.float16)\n\nis not numerically equivalent to:\n\ntorch.softmax(inp)\n\nwhen the input tensor uses float16 precision.\n\nThe reporter investigated inconsistent outputs between SDPA and eager implementations.\nThe difference was traced to different softmax computation paths.\n\nAlthough the numerical difference is small for a single operation, the error can accumulate through multiple neural network layers and result in larger output deviations.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:99501e8ce5865a1b0551c33cca4565545dac48ccbd47b19b326dae9512412332"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_455472ec2744",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 114,
+        "end_line": 115
+      },
+      "excerpt": "Observed Behavior:\nThe two computation paths produce different results.",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:2801d23851043ab10eb7e3a9af5323b37113492ba9f3fd0d516983c3f3d6aec1"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_c17b76da5832",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 4,
+        "end_line": 14
+      },
+      "excerpt": "Title:\ntorch.softmax(inp, dtype=torch.float32).to(torch.float16) is not equivalent to torch.softmax(inp) for fp16 input\n\nURL:\nhttps://github.com/pytorch/pytorch/issues/123911\n\n\nProject:\npytorch/pytorch\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:d0edd8ea64a325429aa59f25161f3f266f04410ccb982398d30795fbae39f6a4"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_b84162b7ccf5",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 15,
+        "end_line": 23
+      },
+      "excerpt": "API:\ntorch.softmax\n\n\nRelated APIs:\ntorch.nn.functional.softmax\ntorch.nn.functional.scaled_dot_product_attention\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:ac008641a38d30d422869c858cf454a9f89c02a74fc03ab444491a2d10bd6cb4"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_reproduction_319ef2afcafe",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "reproduction",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 86,
+        "end_line": 113
+      },
+      "excerpt": "Minimal Reproduction:\n\n```python\nimport torch\n\nsoftmax_inp = torch.randn(\n    1,\n    32,\n    1238,\n    1238,\n    device=\"cuda\",\n    dtype=torch.float16\n)\n\nres_softmax_0 = torch.softmax(\n    softmax_inp,\n    dim=-1\n)\n\nres_softmax_1 = torch.softmax(\n    softmax_inp,\n    dim=-1,\n    dtype=torch.float32\n).to(torch.float16)\n\nabsdiff = (res_softmax_0 - res_softmax_1).abs()\n\nprint(absdiff.max())",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:e71ab30166058ccc93e0c2e877abfbf2518915952440ef8487d3657188a8db01"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_c44fbbc590c0",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 120,
+        "end_line": 140
+      },
+      "excerpt": "Expected Behavior:\ntorch.softmax(inp, dtype=torch.float32).to(torch.float16)\nand\ntorch.softmax(inp)\nshould provide numerically equivalent results for float16 inputs.\nRoot Cause Category:\nNumerical Stability Boundary\nRelated factors:\n- float16 precision\n- dtype conversion\n- CUDA softmax kernel implementation\n- different accumulation paths\nBug Pattern:\nPattern Name:\nFP16 Softmax Numerical Inconsistency\nPattern Description:\nWhen a tensor uses low precision floating point formats (such as float16),\ndifferent internal computation paths of softmax may produce inconsistent numerical results.\nExplicit dtype casting to float32 before softmax and implicit internal casting may not be equivalent.\nFuzzing Relevance:\nHigh",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:6520b6d5ef30e0744677bebbbbe3286107f4ffd3ffdd894b86605a8f7f0a42d5"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_fc5a0b83c9e2",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 32,
+        "end_line": 39
+      },
+      "excerpt": "Status:\nTriaged\n\n\nReported Date:\n2024-04-12\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:72819afcc9a6de2afe3576fd304dd5364f7aa9d21810175519ded94494a00386"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_46127ecefd9d",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 40,
+        "end_line": 56
+      },
+      "excerpt": "Environment:\nPyTorch version:\n2.2.2\n\nCUDA:\n12.1\n\nGPU:\nNVIDIA A100-SXM4-80GB\n\nOS:\nUbuntu 20.04.6 LTS\n\nPython:\n3.9.13\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:ce9ca1f6b42aa4ce989e9cd6c1b715f6a88217bc6ecf7cfc920e5eb800b27374"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.softmax",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_c17b76da5832"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_002",
+        "api_name": "torch.float16",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_c17b76da5832"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_003",
+        "api_name": "torch.float32",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_c17b76da5832"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_004",
+        "api_name": "torch.nn.functional.scaled_dot_product_attention",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_b84162b7ccf5"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_005",
+        "api_name": "torch.nn.functional.softmax",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_b84162b7ccf5"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "incorrect_output",
+        "statement": "The two computation paths produce different results.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_455472ec2744"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "torch.softmax(inp, dtype=torch.float32).to(torch.float16)\nand\ntorch.softmax(inp)\nshould provide numerically equivalent results for float16 inputs.\nRoot Cause Category:\nNumerical Stability Boundary\nRelated factors:\n- float16 precision\n- dtype conversion\n- CUDA softmax kernel implementation\n- different accumulation paths\nBug Pattern:\nPattern Name:\nFP16 Softmax Numerical Inconsistency\nPattern Description:\nWhen a tensor uses low precision floating point formats (such as float16),\ndifferent internal computation paths of softmax may produce inconsistent numerical results.\nExplicit dtype casting to float32 before softmax and implicit internal casting may not be equivalent.\nFuzzing Relevance:\nHigh",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_c44fbbc590c0"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "PyTorch version",
+        "value": "2.2.2",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_46127ecefd9d"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "CUDA",
+        "value": "12.1",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_46127ecefd9d"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "GPU",
+        "value": "NVIDIA A100-SXM4-80GB",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_46127ecefd9d"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_004",
+        "property": "OS",
+        "value": "Ubuntu 20.04.6 LTS",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_46127ecefd9d"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_005",
+        "property": "Python",
+        "value": "3.9.13",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_46127ecefd9d"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_art_primary_report_reproduction_319ef2afcafe"
+      ],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_ccd2ef7fac68",
+        "ev_art_primary_report_source_metadata_0d098bb5836b"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_state_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_native_state",
+      "description": "The captured state value is not a recognized native Issue state.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_fc5a0b83c9e2"
+      ]
+    },
+    {
+      "unresolved_id": "unresolved_code_fence_001",
+      "field_path": "/reported_behavior/reproduction",
+      "description": "The captured text contains an unclosed code fence.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_reproduction_319ef2afcafe"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:3c785308d1cbec6dd7151f915fc74d37ecf7bff7f62b30665d5ea0719318cf97"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

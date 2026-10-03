@@ -1,0 +1,138 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_empty_float16_tensor_mul_cpu_segmentation_fault_p001",
+    "canonical_name": "empty_float16_tensor_mul_cpu_segmentation_fault",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_115731",
+        "report_hash": "sha256:c4c16c45c13c2830502ec6e0aba56c04aef39ef12dd055476e38d645d407e43c"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_115731",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_1fe6faa83d8e",
+          "ev_art_primary_report_bug_description_0c50220f8d7e",
+          "ev_art_primary_report_observed_output_49b9b08ccf6a",
+          "ev_art_primary_report_expected_behavior_0ef58c1d2773",
+          "ev_art_primary_report_environment_4018853e1b46",
+          "ev_art_primary_report_source_metadata_aa7abfe89371",
+          "ev_art_primary_report_source_metadata_1041ccf1af5e"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "fixed",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes a CPU torch.mul crash when one operand is an empty float16 tensor constructed from an empty NumPy array and the other operand is a normal float16 tensor.",
+    "unresolved_information": [
+      "The report does not provide detailed root-cause analysis; the exact PyTorch mechanism causing the libtorch_cpu segfault is unknown.",
+      "The issue title mentions torch.div, but the structured report marks torch.div as mentioned only, so it is not retained as a confirmed affected API.",
+      "It is not established whether the failure is specific to the CPU/float16 combination or also affects other dtypes or devices."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.mul",
+    "confirmed_apis": [
+      "torch.mul"
+    ],
+    "operator": "mul",
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "shape_boundary",
+    "secondary_defect_classes": [
+      "dtype_boundary"
+    ],
+    "risk_dimensions": [
+      "shape",
+      "dtype",
+      "value",
+      "backend"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "shape",
+        "subject": "second operand (b)",
+        "predicate": "is an empty tensor with zero elements",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_0c50220f8d7e"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "dtype",
+        "subject": "operands (a and b)",
+        "predicate": "have dtype torch.float16",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_0c50220f8d7e"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "value",
+        "subject": "second operand construction",
+        "predicate": "is created from an empty NumPy array via torch.tensor(np.array([], dtype='float16'))",
+        "necessity": "contributing",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_0c50220f8d7e"
+        ],
+        "condition_id": "tc_03"
+      }
+    ],
+    "operation_context": {
+      "description": "torch.mul(a, b) is called on CPU with a = torch.tensor([2], dtype=torch.float16) and b = torch.tensor(np.array([], dtype='float16')).",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_0c50220f8d7e"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "crash",
+    "description": "The process crashed with a segmentation fault in libtorch_cpu.so while executing torch.mul on CPU.",
+    "historical_oracle": {
+      "kind": "signal",
+      "condition": "Segmentation fault signal (SIGSEGV) in libtorch_cpu.so during torch.mul execution.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_observed_output_49b9b08ccf6a"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_49b9b08ccf6a"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "high"
+  }
+}

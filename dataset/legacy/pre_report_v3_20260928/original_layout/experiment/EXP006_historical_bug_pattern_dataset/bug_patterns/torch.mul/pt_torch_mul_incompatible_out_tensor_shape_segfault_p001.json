@@ -1,0 +1,141 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_torch_mul_incompatible_out_tensor_shape_segfault_p001",
+    "canonical_name": "torch_mul_incompatible_out_tensor_shape_segfault",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_5",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_85053",
+        "report_hash": "sha256:54c7c3eb75c87b78c59512c1903025630cadf0f6cac4a4f2747fa7b07704516a"
+      }
+    ],
+    "generated_at": "2026-09-24",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_85053",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_874e3c5e5047",
+          "ev_art_primary_report_api_reference_90a4a8a7e2f8",
+          "ev_art_primary_report_observed_output_9203002381ab",
+          "ev_art_primary_report_reproduction_b25c7f17603f",
+          "ev_art_primary_report_expected_behavior_869b177f71c8",
+          "ev_art_primary_report_source_metadata_43ae8d333ca9"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "fixed",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report directly demonstrates that torch.mul with an incompatible out tensor shape terminates with a segmentation fault instead of raising a proper shape error. Only torch.mul is selected as the primary API scope for this pattern; the report also mentions torch.div and torch.remainder, but those are not treated as separate pattern scopes here.",
+    "unresolved_information": [
+      "The report does not provide an explicit root-cause or patch-level mechanism for the segmentation fault.",
+      "The structured resolution field reports fix_status as unknown while source metadata states status fixed with related PR #85294.",
+      "The report claims the same behavior occurs for torch.mul and torch.remainder, but this pattern is restricted to the selected torch.mul scope."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.mul",
+    "confirmed_apis": [
+      "torch.mul"
+    ],
+    "operator": "mul",
+    "module": "torch"
+  },
+  "defect_classification": {
+    "primary_defect_class": "shape_boundary",
+    "secondary_defect_classes": [
+      "api_contract_boundary"
+    ],
+    "risk_dimensions": [
+      "shape",
+      "output_tensor"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "shape",
+        "subject": "input",
+        "predicate": "shape [1]",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_874e3c5e5047",
+          "ev_art_primary_report_reproduction_b25c7f17603f"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "shape",
+        "subject": "out",
+        "predicate": "shape [5,1,1,1], incompatible with input shape",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_874e3c5e5047",
+          "ev_art_primary_report_reproduction_b25c7f17603f"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "value",
+        "subject": "other",
+        "predicate": "scalar 1",
+        "necessity": "contributing",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_874e3c5e5047",
+          "ev_art_primary_report_reproduction_b25c7f17603f"
+        ],
+        "condition_id": "tc_03"
+      }
+    ],
+    "operation_context": {
+      "description": "torch.mul is called with an input tensor of shape [1], scalar other 1, and an out tensor of shape [5,1,1,1].",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_874e3c5e5047",
+        "ev_art_primary_report_reproduction_b25c7f17603f"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "crash",
+    "description": "Execution terminates with segmentation fault (core dumped) when torch.mul is called with an incompatible out tensor shape.",
+    "historical_oracle": {
+      "kind": "signal",
+      "condition": "SIGSEGV or abnormal process termination",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_observed_output_9203002381ab",
+        "ev_art_primary_report_reproduction_b25c7f17603f"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_observed_output_9203002381ab",
+      "ev_art_primary_report_reproduction_b25c7f17603f"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "high"
+  }
+}

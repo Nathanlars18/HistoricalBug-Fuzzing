@@ -1,0 +1,406 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_115731",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "115731",
+        "url": null,
+        "local_path": "dataset/interim/github_issue_collection/torch.mul/issue_115731_empty_float16_mul_crash.txt",
+        "title": "Empty tensor with dtype float16 converted from numpy causes segmentation fault in torch.mul and torch.div",
+        "source_native_state": "closed",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:5b9f381a1434bb3bbd20a54e6e818c4bb4f42291c8ab74887e2de659255d56a0"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_aa7abfe89371",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 5,
+        "end_line": 8
+      },
+      "excerpt": "Issue:\n#115731\n\n",
+      "attribution": {
+        "actor": "@AmazingCreator-lmx",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:4309bd397c4cfb3bd93d07f2340f84db9b566a8e17294e6b8e8aea936273db19"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_0c50220f8d7e",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 32,
+        "end_line": 51
+      },
+      "excerpt": "Description:\n\n🐛 Describe the bug\n\ntorch.mul causes segmentation fault when multiplying a normal float16 tensor with an empty float16 tensor converted from a NumPy array.\n\nMinimal reproducer:\n\nimport numpy as np\nimport torch\n\na = torch.tensor([2], dtype=torch.float16)\n\nb = torch.tensor(np.array([], dtype='float16'))\n\nprint(torch.mul(a, b))\n\n# print(torch.div(a, b))\n\n",
+      "attribution": {
+        "actor": "@AmazingCreator-lmx",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:81c7331e468e213d03aa54428a374d6b3324f9b0413d7e48dcf7d1827cc9ea82"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_49b9b08ccf6a",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 52,
+        "end_line": 58
+      },
+      "excerpt": "Observed behavior:\n\nThe program crashes with segmentation fault:\n\npython[2444066]: segfault at 0 ip 00007f8c393f8fa0 sp 00007fff645121c0 error 4 in libtorch_cpu.so\n\n",
+      "attribution": {
+        "actor": "@AmazingCreator-lmx",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:102b10c6492e2647fc0e7edf317c1e23e3283ed79403b3e4a06572c6f870f8da"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_1fe6faa83d8e",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 1,
+        "end_line": 4
+      },
+      "excerpt": "Title:\nEmpty tensor with dtype float16 converted from numpy causes segmentation fault in torch.mul and torch.div\n\n",
+      "attribution": {
+        "actor": "@AmazingCreator-lmx",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:4959ea8c32b4fd833c9807f632a0ed6531c81e685db60661bc4425eea197c155"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_0ef58c1d2773",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 59,
+        "end_line": 84
+      },
+      "excerpt": "Expected behavior:\n\ntorch.mul should correctly handle multiplication involving empty tensors.\n\nThe operation should either:\n- return a valid empty tensor result\n- or raise an explicit runtime error\n\nIt should not crash the process.\n\n\nMinimal Reproducer:\n\nimport numpy as np\nimport torch\n\na = torch.tensor([2], dtype=torch.float16)\n\nb = torch.tensor(\n    np.array([], dtype='float16')\n)\n\nresult = torch.mul(a, b)\n\n\n",
+      "attribution": {
+        "actor": "@AmazingCreator-lmx",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:94fb9d9e073aab329bb3ebaebff206c0f5427543ab37122f4ee7ee6109162770"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_1041ccf1af5e",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 21,
+        "end_line": 24
+      },
+      "excerpt": "Opened:\n2023-12-13\n\n",
+      "attribution": {
+        "actor": "@AmazingCreator-lmx",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:9de5d5099a54ca0b33721c676a067a8767037dc0f645d90e10df9aee34039b0b"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_environment_4018853e1b46",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "environment",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 85,
+        "end_line": 163
+      },
+      "excerpt": "Environment:\n\nPyTorch version:\n2.1.1+cpu\n\n\nPython version:\n3.10.9\n\n\nOS:\nUbuntu 20.04.5 LTS\n\n\nCUDA available:\nFalse\n\n\nDevice:\nCPU\n\n\nCompiler:\nGCC 9.4.0\n\n\nCMake:\n3.16.3\n\n\nRelevant libraries:\n\nnumpy==1.26.2\n\ntorch==2.1.1+cpu\n\ntorchvision==0.16.1+cpu\n\n\nRoot cause information:\n\nThe issue report does not provide detailed root cause analysis.\n\nThe problem appears related to incorrect handling of empty float16 tensors in CPU element-wise operations.\n\n\nFix information:\n\nThe issue was fixed in a later PyTorch version.\n\nA contributor reported:\n\n\"Fixed in latest torch.\"\n\n\nPull Request:\n\n#115183\n\n\nImpact:\n\nThis is a correctness and stability issue.\n\nAn invalid tensor input can cause a hard crash instead of returning an error.\n\nThe failure affects programs using:\n- empty tensors\n- float16 dtype\n- element-wise operators such as torch.mul\n\n\nRelated operators:\n\ntorch.mul\n\ntorch.div\n\n",
+      "attribution": {
+        "actor": "@AmazingCreator-lmx",
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:bd0f79fa91b0ffe508519c675ec677ce0162cc810e92f1f19681473c51f9d9cc"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.mul",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_1fe6faa83d8e"
+        ]
+      },
+      {
+        "assertion_id": "api_assertion_002",
+        "api_name": "torch.div",
+        "relation": "mentioned",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_1fe6faa83d8e"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "crash",
+        "statement": "The program crashes with segmentation fault:\n\npython[2444066]: segfault at 0 ip 00007f8c393f8fa0 sp 00007fff645121c0 error 4 in libtorch_cpu.so",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_49b9b08ccf6a"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "torch.mul should correctly handle multiplication involving empty tensors.\n\nThe operation should either:\n- return a valid empty tensor result\n- or raise an explicit runtime error\n\nIt should not crash the process.\n\n\nMinimal Reproducer:\n\nimport numpy as np\nimport torch\n\na = torch.tensor([2], dtype=torch.float16)\n\nb = torch.tensor(\n    np.array([], dtype='float16')\n)\n\nresult = torch.mul(a, b)",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_0ef58c1d2773"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [
+      {
+        "fact_id": "fact_environment_001",
+        "property": "PyTorch version",
+        "value": "2.1.1+cpu",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_002",
+        "property": "Python version",
+        "value": "3.10.9",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_003",
+        "property": "OS",
+        "value": "Ubuntu 20.04.5 LTS",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_004",
+        "property": "CUDA available",
+        "value": "False",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_005",
+        "property": "Device",
+        "value": "CPU",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_006",
+        "property": "Compiler",
+        "value": "GCC 9.4.0",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_007",
+        "property": "CMake",
+        "value": "3.16.3",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_008",
+        "property": "Relevant libraries",
+        "value": "numpy==1.26.2",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_009",
+        "property": "Root cause information",
+        "value": "The issue report does not provide detailed root cause analysis.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_010",
+        "property": "Fix information",
+        "value": "The issue was fixed in a later PyTorch version.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_011",
+        "property": "A contributor reported",
+        "value": "\"Fixed in latest torch.\"",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_012",
+        "property": "Pull Request",
+        "value": "#115183",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_013",
+        "property": "Impact",
+        "value": "This is a correctness and stability issue.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_014",
+        "property": "The failure affects programs using",
+        "value": "- empty tensors",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      },
+      {
+        "fact_id": "fact_environment_015",
+        "property": "Related operators",
+        "value": "torch.mul",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_environment_4018853e1b46"
+        ]
+      }
+    ],
+    "reproduction": {
+      "availability": "absent",
+      "source_evidence_refs": [],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_0c50220f8d7e",
+        "ev_art_primary_report_source_metadata_aa7abfe89371"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_url_001",
+      "field_path": "/source_bundle/source_artifacts/0/url",
+      "description": "The curated local Issue text does not contain its canonical URL.",
+      "reason": "not_collected",
+      "evidence_refs": []
+    },
+    {
+      "unresolved_id": "unresolved_issue_created_at_001",
+      "field_path": "/source_bundle/source_artifacts/0/source_created_at",
+      "description": "The captured creation time is incomplete or lacks a timezone.",
+      "reason": "unsupported_format",
+      "evidence_refs": [
+        "ev_art_primary_report_source_metadata_1041ccf1af5e"
+      ]
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:d611a6c57a8e8bf473fc1933dd28389ee9c73f2606e8e41052c266cb05d0d28e"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

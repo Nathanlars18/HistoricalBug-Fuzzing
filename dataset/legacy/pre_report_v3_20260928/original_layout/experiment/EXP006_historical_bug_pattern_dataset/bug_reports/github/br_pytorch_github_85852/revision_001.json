@@ -1,0 +1,227 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "report_id": "br_pytorch_github_85852",
+    "framework": "pytorch"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_generation",
+    "change_summary": "Initial deterministic mapping from captured sources."
+  },
+  "source_bundle": {
+    "primary_source_ref": "art_primary_report",
+    "source_artifacts": [
+      {
+        "artifact_id": "art_primary_report",
+        "artifact_role": "report",
+        "source_kind": "github_issue",
+        "repository": "pytorch/pytorch",
+        "external_id": "85852",
+        "url": null,
+        "local_path": "dataset/interim/github_issue_collection/torch.mm/issue_85852_out_alias_mm.txt",
+        "title": "torch.mm produces wrong result on cpu when using in-place computation",
+        "source_native_state": "unknown",
+        "source_created_at": null,
+        "captured_at": null,
+        "content_hash": "sha256:d77301b7728a9d9c8e447a140f88abf103ef80d174aa51505599fca019169c49"
+      }
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "ev_art_primary_report_source_metadata_1e3ecba8704d",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "source_metadata",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 5,
+        "end_line": 8
+      },
+      "excerpt": "Title:\ntorch.mm produces wrong result on cpu when using in-place computation\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:1b6a143d214b6b31b57b105a0292ef3cb3e7b54200f9bef3af53abb15f782da3"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_bug_description_484593b48360",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "bug_description",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 9,
+        "end_line": 14
+      },
+      "excerpt": "Bug Summary:\n\ntorch.mm produces incorrect output when\nthe output tensor aliases the input tensor.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:b64c2abd62e36dc4380d65faf10b20fc713cff1b99b310f1b57e43bfbe26bca4"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_observed_output_276d954ee644",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "observed_output",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 43,
+        "end_line": 47
+      },
+      "excerpt": "Observed:\n\nOutput differs from reference.\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:b6af495c5e1e595ada7b8629a21fa7777cb8b8f589b30c29e37dfcc4aa0c9940"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_api_reference_3669885d49c1",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "api_reference",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 5,
+        "end_line": 8
+      },
+      "excerpt": "Title:\ntorch.mm produces wrong result on cpu when using in-place computation\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:1b6a143d214b6b31b57b105a0292ef3cb3e7b54200f9bef3af53abb15f782da3"
+    },
+    {
+      "evidence_id": "ev_art_primary_report_expected_behavior_1f7388206596",
+      "source_artifact_ref": "art_primary_report",
+      "evidence_kind": "expected_behavior",
+      "locator": {
+        "locator_type": "line_range",
+        "start_line": 48,
+        "end_line": 60
+      },
+      "excerpt": "Expected:\n\nAliased output should either:\n1. produce correct result\nor\n2. reject unsupported aliasing.\n\n\nPotential Pattern:\n\nMemory Alias / In-place Operation\n\n",
+      "attribution": {
+        "actor": null,
+        "actor_role": "reporter"
+      },
+      "content_hash": "sha256:00473845b2f3a0b8e19bfb77ca307f4af3c8b860854f3cabbca5ffb485bd7f1b"
+    }
+  ],
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "assertion_id": "api_assertion_001",
+        "api_name": "torch.mm",
+        "relation": "primary",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_3669885d49c1"
+        ]
+      }
+    ],
+    "component_assertions": []
+  },
+  "reported_behavior": {
+    "trigger_claims": [],
+    "operation_contexts": [],
+    "failure_observations": [
+      {
+        "observation_id": "obs_failure_001",
+        "failure_type": "incorrect_output",
+        "statement": "Output differs from reference.",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_observed_output_276d954ee644"
+        ]
+      }
+    ],
+    "expected_behavior_claims": [
+      {
+        "claim_id": "claim_expected_001",
+        "statement": "Aliased output should either:\n1. produce correct result\nor\n2. reject unsupported aliasing.\n\n\nPotential Pattern:\n\nMemory Alias / In-place Operation",
+        "assertion_basis": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_expected_behavior_1f7388206596"
+        ]
+      }
+    ],
+    "historical_oracle_claims": [],
+    "environment_facts": [],
+    "reproduction": {
+      "availability": "absent",
+      "source_evidence_refs": [],
+      "artifact_refs": [],
+      "validation_status": "not_attempted",
+      "validation_evidence_refs": []
+    }
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_status": {
+      "value": "unknown",
+      "assertion_basis": "unknown",
+      "evidence_refs": []
+    },
+    "resolution_claims": [],
+    "fix_artifact_refs": []
+  },
+  "verification": {
+    "case_verification_status": {
+      "value": "user_reported",
+      "assertion_basis": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_484593b48360",
+        "ev_art_primary_report_source_metadata_1e3ecba8704d"
+      ]
+    }
+  },
+  "unresolved_information": [
+    {
+      "unresolved_id": "unresolved_issue_id_source_001",
+      "field_path": "/source_bundle/source_artifacts/0/external_id",
+      "description": "The captured text omits the upstream Issue ID; the strict snapshot filename supplied case identity.",
+      "reason": "not_collected",
+      "evidence_refs": []
+    },
+    {
+      "unresolved_id": "unresolved_issue_url_001",
+      "field_path": "/source_bundle/source_artifacts/0/url",
+      "description": "The curated local Issue text does not contain its canonical URL.",
+      "reason": "not_collected",
+      "evidence_refs": []
+    }
+  ],
+  "provenance": {
+    "generation_method": "deterministic_source_mapping",
+    "builder_ref": {
+      "artifact_name": "build_bug_report_json.py",
+      "artifact_version": "2.0.5",
+      "content_hash": "sha256:75e581ae2a62b835a35b8159ac8109f7135bac6786733edbec94ec95d65abf48"
+    },
+    "generation_run_id": "report-build-20260924T061350019446Z-a48e8fe6",
+    "input_artifact_refs": [
+      "art_primary_report"
+    ],
+    "mapping_ref": {
+      "artifact_name": "source_to_report_mapping.md",
+      "artifact_version": "2.0",
+      "content_hash": "sha256:4e0c4f5cee917afdca4103d9daa1f6ddf1293b86742bfd59cef023c089afc148"
+    },
+    "generated_at": "2026-09-24T06:13:50.019472Z",
+    "content_hash": "sha256:bed0ef5603ba533a6b8e8230d374025800add254a0995b28bbf569574d19d258"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}
