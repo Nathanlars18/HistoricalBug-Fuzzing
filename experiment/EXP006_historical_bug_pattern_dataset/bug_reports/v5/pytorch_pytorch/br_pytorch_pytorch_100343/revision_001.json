@@ -1,0 +1,257 @@
+{
+  "evidence_items": [
+    {
+      "content_hash": "sha256:fd351ce96d9a9ab53c46c601f3f7172d6326d0e826b8f3fc8ce385a49642114c",
+      "evidence_id": "ev_4bd74b2f6a4b073b",
+      "excerpt": "[torch.compile] `sum` out-of-bound read",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/title"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    },
+    {
+      "content_hash": "sha256:8d94c4b5d37a523ba19e92d88ddc2124b7de8274f28a45cf4ac0d50e4b7c197a",
+      "evidence_id": "ev_80fef2c21f3db631",
+      "excerpt": "`torch.compile` makes `sum` out-of-bound read",
+      "locator": {
+        "end_line": 3,
+        "locator_type": "json_string_line_range",
+        "start_line": 3,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    },
+    {
+      "content_hash": "sha256:877b4870a31ec5cfbd95709cd60395e08d63fef430529f93e207ca82a73fc498",
+      "evidence_id": "ev_c95fabfde115fc29",
+      "excerpt": "# success, out-of-bound read\n    # tensor([[ 6.1276e-01, -9.3005e-01,  1.3646e+00, -7.3723e-01, -7.0839e-01,\n    #     -2.8423e-01, -1.4816e+00,  3.2976e-01,  4.8557e-01,  4.1309e-01],\n    #    [ 6.1276e-01, -9.3005e-01,  1.3646e+00,         nan, -7.0839e-01,\n    #     -1.7412e+38, -1.4816e+00,         nan,  4.8557e-01,  4.1309e-01]])\n\n    func(input_tensor) # without jit\n    # IndexError: index 3 is out of bounds for dimension 0 with size 2",
+      "locator": {
+        "end_line": 39,
+        "locator_type": "json_string_line_range",
+        "start_line": 32,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    },
+    {
+      "content_hash": "sha256:775e2e1e8cffdae81b551c672e71ac01cad7b592186a96b8afb5ad6f53b70762",
+      "evidence_id": "ev_f7ea9c3c446d285f",
+      "excerpt": null,
+      "locator": {
+        "end_line": 118,
+        "locator_type": "json_string_line_range",
+        "start_line": 44,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    }
+  ],
+  "identity": {
+    "canonical_url": "https://github.com/pytorch/pytorch/issues/100343",
+    "issue_number": 100343,
+    "report_id": "br_pytorch_pytorch_100343",
+    "repository": "pytorch/pytorch"
+  },
+  "provenance": {
+    "builder_id": "build_bug_report_json",
+    "builder_version": "5.1.0",
+    "content_hash": "sha256:4f541e012da789531215f48c93b27a9593764e90f2745e751fc1bab2d6252714",
+    "generated_at": "2026-10-03T00:36:21Z",
+    "generation_run_id": "run_18dae6b12a5d40ef",
+    "input_artifact_refs": [
+      {
+        "content_hash": "sha256:ac70aa30879eb6e64adc904061476a29ea1ea8ca56de0662c0deb9d2b3d4e52d",
+        "local_path": "dataset/manifests/report_v5_calibration_inventory.json"
+      },
+      {
+        "content_hash": "sha256:93b3d122125fd61e2e5d072558f49001312551c26347ba011e493b09aff48841",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/capture.json"
+      }
+    ],
+    "mapping_ref": {
+      "content_hash": "sha256:0de65add843ba27f5c18c82142c17c7a238f38689fd393d003d5c5434aec4269",
+      "local_path": "experiment/EXP006_historical_bug_pattern_dataset/schemas/source_to_report_mapping.md"
+    }
+  },
+  "reported_behavior": {
+    "environment_facts": [
+      {
+        "evidence_refs": [
+          "ev_f7ea9c3c446d285f"
+        ],
+        "fact_id": "env_efa8d796154fef9d",
+        "name": "reported_environment",
+        "value": "```\nCollecting environment information...\nPyTorch version: 2.1.0.dev20230419+cu118\nIs debug build: False\nCUDA used to build PyTorch: 11.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.1 LTS (x86_64)\nGCC version: (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0\nClang version: 14.0.0-1ubuntu1\nCMake version: Could not collect\nLibc version: glibc-2.35\n\nPython version: 3.9.16 (main, Mar  8 2023, 14:00:05)  [GCC 11.2.0] (64-bit runtime)\nPython platform: Linux-5.19.5-051905-generic-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: 11.5.119\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration: GPU 0: NVIDIA GeForce RTX 3060\nNvidia driver version: 510.108.03\ncuDNN version: Could not collect\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                    x86_64\nCPU op-mode(s):                  32-bit, 64-bit\nAddress sizes:                   46 bits physical, 48 bits virtual\nByte Order:                      Little Endian\nCPU(s):                          24\nOn-line CPU(s) list:             0-23\nVendor ID:                       GenuineIntel\nModel name:                      12th Gen Intel(R) Core(TM) i9-12900K\nCPU family:                      6\nModel:                           151\nThread(s) per core:              2\nCore(s) per socket:              16\nSocket(s):                       1\nStepping:                        2\nCPU max MHz:                     6700.0000\nCPU min MHz:                     800.0000\nBogoMIPS:                        6374.40\nFlags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault cat_l2 invpcid_single cdp_l2 ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdt_a rdseed adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi umip pku ospke waitpkg gfni vaes vpclmulqdq tme rdpid movdiri movdir64b fsrm md_clear serialize pconfig arch_lbr ibt flush_l1d arch_capabilities\nVirtualization:                  VT-x\nL1d cache:                       640 KiB (16 instances)\nL1i cache:                       768 KiB (16 instances)\nL2 cache:                        14 MiB (10 instances)\nL3 cache:                        30 MiB (1 instance)\nNUMA node(s):                    1\nNUMA node0 CPU(s):               0-23\nVulnerability Itlb multihit:     Not affected\nVulnerability L1tf:              Not affected\nVulnerability Mds:               Not affected\nVulnerability Meltdown:          Not affected\nVulnerability Mmio stale data:   Not affected\nVulnerability Retbleed:          Not affected\nVulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:        Mitigation; Enhanced IBRS, IBPB conditional, RSB filling, PBRSB-eIBRS SW sequence\nVulnerability Srbds:             Not affected\nVulnerability Tsx async abort:   Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==1.24.1\n[pip3] pytorch-triton==2.1.0+46672772b4\n[pip3] torch==2.1.0.dev20230419+cu118\n[pip3] torchaudio==2.1.0.dev20230419+cu118\n[pip3] torchvision==0.16.0.dev20230419+cu118\n[conda] numpy                     1.24.1                   pypi_0    pypi\n[conda] pytorch-triton            2.1.0+46672772b4          pypi_0    pypi\n[conda] torch                     2.1.0.dev20230419+cu118          pypi_0    pypi\n[conda] torchaudio                2.1.0.dev20230419+cu118          pypi_0    pypi\n[conda] torchvision               0.16.0.dev20230419+cu118          pypi_0    pypi\n```"
+      }
+    ],
+    "expected_behavior_claims": [],
+    "failure_observations": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "failure_2e789dc3b3405b99",
+        "evidence_refs": [
+          "ev_c95fabfde115fc29"
+        ],
+        "statement": "# success, out-of-bound read\n    # tensor([[ 6.1276e-01, -9.3005e-01,  1.3646e+00, -7.3723e-01, -7.0839e-01,\n    #     -2.8423e-01, -1.4816e+00,  3.2976e-01,  4.8557e-01,  4.1309e-01],\n    #    [ 6.1276e-01, -9.3005e-01,  1.3646e+00,         nan, -7.0839e-01,\n    #     -1.7412e+38, -1.4816e+00,         nan,  4.8557e-01,  4.1309e-01]])\n\n    func(input_tensor) # without jit\n    # IndexError: index 3 is out of bounds for dimension 0 with size 2"
+      }
+    ],
+    "historical_oracle_claims": [],
+    "operation_contexts": [],
+    "reproduction": {
+      "availability": "unknown",
+      "source_evidence_refs": [],
+      "validation_status": "not_attempted"
+    },
+    "trigger_claims": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "trigger_c5e506f82bef3454",
+        "evidence_refs": [
+          "ev_80fef2c21f3db631"
+        ],
+        "statement": "`torch.compile` makes `sum` out-of-bound read"
+      }
+    ]
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_artifact_refs": [],
+    "resolution_claims": [],
+    "status": "unknown"
+  },
+  "review": {
+    "human_review_status": "not_reviewed",
+    "reviewed_at": null,
+    "reviewed_by": null,
+    "validation_issues": [],
+    "validation_status": "passed"
+  },
+  "revision_information": {
+    "parent_revision_ref": null,
+    "revision_number": 1,
+    "revision_trigger": "initial_mapping"
+  },
+  "schema_version": "5.1",
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "api_name": "torch.compile",
+        "assertion_basis": "source_explicit",
+        "assertion_id": "api_5653354735e9f604",
+        "evidence_refs": [
+          "ev_4bd74b2f6a4b073b"
+        ],
+        "relation": "affected"
+      },
+      {
+        "api_name": "torch.sum",
+        "assertion_basis": "source_explicit",
+        "assertion_id": "api_7557638f16fbfa79",
+        "evidence_refs": [
+          "ev_4bd74b2f6a4b073b"
+        ],
+        "relation": "mentioned"
+      }
+    ]
+  },
+  "source_bundle": {
+    "comments_capture_status": "complete",
+    "inventory_ref": {
+      "content_hash": "sha256:ac70aa30879eb6e64adc904061476a29ea1ea8ca56de0662c0deb9d2b3d4e52d",
+      "local_path": "dataset/manifests/report_v5_calibration_inventory.json"
+    },
+    "primary_source_ref": "src_eac3cadd6ecabdbe",
+    "source_artifacts": [
+      {
+        "artifact_id": "src_1ed5f888631ed328",
+        "artifact_role": "curation",
+        "captured_at": "2026-09-28T08:10:34.567681Z",
+        "content_hash": "sha256:db28f21ab2ead74917ac48a90bcfccd0f1c05196eda3abc7202f8f403512e702",
+        "external_id": "100343",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/dataset_origin.json",
+        "source_kind": "other",
+        "source_native_state": null,
+        "url": "https://github.com/dmc1778/Benchmarking-DL-Fuzzers/blob/265ddb8f29fe018c94c01a52ce3871ee37da7bd2/data/torch_groundtruth.csv"
+      },
+      {
+        "artifact_id": "src_abf87b73504c3a9c",
+        "artifact_role": "curation",
+        "captured_at": "2026-09-28T08:10:34.567681Z",
+        "content_hash": "sha256:b936a1f7a60955ac5c7f5cf090edccf516b4a3f076c29e03f507887c1cd729b3",
+        "external_id": "265ddb8f29fe018c94c01a52ce3871ee37da7bd2",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/benchmark/torch_groundtruth.csv",
+        "source_kind": "dataset_record",
+        "source_native_state": null,
+        "url": null
+      },
+      {
+        "artifact_id": "src_e3e5bb632a9008fc",
+        "artifact_role": "comment_thread",
+        "captured_at": "2026-09-28T08:10:34.567681Z",
+        "content_hash": "sha256:7ef9db1ad934dabbde714903c26ac1f2e33dc180caf50f6042febc388c259040",
+        "external_id": null,
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/comments.json",
+        "source_kind": "github_comments",
+        "source_native_state": null,
+        "url": null
+      },
+      {
+        "artifact_id": "src_eac3cadd6ecabdbe",
+        "artifact_role": "issue",
+        "captured_at": "2026-09-28T08:10:34.567681Z",
+        "content_hash": "sha256:c2a4a30e5b5fc050ff3ee8703b2f31c784b5e508939d6fd028923812f1ee1fc9",
+        "external_id": "100343",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/issue.json",
+        "source_kind": "github_issue",
+        "source_native_state": "closed",
+        "url": "https://github.com/pytorch/pytorch/issues/100343"
+      }
+    ]
+  },
+  "unresolved_information": [
+    {
+      "description": "No explicit root-cause statement was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_diagnosis/root_cause_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_9639f6471e3254e6"
+    },
+    {
+      "description": "No explicit source evidence established a fix disposition.",
+      "evidence_refs": [],
+      "field_path": "/resolution/status",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_551195c5ad72f934"
+    },
+    {
+      "description": "No explicit expected behavior was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/expected_behavior_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_b88149dcff270097"
+    },
+    {
+      "description": "No explicit historical oracle was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/historical_oracle_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_343e5bf553660dfb"
+    },
+    {
+      "description": "No explicitly labelled reproduction section or captured reproduction artifact was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/reproduction",
+      "reason": "ambiguous_source",
+      "unresolved_id": "unresolved_b6e223eb0ba944c1"
+    }
+  ],
+  "upstream_disposition": {
+    "evidence_refs": [
+      "ev_4bd74b2f6a4b073b"
+    ],
+    "status": "reported"
+  }
+}

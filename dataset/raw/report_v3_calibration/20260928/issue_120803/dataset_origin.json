@@ -1,0 +1,51 @@
+{
+  "repository": "ncsu-swat/bugsindlls",
+  "commit": "3651d10efe415a3da509f3d3c6fd860e19100582",
+  "path": "bug_dataset_pytorch.csv",
+  "table": "dataset/raw/report_v3_calibration/20260928/datasets/bugsindlls/bug_dataset_pytorch.csv",
+  "header_row": 2,
+  "headers": [
+    "Issue #",
+    "PR #",
+    "Title",
+    "Reproduced",
+    "Issue Status",
+    "Device",
+    "API",
+    "Reported",
+    "Buggy Version",
+    "Nightly",
+    "Buggy File(s)",
+    "Buggy Function(s)",
+    "Buggy API",
+    "Type",
+    "Remarks",
+    "Issue Link",
+    "PR Link"
+  ],
+  "entries": [
+    {
+      "csv_record_number": 100,
+      "values": [
+        "120803",
+        "120882",
+        "Floating Point Exception on Empty Input Tensor with torch.batch_norm_update_stats",
+        "Yes",
+        "Closed",
+        "CPU",
+        "",
+        "2/28/2024",
+        "2.3.0a0+git8efa066",
+        "Yes",
+        "aten/src/ATen/native/Normalization.cpp,aten/src/ATen/native/cuda/Normalization.cu",
+        "batch_norm_update_stats_cuda()",
+        "torch.batch_norm_update_stats",
+        "Floating Point Exception",
+        "Note: \"The issue is reproducible on Linux (Ubuntu), but not on the Mac M1.\" - comment in issue",
+        "https://github.com/pytorch/pytorch/issues/120803",
+        "https://github.com/pytorch/pytorch/pull/120882"
+      ]
+    }
+  ],
+  "scope": "Dataset annotations are discovery provenance, not upstream semantic evidence."
+}

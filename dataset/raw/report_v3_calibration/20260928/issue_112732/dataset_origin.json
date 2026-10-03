@@ -1,0 +1,51 @@
+{
+  "repository": "ncsu-swat/bugsindlls",
+  "commit": "3651d10efe415a3da509f3d3c6fd860e19100582",
+  "path": "bug_dataset_pytorch.csv",
+  "table": "dataset/raw/report_v3_calibration/20260928/datasets/bugsindlls/bug_dataset_pytorch.csv",
+  "header_row": 2,
+  "headers": [
+    "Issue #",
+    "PR #",
+    "Title",
+    "Reproduced",
+    "Issue Status",
+    "Device",
+    "API",
+    "Reported",
+    "Buggy Version",
+    "Nightly",
+    "Buggy File(s)",
+    "Buggy Function(s)",
+    "Buggy API",
+    "Type",
+    "Remarks",
+    "Issue Link",
+    "PR Link"
+  ],
+  "entries": [
+    {
+      "csv_record_number": 145,
+      "values": [
+        "112732",
+        "112782",
+        "Segmentation fault in torch.nn.functional.cosine_embedding_loss with empty tensors and mixed dtypes",
+        "Yes",
+        "Closed",
+        "CPU",
+        "",
+        "11/2/2023",
+        "2.1.0",
+        "No",
+        "aten/src/ATen/native/Loss.cpp",
+        "cosine_embedding_loss()",
+        "torch.nn.functional.cosine_embedding_loss",
+        "Segmentation Fault",
+        "",
+        "https://github.com/pytorch/pytorch/issues/112732",
+        "https://github.com/pytorch/pytorch/pull/112782"
+      ]
+    }
+  ],
+  "scope": "Dataset annotations are discovery provenance, not upstream semantic evidence."
+}

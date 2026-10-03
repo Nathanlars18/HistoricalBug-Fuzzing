@@ -1,0 +1,94 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "ic_pytorch_pytorch_100343",
+      "canonical_url": "https://github.com/pytorch/pytorch/issues/100343",
+      "closed_at": "2023-12-07T07:46:27Z",
+      "created_at": "2023-04-30T18:44:23Z",
+      "discovered_by": [{"kind": "external_dataset", "record_id": "100343", "source_name": "Benchmarking-DL-Fuzzers"}],
+      "duplicate_of": null,
+      "issue_number": 100343,
+      "matched_api_terms": ["torch.compile", "torch.sum"],
+      "native_labels": ["oncall: cpu inductor", "triaged"],
+      "repository": "pytorch/pytorch",
+      "screening": {
+        "admission_gate_locators": {
+          "erroneous_behavior": [{"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/issue.json", "end_line": 36, "locator_type": "json_string_line_range", "start_line": 32, "value": "/body"}],
+          "trigger_conditions": [{"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/issue.json", "end_line": 3, "locator_type": "json_string_line_range", "start_line": 3, "value": "/body"}],
+          "operation_contexts": []
+        },
+        "api_associations": [
+          {"api_name": "torch.compile", "relation": "affected", "source_locator": {"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/issue.json", "locator_type": "json_pointer", "value": "/title"}},
+          {"api_name": "torch.sum", "relation": "mentioned", "source_locator": {"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/issue.json", "locator_type": "json_pointer", "value": "/title"}}
+        ],
+        "reason_codes": [], "reviewed_at": "2026-10-02T00:00:00Z", "reviewed_by": "calibration_protocol", "status": "admitted"
+      },
+      "snapshot": {"capture_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/capture.json", "captured_at": "2026-09-28T08:10:00Z", "content_hash": "sha256:93b3d122125fd61e2e5d072558f49001312551c26347ba011e493b09aff48841"},
+      "source_kind": "external_dataset",
+      "updated_at": "2023-12-07T07:46:27Z"
+    },
+    {
+      "candidate_id": "ic_pytorch_pytorch_112732",
+      "canonical_url": "https://github.com/pytorch/pytorch/issues/112732",
+      "closed_at": "2023-11-03T15:15:15Z",
+      "created_at": "2023-11-02T14:23:55Z",
+      "discovered_by": [{"kind": "external_dataset", "record_id": "112732", "source_name": "BugsInDLLs"}],
+      "duplicate_of": null,
+      "issue_number": 112732,
+      "matched_api_terms": ["torch.nn.functional.cosine_embedding_loss"],
+      "native_labels": ["actionable", "high priority", "module: crash", "module: edge cases", "module: nn", "triage review"],
+      "repository": "pytorch/pytorch",
+      "screening": {
+        "admission_gate_locators": {
+          "erroneous_behavior": [{"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/issue.json", "end_line": 26, "locator_type": "json_string_line_range", "start_line": 26, "value": "/body"}],
+          "trigger_conditions": [{"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/issue.json", "end_line": 3, "locator_type": "json_string_line_range", "start_line": 3, "value": "/body"}],
+          "operation_contexts": []
+        },
+        "api_associations": [{"api_name": "torch.nn.functional.cosine_embedding_loss", "relation": "affected", "source_locator": {"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/issue.json", "locator_type": "json_pointer", "value": "/title"}}],
+        "reason_codes": [], "reviewed_at": "2026-10-02T00:00:00Z", "reviewed_by": "calibration_protocol", "status": "admitted"
+      },
+      "snapshot": {"capture_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/capture.json", "captured_at": "2026-09-28T08:10:00Z", "content_hash": "sha256:ba54816bee7a1eef3591219716bd1bec22d7ed7a902cde582fc86cf458610e4a"},
+      "source_kind": "external_dataset",
+      "updated_at": "2023-11-03T15:15:15Z"
+    },
+    {
+      "candidate_id": "ic_pytorch_pytorch_120803",
+      "canonical_url": "https://github.com/pytorch/pytorch/issues/120803",
+      "closed_at": "2024-03-06T05:40:24Z",
+      "created_at": "2024-02-28T17:01:25Z",
+      "discovered_by": [{"kind": "external_dataset", "record_id": "120803", "source_name": "BugsInDLLs"}],
+      "duplicate_of": null,
+      "issue_number": 120803,
+      "matched_api_terms": ["torch.batch_norm_update_stats"],
+      "native_labels": ["module: crash", "module: edge cases", "module: error checking", "module: norms and normalization", "triaged"],
+      "repository": "pytorch/pytorch",
+      "screening": {
+        "admission_gate_locators": {
+          "erroneous_behavior": [{"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/issue.json", "end_line": 8, "locator_type": "json_string_line_range", "start_line": 8, "value": "/body"}],
+          "trigger_conditions": [{"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/issue.json", "end_line": 4, "locator_type": "json_string_line_range", "start_line": 4, "value": "/body"}],
+          "operation_contexts": []
+        },
+        "api_associations": [{"api_name": "torch.batch_norm_update_stats", "relation": "affected", "source_locator": {"artifact_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/issue.json", "locator_type": "json_pointer", "value": "/title"}}],
+        "reason_codes": [], "reviewed_at": "2026-10-02T00:00:00Z", "reviewed_by": "calibration_protocol", "status": "admitted"
+      },
+      "snapshot": {"capture_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/capture.json", "captured_at": "2026-09-28T08:10:00Z", "content_hash": "sha256:b584cfd153571857f746bbd617531e4d369c89b25dadac9f0fda62599a307d04"},
+      "source_kind": "external_dataset",
+      "updated_at": "2024-03-06T05:40:24Z"
+    }
+  ],
+  "collection_scope": {
+    "created_from": "2023-01-01",
+    "created_to": "2024-12-31",
+    "dataset_sources": [
+      {"source_name": "Benchmarking-DL-Fuzzers", "source_ref": "calibration snapshot 20260928"},
+      {"source_name": "BugsInDLLs", "source_ref": "calibration snapshot 20260928"}
+    ],
+    "github_queries": [],
+    "repository": "pytorch/pytorch"
+  },
+  "created_at": "2026-10-02T00:00:00Z",
+  "inventory_id": "inventory_report_v5_calibration",
+  "inventory_version": "1.0",
+  "protocol_version": "0.8",
+  "updated_at": "2026-10-02T00:00:00Z"
+}

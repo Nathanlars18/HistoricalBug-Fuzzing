@@ -1,0 +1,117 @@
+{
+  "captured_resources": [
+    {
+      "url": "https://api.github.com/repos/ncsu-swat/bugsindlls/commits/main",
+      "captured_at": "2026-09-28T08:10:24.993935Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/bugsindlls/commit.json",
+      "sha256": "83f4c9831f39f4a0cccee9e6a6712678c4d0327db50f18c3de5cddb81d778520",
+      "etag": "\"6b003c3913e07c2fac9983b750daa2c2d1c68ca1c8bca390063d33dd4e68f735\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/ncsu-swat/bugsindlls/contents/bug_dataset_pytorch.csv?ref=3651d10efe415a3da509f3d3c6fd860e19100582",
+      "captured_at": "2026-09-28T08:10:27.004683Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/bugsindlls/contents.json",
+      "sha256": "a0e8bd7066bbd66d974d31c986b5f82041e9ef70f2b6f9824efdd45b7eca2685",
+      "etag": "\"2cfc0fb4a96ce687a144a72e3d1ef56273960db1\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/dmc1778/Benchmarking-DL-Fuzzers/commits/master",
+      "captured_at": "2026-09-28T08:10:27.897022Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/benchmark/commit.json",
+      "sha256": "6f271cd3b006bfca33a0236e8c6d0f68fe58215fd2d07d5cf85be0563be04474",
+      "etag": "W/\"4a00e863124af05b8aedf1109c181904112a20e0a808311a847f2e6eab7504a0\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/dmc1778/Benchmarking-DL-Fuzzers/contents/data/torch_groundtruth.csv?ref=265ddb8f29fe018c94c01a52ce3871ee37da7bd2",
+      "captured_at": "2026-09-28T08:10:28.613620Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/benchmark/contents.json",
+      "sha256": "ce3d53c1fb60435b019ca30899da4fba216971e0b6038951f660358d28ba2632",
+      "etag": "\"a66757bc7195b4c21851edce3a1cdf57822a986c\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/issues/120803",
+      "captured_at": "2026-09-28T08:10:29.653198Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/issue.json",
+      "sha256": "5e51aa6caf9fe0a222a9664c4aee5b5bfb8c1868cabaf576e9b8da9eef7a9227",
+      "etag": "W/\"232771bcbe72a34e0c0667b1e0d768b40f3aefb72db24039491bbde23699add8\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/issues/120803/comments?per_page=100",
+      "captured_at": "2026-09-28T08:10:30.264600Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/comments.json",
+      "sha256": "d361ec7426c661e3ff66727ce7a40c13ad4fea27698132c0d9883ec53e638468",
+      "etag": "W/\"f483cdd79a69e8fada59418ee88a6b084b4a4c1ba9d5b56e6407c9771b557724\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/pulls/120882",
+      "captured_at": "2026-09-28T08:10:30.752616Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/pull_120882.json",
+      "sha256": "36926a726b9d87974e1186dfd79d96a2fa4ab9c47adf2c615d5f841a6de9badc",
+      "etag": "\"bd063e0a9a55c5b1d194688c5e773e2e05125f8ddb52e2c1de1ad2645959e9c9\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/pulls/120882/files?per_page=100",
+      "captured_at": "2026-09-28T08:10:31.499251Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/pull_120882_files.json",
+      "sha256": "f3424ed9fde6f1625d670b4ded796c445cd31d4c0da6411ad16a83ad59ce60f0",
+      "etag": "W/\"e0c9aefb03b0a8971796e265257e0be9008a3802872b5bfa707153d49f334541\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/issues/112732",
+      "captured_at": "2026-09-28T08:10:32.219936Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/issue.json",
+      "sha256": "1047f31aeee8966dec44ef82c2d5960a65227409c9abd033a833896bb152bccd",
+      "etag": "W/\"8abc15d5bc1386a72b60697b4271d3d0fc1f5fa2c36a09d32358515a99900462\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/issues/112732/comments?per_page=100",
+      "captured_at": "2026-09-28T08:10:32.758242Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/comments.json",
+      "sha256": "b4ef49bc2059e4e5453036c862243e9bf8cc709c8e665b517d08128cde8fe44c",
+      "etag": "W/\"d819000a620f6cd4ff888fa62e9d52d18adc8bab4d637118209743f26707a9af\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/pulls/112782",
+      "captured_at": "2026-09-28T08:10:33.254858Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/pull_112782.json",
+      "sha256": "c13816de34aa276de1ccc0b35b2e015e4ac4825777f53ee77059c0f287e32a70",
+      "etag": "\"6133439f104637dbdcea310468f40e0cdfce10eb059029ac8f0bb41bf8cef26b\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/pulls/112782/files?per_page=100",
+      "captured_at": "2026-09-28T08:10:33.937163Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/pull_112782_files.json",
+      "sha256": "3336df8e0c408a84d2253eb914a4f5a550c85069a38279191c55778ef8b3d7d8",
+      "etag": "W/\"b5010035c4c080d2d27987d9e5d5eea824f5e48a5814a239c4e0dd6d64655ffc\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/issues/100343",
+      "captured_at": "2026-09-28T08:10:34.567681Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/issue.json",
+      "sha256": "c2a4a30e5b5fc050ff3ee8703b2f31c784b5e508939d6fd028923812f1ee1fc9",
+      "etag": "W/\"4788299ab836fb725b9032f8e4e4086d1d24ff61278f44fcf6b506fce706532c\"",
+      "link": null
+    },
+    {
+      "url": "https://api.github.com/repos/pytorch/pytorch/issues/100343/comments?per_page=100",
+      "captured_at": "2026-09-28T08:10:35.131629Z",
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/comments.json",
+      "sha256": "7ef9db1ad934dabbde714903c26ac1f2e33dc180caf50f6042febc388c259040",
+      "etag": "W/\"116fbf04661f91de03cb6b759eb9f74589c5844d53311fa9ba1acc72eff3d38a\"",
+      "link": null
+    }
+  ],
+  "scope": "Three purposively chosen Report-calibration cases, not a frozen experiment cohort. No reproduction or model extraction performed."
+}

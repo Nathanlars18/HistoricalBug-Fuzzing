@@ -1,0 +1,25 @@
+{
+  "issue_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/issue.json",
+  "comments_paths": [
+    "dataset/raw/report_v3_calibration/20260928/issue_100343/comments.json"
+  ],
+  "comments_complete": true,
+  "captured_at": "2026-09-28T08:10:34.567681Z",
+  "companions": [
+    {
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/dataset_origin.json",
+      "artifact_role": "curation",
+      "source_kind": "other",
+      "repository": "dmc1778/Benchmarking-DL-Fuzzers",
+      "external_id": "100343",
+      "url": "https://github.com/dmc1778/Benchmarking-DL-Fuzzers/blob/265ddb8f29fe018c94c01a52ce3871ee37da7bd2/data/torch_groundtruth.csv"
+    },
+    {
+      "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/benchmark/torch_groundtruth.csv",
+      "artifact_role": "curation",
+      "source_kind": "curation_table",
+      "repository": "dmc1778/Benchmarking-DL-Fuzzers",
+      "external_id": "265ddb8f29fe018c94c01a52ce3871ee37da7bd2"
+    }
+  ]
+}

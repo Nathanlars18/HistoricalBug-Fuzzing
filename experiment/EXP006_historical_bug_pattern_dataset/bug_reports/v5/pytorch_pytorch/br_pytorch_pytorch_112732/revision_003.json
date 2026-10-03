@@ -1,0 +1,374 @@
+{
+  "evidence_items": [
+    {
+      "content_hash": "sha256:a77a69916fba64e02ad8264492e87eac7c4036c4d2b8ed6cfe95b4e96303f796",
+      "evidence_id": "ev_2c4d088794096ed1",
+      "excerpt": "Segmentation fault (core dumped)",
+      "locator": {
+        "end_line": 26,
+        "locator_type": "json_string_line_range",
+        "start_line": 26,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_9950bd71c04611bf"
+    },
+    {
+      "content_hash": "sha256:08b22b09d20bddcc5094379b45c27789dc2e1c60704a3a3e01f98ed90df9e656",
+      "evidence_id": "ev_3155b255fee1c1d5",
+      "excerpt": "Enforce both input tensor shapes of CosineEmbeddingLoss to be equal.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/title"
+      },
+      "source_artifact_ref": "src_e5c608502cec9abf"
+    },
+    {
+      "content_hash": "sha256:9f9ccd85fd70197586544867758797075a73e56fff8ed573510539e7daa6fafe",
+      "evidence_id": "ev_5357ce0a32a66c83",
+      "excerpt": "@@ -5395,6 +5395,22 @@ def test_cosine_embedding_loss_with_diff_type(self):\n                         result = torch.nn.functional.cosine_embedding_loss(input1, input2, target)\n                         self.assertEqual(result.item(), expected.item(), atol=0.001, rtol=0)\n \n+    def test_cosine_embedding_loss_error_on_diff_shapes(self):\n+        for device in device_():\n+            input1 = torch.empty((0, 0), dtype=torch.double, device=device)\n+            input2 = torch.empty((0,), dtype=torch.double, device=device)\n+            target = torch.empty((0,), dtype=torch.int, device=device)\n+            with self.assertRaisesRegex(RuntimeError, \".*expects 2D.*\"):\n+                torch.nn.functional.cosine_embedding_loss(input1, input2, target)\n+\n+    def test_cosine_embedding_loss_error_on_nonexpandable_shapes(self):\n+        for device in device_():\n+            input1 = torch.empty((1, 5), dtype=torch.double, device=device)\n+            input2 = torch.empty((1, 6), dtype=torch.double, device=device)\n+            target = torch.ones((1,), dtype=torch.int, device=device)\n+            with self.assertRaisesRegex(RuntimeError, \".*must match the size.*\"):\n+                torch.nn.functional.cosine_embedding_loss(input1, input2, target)\n+\n     def test_kl_div_with_diff_type(self):\n         for device in device_():\n             input = torch.tensor([[2, 3, 5], [3, 2, 1]], dtype=torch.double, device=device)",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/1/patch"
+      },
+      "source_artifact_ref": "src_b7f21593a0582a16"
+    },
+    {
+      "content_hash": "sha256:2a36837499d8cbec5b844eac5122b880d3fb9f8ed8b7eb42cc226ad5466da36a",
+      "evidence_id": "ev_652ea3c9a92fb35b",
+      "excerpt": "I think the main problem here is that `input1` and `input2` are of different shapes, which is not allowed according to the [docs](https://pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html) but is never checked in the code. I will prepare a PR to fix this.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/2/body"
+      },
+      "source_artifact_ref": "src_1d11e41db13ea32b"
+    },
+    {
+      "content_hash": "sha256:cf5e08b04b73e80ade690494948b29105aff5ad58c941218055d2e9368b2bdd3",
+      "evidence_id": "ev_97c40327c2041b9f",
+      "excerpt": "@@ -146,18 +146,17 @@ Tensor cosine_embedding_loss(const Tensor& input1, const Tensor& input2, const T\n   TORCH_CHECK(\n       targ_dim == 1 || targ_dim == 0,\n       \"0D or 1D target tensor expected, multi-target not supported\");\n-\n   if (targ_dim == 1) {\n     TORCH_CHECK(\n-        input1.dim() == 2,\n+        input1.dim() == 2 && input2.dim() == 2,\n         \"1D target tensor expects 2D input tensors, but found inputs with sizes \",\n         input1.sizes(),\n         \" and \",\n         input2.sizes(),\n         \".\");\n   } else {\n     TORCH_CHECK(\n-        input1.dim() == 1,\n+        input1.dim() == 1 && input2.dim() == 1,\n         \"0D target tensor expects 1D input tensors, but found inputs with sizes \",\n         input1.sizes(),\n         \" and \",",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/0/patch"
+      },
+      "source_artifact_ref": "src_b7f21593a0582a16"
+    },
+    {
+      "content_hash": "sha256:276a00dba8d02501fc69b790df0b3d715c70cae8ea93e8b7c38b85ea92b40c3e",
+      "evidence_id": "ev_98e7c002a67a3142",
+      "excerpt": null,
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_9950bd71c04611bf"
+    },
+    {
+      "content_hash": "sha256:b94aa81cfd8022e9482de69eeac33838894ec1211b508a987bd2ac5379ab7ec2",
+      "evidence_id": "ev_9aae1c5841954e35",
+      "excerpt": "Regarding the deprecation warning, we do discourage use of `reduce` and `size_average`. You should prefer using `reduction` instead.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/1/body"
+      },
+      "source_artifact_ref": "src_1d11e41db13ea32b"
+    },
+    {
+      "content_hash": "sha256:cc3c07b641bb05dff8763f66f25db67b5a620ba9057510c802d2f246712dd874",
+      "evidence_id": "ev_a0e23c6fd9cc42dd",
+      "excerpt": "PyTorch version: 2.2.0.dev20230921+cu118\nIs debug build: False\nCUDA used to build PyTorch: 11.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.3 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0\nClang version: Could not collect\nCMake version: version 3.22.1\nLibc version: glibc-2.35\n\nPython version: 3.9.17 (main, Jul 5 2023, 20:41:20) [GCC 11.2.0] (64-bit runtime)\nPython platform: Linux-5.15.0-86-generic-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: 12.1.105\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration:\nGPU 0: NVIDIA GeForce RTX 2070\nGPU 1: NVIDIA GeForce RTX 2070\nGPU 2: NVIDIA GeForce RTX 2070\nGPU 3: NVIDIA GeForce RTX 2070\n\nNvidia driver version: 535.104.12\ncuDNN version: Could not collect\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture: x86_64\nCPU op-mode(s): 32-bit, 64-bit\nAddress sizes: 46 bits physical, 48 bits virtual\nByte Order: Little Endian\nCPU(s): 32\nOn-line CPU(s) list: 0-31\nVendor ID: GenuineIntel\nModel name: Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz\nCPU family: 6\nModel: 63\nThread(s) per core: 2\nCore(s) per socket: 8\nSocket(s): 2\nStepping: 2\nCPU max MHz: 3200.0000\nCPU min MHz: 1200.0000\nBogoMIPS: 4794.64\nFlags: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm cpuid_fault epb invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm xsaveopt cqm_llc cqm_occup_llc dtherm ida arat pln pts md_clear flush_l1d\nVirtualization: VT-x\nL1d cache: 512 KiB (16 instances)\nL1i cache: 512 KiB (16 instances)\nL2 cache: 4 MiB (16 instances)\nL3 cache: 40 MiB (2 instances)\nNUMA node(s): 2\nNUMA node0 CPU(s): 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30\nNUMA node1 CPU(s): 1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit: KVM: Mitigation: VMX disabled\nVulnerability L1tf: Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable\nVulnerability Mds: Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Meltdown: Mitigation; PTI\nVulnerability Mmio stale data: Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Retbleed: Not affected\nVulnerability Spec rstack overflow: Not affected\nVulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1: Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2: Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected\nVulnerability Srbds: Not affected\nVulnerability Tsx async abort: Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==1.24.3\n[pip3] pytorch-triton==2.1.0+6e4932cda8\n[pip3] torch==2.2.0.dev20230921+cu118\n[pip3] torchaudio==2.2.0.dev20230921+cu118\n[pip3] torchvision==0.17.0.dev20230921+cu118\n[conda] cudatoolkit 11.8.0 h6a678d5_0 defaults\n[conda] numpy 1.24.3 pypi_0 pypi\n[conda] pytorch-triton 2.1.0+6e4932cda8 pypi_0 pypi\n[conda] torch 2.2.0.dev20230921+cu118 pypi_0 pypi\n[conda] torchaudio 2.2.0.dev20230921+cu118 pypi_0 pypi\n[conda] torchvision 0.17.0.dev20230921+cu118 pypi_0 pypi\n\ncc @ezyang @gchanan @zou3519 @kadeng @albanD @mruberry @jbschlosser @walterddr @mikaylagawarecki",
+      "locator": {
+        "end_line": 113,
+        "locator_type": "json_string_line_range",
+        "start_line": 31,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_9950bd71c04611bf"
+    },
+    {
+      "content_hash": "sha256:649e819eb7ba93177d977a0e4792e01c9bc2c689c07cdcb56627ec19b0228091",
+      "evidence_id": "ev_afc780ccb7486d98",
+      "excerpt": "…Added a test to prevent regressions.\n\nFixes #112732.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_e5c608502cec9abf"
+    },
+    {
+      "content_hash": "sha256:f79cfcf619d9ca2b58f11ee2d68d87b80d99efc7308ed1ba67a3d1b3128ec238",
+      "evidence_id": "ev_b98e6d3087868a28",
+      "excerpt": "Reproduced on nightly. Adding high-pri for the crash. Should be an easy fix to guard against empty inputs.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/0/body"
+      },
+      "source_artifact_ref": "src_1d11e41db13ea32b"
+    },
+    {
+      "content_hash": "sha256:64130a74e1b48952f972c9fcce8a489a17169ebcb010dcdecacd7237f7ff30c0",
+      "evidence_id": "ev_cecfcbed689300f3",
+      "excerpt": "Segmentation fault in torch.nn.functional.cosine_embedding_loss with empty tensors and mixed dtypes",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/title"
+      },
+      "source_artifact_ref": "src_9950bd71c04611bf"
+    },
+    {
+      "content_hash": "sha256:8f59e5b16e96fb34b17cd8c44879802148d96c327473592ec1d4508aeb8dd2ce",
+      "evidence_id": "ev_d865d2707eea0525",
+      "excerpt": "When calling `torch.nn.functional.cosine_embedding_loss` with empty tensors and a mix of float16, int8, and float32 data types, a segmentation fault occurs. Additionally, a deprecation warning for the size_average and reduce arguments is triggered, which does not halt execution but indicates that these arguments will be deprecated.",
+      "locator": {
+        "end_line": 3,
+        "locator_type": "json_string_line_range",
+        "start_line": 3,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_9950bd71c04611bf"
+    },
+    {
+      "content_hash": "sha256:d49f07a63448def5f3e4a40b6fc4379af2f57dcb2f1d11951598c7c50456acf6",
+      "evidence_id": "ev_fabc68ef1eea2ee1",
+      "excerpt": "```python\nimport torch\nimport numpy as np\n\nargs = {\n    'input1': torch.from_numpy(np.array(np.random.uniform(-1000_000, 1000_000, [0, 0])).astype('float16')), \n    'input2': torch.from_numpy(np.array(np.random.randint(-1000_000, 1000_000, [0])).astype('int8')),\n    'margin': 6.4513009, \n    'reduce': True, \n    'reduction': 'mean', \n    'size_average': True, \n    'target': torch.from_numpy(np.array(np.random.uniform(-1000_000, 1000_000, [0])).astype('float32')), \n}\n\ntorch.nn.functional.cosine_embedding_loss(**args)\n```\n\n**Error messages and stack trace**\n```\n/home/guihuan/.conda/envs/py39/lib/python3.9/site-packages/torch/nn/_reduction.py:42: UserWarning: size_average and reduce args will be deprecated, please use reduction='mean' instead.\n  warnings.warn(warning.format(ret))\nSegmentation fault (core dumped)\n```",
+      "locator": {
+        "end_line": 27,
+        "locator_type": "json_string_line_range",
+        "start_line": 5,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_9950bd71c04611bf"
+    }
+  ],
+  "identity": {
+    "canonical_url": "https://github.com/pytorch/pytorch/issues/112732",
+    "issue_number": 112732,
+    "report_id": "br_pytorch_pytorch_112732",
+    "repository": "pytorch/pytorch"
+  },
+  "provenance": {
+    "builder_id": "build_bug_report_json",
+    "builder_version": "5.1.1",
+    "content_hash": "sha256:0733a114ae798fd55f648220e0bc76da0ce738016442691fb42561547d8bb608",
+    "generated_at": "2026-10-03T01:15:08Z",
+    "generation_run_id": "run_e3e2b8a154954dd5",
+    "input_artifact_refs": [
+      {
+        "content_hash": "sha256:1366a172dbda5fa63f54671de6a68b8e9c4131b409d1d7b7a3967ac6c6d453ce",
+        "local_path": "dataset/manifests/report_v5_calibration_inventory.json"
+      },
+      {
+        "content_hash": "sha256:ba54816bee7a1eef3591219716bd1bec22d7ed7a902cde582fc86cf458610e4a",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/capture.json"
+      }
+    ],
+    "mapping_ref": {
+      "content_hash": "sha256:87f4e0bf27f1d03ac3dab7f1a11c966145e04eb88f7df7309c2d24cb8de1ab8d",
+      "local_path": "experiment/EXP006_historical_bug_pattern_dataset/schemas/source_to_report_mapping.md"
+    }
+  },
+  "reported_behavior": {
+    "environment_facts": [
+      {
+        "evidence_refs": [
+          "ev_a0e23c6fd9cc42dd"
+        ],
+        "fact_id": "env_08ead9c8ed691a82",
+        "name": "reported_environment",
+        "value": "PyTorch version: 2.2.0.dev20230921+cu118\nIs debug build: False\nCUDA used to build PyTorch: 11.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.3 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0\nClang version: Could not collect\nCMake version: version 3.22.1\nLibc version: glibc-2.35\n\nPython version: 3.9.17 (main, Jul 5 2023, 20:41:20) [GCC 11.2.0] (64-bit runtime)\nPython platform: Linux-5.15.0-86-generic-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: 12.1.105\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration:\nGPU 0: NVIDIA GeForce RTX 2070\nGPU 1: NVIDIA GeForce RTX 2070\nGPU 2: NVIDIA GeForce RTX 2070\nGPU 3: NVIDIA GeForce RTX 2070\n\nNvidia driver version: 535.104.12\ncuDNN version: Could not collect\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture: x86_64\nCPU op-mode(s): 32-bit, 64-bit\nAddress sizes: 46 bits physical, 48 bits virtual\nByte Order: Little Endian\nCPU(s): 32\nOn-line CPU(s) list: 0-31\nVendor ID: GenuineIntel\nModel name: Intel(R) Xeon(R) CPU E5-2630 v3 @ 2.40GHz\nCPU family: 6\nModel: 63\nThread(s) per core: 2\nCore(s) per socket: 8\nSocket(s): 2\nStepping: 2\nCPU max MHz: 3200.0000\nCPU min MHz: 1200.0000\nBogoMIPS: 4794.64\nFlags: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm cpuid_fault epb invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm xsaveopt cqm_llc cqm_occup_llc dtherm ida arat pln pts md_clear flush_l1d\nVirtualization: VT-x\nL1d cache: 512 KiB (16 instances)\nL1i cache: 512 KiB (16 instances)\nL2 cache: 4 MiB (16 instances)\nL3 cache: 40 MiB (2 instances)\nNUMA node(s): 2\nNUMA node0 CPU(s): 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30\nNUMA node1 CPU(s): 1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit: KVM: Mitigation: VMX disabled\nVulnerability L1tf: Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable\nVulnerability Mds: Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Meltdown: Mitigation; PTI\nVulnerability Mmio stale data: Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Retbleed: Not affected\nVulnerability Spec rstack overflow: Not affected\nVulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1: Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2: Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling, PBRSB-eIBRS Not affected\nVulnerability Srbds: Not affected\nVulnerability Tsx async abort: Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==1.24.3\n[pip3] pytorch-triton==2.1.0+6e4932cda8\n[pip3] torch==2.2.0.dev20230921+cu118\n[pip3] torchaudio==2.2.0.dev20230921+cu118\n[pip3] torchvision==0.17.0.dev20230921+cu118\n[conda] cudatoolkit 11.8.0 h6a678d5_0 defaults\n[conda] numpy 1.24.3 pypi_0 pypi\n[conda] pytorch-triton 2.1.0+6e4932cda8 pypi_0 pypi\n[conda] torch 2.2.0.dev20230921+cu118 pypi_0 pypi\n[conda] torchaudio 2.2.0.dev20230921+cu118 pypi_0 pypi\n[conda] torchvision 0.17.0.dev20230921+cu118 pypi_0 pypi\n\ncc @ezyang @gchanan @zou3519 @kadeng @albanD @mruberry @jbschlosser @walterddr @mikaylagawarecki"
+      }
+    ],
+    "expected_behavior_claims": [],
+    "failure_observations": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "failure_6dad1539e5d2fa41",
+        "evidence_refs": [
+          "ev_2c4d088794096ed1"
+        ],
+        "statement": "Segmentation fault (core dumped)"
+      }
+    ],
+    "historical_oracle_claims": [],
+    "operation_contexts": [],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_fabc68ef1eea2ee1"
+      ],
+      "validation_status": "not_attempted"
+    },
+    "trigger_claims": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "trigger_7df03c3109223beb",
+        "evidence_refs": [
+          "ev_d865d2707eea0525"
+        ],
+        "statement": "When calling `torch.nn.functional.cosine_embedding_loss` with empty tensors and a mix of float16, int8, and float32 data types, a segmentation fault occurs. Additionally, a deprecation warning for the size_average and reduce arguments is triggered, which does not halt execution but indicates that these arguments will be deprecated."
+      }
+    ]
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_artifact_refs": [
+      "src_b7f21593a0582a16",
+      "src_e5c608502cec9abf"
+    ],
+    "resolution_claims": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "resolution_bd73dad0a3fe0aa5",
+        "evidence_refs": [
+          "ev_3155b255fee1c1d5"
+        ],
+        "statement": "Enforce both input tensor shapes of CosineEmbeddingLoss to be equal."
+      },
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "resolution_239e11a2e0c7e684",
+        "evidence_refs": [
+          "ev_afc780ccb7486d98"
+        ],
+        "statement": "…Added a test to prevent regressions.\n\nFixes #112732."
+      }
+    ],
+    "status": "fix_proposed"
+  },
+  "review": {
+    "human_review_status": "not_reviewed",
+    "reviewed_at": null,
+    "reviewed_by": null,
+    "validation_issues": [],
+    "validation_status": "passed"
+  },
+  "revision_information": {
+    "parent_revision_ref": {
+      "content_hash": "sha256:3bbd8537f4e61b93d32c2cea935954510f0eabc3f4164bff0be52478151f49e8",
+      "record_id": "br_pytorch_pytorch_112732",
+      "record_version": 2
+    },
+    "revision_number": 3,
+    "revision_trigger": "mapping_updated"
+  },
+  "schema_version": "5.1",
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "api_name": "torch.nn.functional.cosine_embedding_loss",
+        "assertion_basis": "source_explicit",
+        "assertion_id": "api_784005c70d4599e4",
+        "evidence_refs": [
+          "ev_cecfcbed689300f3"
+        ],
+        "relation": "affected"
+      }
+    ]
+  },
+  "source_bundle": {
+    "comments_capture_status": "complete",
+    "inventory_ref": {
+      "content_hash": "sha256:1366a172dbda5fa63f54671de6a68b8e9c4131b409d1d7b7a3967ac6c6d453ce",
+      "local_path": "dataset/manifests/report_v5_calibration_inventory.json"
+    },
+    "primary_source_ref": "src_9950bd71c04611bf",
+    "source_artifacts": [
+      {
+        "artifact_id": "src_1d11e41db13ea32b",
+        "artifact_role": "comment_thread",
+        "captured_at": "2026-09-28T08:10:32.219936Z",
+        "content_hash": "sha256:b4ef49bc2059e4e5453036c862243e9bf8cc709c8e665b517d08128cde8fe44c",
+        "external_id": null,
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/comments.json",
+        "source_kind": "github_comments",
+        "source_native_state": null,
+        "url": null
+      },
+      {
+        "artifact_id": "src_429d200c7c95ba3e",
+        "artifact_role": "curation",
+        "captured_at": "2026-09-28T08:10:32.219936Z",
+        "content_hash": "sha256:65a6ff4fec32bd1db529b27f37c42f4ee1d50371fa3f879dbe2f35371d5a0af3",
+        "external_id": "112732",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/dataset_origin.json",
+        "source_kind": "other",
+        "source_native_state": null,
+        "url": "https://github.com/ncsu-swat/bugsindlls/blob/3651d10efe415a3da509f3d3c6fd860e19100582/bug_dataset_pytorch.csv"
+      },
+      {
+        "artifact_id": "src_7078bb8572dee6fa",
+        "artifact_role": "curation",
+        "captured_at": "2026-09-28T08:10:32.219936Z",
+        "content_hash": "sha256:70e903f638a6f206773bc4132b9877c4f726fab6c5caeb0245a95b8ee8fb55af",
+        "external_id": "3651d10efe415a3da509f3d3c6fd860e19100582",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/bugsindlls/bug_dataset_pytorch.csv",
+        "source_kind": "dataset_record",
+        "source_native_state": null,
+        "url": null
+      },
+      {
+        "artifact_id": "src_9950bd71c04611bf",
+        "artifact_role": "issue",
+        "captured_at": "2026-09-28T08:10:32.219936Z",
+        "content_hash": "sha256:1047f31aeee8966dec44ef82c2d5960a65227409c9abd033a833896bb152bccd",
+        "external_id": "112732",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/issue.json",
+        "source_kind": "github_issue",
+        "source_native_state": "closed",
+        "url": "https://github.com/pytorch/pytorch/issues/112732"
+      },
+      {
+        "artifact_id": "src_b7f21593a0582a16",
+        "artifact_role": "resolution",
+        "captured_at": "2026-09-28T08:10:33.937163Z",
+        "content_hash": "sha256:3336df8e0c408a84d2253eb914a4f5a550c85069a38279191c55778ef8b3d7d8",
+        "external_id": "112782",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/pull_112782_files.json",
+        "source_kind": "github_pull_request",
+        "source_native_state": "closed",
+        "url": "https://github.com/pytorch/pytorch/pull/112782"
+      },
+      {
+        "artifact_id": "src_e5c608502cec9abf",
+        "artifact_role": "resolution",
+        "captured_at": "2026-09-28T08:10:33.254858Z",
+        "content_hash": "sha256:c13816de34aa276de1ccc0b35b2e015e4ac4825777f53ee77059c0f287e32a70",
+        "external_id": "112782",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/pull_112782.json",
+        "source_kind": "github_pull_request",
+        "source_native_state": "closed",
+        "url": "https://github.com/pytorch/pytorch/pull/112782"
+      }
+    ]
+  },
+  "unresolved_information": [
+    {
+      "description": "No explicit root-cause statement was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_diagnosis/root_cause_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_9639f6471e3254e6"
+    },
+    {
+      "description": "No explicit expected behavior was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/expected_behavior_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_b88149dcff270097"
+    },
+    {
+      "description": "No explicit historical oracle was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/historical_oracle_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_343e5bf553660dfb"
+    }
+  ],
+  "upstream_disposition": {
+    "evidence_refs": [
+      "ev_cecfcbed689300f3"
+    ],
+    "status": "reported"
+  }
+}

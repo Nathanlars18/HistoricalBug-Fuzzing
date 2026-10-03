@@ -1,0 +1,361 @@
+{
+  "evidence_items": [
+    {
+      "content_hash": "sha256:c5a648b19b203843086427ec76fe998fda2f4a75655c9570d4b53856f37224de",
+      "evidence_id": "ev_0ebccb64e9c96bd7",
+      "excerpt": "Thanks for your information. I have not started the work yet. If @vfdev-5 is already working on this, he could continue. Otherwise, I could take the task.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/6/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    },
+    {
+      "content_hash": "sha256:93f7ee968ef0f6e92f779ce410aa3e02a83df2276e9ef3f6ccc52487b4dce8e2",
+      "evidence_id": "ev_1d738ccc89b220f0",
+      "excerpt": "> The issue is about accessing illegal memory when doing indexing `x[idx]` with invalid indices `idx`. As the real value of `idx` is unknown until running cpp output code, the validation checking need to be done in cpp code. For triton, it adopts `device_asserts` (#98590). For cpp, I suppose maybe to generate a specific kernel for such checking, but I am not clear about the details now. Do you have any idea about the solution? cc @jgong5 @EikanWang\n\nThe places to add assertion would be similar to #98590 (in `ops.load` and `ops.store` functions) while you may consider to refactor the code a bit to reuse the logic in `gen_assert_indirect_indexing` which currently contains two parts: 1) retrieve the size of the indirect indexing which is common for both cpp and triton and can be moved to `common.py`; 2) generate assertion line for triton, which can be left in `triton.py` while for cpp, we add something in parallel in `cpp.py` which generates assertion in c++, e.g., invoking `TORCH_CHECK`.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/3/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    },
+    {
+      "content_hash": "sha256:1fd4e91a02a3e2e7415aecae4f6f67cd108927aeaa19b4f11bb6cd7bbb3fca2a",
+      "evidence_id": "ev_3ce523f4035fec0c",
+      "excerpt": null,
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    },
+    {
+      "content_hash": "sha256:fd351ce96d9a9ab53c46c601f3f7172d6326d0e826b8f3fc8ce385a49642114c",
+      "evidence_id": "ev_4bd74b2f6a4b073b",
+      "excerpt": "[torch.compile] `sum` out-of-bound read",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/title"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    },
+    {
+      "content_hash": "sha256:d5fdeaa7d7c071578cfd865ba9ba6bd1ee9cf0e8b5eddefb9d04742ddc228110",
+      "evidence_id": "ev_53fc887ffb263abb",
+      "excerpt": "# success, out-of-bound read\n    # tensor([[ 6.1276e-01, -9.3005e-01,  1.3646e+00, -7.3723e-01, -7.0839e-01,\n    #     -2.8423e-01, -1.4816e+00,  3.2976e-01,  4.8557e-01,  4.1309e-01],\n    #    [ 6.1276e-01, -9.3005e-01,  1.3646e+00,         nan, -7.0839e-01,\n    #     -1.7412e+38, -1.4816e+00,         nan,  4.8557e-01,  4.1309e-01]])",
+      "locator": {
+        "end_line": 36,
+        "locator_type": "json_string_line_range",
+        "start_line": 32,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    },
+    {
+      "content_hash": "sha256:d0ee65d922e7abb72b442cd87626e2ed75702819912132203d085a43694c6e8d",
+      "evidence_id": "ev_68d50daf8aef43a5",
+      "excerpt": "oh, I see this is already assigned to @Valentine233. I wonder what's the state of @vfdev-5's work on this... Sorry for the mess.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/5/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    },
+    {
+      "content_hash": "sha256:9b161d7544c83b79c52b63d43a07ffac5cd66264e68512cb6885ef6e0b1f0d08",
+      "evidence_id": "ev_7b019d8fbc116df1",
+      "excerpt": "Thanks for pinging, yes, I've started working on this issue. @Valentine233, I'll ping on the PR as a reviewer",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/7/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    },
+    {
+      "content_hash": "sha256:8d94c4b5d37a523ba19e92d88ddc2124b7de8274f28a45cf4ac0d50e4b7c197a",
+      "evidence_id": "ev_80fef2c21f3db631",
+      "excerpt": "`torch.compile` makes `sum` out-of-bound read",
+      "locator": {
+        "end_line": 3,
+        "locator_type": "json_string_line_range",
+        "start_line": 3,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    },
+    {
+      "content_hash": "sha256:d45ffe4b496f3f6bb1601160a45b656af8e3c38a5e0663cb3f85e38adfdb38d7",
+      "evidence_id": "ev_9acc867361ca61bc",
+      "excerpt": "Ooops, no it's not. It's fixed just for CUDA for now.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/1/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    },
+    {
+      "content_hash": "sha256:07479ca57e5250778541441828a56c7a1bb8329fe2d9bbdb24c00ad8b3997ca3",
+      "evidence_id": "ev_9fb55aa4e1d4b399",
+      "excerpt": "@vfdev-5 is working on this one.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/4/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    },
+    {
+      "content_hash": "sha256:527f8b8f4310ceca2827b40b91b84ace70c1c2808b01b65b05446d126d872336",
+      "evidence_id": "ev_eebcf6c643f25143",
+      "excerpt": "Close since PR merged.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/8/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    },
+    {
+      "content_hash": "sha256:775e2e1e8cffdae81b551c672e71ac01cad7b592186a96b8afb5ad6f53b70762",
+      "evidence_id": "ev_f7ea9c3c446d285f",
+      "excerpt": null,
+      "locator": {
+        "end_line": 118,
+        "locator_type": "json_string_line_range",
+        "start_line": 44,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_eac3cadd6ecabdbe"
+    },
+    {
+      "content_hash": "sha256:811819df2f10b240e43a72e6515dc8b0b595376fe63394f40a78e720c4b05c21",
+      "evidence_id": "ev_fbd1ec39099a263a",
+      "excerpt": "This is fixed in master. see https://github.com/pytorch/pytorch/pull/98590",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/0/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    },
+    {
+      "content_hash": "sha256:8049ca847b866e60318a51286470f7faec1eaba7a81e4f3514a795b2733c990e",
+      "evidence_id": "ev_fcf096993fb8ca9c",
+      "excerpt": "The issue is about accessing illegal memory when doing indexing `x[idx]` with invalid indices `idx`. As the real value of `idx` is unknown until running cpp output code, the validation checking need to be done in cpp code. For triton, it adopts `device_asserts` (https://github.com/pytorch/pytorch/pull/98590). For cpp, I suppose maybe to generate a specific kernel for such checking, but I am not clear about the details now. Do you have any idea about the solution? cc @jgong5 @EikanWang",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/2/body"
+      },
+      "source_artifact_ref": "src_e3e5bb632a9008fc"
+    }
+  ],
+  "identity": {
+    "canonical_url": "https://github.com/pytorch/pytorch/issues/100343",
+    "issue_number": 100343,
+    "report_id": "br_pytorch_pytorch_100343",
+    "repository": "pytorch/pytorch"
+  },
+  "provenance": {
+    "builder_id": "build_bug_report_json",
+    "builder_version": "5.1.1",
+    "content_hash": "sha256:15906a6458b8daff47703953bde4560340de69b108a99da77f4a9ef9ff2146d5",
+    "generated_at": "2026-10-03T01:05:25Z",
+    "generation_run_id": "run_0db5480407c24ad2",
+    "input_artifact_refs": [
+      {
+        "content_hash": "sha256:1366a172dbda5fa63f54671de6a68b8e9c4131b409d1d7b7a3967ac6c6d453ce",
+        "local_path": "dataset/manifests/report_v5_calibration_inventory.json"
+      },
+      {
+        "content_hash": "sha256:93b3d122125fd61e2e5d072558f49001312551c26347ba011e493b09aff48841",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/capture.json"
+      }
+    ],
+    "mapping_ref": {
+      "content_hash": "sha256:628a315eee3abe0ccdbeb23394e7879413bb308e84802320285b4bc00f492ced",
+      "local_path": "experiment/EXP006_historical_bug_pattern_dataset/schemas/source_to_report_mapping.md"
+    }
+  },
+  "reported_behavior": {
+    "environment_facts": [
+      {
+        "evidence_refs": [
+          "ev_f7ea9c3c446d285f"
+        ],
+        "fact_id": "env_efa8d796154fef9d",
+        "name": "reported_environment",
+        "value": "```\nCollecting environment information...\nPyTorch version: 2.1.0.dev20230419+cu118\nIs debug build: False\nCUDA used to build PyTorch: 11.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.1 LTS (x86_64)\nGCC version: (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0\nClang version: 14.0.0-1ubuntu1\nCMake version: Could not collect\nLibc version: glibc-2.35\n\nPython version: 3.9.16 (main, Mar  8 2023, 14:00:05)  [GCC 11.2.0] (64-bit runtime)\nPython platform: Linux-5.19.5-051905-generic-x86_64-with-glibc2.35\nIs CUDA available: True\nCUDA runtime version: 11.5.119\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration: GPU 0: NVIDIA GeForce RTX 3060\nNvidia driver version: 510.108.03\ncuDNN version: Could not collect\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                    x86_64\nCPU op-mode(s):                  32-bit, 64-bit\nAddress sizes:                   46 bits physical, 48 bits virtual\nByte Order:                      Little Endian\nCPU(s):                          24\nOn-line CPU(s) list:             0-23\nVendor ID:                       GenuineIntel\nModel name:                      12th Gen Intel(R) Core(TM) i9-12900K\nCPU family:                      6\nModel:                           151\nThread(s) per core:              2\nCore(s) per socket:              16\nSocket(s):                       1\nStepping:                        2\nCPU max MHz:                     6700.0000\nCPU min MHz:                     800.0000\nBogoMIPS:                        6374.40\nFlags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault cat_l2 invpcid_single cdp_l2 ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdt_a rdseed adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi umip pku ospke waitpkg gfni vaes vpclmulqdq tme rdpid movdiri movdir64b fsrm md_clear serialize pconfig arch_lbr ibt flush_l1d arch_capabilities\nVirtualization:                  VT-x\nL1d cache:                       640 KiB (16 instances)\nL1i cache:                       768 KiB (16 instances)\nL2 cache:                        14 MiB (10 instances)\nL3 cache:                        30 MiB (1 instance)\nNUMA node(s):                    1\nNUMA node0 CPU(s):               0-23\nVulnerability Itlb multihit:     Not affected\nVulnerability L1tf:              Not affected\nVulnerability Mds:               Not affected\nVulnerability Meltdown:          Not affected\nVulnerability Mmio stale data:   Not affected\nVulnerability Retbleed:          Not affected\nVulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:        Mitigation; Enhanced IBRS, IBPB conditional, RSB filling, PBRSB-eIBRS SW sequence\nVulnerability Srbds:             Not affected\nVulnerability Tsx async abort:   Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==1.24.1\n[pip3] pytorch-triton==2.1.0+46672772b4\n[pip3] torch==2.1.0.dev20230419+cu118\n[pip3] torchaudio==2.1.0.dev20230419+cu118\n[pip3] torchvision==0.16.0.dev20230419+cu118\n[conda] numpy                     1.24.1                   pypi_0    pypi\n[conda] pytorch-triton            2.1.0+46672772b4          pypi_0    pypi\n[conda] torch                     2.1.0.dev20230419+cu118          pypi_0    pypi\n[conda] torchaudio                2.1.0.dev20230419+cu118          pypi_0    pypi\n[conda] torchvision               0.16.0.dev20230419+cu118          pypi_0    pypi\n```"
+      }
+    ],
+    "expected_behavior_claims": [],
+    "failure_observations": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "failure_4d0d10c7774239c1",
+        "evidence_refs": [
+          "ev_53fc887ffb263abb"
+        ],
+        "statement": "# success, out-of-bound read\n    # tensor([[ 6.1276e-01, -9.3005e-01,  1.3646e+00, -7.3723e-01, -7.0839e-01,\n    #     -2.8423e-01, -1.4816e+00,  3.2976e-01,  4.8557e-01,  4.1309e-01],\n    #    [ 6.1276e-01, -9.3005e-01,  1.3646e+00,         nan, -7.0839e-01,\n    #     -1.7412e+38, -1.4816e+00,         nan,  4.8557e-01,  4.1309e-01]])"
+      }
+    ],
+    "historical_oracle_claims": [],
+    "operation_contexts": [],
+    "reproduction": {
+      "availability": "unknown",
+      "source_evidence_refs": [],
+      "validation_status": "not_attempted"
+    },
+    "trigger_claims": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "trigger_c5e506f82bef3454",
+        "evidence_refs": [
+          "ev_80fef2c21f3db631"
+        ],
+        "statement": "`torch.compile` makes `sum` out-of-bound read"
+      }
+    ]
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_artifact_refs": [],
+    "resolution_claims": [],
+    "status": "unknown"
+  },
+  "review": {
+    "human_review_status": "not_reviewed",
+    "reviewed_at": null,
+    "reviewed_by": null,
+    "validation_issues": [],
+    "validation_status": "passed"
+  },
+  "revision_information": {
+    "parent_revision_ref": {
+      "content_hash": "sha256:4f541e012da789531215f48c93b27a9593764e90f2745e751fc1bab2d6252714",
+      "record_id": "br_pytorch_pytorch_100343",
+      "record_version": 1
+    },
+    "revision_number": 2,
+    "revision_trigger": "mapping_updated"
+  },
+  "schema_version": "5.1",
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "api_name": "torch.compile",
+        "assertion_basis": "source_explicit",
+        "assertion_id": "api_5653354735e9f604",
+        "evidence_refs": [
+          "ev_4bd74b2f6a4b073b"
+        ],
+        "relation": "affected"
+      },
+      {
+        "api_name": "torch.sum",
+        "assertion_basis": "source_explicit",
+        "assertion_id": "api_7557638f16fbfa79",
+        "evidence_refs": [
+          "ev_4bd74b2f6a4b073b"
+        ],
+        "relation": "mentioned"
+      }
+    ]
+  },
+  "source_bundle": {
+    "comments_capture_status": "complete",
+    "inventory_ref": {
+      "content_hash": "sha256:1366a172dbda5fa63f54671de6a68b8e9c4131b409d1d7b7a3967ac6c6d453ce",
+      "local_path": "dataset/manifests/report_v5_calibration_inventory.json"
+    },
+    "primary_source_ref": "src_eac3cadd6ecabdbe",
+    "source_artifacts": [
+      {
+        "artifact_id": "src_1ed5f888631ed328",
+        "artifact_role": "curation",
+        "captured_at": "2026-09-28T08:10:34.567681Z",
+        "content_hash": "sha256:db28f21ab2ead74917ac48a90bcfccd0f1c05196eda3abc7202f8f403512e702",
+        "external_id": "100343",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/dataset_origin.json",
+        "source_kind": "other",
+        "source_native_state": null,
+        "url": "https://github.com/dmc1778/Benchmarking-DL-Fuzzers/blob/265ddb8f29fe018c94c01a52ce3871ee37da7bd2/data/torch_groundtruth.csv"
+      },
+      {
+        "artifact_id": "src_abf87b73504c3a9c",
+        "artifact_role": "curation",
+        "captured_at": "2026-09-28T08:10:34.567681Z",
+        "content_hash": "sha256:b936a1f7a60955ac5c7f5cf090edccf516b4a3f076c29e03f507887c1cd729b3",
+        "external_id": "265ddb8f29fe018c94c01a52ce3871ee37da7bd2",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/benchmark/torch_groundtruth.csv",
+        "source_kind": "dataset_record",
+        "source_native_state": null,
+        "url": null
+      },
+      {
+        "artifact_id": "src_e3e5bb632a9008fc",
+        "artifact_role": "comment_thread",
+        "captured_at": "2026-09-28T08:10:34.567681Z",
+        "content_hash": "sha256:7ef9db1ad934dabbde714903c26ac1f2e33dc180caf50f6042febc388c259040",
+        "external_id": null,
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/comments.json",
+        "source_kind": "github_comments",
+        "source_native_state": null,
+        "url": null
+      },
+      {
+        "artifact_id": "src_eac3cadd6ecabdbe",
+        "artifact_role": "issue",
+        "captured_at": "2026-09-28T08:10:34.567681Z",
+        "content_hash": "sha256:c2a4a30e5b5fc050ff3ee8703b2f31c784b5e508939d6fd028923812f1ee1fc9",
+        "external_id": "100343",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_100343/issue.json",
+        "source_kind": "github_issue",
+        "source_native_state": "closed",
+        "url": "https://github.com/pytorch/pytorch/issues/100343"
+      }
+    ]
+  },
+  "unresolved_information": [
+    {
+      "description": "No explicit root-cause statement was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_diagnosis/root_cause_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_9639f6471e3254e6"
+    },
+    {
+      "description": "No explicit source evidence established a fix disposition.",
+      "evidence_refs": [],
+      "field_path": "/resolution/status",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_551195c5ad72f934"
+    },
+    {
+      "description": "No explicit expected behavior was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/expected_behavior_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_b88149dcff270097"
+    },
+    {
+      "description": "No explicit historical oracle was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/historical_oracle_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_343e5bf553660dfb"
+    },
+    {
+      "description": "No explicitly labelled reproduction section or captured reproduction artifact was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/reproduction",
+      "reason": "ambiguous_source",
+      "unresolved_id": "unresolved_b6e223eb0ba944c1"
+    }
+  ],
+  "upstream_disposition": {
+    "evidence_refs": [
+      "ev_4bd74b2f6a4b073b"
+    ],
+    "status": "reported"
+  }
+}

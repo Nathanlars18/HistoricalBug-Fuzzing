@@ -1,0 +1,1680 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:historicalbug-fuzzing:schema:bug-report-record:2.0",
+  "title": "Historical Bug Report Record v2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "identity",
+    "revision_information",
+    "source_bundle",
+    "evidence_items",
+    "scope_assertions",
+    "reported_behavior",
+    "reported_diagnosis",
+    "resolution",
+    "verification",
+    "unresolved_information",
+    "provenance",
+    "review"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "identity": {
+      "$ref": "#/$defs/identity"
+    },
+    "revision_information": {
+      "$ref": "#/$defs/revision_information"
+    },
+    "source_bundle": {
+      "$ref": "#/$defs/source_bundle"
+    },
+    "evidence_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence_item"
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "scope_assertions": {
+      "$ref": "#/$defs/scope_assertions"
+    },
+    "reported_behavior": {
+      "$ref": "#/$defs/reported_behavior"
+    },
+    "reported_diagnosis": {
+      "$ref": "#/$defs/reported_diagnosis"
+    },
+    "resolution": {
+      "$ref": "#/$defs/resolution"
+    },
+    "verification": {
+      "$ref": "#/$defs/verification"
+    },
+    "unresolved_information": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unresolved_item"
+      },
+      "uniqueItems": true
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "review": {
+      "$ref": "#/$defs/review"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "review": {
+            "properties": {
+              "human_review_status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "human_review_status"
+            ]
+          }
+        },
+        "required": [
+          "review"
+        ]
+      },
+      "then": {
+        "properties": {
+          "review": {
+            "properties": {
+              "validation_status": {
+                "const": "passed"
+              }
+            }
+          },
+          "scope_assertions": {
+            "properties": {
+              "api_assertions": {
+                "minItems": 1,
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "relation": {
+                      "const": "primary"
+                    }
+                  },
+                  "required": [
+                    "relation"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            }
+          },
+          "reported_behavior": {
+            "properties": {
+              "failure_observations": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "short_string": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "report_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^br_[a-z0-9]+_[a-z0-9]+_[a-z0-9][a-z0-9._-]*$"
+    },
+    "positive_integer": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nullable_timestamp": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullable_string": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullable_short_string": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/short_string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullable_uri": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "format": "uri"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "repository_relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "assertion_basis": {
+      "enum": [
+        "source_explicit",
+        "code_explicit",
+        "curation_confirmed",
+        "unknown"
+      ]
+    },
+    "supported_assertion_basis": {
+      "enum": [
+        "source_explicit",
+        "code_explicit",
+        "curation_confirmed"
+      ]
+    },
+    "reference_array": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/identifier"
+      },
+      "uniqueItems": true
+    },
+    "non_empty_reference_array": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/identifier"
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "report_revision_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "report_id",
+        "revision_number",
+        "content_hash"
+      ],
+      "properties": {
+        "report_id": {
+          "$ref": "#/$defs/report_id"
+        },
+        "revision_number": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "artifact_version_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_name",
+        "artifact_version",
+        "content_hash"
+      ],
+      "properties": {
+        "artifact_name": {
+          "$ref": "#/$defs/identifier"
+        },
+        "artifact_version": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "report_id",
+        "framework"
+      ],
+      "properties": {
+        "report_id": {
+          "$ref": "#/$defs/report_id"
+        },
+        "framework": {
+          "$ref": "#/$defs/identifier"
+        }
+      }
+    },
+    "revision_information": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision_number",
+        "parent_revision_ref",
+        "revision_trigger",
+        "change_summary"
+      ],
+      "properties": {
+        "revision_number": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "parent_revision_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/report_revision_reference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision_trigger": {
+          "enum": [
+            "initial_generation",
+            "source_updated",
+            "mapping_updated",
+            "builder_updated",
+            "data_corrected",
+            "review_updated",
+            "reproduction_updated"
+          ]
+        },
+        "change_summary": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "revision_number": {
+                "const": 1
+              }
+            },
+            "required": [
+              "revision_number"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parent_revision_ref": {
+                "type": "null"
+              },
+              "revision_trigger": {
+                "const": "initial_generation"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "parent_revision_ref": {
+                "$ref": "#/$defs/report_revision_reference"
+              },
+              "revision_trigger": {
+                "enum": [
+                  "source_updated",
+                  "mapping_updated",
+                  "builder_updated",
+                  "data_corrected",
+                  "review_updated",
+                  "reproduction_updated"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "source_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_role",
+        "source_kind",
+        "repository",
+        "external_id",
+        "url",
+        "local_path",
+        "title",
+        "source_native_state",
+        "source_created_at",
+        "captured_at",
+        "content_hash"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "artifact_role": {
+          "enum": [
+            "report",
+            "reproduction",
+            "discussion",
+            "resolution",
+            "curation",
+            "validation_log",
+            "other"
+          ]
+        },
+        "source_kind": {
+          "enum": [
+            "github_issue",
+            "github_pull_request",
+            "git_commit",
+            "benchmark_report",
+            "source_code",
+            "experiment_log",
+            "curation_table",
+            "other"
+          ]
+        },
+        "repository": {
+          "$ref": "#/$defs/nullable_short_string"
+        },
+        "external_id": {
+          "$ref": "#/$defs/nullable_short_string"
+        },
+        "url": {
+          "$ref": "#/$defs/nullable_uri"
+        },
+        "local_path": {
+          "$ref": "#/$defs/repository_relative_path"
+        },
+        "title": {
+          "$ref": "#/$defs/nullable_short_string"
+        },
+        "source_native_state": {
+          "enum": [
+            "open",
+            "closed",
+            "merged",
+            "unknown",
+            null
+          ]
+        },
+        "source_created_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "captured_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "github_issue"
+              }
+            },
+            "required": [
+              "source_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_native_state": {
+                "enum": [
+                  "open",
+                  "closed",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "github_pull_request"
+              }
+            },
+            "required": [
+              "source_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_native_state": {
+                "enum": [
+                  "open",
+                  "closed",
+                  "merged",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "not": {
+                  "enum": [
+                    "github_issue",
+                    "github_pull_request"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "source_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_native_state": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "source_bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary_source_ref",
+        "source_artifacts"
+      ],
+      "properties": {
+        "primary_source_ref": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_artifact"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "line_range_locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "locator_type",
+        "start_line",
+        "end_line"
+      ],
+      "properties": {
+        "locator_type": {
+          "const": "line_range"
+        },
+        "start_line": {
+          "$ref": "#/$defs/positive_integer"
+        },
+        "end_line": {
+          "$ref": "#/$defs/positive_integer"
+        }
+      }
+    },
+    "json_pointer_locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "locator_type",
+        "value"
+      ],
+      "properties": {
+        "locator_type": {
+          "const": "json_pointer"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^/"
+        }
+      }
+    },
+    "section_locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "locator_type",
+        "value"
+      ],
+      "properties": {
+        "locator_type": {
+          "const": "section"
+        },
+        "value": {
+          "$ref": "#/$defs/short_string"
+        }
+      }
+    },
+    "whole_artifact_locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "locator_type"
+      ],
+      "properties": {
+        "locator_type": {
+          "const": "whole_artifact"
+        }
+      }
+    },
+    "locator": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/line_range_locator"
+        },
+        {
+          "$ref": "#/$defs/json_pointer_locator"
+        },
+        {
+          "$ref": "#/$defs/section_locator"
+        },
+        {
+          "$ref": "#/$defs/whole_artifact_locator"
+        }
+      ]
+    },
+    "attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor",
+        "actor_role"
+      ],
+      "properties": {
+        "actor": {
+          "$ref": "#/$defs/nullable_short_string"
+        },
+        "actor_role": {
+          "enum": [
+            "reporter",
+            "maintainer",
+            "benchmark_author",
+            "curator",
+            "system",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "evidence_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "source_artifact_ref",
+        "evidence_kind",
+        "locator",
+        "excerpt",
+        "attribution",
+        "content_hash"
+      ],
+      "properties": {
+        "evidence_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "source_artifact_ref": {
+          "$ref": "#/$defs/identifier"
+        },
+        "evidence_kind": {
+          "enum": [
+            "source_metadata",
+            "api_reference",
+            "bug_description",
+            "trigger_description",
+            "reproduction",
+            "observed_output",
+            "expected_behavior",
+            "environment",
+            "discussion",
+            "root_cause_claim",
+            "fix_claim",
+            "other"
+          ]
+        },
+        "locator": {
+          "$ref": "#/$defs/locator"
+        },
+        "excerpt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attribution": {
+          "$ref": "#/$defs/attribution"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "api_assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assertion_id",
+        "api_name",
+        "relation",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "assertion_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "api_name": {
+          "$ref": "#/$defs/short_string"
+        },
+        "relation": {
+          "enum": [
+            "primary",
+            "affected",
+            "mentioned"
+          ]
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      }
+    },
+    "component_assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assertion_id",
+        "component_kind",
+        "component_name",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "assertion_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "component_kind": {
+          "enum": [
+            "operator",
+            "module",
+            "backend",
+            "compiler_component",
+            "other"
+          ]
+        },
+        "component_name": {
+          "$ref": "#/$defs/short_string"
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      }
+    },
+    "scope_assertions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "api_assertions",
+        "component_assertions"
+      ],
+      "properties": {
+        "api_assertions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/api_assertion"
+          },
+          "uniqueItems": true
+        },
+        "component_assertions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/component_assertion"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "trigger_claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "dimension",
+        "subject",
+        "predicate",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "dimension": {
+          "enum": [
+            "shape",
+            "dtype",
+            "value",
+            "device",
+            "backend",
+            "layout",
+            "memory",
+            "aliasing",
+            "output_tensor",
+            "state",
+            "execution",
+            "graph",
+            "concurrency",
+            "api_contract",
+            "unknown",
+            "other"
+          ]
+        },
+        "subject": {
+          "$ref": "#/$defs/short_string"
+        },
+        "predicate": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      }
+    },
+    "operation_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_id",
+        "statement",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "context_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "statement": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      }
+    },
+    "statement_claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "statement",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "statement": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      }
+    },
+    "failure_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "failure_type",
+        "statement",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "observation_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "failure_type": {
+          "enum": [
+            "crash",
+            "exception",
+            "incorrect_output",
+            "timeout_hang",
+            "memory_error",
+            "unknown"
+          ]
+        },
+        "statement": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      }
+    },
+    "historical_oracle_claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "oracle_kind",
+        "statement",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "oracle_kind": {
+          "enum": [
+            "signal",
+            "exception_class",
+            "differential_reference",
+            "output_property",
+            "timeout",
+            "sanitizer",
+            "unknown"
+          ]
+        },
+        "statement": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      }
+    },
+    "json_scalar": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        }
+      ]
+    },
+    "environment_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fact_id",
+        "property",
+        "value",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "fact_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "property": {
+          "$ref": "#/$defs/short_string"
+        },
+        "value": {
+          "$ref": "#/$defs/json_scalar"
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      }
+    },
+    "reproduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "availability",
+        "source_evidence_refs",
+        "artifact_refs",
+        "validation_status",
+        "validation_evidence_refs"
+      ],
+      "properties": {
+        "availability": {
+          "enum": [
+            "code_provided",
+            "steps_provided",
+            "absent",
+            "unknown"
+          ]
+        },
+        "source_evidence_refs": {
+          "$ref": "#/$defs/reference_array"
+        },
+        "artifact_refs": {
+          "$ref": "#/$defs/reference_array"
+        },
+        "validation_status": {
+          "enum": [
+            "reproduced",
+            "not_reproduced",
+            "not_attempted"
+          ]
+        },
+        "validation_evidence_refs": {
+          "$ref": "#/$defs/reference_array"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "code_provided"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "properties": {
+                  "source_evidence_refs": {
+                    "minItems": 1
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "artifact_refs": {
+                    "minItems": 1
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "steps_provided"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_evidence_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "absent"
+              }
+            },
+            "required": [
+              "availability"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_evidence_refs": {
+                "maxItems": 0
+              },
+              "artifact_refs": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "validation_status": {
+                "const": "not_attempted"
+              }
+            },
+            "required": [
+              "validation_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "validation_evidence_refs": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "validation_evidence_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reported_behavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trigger_claims",
+        "operation_contexts",
+        "failure_observations",
+        "expected_behavior_claims",
+        "historical_oracle_claims",
+        "environment_facts",
+        "reproduction"
+      ],
+      "properties": {
+        "trigger_claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trigger_claim"
+          },
+          "uniqueItems": true
+        },
+        "operation_contexts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/operation_context"
+          },
+          "uniqueItems": true
+        },
+        "failure_observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/failure_observation"
+          },
+          "uniqueItems": true
+        },
+        "expected_behavior_claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/statement_claim"
+          },
+          "uniqueItems": true
+        },
+        "historical_oracle_claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/historical_oracle_claim"
+          },
+          "uniqueItems": true
+        },
+        "environment_facts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/environment_fact"
+          },
+          "uniqueItems": true
+        },
+        "reproduction": {
+          "$ref": "#/$defs/reproduction"
+        }
+      }
+    },
+    "root_cause_claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "mechanism_layer",
+        "statement",
+        "support_status",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "mechanism_layer": {
+          "enum": [
+            "api",
+            "aten",
+            "kernel",
+            "backend",
+            "numerical",
+            "unknown"
+          ]
+        },
+        "statement": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "support_status": {
+          "enum": [
+            "reported",
+            "corroborated",
+            "officially_confirmed",
+            "disputed",
+            "unknown"
+          ]
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/supported_assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "support_status": {
+                "const": "corroborated"
+              }
+            },
+            "required": [
+              "support_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 2
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reported_diagnosis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root_cause_claims"
+      ],
+      "properties": {
+        "root_cause_claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/root_cause_claim"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "fix_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "value": {
+          "enum": [
+            "fixed",
+            "unfixed",
+            "unknown"
+          ]
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/reference_array"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "assertion_basis": {
+                "const": "unknown"
+              },
+              "evidence_refs": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "assertion_basis": {
+                "$ref": "#/$defs/supported_assertion_basis"
+              },
+              "evidence_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fix_status",
+        "resolution_claims",
+        "fix_artifact_refs"
+      ],
+      "properties": {
+        "fix_status": {
+          "$ref": "#/$defs/fix_status"
+        },
+        "resolution_claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/statement_claim"
+          },
+          "uniqueItems": true
+        },
+        "fix_artifact_refs": {
+          "$ref": "#/$defs/reference_array"
+        }
+      }
+    },
+    "case_verification_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "assertion_basis",
+        "evidence_refs"
+      ],
+      "properties": {
+        "value": {
+          "enum": [
+            "official_confirmed",
+            "official_triaged",
+            "benchmark_curated",
+            "user_reported",
+            "unknown"
+          ]
+        },
+        "assertion_basis": {
+          "$ref": "#/$defs/assertion_basis"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/reference_array"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "assertion_basis": {
+                "const": "unknown"
+              },
+              "evidence_refs": {
+                "maxItems": 0
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "assertion_basis": {
+                "$ref": "#/$defs/supported_assertion_basis"
+              },
+              "evidence_refs": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_verification_status"
+      ],
+      "properties": {
+        "case_verification_status": {
+          "$ref": "#/$defs/case_verification_status"
+        }
+      }
+    },
+    "unresolved_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unresolved_id",
+        "field_path",
+        "description",
+        "reason",
+        "evidence_refs"
+      ],
+      "properties": {
+        "unresolved_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "field_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^/"
+        },
+        "description": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "reason": {
+          "enum": [
+            "missing_source",
+            "not_collected",
+            "ambiguous_source",
+            "conflicting_sources",
+            "unsupported_format",
+            "other"
+          ]
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/reference_array"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generation_method",
+        "builder_ref",
+        "generation_run_id",
+        "input_artifact_refs",
+        "mapping_ref",
+        "generated_at",
+        "content_hash"
+      ],
+      "properties": {
+        "generation_method": {
+          "const": "deterministic_source_mapping"
+        },
+        "builder_ref": {
+          "$ref": "#/$defs/artifact_version_reference"
+        },
+        "generation_run_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "input_artifact_refs": {
+          "$ref": "#/$defs/non_empty_reference_array"
+        },
+        "mapping_ref": {
+          "$ref": "#/$defs/artifact_version_reference"
+        },
+        "generated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "validation_issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "issue_id",
+        "field_path",
+        "severity",
+        "message"
+      ],
+      "properties": {
+        "issue_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "field_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048,
+          "pattern": "^/"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        },
+        "message": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validation_status",
+        "validation_issues",
+        "human_review_status",
+        "reviewer",
+        "reviewed_at",
+        "review_notes"
+      ],
+      "properties": {
+        "validation_status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "validation_issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/validation_issue"
+          },
+          "uniqueItems": true
+        },
+        "human_review_status": {
+          "enum": [
+            "not_reviewed",
+            "approved",
+            "needs_revision",
+            "rejected"
+          ]
+        },
+        "reviewer": {
+          "$ref": "#/$defs/nullable_short_string"
+        },
+        "reviewed_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "review_notes": {
+          "$ref": "#/$defs/nullable_string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "human_review_status": {
+                "const": "not_reviewed"
+              }
+            },
+            "required": [
+              "human_review_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reviewer": {
+                "type": "null"
+              },
+              "reviewed_at": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "reviewer": {
+                "$ref": "#/$defs/short_string"
+              },
+              "reviewed_at": {
+                "$ref": "#/$defs/timestamp"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "validation_status": {
+                "const": "failed"
+              }
+            },
+            "required": [
+              "validation_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "validation_issues": {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "severity": {
+                      "const": "error"
+                    }
+                  },
+                  "required": [
+                    "severity"
+                  ]
+                },
+                "minContains": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "validation_issues": {
+                "not": {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "severity": {
+                        "const": "error"
+                      }
+                    },
+                    "required": [
+                      "severity"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

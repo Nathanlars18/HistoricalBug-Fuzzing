@@ -1,0 +1,45 @@
+{
+  "issue_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/issue.json",
+  "comments_paths": [
+    "dataset/raw/report_v3_calibration/20260928/issue_112732/comments.json"
+  ],
+  "comments_complete": true,
+  "captured_at": "2026-09-28T08:10:32.219936Z",
+  "companions": [
+    {
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/dataset_origin.json",
+      "artifact_role": "curation",
+      "source_kind": "other",
+      "repository": "ncsu-swat/bugsindlls",
+      "external_id": "112732",
+      "url": "https://github.com/ncsu-swat/bugsindlls/blob/3651d10efe415a3da509f3d3c6fd860e19100582/bug_dataset_pytorch.csv"
+    },
+    {
+      "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/bugsindlls/bug_dataset_pytorch.csv",
+      "artifact_role": "curation",
+      "source_kind": "curation_table",
+      "repository": "ncsu-swat/bugsindlls",
+      "external_id": "3651d10efe415a3da509f3d3c6fd860e19100582"
+    },
+    {
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/pull_112782.json",
+      "artifact_role": "resolution",
+      "source_kind": "github_pull_request",
+      "repository": "pytorch/pytorch",
+      "external_id": "112782",
+      "url": "https://github.com/pytorch/pytorch/pull/112782",
+      "source_native_state": "closed",
+      "captured_at": "2026-09-28T08:10:33.254858Z"
+    },
+    {
+      "local_path": "dataset/raw/report_v3_calibration/20260928/issue_112732/pull_112782_files.json",
+      "artifact_role": "resolution",
+      "source_kind": "github_pull_request",
+      "repository": "pytorch/pytorch",
+      "external_id": "112782",
+      "url": "https://github.com/pytorch/pytorch/pull/112782",
+      "source_native_state": "closed",
+      "captured_at": "2026-09-28T08:10:33.937163Z"
+    }
+  ]
+}

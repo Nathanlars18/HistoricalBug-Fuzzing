@@ -1,0 +1,364 @@
+{
+  "evidence_items": [
+    {
+      "content_hash": "sha256:57293c13c769ab7f7c6bf2b8cc5e64dafa6020f31b92c4ed822b1c0efedd5544",
+      "evidence_id": "ev_04916359ffadfed6",
+      "excerpt": "Fixes #120803",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_2d985b4eb656f87e"
+    },
+    {
+      "content_hash": "sha256:7317dda1f7bb7173ad8cfcc886e790e448e6bfa156c5da7cb55a75e918318337",
+      "evidence_id": "ev_1b48c3e0224e3374",
+      "excerpt": "```python\nimport torch\ninp = torch.rand([0,0])\nrunning_mean = torch.rand([1])\nrunning_var = torch.rand([1])\ntorch.batch_norm_update_stats(input=inp, momentum=0.0, running_mean=running_mean, running_var = running_var)\n```",
+      "locator": {
+        "end_line": 18,
+        "locator_type": "json_string_line_range",
+        "start_line": 12,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_2eee664b44bcfb9c"
+    },
+    {
+      "content_hash": "sha256:bd82abdcf35d4aae0ec5c85d28ce81acaae83c49c4aa19bdb56cdc71253e46c4",
+      "evidence_id": "ev_3484471237d9d17e",
+      "excerpt": null,
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_2eee664b44bcfb9c"
+    },
+    {
+      "content_hash": "sha256:591d2bbe4c62434b2c6c477657913d81f4289c3adae287314735d2d77dac2818",
+      "evidence_id": "ev_353079a41b4274dd",
+      "excerpt": "PyTorch version: 2.3.0.dev20240220+cu118\nIs debug build: False\nCUDA used to build PyTorch: 11.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.3 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: glibc-2.35\n\nPython version: 3.8.17 (default, Jul 5 2023, 21:04:15) [GCC 11.2.0] (64-bit runtime)\nPython platform: Linux-6.5.0-15-generic-x86_64-with-glibc2.17\nIs CUDA available: False\nCUDA runtime version: No CUDA\nCUDA_MODULE_LOADING set to: N/A\nGPU models and configuration: No CUDA\nNvidia driver version: No CUDA\ncuDNN version: No CUDA\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture: x86_64\nCPU op-mode(s): 32-bit, 64-bit\nAddress sizes: 48 bits physical, 48 bits virtual\nByte Order: Little Endian\nCPU(s): 256\nOn-line CPU(s) list: 0-255\nVendor ID: AuthenticAMD\nModel name: AMD EPYC 7763 64-Core Processor\nCPU family: 25\nModel: 1\nThread(s) per core: 2\nCore(s) per socket: 64\nSocket(s): 2\nStepping: 1\nFrequency boost: enabled\nCPU max MHz: 3529.0520\nCPU min MHz: 1500.0000\nBogoMIPS: 4890.76\nFlags: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 invpcid_single hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr rdpru wbnoinvd amd_ppin brs arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold v_vmsave_vmload vgif v_spec_ctrl umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca fsrm\nVirtualization: AMD-V\nL1d cache: 4 MiB (128 instances)\nL1i cache: 4 MiB (128 instances)\nL2 cache: 64 MiB (128 instances)\nL3 cache: 512 MiB (16 instances)\nNUMA node(s): 2\nNUMA node0 CPU(s): 0-63,128-191\nNUMA node1 CPU(s): 64-127,192-255\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit: Not affected\nVulnerability L1tf: Not affected\nVulnerability Mds: Not affected\nVulnerability Meltdown: Not affected\nVulnerability Mmio stale data: Not affected\nVulnerability Retbleed: Not affected\nVulnerability Spec rstack overflow: Mitigation; safe RET\nVulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1: Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2: Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected\nVulnerability Srbds: Not affected\nVulnerability Tsx async abort: Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==1.23.5\n[pip3] pytorch-triton==3.0.0+901819d2b6\n[pip3] torch==2.3.0.dev20240220+cu118\n[pip3] torchaudio==2.2.0.dev20240220+cu118\n[pip3] torchvision==0.18.0.dev20240220+cu118\n[conda] numpy 1.23.5 pypi_0 pypi\n[conda] pytorch-triton 3.0.0+901819d2b6 pypi_0 pypi\n[conda] torch 2.3.0.dev20240220+cu118 pypi_0 pypi\n[conda] torchaudio 2.2.0.dev20240220+cu118 pypi_0 pypi\n[conda] torchvision 0.18.0.dev20240220+cu118 pypi_0 pypi\n\ncc @malfet",
+      "locator": {
+        "end_line": 102,
+        "locator_type": "json_string_line_range",
+        "start_line": 25,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_2eee664b44bcfb9c"
+    },
+    {
+      "content_hash": "sha256:c2376d145716f629ffe784505f0670505a9e29559167f0758674f74d74799042",
+      "evidence_id": "ev_4718a2ce38ec2621",
+      "excerpt": "@@ -722,6 +722,8 @@ std::tuple<Tensor, Tensor> batch_norm_update_stats_cuda(\n   c10::MaybeOwned<Tensor> running_var = at::borrow_from_optional_tensor(running_var_opt);\n \n   const int64_t n_input = self.size(1);\n+\n+  TORCH_CHECK(self.numel() != 0, \"input tensor must have at least one element, but got input_sizes = \", self.sizes());\n   auto options = self.options().dtype(\n       at::toAccumulateType(self.scalar_type(), /*is_cuda=*/true));\n   auto save_mean = at::empty({n_input}, options);",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/1/patch"
+      },
+      "source_artifact_ref": "src_217bc68f41c08dd4"
+    },
+    {
+      "content_hash": "sha256:1485b202c3a6b94100525337c4dee6745836549741e59bd6743a8a2e3dcedca1",
+      "evidence_id": "ev_54fcf0e3c217a724",
+      "excerpt": "@@ -5018,6 +5018,14 @@ def test_batchnorm_load_state_dict(self):\n         meta_bn.load_state_dict(empty_dict, assign=True, strict=False)\n         self.assertEqual(meta_bn.state_dict()[\"num_batches_tracked\"], torch.tensor(0))\n \n+    def test_batch_norm_update_stats(self):\n+        input = torch.rand(0, 1)\n+        running_mean = torch.rand(1)\n+        running_var = torch.rand(1)\n+        with self.assertRaisesRegex(RuntimeError,\n+                                    re.escape(\"input tensor must have at least one element, but got input_sizes = [0, 1]\")):\n+            torch.batch_norm_update_stats(input=input, momentum=0.0, running_mean=running_mean, running_var=running_var)\n+\n     def test_pairwise_distance(self):\n         input1 = torch.randn(4, 4, requires_grad=True, dtype=torch.double)\n         input2 = torch.randn(4, 4, requires_grad=True, dtype=torch.double)",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/2/patch"
+      },
+      "source_artifact_ref": "src_217bc68f41c08dd4"
+    },
+    {
+      "content_hash": "sha256:56e524bd9d50a54e1ed651409e87e59e81af8c1f9278b4c102fab2db3b8de274",
+      "evidence_id": "ev_8283d31bae59a860",
+      "excerpt": "When attempting to update batch normalization statistics using `torch.batch_norm_update_stats` with an input tensor of shape `[0,0]`, a floating point exception (core dumped) error occurs.",
+      "locator": {
+        "end_line": 4,
+        "locator_type": "json_string_line_range",
+        "start_line": 4,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_2eee664b44bcfb9c"
+    },
+    {
+      "content_hash": "sha256:212ed91005e2b2874f5e2ec4325c02a0ba953dff4fa163c3dc3c972c645665f6",
+      "evidence_id": "ev_99a7ac3d3b6d7851",
+      "excerpt": "torch check the division by zero in batch_norm_update_stats",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/title"
+      },
+      "source_artifact_ref": "src_2d985b4eb656f87e"
+    },
+    {
+      "content_hash": "sha256:35b28c5272b46d62a7f70970576289e2db7c46d2fd9b0bcadaaca67e7f7004d1",
+      "evidence_id": "ev_a7f087e8219f5497",
+      "excerpt": "The issue is reproducible on Linux (Ubuntu), but not on the Mac M1.",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/0/body"
+      },
+      "source_artifact_ref": "src_9eb014a3ef4dfc0f"
+    },
+    {
+      "content_hash": "sha256:b336eebd289612f737cf137577c227e160164e63a3bf1308cebe55de62acfedf",
+      "evidence_id": "ev_aa9d470764440605",
+      "excerpt": "Floating Point Exception on Empty Input Tensor with `torch.batch_norm_update_stats`",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/title"
+      },
+      "source_artifact_ref": "src_2eee664b44bcfb9c"
+    },
+    {
+      "content_hash": "sha256:48dcd9cfda469664803daa4d535dd446ea2cd7d389130a098c00d1af4bb39251",
+      "evidence_id": "ev_afe2e8c7d534d3b4",
+      "excerpt": "Floating point exception (core dumped)",
+      "locator": {
+        "end_line": 8,
+        "locator_type": "json_string_line_range",
+        "start_line": 8,
+        "value": "/body"
+      },
+      "source_artifact_ref": "src_2eee664b44bcfb9c"
+    },
+    {
+      "content_hash": "sha256:d728cd209b1a0d479dfbf0eccd3e705b68cd0b2fcacc57002ce93e0f6bb8a8cb",
+      "evidence_id": "ev_db29e00322906325",
+      "excerpt": "@@ -199,6 +199,7 @@ std::tuple<Tensor,Tensor> batch_norm_cpu_update_stats_template(\n   using accscalar_t = at::acc_type<scalar_t, false>;\n \n   int64_t n_input = input.size(1);\n+  TORCH_CHECK(input.numel() != 0, \"input tensor must have at least one element, but got input_sizes = \", input.sizes());\n   int64_t n = input.numel() / n_input;\n \n   bool all_contiguous = is_contiguous(input);",
+      "locator": {
+        "locator_type": "json_pointer",
+        "value": "/0/patch"
+      },
+      "source_artifact_ref": "src_217bc68f41c08dd4"
+    }
+  ],
+  "identity": {
+    "canonical_url": "https://github.com/pytorch/pytorch/issues/120803",
+    "issue_number": 120803,
+    "report_id": "br_pytorch_pytorch_120803",
+    "repository": "pytorch/pytorch"
+  },
+  "provenance": {
+    "builder_id": "build_bug_report_json",
+    "builder_version": "5.1.1",
+    "content_hash": "sha256:e1d914d1027f1f5b5e40d3e81a9a24eb298f8640469ff653c82ccdcd3ba839dc",
+    "generated_at": "2026-10-03T01:15:08Z",
+    "generation_run_id": "run_812cf0b8a78d4d0b",
+    "input_artifact_refs": [
+      {
+        "content_hash": "sha256:1366a172dbda5fa63f54671de6a68b8e9c4131b409d1d7b7a3967ac6c6d453ce",
+        "local_path": "dataset/manifests/report_v5_calibration_inventory.json"
+      },
+      {
+        "content_hash": "sha256:b584cfd153571857f746bbd617531e4d369c89b25dadac9f0fda62599a307d04",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/capture.json"
+      }
+    ],
+    "mapping_ref": {
+      "content_hash": "sha256:87f4e0bf27f1d03ac3dab7f1a11c966145e04eb88f7df7309c2d24cb8de1ab8d",
+      "local_path": "experiment/EXP006_historical_bug_pattern_dataset/schemas/source_to_report_mapping.md"
+    }
+  },
+  "reported_behavior": {
+    "environment_facts": [
+      {
+        "evidence_refs": [
+          "ev_353079a41b4274dd"
+        ],
+        "fact_id": "env_3103461eb166469c",
+        "name": "reported_environment",
+        "value": "PyTorch version: 2.3.0.dev20240220+cu118\nIs debug build: False\nCUDA used to build PyTorch: 11.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 22.04.3 LTS (x86_64)\nGCC version: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: glibc-2.35\n\nPython version: 3.8.17 (default, Jul 5 2023, 21:04:15) [GCC 11.2.0] (64-bit runtime)\nPython platform: Linux-6.5.0-15-generic-x86_64-with-glibc2.17\nIs CUDA available: False\nCUDA runtime version: No CUDA\nCUDA_MODULE_LOADING set to: N/A\nGPU models and configuration: No CUDA\nNvidia driver version: No CUDA\ncuDNN version: No CUDA\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture: x86_64\nCPU op-mode(s): 32-bit, 64-bit\nAddress sizes: 48 bits physical, 48 bits virtual\nByte Order: Little Endian\nCPU(s): 256\nOn-line CPU(s) list: 0-255\nVendor ID: AuthenticAMD\nModel name: AMD EPYC 7763 64-Core Processor\nCPU family: 25\nModel: 1\nThread(s) per core: 2\nCore(s) per socket: 64\nSocket(s): 2\nStepping: 1\nFrequency boost: enabled\nCPU max MHz: 3529.0520\nCPU min MHz: 1500.0000\nBogoMIPS: 4890.76\nFlags: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 invpcid_single hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr rdpru wbnoinvd amd_ppin brs arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold v_vmsave_vmload vgif v_spec_ctrl umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca fsrm\nVirtualization: AMD-V\nL1d cache: 4 MiB (128 instances)\nL1i cache: 4 MiB (128 instances)\nL2 cache: 64 MiB (128 instances)\nL3 cache: 512 MiB (16 instances)\nNUMA node(s): 2\nNUMA node0 CPU(s): 0-63,128-191\nNUMA node1 CPU(s): 64-127,192-255\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit: Not affected\nVulnerability L1tf: Not affected\nVulnerability Mds: Not affected\nVulnerability Meltdown: Not affected\nVulnerability Mmio stale data: Not affected\nVulnerability Retbleed: Not affected\nVulnerability Spec rstack overflow: Mitigation; safe RET\nVulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1: Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2: Mitigation; Retpolines, IBPB conditional, IBRS_FW, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected\nVulnerability Srbds: Not affected\nVulnerability Tsx async abort: Not affected\n\nVersions of relevant libraries:\n[pip3] numpy==1.23.5\n[pip3] pytorch-triton==3.0.0+901819d2b6\n[pip3] torch==2.3.0.dev20240220+cu118\n[pip3] torchaudio==2.2.0.dev20240220+cu118\n[pip3] torchvision==0.18.0.dev20240220+cu118\n[conda] numpy 1.23.5 pypi_0 pypi\n[conda] pytorch-triton 3.0.0+901819d2b6 pypi_0 pypi\n[conda] torch 2.3.0.dev20240220+cu118 pypi_0 pypi\n[conda] torchaudio 2.2.0.dev20240220+cu118 pypi_0 pypi\n[conda] torchvision 0.18.0.dev20240220+cu118 pypi_0 pypi\n\ncc @malfet"
+      }
+    ],
+    "expected_behavior_claims": [],
+    "failure_observations": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "failure_103663ada7fc6c40",
+        "evidence_refs": [
+          "ev_afe2e8c7d534d3b4"
+        ],
+        "statement": "Floating point exception (core dumped)"
+      }
+    ],
+    "historical_oracle_claims": [],
+    "operation_contexts": [],
+    "reproduction": {
+      "availability": "code_provided",
+      "source_evidence_refs": [
+        "ev_1b48c3e0224e3374"
+      ],
+      "validation_status": "not_attempted"
+    },
+    "trigger_claims": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "trigger_d7c2ebb591d54080",
+        "evidence_refs": [
+          "ev_8283d31bae59a860"
+        ],
+        "statement": "When attempting to update batch normalization statistics using `torch.batch_norm_update_stats` with an input tensor of shape `[0,0]`, a floating point exception (core dumped) error occurs."
+      }
+    ]
+  },
+  "reported_diagnosis": {
+    "root_cause_claims": []
+  },
+  "resolution": {
+    "fix_artifact_refs": [
+      "src_217bc68f41c08dd4",
+      "src_2d985b4eb656f87e"
+    ],
+    "resolution_claims": [
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "resolution_60022c706adee806",
+        "evidence_refs": [
+          "ev_99a7ac3d3b6d7851"
+        ],
+        "statement": "torch check the division by zero in batch_norm_update_stats"
+      },
+      {
+        "assertion_basis": "source_explicit",
+        "claim_id": "resolution_16eae84b660c75a7",
+        "evidence_refs": [
+          "ev_04916359ffadfed6"
+        ],
+        "statement": "Fixes #120803"
+      }
+    ],
+    "status": "fix_proposed"
+  },
+  "review": {
+    "human_review_status": "not_reviewed",
+    "reviewed_at": null,
+    "reviewed_by": null,
+    "validation_issues": [],
+    "validation_status": "passed"
+  },
+  "revision_information": {
+    "parent_revision_ref": {
+      "content_hash": "sha256:f7f5fa7f0c8f30a297736499077bbb096f47a52a22527ec6634631d083868cb8",
+      "record_id": "br_pytorch_pytorch_120803",
+      "record_version": 3
+    },
+    "revision_number": 4,
+    "revision_trigger": "mapping_updated"
+  },
+  "schema_version": "5.1",
+  "scope_assertions": {
+    "api_assertions": [
+      {
+        "api_name": "torch.batch_norm_update_stats",
+        "assertion_basis": "source_explicit",
+        "assertion_id": "api_1fb38f753ad36683",
+        "evidence_refs": [
+          "ev_aa9d470764440605"
+        ],
+        "relation": "affected"
+      }
+    ]
+  },
+  "source_bundle": {
+    "comments_capture_status": "complete",
+    "inventory_ref": {
+      "content_hash": "sha256:1366a172dbda5fa63f54671de6a68b8e9c4131b409d1d7b7a3967ac6c6d453ce",
+      "local_path": "dataset/manifests/report_v5_calibration_inventory.json"
+    },
+    "primary_source_ref": "src_2eee664b44bcfb9c",
+    "source_artifacts": [
+      {
+        "artifact_id": "src_217bc68f41c08dd4",
+        "artifact_role": "resolution",
+        "captured_at": "2026-09-28T08:10:31.499251Z",
+        "content_hash": "sha256:f3424ed9fde6f1625d670b4ded796c445cd31d4c0da6411ad16a83ad59ce60f0",
+        "external_id": "120882",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/pull_120882_files.json",
+        "source_kind": "github_pull_request",
+        "source_native_state": "closed",
+        "url": "https://github.com/pytorch/pytorch/pull/120882"
+      },
+      {
+        "artifact_id": "src_2d985b4eb656f87e",
+        "artifact_role": "resolution",
+        "captured_at": "2026-09-28T08:10:30.752616Z",
+        "content_hash": "sha256:36926a726b9d87974e1186dfd79d96a2fa4ab9c47adf2c615d5f841a6de9badc",
+        "external_id": "120882",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/pull_120882.json",
+        "source_kind": "github_pull_request",
+        "source_native_state": "closed",
+        "url": "https://github.com/pytorch/pytorch/pull/120882"
+      },
+      {
+        "artifact_id": "src_2eee664b44bcfb9c",
+        "artifact_role": "issue",
+        "captured_at": "2026-09-28T08:10:29.653198Z",
+        "content_hash": "sha256:5e51aa6caf9fe0a222a9664c4aee5b5bfb8c1868cabaf576e9b8da9eef7a9227",
+        "external_id": "120803",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/issue.json",
+        "source_kind": "github_issue",
+        "source_native_state": "closed",
+        "url": "https://github.com/pytorch/pytorch/issues/120803"
+      },
+      {
+        "artifact_id": "src_7078bb8572dee6fa",
+        "artifact_role": "curation",
+        "captured_at": "2026-09-28T08:10:29.653198Z",
+        "content_hash": "sha256:70e903f638a6f206773bc4132b9877c4f726fab6c5caeb0245a95b8ee8fb55af",
+        "external_id": "3651d10efe415a3da509f3d3c6fd860e19100582",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/datasets/bugsindlls/bug_dataset_pytorch.csv",
+        "source_kind": "dataset_record",
+        "source_native_state": null,
+        "url": null
+      },
+      {
+        "artifact_id": "src_9eb014a3ef4dfc0f",
+        "artifact_role": "comment_thread",
+        "captured_at": "2026-09-28T08:10:29.653198Z",
+        "content_hash": "sha256:d361ec7426c661e3ff66727ce7a40c13ad4fea27698132c0d9883ec53e638468",
+        "external_id": null,
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/comments.json",
+        "source_kind": "github_comments",
+        "source_native_state": null,
+        "url": null
+      },
+      {
+        "artifact_id": "src_b37a35c4efc918a4",
+        "artifact_role": "curation",
+        "captured_at": "2026-09-28T08:10:29.653198Z",
+        "content_hash": "sha256:66803a064787a1fc402bbe45cca28cdc358f9e19df6b4e600ecd2782b9027ce1",
+        "external_id": "120803",
+        "local_path": "dataset/raw/report_v3_calibration/20260928/issue_120803/dataset_origin.json",
+        "source_kind": "other",
+        "source_native_state": null,
+        "url": "https://github.com/ncsu-swat/bugsindlls/blob/3651d10efe415a3da509f3d3c6fd860e19100582/bug_dataset_pytorch.csv"
+      }
+    ]
+  },
+  "unresolved_information": [
+    {
+      "description": "No explicit root-cause statement was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_diagnosis/root_cause_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_9639f6471e3254e6"
+    },
+    {
+      "description": "No explicit expected behavior was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/expected_behavior_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_b88149dcff270097"
+    },
+    {
+      "description": "No explicit historical oracle was mapped.",
+      "evidence_refs": [],
+      "field_path": "/reported_behavior/historical_oracle_claims",
+      "reason": "missing_source",
+      "unresolved_id": "unresolved_343e5bf553660dfb"
+    }
+  ],
+  "upstream_disposition": {
+    "evidence_refs": [
+      "ev_aa9d470764440605"
+    ],
+    "status": "reported"
+  }
+}
