@@ -1,0 +1,62 @@
+{
+  "schema_version": "3.0",
+  "metadata": {
+    "knowledge_id": "kn_pt_pv4_cosine_embedding_loss_empty_mismatched_input_validation_crash_hypothesis_k001",
+    "canonical_name": "cosine_embedding_loss_empty_mismatched_input_validation_crash_hypothesis"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "3.0",
+    "prompt_version": "knowledge_extract_v3_0",
+    "model": "deepseek-v4-pro",
+    "input_pattern": {
+      "pattern_id": "pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001",
+      "pattern_hash": "sha256:adf1c2464bc35849a5348dde276cf8a11f283773932a065f5d929779117f52ea"
+    },
+    "generated_at": "2026-10-03",
+    "validation_status": "structurally_validated"
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.nn.functional.cosine_embedding_loss"
+  },
+  "learned_hypothesis": {
+    "statement": "Testing torch.nn.functional.cosine_embedding_loss with empty and dimensionally mismatched input tensors is a relevant direction because historical evidence linked such calls to insufficient input2-dimension validation and a subsequent segmentation fault.",
+    "abstraction_rationale": "The hypothesis is a conservative same-API testing abstraction from the reported empty/mismatched call, the patch-derived defect mechanism about missing input2 dimension validation, and the observed segmentation fault. It does not assume the historical reproducer still exists or that any individual condition is necessary; required-condition refs are absent.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_conditions",
+      "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:defect_mechanism",
+      "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:observed_failure"
+    ],
+    "limitations": [
+      "No historical condition is marked required, so the hypothesis cannot treat any individual input condition as an anchor; necessity of empty tensors, specific shapes/dtypes, and mismatch is not established.",
+      "The defect mechanism is patch-derived rather than an explicitly confirmed root cause.",
+      "The reported crash was reproduced on a nightly build, so broader or current-version applicability remains unknown."
+    ]
+  },
+  "exploration_guidance": {
+    "historical_anchors": [],
+    "variation_opportunities": [
+      {
+        "statement": "Vary degenerate/empty shape and rank combinations across input1 and input2 without fixing the exact reported shapes or dtypes.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_condition:tc_01",
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_condition:tc_02",
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_condition:tc_03"
+        ]
+      }
+    ],
+    "observation_candidates": [
+      {
+        "statement": "Observe process termination behavior for dimensionally mismatched input tensors, especially whether a segmentation fault is produced.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:defect_mechanism",
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:observed_failure"
+        ]
+      }
+    ]
+  }
+}

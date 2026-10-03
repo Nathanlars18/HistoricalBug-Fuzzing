@@ -16,8 +16,10 @@ historical behavior persists in the current PyTorch build.
   and the candidate inventory.
 - Report owns exact source-to-field mapping, Evidence IDs, explicit API
   relations, unresolved source information, and source-side disposition.
-- Pattern owns semantic abstraction, symptom/root-cause classification,
-  `primary_api` for an API-specific Pattern, and transfer decisions.
+- Pattern owns API-specific semantic abstraction and optional symptom/root-cause
+  classification. Its `target_api` is selected deterministically from a Report
+  assertion whose relation is `affected`; cross-API transfer is outside Report
+  and Pattern scope.
 
 One admitted case normally creates one Report. A Report may contain several
 `affected` APIs and does not force one of them to be primary.

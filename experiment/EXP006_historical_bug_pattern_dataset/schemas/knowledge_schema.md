@@ -1,683 +1,211 @@
-# Historical Bug Knowledge Schema v2.1
+# Historical Bug Knowledge Schema v3.0
 
-## 1. Purpose
+Input contract: one API-specific Pattern with `schema_version: "4.0"`.
+Knowledge v3 records an evidence-grounded testing hypothesis, not a historical
+Bug reproduction recipe or an executable Harness plan.
 
-A Knowledge record is an evidence-grounded, reusable testing principle derived
-from one API-specific Bug Pattern.
+## 1. Responsibility
 
-It answers:
-
-- What testing risk can be learned from the supporting historical Pattern?
-- What should testing attempt to explore or observe?
-- Under which semantic conditions may this Knowledge be applicable?
-- Under which conditions should this Knowledge not be applied?
-- What historically relevant failure behavior may be worth observing?
-- How strongly is this Knowledge supported by the underlying Pattern?
-
-The core pipeline is:
+The active transformation is:
 
 ```text
-Structured Bug Report
+API-specific Pattern
         ↓
-API-specific Bug Pattern
+zero or one API-specific Knowledge record
         ↓
-API-specific Knowledge
-        ↓
-HarnessSpec
-        ↓
-Harness Generator
+HarnessSpec selection and executable planning
 ```
 
-Knowledge transforms evidence-backed historical Pattern information into a
-reusable testing principle.
+Pattern owns historical conditions, their reported necessity, the supported
+defect mechanism, and the observed failure. Knowledge uses that evidence to
+state one bounded risk hypothesis and to identify historical anchors, possible
+variation space, and behavior worth observing.
 
-It is not a restatement of the original Report or Pattern.
+Knowledge does not contain concrete Tensor construction, fixed reproduction
+inputs, Strategy Primitives, risk-dimension tags, executable predicates,
+Oracle implementations, C++ code, branch budgets, or feedback policy.
 
-## 2. Scope and Non-goals
+Initial extraction is **zero or one**, not exactly one. A Pattern that cannot
+support a useful hypothesis without speculation produces a `not_extractable`
+diagnostic instead of a fabricated Knowledge record.
 
-### 2.1 Scope
-
-Knowledge v2 represents API-specific testing knowledge.
-
-It preserves:
-
-- derivation from one supporting Pattern;
-- directly supported API scope;
-- reusable risk principle;
-- high-level testing objective;
-- applicability and exclusion conditions;
-- high-level exploration goals;
-- high-level Oracle guidance;
-- limitations and confidence.
-
-### 2.2 Non-goals
-
-Knowledge v2 does not contain:
-
-- raw Issue or Bug Report details;
-- direct Report-level source verification;
-- complete historical trigger signatures;
-- complete defect-mechanism descriptions;
-- concrete Tensor shapes, dtypes, values, devices, layouts, or offsets;
-- input mutation implementation;
-- Tensor construction implementation;
-- Strategy Primitives;
-- validity predicates;
-- risk predicates;
-- activation predicates;
-- HarnessSpec;
-- C++ Harness code;
-- code-generation prompts;
-- conflict resolution among multiple Knowledge records.
-
-The responsibilities of the layers are:
-
-```text
-Pattern
-  → historical evidence, trigger, mechanism, and observed failure
-
-Knowledge
-  → reusable testing principle, applicability, and high-level guidance
-
-HarnessSpec
-  → Knowledge selection, constraint combination, executable strategies,
-    activation predicates, Oracle instrumentation, priority,
-    conflict resolution, and feedback updates
-```
-
-## 3. Cardinality and Relationships
-
-The initial mapping is one-to-one:
-
-```text
-One API-specific Pattern
-        ↓
-One API-specific Knowledge
-```
-
-A Report may contain multiple independent Patterns, and each Pattern produces
-its own API-specific Knowledge:
-
-```text
-One Bug Report
-        ↓
-Multiple independent Patterns
-        ↓
-One API-specific Knowledge per Pattern
-```
-
-If one Pattern appears to support multiple independent and separately usable
-testing principles, the Pattern should first be reviewed to determine whether
-it should have been split into multiple Patterns.
-
-Initial extraction must not create multiple Knowledge records from one Pattern.
-
-## 4. Top-level JSON Structure
+## 2. Record shape
 
 ```json
 {
-  "schema_version": "2.1",
-
+  "schema_version": "3.0",
   "metadata": {
-    "knowledge_id": null,
-    "canonical_name": null,
-    "knowledge_level": "api_specific"
+    "knowledge_id": "kn_pt_pv4_empty_input_boundary_k001",
+    "canonical_name": "empty_input_boundary"
   },
-
   "derivation_information": {
-    "method": null,
-    "mapping_version": "2.1",
-    "prompt_version": null,
-    "model": null,
-    "input_patterns": [],
-    "generated_at": null,
-    "validation_status": "not_reviewed"
+    "method": "llm_assisted",
+    "mapping_version": "3.1",
+    "prompt_version": "knowledge_extract_v3_1",
+    "model": "deepseek-v4-pro",
+    "input_pattern": {
+      "pattern_id": "pt_v4_example_p001",
+      "pattern_hash": "sha256:..."
+    },
+    "generated_at": "2026-10-03",
+    "validation_status": "structurally_validated"
   },
-
-  "evidence_basis": {
-    "supporting_patterns": [],
-    "derivation_rationale": null,
-    "limitations": []
-  },
-
   "scope": {
     "framework": "pytorch",
-    "primary_api": null,
-    "directly_supported_apis": []
+    "target_api": "torch.example"
   },
-
-  "knowledge_statement": {
-    "risk_principle": null,
-    "testing_objective": null,
-    "failure_relevance": null,
-    "evidence_status": "unknown",
-    "evidence_refs": []
+  "learned_hypothesis": {
+    "statement": "Boundary input states may expose insufficient validation or unsafe execution behavior in the target API.",
+    "abstraction_rationale": "The source Pattern links a boundary condition to an observed failure while leaving other input properties unproven as necessary.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_v4_example_p001:historical_condition:tc_01",
+      "pattern:pt_v4_example_p001:observed_failure"
+    ],
+    "limitations": []
   },
-
-  "applicability": {
-    "applicability_conditions": [],
-    "exclusion_conditions": [],
-    "rationale": null,
-    "evidence_status": "unknown",
-    "evidence_refs": []
-  },
-
-  "testing_guidance": {
-    "risk_dimensions": [],
-    "exploration_goals": [],
-    "oracle_guidance": []
-    },
-
-  "confidence": {
-    "evidence_confidence": "low",
-    "abstraction_confidence": "low",
-    "applicability_confidence": "low",
-    "oracle_guidance_confidence": "low"
+  "exploration_guidance": {
+    "historical_anchors": [],
+    "variation_opportunities": [],
+    "observation_candidates": []
   }
 }
 ```
 
-## 5. Common Representation Rules
+## 3. Metadata and derivation
 
-### 5.1 Required, Optional, and Unknown Values
+`knowledge_id` is a stable Builder-generated identity. `canonical_name` is a
+concise lower-snake-case testing-hypothesis name; it must not contain Issue,
+Report, Pattern, commit, signal, or reproduction identifiers.
 
-- All top-level objects are required.
-- Arrays must exist even when empty.
-- Unknown free-text or ordinary scalar values must use `null`.
-- Do not use empty strings such as `""`.
-- The string `"unknown"` may be used only when it is an explicitly allowed
-  value of a controlled enum field.
-- Controlled fields must use only the allowed enum values defined below.
-- Every nontrivial Knowledge claim must be traceable to Pattern evidence.
-- Knowledge must not assert a stronger claim than its supporting Pattern allows.
-- Knowledge must not add a new historical fact that does not exist in its
-  supporting Pattern.
+`input_pattern` records the exact Pattern ID and canonical SHA-256 hash used for
+derivation. The Builder owns all derivation fields. In a generated Knowledge
+record, `validation_status` is `structurally_validated`: shape, scope, lineage,
+vocabularies, and evidence references passed automatic validation. Human review
+is recorded separately against the immutable Knowledge ID and canonical hash;
+it does not silently rewrite this Builder-owned field.
 
-### 5.2 Evidence Status
+## 4. Scope
 
-The following values are used whenever the origin of a Knowledge claim must be
-recorded:
+`scope` contains only `framework` and the single `target_api` inherited from the
+Pattern. Knowledge v3 does not represent cross-API transfer. The Builder, not
+the model, copies this scope.
 
-- `pattern_explicit`
-- `pattern_derived`
-- `analyst_inferred`
-- `unknown`
+## 5. Learned hypothesis
 
-Definitions:
+`statement` is the reusable, same-API testing hypothesis learned from the
+Pattern. It is neither the complete historical trigger nor a claim that the
+failure still exists in the current framework version.
 
-- `pattern_explicit`: directly preserved from a supporting Pattern field.
-- `pattern_derived`: derived by combining or abstracting evidence-backed Pattern
-  fields without adding unsupported facts.
-- `analyst_inferred`: inferred by an LLM or human analyst from supporting
-  Pattern evidence.
-- `unknown`: no reliable basis is available.
+The statement describes a bounded risk relationship: an evidence-grounded
+boundary or mechanism may expose unsafe or inconsistent behavior in the target
+API. It must not merely say that testing an input is useful. Conditions whose
+necessity is `contributing` or `unknown` may motivate candidate boundaries, but
+must not be stated as established prerequisites, fixed scope, or proven
+triggers.
 
-### 5.3 Confidence Levels
+`abstraction_rationale` explains why the cited Pattern evidence motivates the
+hypothesis and which historical constants are not proven necessary.
 
-- `high`
-- `medium`
-- `low`
+Allowed `evidence_status` values are:
 
-Definitions:
+- `pattern_derived`: a conservative abstraction semantically entailed by the
+  cited Pattern facts;
+- `analyst_inferred`: an LLM or analyst proposes a broader interpretation that
+  remains grounded in cited Pattern evidence, including a new counterfactual,
+  candidate boundary, comparison, or variation dimension.
 
-- `high`: directly and consistently supported by the relevant Pattern evidence.
-- `medium`: strongly supported by Pattern evidence but requires a modest
-  additional interpretation.
-- `low`: incomplete, weakly supported, or analyst-inferred.
+`analyst_inferred` is a hypothesis label, not permission to introduce new
+historical facts. `limitations` records material uncertainty, conflicts, or
+scope restrictions. It may be empty.
 
-Confidence must not be increased merely because a Knowledge statement is
-well-written or appears generally plausible.
+## 6. Exploration guidance
 
-## 6. Metadata
-
-```json
-"metadata": {
-  "knowledge_id": "kn_matmul_storage_boundary_exploration_k001",
-  "canonical_name": "matmul_storage_boundary_exploration",
-  "knowledge_level": "api_specific"
-}
-```
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| knowledge_id | string | yes | Stable and globally unique identifier for this Knowledge record. |
-| canonical_name | string | yes | Human-readable testing-principle name in lowercase snake_case. |
-| knowledge_level | enum | yes | Must be `api_specific` in Knowledge v2. |
-
-Naming rules:
-
-```text
-knowledge_id:
-kn_{framework_prefix}_{canonical_name}_k{ordinal}
-
-framework_prefix:
-pytorch    → pt
-tensorflow → tf
-other framework names → normalized lowercase framework name
-
-canonical_name:
-{api_or_operator}_{testing_principle}
-```
-
-Examples:
-
-```text
-kn_pt_matmul_storage_boundary_exploration_k001
-kn_pt_rshift_cross_device_oracle_guidance_k001
-
-matmul_storage_boundary_exploration
-rshift_cross_device_oracle_guidance
-```
-
-A canonical name must not contain:
-
-- Issue numbers;
-- Report IDs;
-- Pattern IDs;
-- commit IDs;
-- exact crash signals;
-- exact reproduction scripts;
-- arbitrary concrete Tensor values;
-- implementation-specific code details.
-
-## 7. Derivation Information
+All three arrays are required but may be empty. Their items have the same
+shape:
 
 ```json
-"derivation_information": {
-  "method": "llm_assisted",
-  "mapping_version": "2.1",
-  "prompt_version": "knowledge_extract_v2_1",
-  "model": "deepseek-v4-pro",
-  "input_patterns": [
-    {
-      "pattern_id": "pt_matmul_unaligned_storage_p001",
-      "pattern_hash": "sha256:..."
-    }
-  ],
-  "generated_at": "2026-08-28",
-  "validation_status": "automatically_validated"
-}
-```
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| method | enum | yes | Records how Knowledge was derived from Pattern evidence. |
-| mapping_version | string | yes | Version of `pattern_to_knowledge_rules.md` used. |
-| prompt_version | string/null | yes | Prompt version when LLM assistance is used. |
-| model | string/null | yes | Model identifier when LLM assistance is used. |
-| input_patterns | array | yes | Exact Pattern record used as input. |
-| generated_at | ISO date string | yes | Date on which this Knowledge record was generated. |
-| validation_status | enum | yes | Current quality and review status of the Knowledge record. |
-
-Each `input_patterns` item contains:
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| pattern_id | string | yes | Stable identifier of the source Pattern. |
-| pattern_hash | string | yes | SHA-256 hash of the exact Pattern JSON used for derivation. |
-
-Allowed `method` values:
-
-- `direct_mapping`
-- `llm_assisted`
-- `manual`
-- `hybrid`
-
-Allowed `validation_status` values:
-
-- `not_reviewed`
-- `automatically_validated`
-- `human_verified`
-- `needs_revision`
-
-## 8. Evidence Basis
-
-```json
-"evidence_basis": {
-  "supporting_patterns": [
-    {
-      "pattern_id": "pt_matmul_unaligned_storage_p001",
-      "relation": "direct_derivation",
-      "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:trigger_signature",
-        "pattern:pt_matmul_unaligned_storage_p001:defect_mechanism"
-      ]
-    }
-  ],
-  "derivation_rationale": "The supporting Pattern indicates that storage-sensitive execution may expose failures under layout or memory boundary conditions; this is abstracted into a reusable exploration principle.",
-  "limitations": [
-    "The Pattern does not establish applicability to testing scenarios where tensor storage cannot be controlled."
-  ]
-}
-```
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| supporting_patterns | array | yes | Pattern records that directly support this Knowledge. |
-| derivation_rationale | string | yes | Explains why Pattern evidence supports the Knowledge abstraction. |
-| limitations | array | yes | Material limitations, uncertainties, or non-applicability conditions. |
-
-Each `supporting_patterns` item contains:
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| pattern_id | string | yes | Identifier of the supporting Pattern. |
-| relation | enum | yes | How the Pattern supports this Knowledge. |
-| evidence_refs | array | yes | References to relevant Pattern fields or Pattern element IDs. |
-
-Allowed `relation` values:
-
-- `direct_derivation`
-- `corroborating_derivation`
-
-Rules:
-
-- Initial Pattern-to-Knowledge extraction must create exactly one
-  `direct_derivation` entry corresponding to the input Pattern.
-- The LLM must not invent Pattern IDs.
-- Additional `corroborating_derivation` Patterns may be added only after later
-  matching and human review.
-- Knowledge must not cite a Bug Report directly; it cites its supporting Pattern.
-- `limitations` may be empty when no material limitation is identified.
-
-## 9. Scope
-
-```json
-"scope": {
-  "framework": "pytorch",
-  "primary_api": "torch.matmul",
-  "directly_supported_apis": [
-    "torch.matmul"
-  ]
-}
-```
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| framework | enum | yes | Target deep learning framework. |
-| primary_api | string | yes | Main API directly supported by the source Pattern. |
-| directly_supported_apis | array | yes | APIs directly supported by historical Pattern evidence. |
-
-Rules:
-
-- `primary_api` must appear in `directly_supported_apis`.
-- `directly_supported_apis` is inherited from the directly supporting Pattern scope.
-- Knowledge v2 remains within the API scope directly supported by its source Pattern.
-
-## 10. Knowledge Statement
-
-```json
-"knowledge_statement": {
-  "risk_principle": "Storage-sensitive backend execution may be vulnerable to tensor layout or memory-boundary conditions.",
-  "testing_objective": "Explore storage and layout boundary conditions when the target API exposes controllable tensor storage and backend-dependent execution.",
-  "failure_relevance": "Such conditions may expose crash, exception, or semantic-divergence behavior associated with storage-sensitive execution paths.",
+{
+  "statement": "...",
   "evidence_status": "pattern_derived",
-  "evidence_refs": [
-    "pattern:pt_matmul_unaligned_storage_p001:trigger_signature",
-    "pattern:pt_matmul_unaligned_storage_p001:defect_mechanism",
-    "pattern:pt_matmul_unaligned_storage_p001:observed_failure"
-  ]
+  "evidence_refs": ["pattern:..."]
 }
 ```
 
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| risk_principle | string | yes | Reusable testing risk learned from the supporting Pattern. |
-| testing_objective | string | yes | High-level testing objective motivated by the risk principle. |
-| failure_relevance | string/null | yes | Why the objective may reveal historically relevant failure behavior. |
-| evidence_status | enum | yes | Origin of the Knowledge statement. |
-| evidence_refs | array | yes | Pattern evidence supporting the Knowledge statement. |
+### 6.1 Historical anchors
 
-Rules:
+`historical_anchors` contains only source Pattern conditions whose
+`necessity` is `required`. An anchor identifies evidence that should remain
+represented in at least one Knowledge-directed exploration; it is not a global
+constraint on the default or generic branches.
 
-- `risk_principle` describes a reusable testing principle, not an exact Bug reproduction.
-- `testing_objective` describes what testing should explore, not how to construct inputs.
-- `failure_relevance` may be `null` if the Pattern does not support a reliable connection to a failure type.
-- `pattern_explicit` and `pattern_derived` statements require evidence references.
-- `analyst_inferred` statements require evidence references and may not have high abstraction confidence.
-- Do not add concrete Tensor values, exact API call sequences, C++ code, or Strategy Primitive details.
+A `contributing` or `unknown` historical condition must never be promoted to an
+anchor.
 
-## 11. Applicability
+### 6.2 Variation opportunities
 
-```json
-"applicability": {
-  "applicability_conditions": [
-    {
-      "condition_id": "ac_01",
-      "condition_kind": "input_capability",
-      "statement": "The target API accepts tensor inputs whose storage or layout properties can be controlled without violating API-call validity.",
-      "evidence_status": "pattern_derived",
-      "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:trigger_signature"
-      ]
-    },
-    {
-      "condition_id": "ac_02",
-      "condition_kind": "execution_capability",
-      "statement": "The target API may execute through a backend path whose behavior is sensitive to storage or layout conditions.",
-      "evidence_status": "analyst_inferred",
-      "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:defect_mechanism"
-      ]
-    }
-  ],
-  "exclusion_conditions": [
-    {
-      "condition_id": "ec_01",
-      "condition_kind": "api_semantics",
-      "statement": "Do not apply this Knowledge when the API has no tensor-storage-related execution behavior.",
-      "evidence_status": "pattern_derived",
-      "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:trigger_signature"
-      ]
-    }
-  ],
-  "rationale": "The testing principle is relevant only when the target API has compatible input and execution semantics.",
-  "evidence_status": "pattern_derived",
-  "evidence_refs": [
-    "pattern:pt_matmul_unaligned_storage_p001:trigger_signature"
-  ]
-}
-```
+`variation_opportunities` describes evidence-grounded ways to explore beyond
+the exact historical case. It may be informed by `contributing` or `unknown`
+conditions, supported mechanisms, observed failures, and relations among them.
 
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| applicability_conditions | array | yes | Semantic prerequisites for considering this Knowledge within its directly supported API scope. |
-| exclusion_conditions | array | yes | Known semantic conditions under which this Knowledge must not be selected. |
-| rationale | string/null | yes | Concise explanation of the applicability boundary. |
-| evidence_status | enum | yes | Origin of the applicability rationale. |
-| evidence_refs | array | yes | Pattern evidence supporting the applicability claims. |
+It must not claim that a proposed variation occurred historically, prescribe
+concrete input values or code, or state that the variation will expose a Bug.
+An interpretive generalization uses `analyst_inferred`.
 
-Each applicability_conditions or exclusion_conditions item contains:
+### 6.3 Observation candidates
 
-| Field	| Type	| Required	| Purpose|
-| condition_id	| string	| yes	| Stable local identifier, generated by the script.|
-| condition_kind	| enum	| yes	| Broad kind of semantic prerequisite or exclusion.|
-| statement	| string	| yes	| Human-readable semantic condition; not an executable predicate.|
-| evidence_status	| enum	| yes	| Origin of this individual condition.|
-| evidence_refs	| array	| yes	| Pattern evidence supporting this individual condition.|
+`observation_candidates` describes behavior worth observing in later testing.
+It may abstract historical observations or propose a cautious future check.
+It is not an executable Oracle: instrumentation, comparison procedures,
+thresholds, expected exceptions, and implementation details belong to
+HarnessSpec.
 
+## 7. Evidence and absence rules
 
-Allowed condition_kind values:
+- Every asserted item has at least one valid reference supplied from the input
+  Pattern.
+- Knowledge cites Pattern fields and element IDs, never a Report or Issue
+  directly.
+- Absence is represented by an empty array. Placeholder items, empty strings,
+  `unknown` enum values, and invented explanations are forbidden.
+- Chen root-cause and symptom labels remain in Pattern. They are evidence
+  context, not Knowledge fields and not direct mappings to exploration or
+  Oracles.
+- A historical constant is not necessary merely because it appears in one
+  reproducer.
 
-- api_semantics
-- input_capability
-- execution_capability
+## 8. Validation boundary
 
-Rules:
+The Builder validates:
 
-- Applicability determines whether this Knowledge is relevant to a testing scenario within its directly supported API scope.
-- This object must not list candidate APIs.
-- condition_id values use ac_01, ac_02, … for applicability conditions and ec_01, ec_02, … for exclusion conditions.
-- The extraction script, rather than the LLM, assigns condition_id.
-- condition_kind must not use unknown or other. If a condition cannot be classified reliably, omit it and record the uncertainty in evidence_basis.limitations.
-- Conditions must state semantic properties, not concrete Tensor values, mutation operations, API-call code, validity predicates, or activation predicates.
-- If no applicability claim is made, both condition lists must be empty, rationale must be null, evidence_status must be unknown, and evidence_refs may be empty.
-- Applicability confidence is stored only in confidence.applicability_confidence.
+1. exact top-level and nested keys;
+2. Pattern schema version, identity, hash, and API scope;
+3. lower-snake-case names and non-empty text;
+4. controlled evidence-status values;
+5. existence and uniqueness of all evidence references;
+6. anchor references resolve only to Pattern conditions marked `required`;
+7. forbidden executable or downstream fields are absent;
+8. no empty placeholder item is emitted.
 
-## 12. Testing Guidance
+Automatic validation cannot prove that a hypothesis is scientifically useful
+or semantically correct. That remains subject to review and later empirical
+evaluation.
 
-```json
-"testing_guidance": {
-  "risk_dimensions": [
-    "memory",
-    "layout",
-    "backend"
-  ],
-  "exploration_goals": [
-    {
-      "goal_id": "eg_01",
-      "target_dimension": "memory",
-      "statement": "Explore valid storage and memory-boundary conditions while preserving API-call validity.",
-      "priority": "primary",
-      "evidence_status": "pattern_derived",
-      "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:trigger_signature"
-      ]
-    },
-    {
-      "goal_id": "eg_02",
-      "target_dimension": "backend",
-      "statement": "Observe behavior when execution may enter a storage-sensitive backend path.",
-      "priority": "secondary",
-      "evidence_status": "analyst_inferred",
-      "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:defect_mechanism"
-      ]
-    }
-  ],
-  "oracle_guidance": [
-    {
-      "objective": "Observe unexpected process termination, exceptions, or behavior divergence under the identified risk condition.",
-      "observation_kind": "historical_observable",
-      "evidence_status": "pattern_derived",
-      "evidence_refs": [
-        "pattern:pt_matmul_unaligned_storage_p001:observed_failure"
-      ],
-      "confidence": "medium"
-    }
-  ]
-}
-```
+## 9. Human review
 
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| risk_dimensions | array | yes | De-duplicated risk dimensions targeted by exploration goals. |
-| exploration_goals | array | yes | High-level, evidence-grounded exploration directions. |
-| oracle_guidance | array | yes | High-level guidance on behavior worth observing. |
+Every Knowledge record selected for an experiment must pass the lightweight
+review in `../quality/knowledge_review_protocol.md`. A larger exploratory
+collection may use a predeclared stratified sample, but an unreviewed record is
+not thereby approved. Review decisions are bound to the Knowledge and Pattern
+hashes in a separate ledger so generated records remain immutable.
 
+## 10. Versioning
 
-Allowed risk_dimensions values:
-- shape
-- dtype
-- value
-- device
-- backend
-- layout
-- memory
-- aliasing
-- output_tensor
-- state
-- execution
-- graph
-- concurrency
-- api_contract
+Knowledge v2.1 and Mapping/Contract v2.3 are preserved under
+`schemas/legacy/knowledge_v2_1/`; their Builders are preserved under
+`scripts/legacy/knowledge_v2_1/`.
 
-Each exploration_goals item contains:
-
-| Field	| Type	| Required	| Purpose|
-| goal_id	| string	| yes	| Stable local identifier, generated by the script.|
-| target_dimension	| enum	| yes	| One risk dimension targeted by this exploration goal.|
-| statement	| string	| yes	| High-level exploration direction; not an executable strategy.|
-| priority	| enum	| yes	| Relative research importance of the goal, not a scheduling command.|
-| evidence_status	| enum	| yes	| Origin of this individual goal.|
-| evidence_refs	| array	| yes	| Pattern evidence supporting this individual goal.|
-
-Allowed priority values:
-
-- primary
-- secondary
-
-Each oracle_guidance item contains:
-
-| Field	| Type	| Required	| Purpose|
-| objective	| string	| yes	| High-level behavior that later testing should observe.|
-| observation_kind	| enum	| yes	| Whether this is a historical observation or a derived Oracle candidate.|
-| evidence_status	| enum	| yes	| Origin of the Oracle guidance.|
-| evidence_refs	| array	| yes	| Supporting Pattern evidence references.|
-| confidence	| enum	| yes	| Confidence in this individual Oracle guidance item.|
-
-Allowed observation_kind values:
-
-- historical_observable
-- derived_oracle_candidate
-Rules:
-- goal_id values use eg_01, eg_02, … and are assigned by the extraction script.
-- risk_dimensions must equal the de-duplicated set of target_dimension values from exploration_goals.
-- If exploration_goals is empty, risk_dimensions must also be empty.
-- Exploration goals must remain high-level and must not define concrete Tensor construction, mutation operations, parameter values, execution code, validity predicates, risk predicates, or activation predicates.
-- oracle_guidance must not define executable instrumentation or an exact Oracle implementation.
-- Concrete constraints, Strategy Primitives, executable predicates, Oracle implementation, Knowledge conflict resolution, and priority combination belong to HarnessSpec.
-
-## 13. Confidence
-
-```json
-"confidence": {
-  "evidence_confidence": "high",
-  "abstraction_confidence": "medium",
-  "applicability_confidence": "medium",
-  "oracle_guidance_confidence": "medium"
-}
-```
-
-| Field | Purpose |
-|---|---|
-| evidence_confidence | Confidence that Pattern evidence is complete and correctly cited. |
-| abstraction_confidence | Confidence that Pattern evidence supports the reusable Knowledge principle. |
-| applicability_confidence | Confidence that applicability and exclusion conditions are justified. |
-| oracle_guidance_confidence | Aggregate confidence in the Oracle guidance items. |
-
-Rules:
-
-- `evidence_confidence` evaluates evidence traceability, not the popularity of the source API.
-- `abstraction_confidence` evaluates Pattern-to-Knowledge abstraction quality.
-- `applicability_confidence` must be `low` when Applicability makes no claim.
-- `oracle_guidance_confidence` must be `low` when `oracle_guidance` is empty.
-- If `knowledge_statement.evidence_status` is `analyst_inferred`,
-  `abstraction_confidence` must not be `high`.
-- Confidence must not be assigned solely because an LLM produced fluent text.
-
-## 14. Validation Rules
-
-A Knowledge v2 record is valid only if all of the following hold:
-
-1. `schema_version` is `2.1`.
-2. `metadata.knowledge_level` is `api_specific`.
-3. Exactly one `supporting_patterns` entry exists during initial extraction.
-4. The supporting Pattern relation is `direct_derivation`.
-5. The direct Pattern appears in `derivation_information.input_patterns`.
-6. `scope.primary_api` appears in `scope.directly_supported_apis`.
-7. Scope is inherited from directly supporting Pattern evidence.
-8. All controlled values use defined vocabularies.
-9. Every asserted Knowledge statement, applicability condition, exclusion condition, exploration goal, and Oracle guidance item has evidence references to Pattern fields.
-10. Knowledge contains no Bug Report facts not represented by its supporting Pattern.
-11. Knowledge contains no Strategy Primitive, HarnessSpec, code, mutation procedure, concrete input construction, executable predicate, or API-specific implementation plan.
-12. Unknown free-text scalar information uses `null`, not an empty string.
-13. `applicability_conditions` and `exclusion_conditions` use only the defined `condition_kind` values.
-14. `risk_dimensions` equals the de-duplicated set of `target_dimension` values used by `exploration_goals`.
-15. If Applicability makes no claim, `applicability_confidence` is `low`.
-16. If `oracle_guidance` is empty, `oracle_guidance_confidence` is `low`.
-17. If `knowledge_statement.evidence_status` is `analyst_inferred`, `abstraction_confidence` must not be `high`.
-18. A Knowledge record with unsupported abstraction, unclear scope, or missing evidence must be marked `needs_revision`.
-
-## 15. Versioning and Legacy Notes
-
-- Existing Knowledge v1 records are preserved under `legacy/knowledge_base_v1/`.
-- Current Knowledge v2 records will later be written to `knowledge_base/<api>/`.
-- Existing v1 testing strategies must not be copied directly into Knowledge v2.
-- Existing v1 Report metadata must not be duplicated; Knowledge v2 cites supporting
-  Pattern records instead.
-
-Knowledge v2 is the reusable testing-principle layer. It remains independent
-from HarnessSpec-level executable planning, Knowledge conflict resolution, and
-feedback-loop optimization.
+New Knowledge outputs use `schema_version: "3.0"` and remain incompatible with
+the current EXP011 Knowledge 2.1 reader until that interface is deliberately
+updated. Existing HarnessSpecs and experiment artifacts are not relabelled or
+rewritten.

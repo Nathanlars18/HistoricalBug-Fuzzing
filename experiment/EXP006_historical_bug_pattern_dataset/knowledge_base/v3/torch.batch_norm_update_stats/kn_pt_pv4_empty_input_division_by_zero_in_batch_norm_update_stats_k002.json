@@ -1,0 +1,76 @@
+{
+  "schema_version": "3.0",
+  "metadata": {
+    "knowledge_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+    "canonical_name": "empty_input_division_by_zero_in_batch_norm_update_stats"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "3.1",
+    "prompt_version": "knowledge_extract_v3_1",
+    "model": "deepseek-v4-pro",
+    "input_pattern": {
+      "pattern_id": "pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001",
+      "pattern_hash": "sha256:b161ca7ef740464a0c602f255bc128e359abcf1b9cf376f100d5669abfe852df"
+    },
+    "generated_at": "2026-10-03",
+    "validation_status": "structurally_validated"
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats"
+  },
+  "learned_hypothesis": {
+    "statement": "Inputs to torch.batch_norm_update_stats with zero elements and a zero size along the normalized dimension may exercise a numerical boundary in CPU execution where element count and normalized-dimension size are both zero, potentially exposing division-by-zero termination before input validation.",
+    "abstraction_rationale": "The Pattern's patch-derived mechanism indicates that this API computes a divisor from input size(1) and a numerator from total element count; for zero-element shapes where both are zero, the computation can evaluate to 0/0. Historical condition tc_01 provides one such zero-element shape and observed_failure confirms a floating-point termination, but the necessity of the exact shape and platform is not established, so the hypothesis generalizes only to a candidate zero-element/zero-dimension boundary and keeps the platform as a variation dimension.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:defect_mechanism",
+      "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_condition:tc_01",
+      "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:observed_failure"
+    ],
+    "limitations": [
+      "The necessity of the zero-element shape is unknown rather than an established prerequisite, so this hypothesis does not assert that all such inputs will fail.",
+      "The platform condition is unknown and available evidence includes an observation of cross-platform difference, so platform dependence is not established.",
+      "The mechanism was inferred from the resolution patch and PR title rather than a mapped root-cause diagnosis."
+    ]
+  },
+  "exploration_guidance": {
+    "historical_anchors": [],
+    "variation_opportunities": [
+      {
+        "statement": "Vary zero-element input shapes beyond the reported case, including different zero/non-zero combinations along the normalized dimension, to explore which shape properties are involved in the numerical boundary.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:defect_mechanism",
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_condition:tc_01"
+        ]
+      },
+      {
+        "statement": "Vary execution environment and device availability around the reported Linux CPU case to explore whether the boundary is platform-sensitive.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_condition:tc_02",
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_observation:ho_01"
+        ]
+      }
+    ],
+    "observation_candidates": [
+      {
+        "statement": "Observe whether zero-element inputs with a zero size along the normalized dimension result in a floating-point-style termination or a controlled error response.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:observed_failure",
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:defect_mechanism"
+        ]
+      },
+      {
+        "statement": "Observe whether an empty-input invocation raises a controlled RuntimeError indicating a minimum-element requirement.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_observation:ho_02"
+        ]
+      }
+    ]
+  }
+}

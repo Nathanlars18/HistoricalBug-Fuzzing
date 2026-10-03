@@ -1,0 +1,101 @@
+{
+  "schema_version": "4.0",
+  "metadata": {
+    "pattern_id": "pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001",
+    "canonical_name": "cosine_embedding_loss_mismatched_input_shapes_segmentation_fault",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "4.2",
+    "prompt_version": "pattern_extract_v4_2",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_pytorch_112732",
+        "report_hash": "sha256:0733a114ae798fd55f648220e0bc76da0ce738016442691fb42561547d8bb608"
+      }
+    ],
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_pytorch_pytorch_112732",
+      "evidence_refs": [
+        "ev_2c4d088794096ed1",
+        "ev_652ea3c9a92fb35b",
+        "ev_97c40327c2041b9f",
+        "ev_b98e6d3087868a28",
+        "ev_d865d2707eea0525",
+        "ev_fabc68ef1eea2ee1"
+      ],
+      "report_revision": 3,
+      "report_hash": "sha256:0733a114ae798fd55f648220e0bc76da0ce738016442691fb42561547d8bb608"
+    },
+    "abstraction_rationale": "Abstracts the reported crash in torch.nn.functional.cosine_embedding_loss when called with empty mismatched input shapes. The pattern keeps the API-specific evidence from the issue body, comments, and resolution patch without adding future testing instructions.",
+    "unresolved_information": [
+      "No explicit root-cause statement was mapped in the report; the defect mechanism is inferred from a maintainer comment and the resolution patch."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.nn.functional.cosine_embedding_loss"
+  },
+  "historical_conditions": [
+    {
+      "statement": "The API was called with empty tensors.",
+      "necessity": "unknown",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_d865d2707eea0525"
+      ],
+      "condition_id": "tc_01"
+    },
+    {
+      "statement": "`input1` had shape `(0, 0)` and dtype `torch.float16`; `input2` had shape `(0,)` and dtype `torch.int8`; `target` had shape `(0,)` and dtype `torch.float32`.",
+      "necessity": "unknown",
+      "evidence_status": "code_derived",
+      "evidence_refs": [
+        "ev_fabc68ef1eea2ee1"
+      ],
+      "condition_id": "tc_02"
+    },
+    {
+      "statement": "`input1` and `input2` had different shapes/dimensions.",
+      "necessity": "contributing",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_652ea3c9a92fb35b"
+      ],
+      "condition_id": "tc_03"
+    }
+  ],
+  "defect_mechanism": {
+    "description": "The C++ implementation only checked the dimensionality of `input1` and did not enforce that `input2` had the matching dimension, so invalid calls with mismatched empty input tensors were not rejected and later caused a segmentation fault.",
+    "root_cause_category": "incorrect_exception_handling",
+    "evidence_status": "patch_derived",
+    "evidence_refs": [
+      "ev_97c40327c2041b9f",
+      "ev_652ea3c9a92fb35b"
+    ]
+  },
+  "observed_failure": {
+    "description": "The process terminated with a segmentation fault (core dumped).",
+    "symptom_category": "crash",
+    "evidence_status": "source_explicit",
+    "evidence_refs": [
+      "ev_2c4d088794096ed1"
+    ],
+    "historical_observations": [
+      {
+        "statement": "The crash was reproduced on the nightly build.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_b98e6d3087868a28"
+        ],
+        "observation_id": "ho_01"
+      }
+    ]
+  }
+}

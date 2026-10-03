@@ -1,876 +1,156 @@
-# Historical Bug Pattern Schema v2.1
+# Bug Pattern Schema v4.0
 
-## 1. Purpose
+## 1. Responsibility
 
-A Bug Pattern is an evidence-grounded abstraction of one or more historical
-deep learning framework bug reports.
+A Pattern is an evidence-linked abstraction of one admitted historical Bug Report for one affected API. It answers four questions:
 
-It answers:
+1. which API is this Pattern about;
+2. under which historical conditions was the defect observed;
+3. what supported mechanism, if any, was reported;
+4. what historical failure was observed.
 
-- What defect mechanism is suggested by the historical evidence?
-- Under which concrete conditions may the mechanism be triggered?
-- Which API scope is directly supported by the historical reports?
-- What observable failure was historically reported?
-- What evidence supports each abstraction and how reliable is it?
+It does not define future input generation, Harness code, an experimental oracle, a fuzzing strategy, or feedback policy. Those belong to Knowledge and later layers.
 
-The core pipeline is:
+The unit is `one Report × one affected API × one independently testable defect unit`. If a Report explicitly affects several APIs, the Builder projects it into separate API-specific Patterns. Multiple conditions or symptoms alone do not justify splitting.
 
-Raw Issue / Benchmark Record
-        ↓
-Structured Bug Report
-        ↓
-API-specific Bug Pattern
-        ↓
-API-specific Knowledge
-        ↓
-HarnessSpec
+## 2. Why the schema is deliberately small
 
-## 2. Scope and Non-goals
+Report already preserves source facts and evidence. Pattern therefore keeps only information needed for abstraction and downstream Knowledge generation. It removes the former `primary_api/confirmed_apis`, project-defined trigger dimensions, subject/predicate triples, custom oracle-kind taxonomy, and aggregate confidence fields because those either duplicated Report facts or forced uncertain interpretation into rigid labels.
 
-### 2.1 Scope
+Missing causal or classification evidence is represented by `null` or an empty optional list. The Builder must not call a missing value an error or ask the model to guess merely to satisfy the schema.
 
-Pattern v2 represents an API-specific, evidence-grounded defect mechanism.
-It preserves:
-
-- provenance from historical Bug Reports;
-- supported API scope;
-- defect category and risk dimensions;
-- trigger signature;
-- defect mechanism hypotheses;
-- observed failure and historical oracle;
-- confidence assessments.
-
-### 2.2 Non-goals
-
-Pattern v2 does not contain:
-
-- complete fuzzing harness code;
-- input mutation implementation;
-- tensor construction implementation;
-- Strategy Primitives;
-- HarnessSpec;
-- prompt text for code generation;
-- unrestricted testing recommendations.
-
-These belong to later layers:
-
-- Pattern      → evidence-backed defect mechanism
-- Knowledge    → reusable testing principle
-- HarnessSpec  → executable constraints, strategies, and oracles
-
-## 3. Cardinality and Relationships
-
-The relationships are not strictly one-to-one.
-
-- One Bug Report → one or more API-specific Bug Patterns
-- Multiple Bug Reports → may corroborate one API-specific Bug Pattern
-- One API-specific Bug Pattern → one API-specific Knowledge item during initial extraction
-
-A single Bug Report should be split into multiple Patterns only when it
-contains independent combinations of:
-
-- trigger signatures;
-- defect mechanisms;
-- failure behaviors; or
-- independently testable API scopes.
-
-The split policy is defined in report_to_pattern_mapping.md.
-
-## 4. Top-level JSON Structure
+## 3. Record shape
 
 ```json
 {
-  "schema_version": "2.1",
-
+  "schema_version": "4.0",
   "metadata": {
-    "pattern_id": null,
-    "canonical_name": null,
+    "pattern_id": "pt_v4_example_p001",
+    "canonical_name": "example_boundary_failure",
     "pattern_level": "api_specific"
   },
-
   "derivation_information": {
-    "method": null,
-    "mapping_version": "2.1",
-    "prompt_version": null,
-    "model": null,
-    "input_reports": [],
-    "generated_at": null,
-    "validation_status": "not_reviewed"
-  },
-
-  "provenance": {
-    "supporting_reports": [],
-    "abstraction_rationale": null,
-    "unresolved_information": []
-  },
-
-  "scope": {
-    "framework": "pytorch",
-    "primary_api": null,
-    "confirmed_apis": [],
-    "operator": null,
-    "module": null
-  },
-
-  "defect_classification": {
-    "primary_defect_class": null,
-    "secondary_defect_classes": [],
-    "risk_dimensions": []
-  },
-
-  "trigger_signature": {
-    "conditions": [],
-    "operation_context": null
-  },
-
-  "defect_mechanism": {
-    "hypotheses": []
-  },
-
-  "observed_failure": {
-    "failure_type": "unknown",
-    "description": null,
-    "historical_oracle": null,
-    "evidence_refs": []
-  },
-
-  "confidence": {
-    "trigger_confidence": "low",
-    "mechanism_confidence": "low",
-    "oracle_confidence": "low"
-  }
-}
-```
-
-## 5. Common Representation Rules
-
-### 5.1 Required, Optional, and Unknown Values
-
-- All top-level objects are required.
-- Arrays must exist even when empty.
-- Unknown free-text or ordinary scalar values must use `null`.
-- Do not use empty strings such as `""`.
-- The string `"unknown"` may be used only when it is an explicitly allowed value of a controlled enum field.
-- Controlled fields must use only the allowed enum values defined below.
-- Every nontrivial abstraction must be traceable to one or more evidence references.
-
-### 5.2 Evidence Status
-
-The following values are used whenever the origin of a claim must be recorded:
-
-- source_explicit
-- code_derived
-- patch_derived
-- analyst_inferred
-- unknown
-
-Definitions:
-
-- source_explicit: directly stated in the original Issue, benchmark record,
-  comment, PR, or commit.
-- code_derived: deterministically obtained from a reproduction program.
-- patch_derived: obtained from a linked fix or commit.
-- analyst_inferred: inferred by an LLM or human analyst from available evidence.
-- unknown: no reliable source is available.
-
-### 5.3 Confidence Levels
-
-- high
-- medium
-- low
-
-- high: directly supported by Issue, reproduction code, PR, commit, or
-  confirmed benchmark metadata.
-- medium: strongly supported by multiple evidence sources but not explicitly
-  confirmed.
-- low: partially inferred, incomplete, or weakly supported.
-
-## 6. Metadata
-
-```json
-"metadata": {
-  "pattern_id": "pt_matmul_unaligned_storage_p001",
-  "canonical_name": "matmul_unaligned_storage",
-  "pattern_level": "api_specific"
-}
-```
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| pattern_id | string | yes | Stable and globally unique identifier for this Pattern record. |
-| canonical_name | string | yes | Human-readable mechanism-oriented name in lowercase snake_case. |
-| pattern_level | enum | yes | Must be api_specific in Pattern v2. |
-
-
-
-Naming rules:
-
-pattern_id:
-A stable identifier independent of any single Report ID.
-
-Examples:
-
-- `pt_matmul_unaligned_storage_p001`
-- `pt_rshift_cross_device_semantic_divergence_p001`
-- `tf_broadcast_memory_p001`
-
-The pattern_id must not contain Issue numbers, PR IDs, commit IDs, or any Report-specific identifiers. It may contain a mechanism-oriented descriptor followed by a version/ordinal suffix.
-
-canonical_name:
-{api_or_operator}_{mechanism}
-
-Examples:
-
-- matmul_unaligned_storage
-- rshift_cross_device_semantic_divergence
-- reshape_invalid_view_contract
-
-A canonical name must not contain:
-
-- Issue numbers;
-- commit IDs;
-- exact crash signals;
-- exact reproduction scripts;
-- arbitrary numeric constants unless they identify the mechanism itself.
-
-## 7. Derivation Information
-
-```json
-"derivation_information": {
-  "method": "hybrid",
-  "mapping_version": "2.1",
-  "prompt_version": "pattern_extract_v2_1",
-  "model": "deepseek-v4-pro",
-  "input_reports": [
-    {
-      "report_id": "pytorch_191238",
-      "report_hash": "sha256:..."
-    },
-    {
-      "report_id": "pytorch_212345",
-      "report_hash": "sha256:..."
-    }
-  ],
-  "generated_at": "2026-08-28",
-  "validation_status": "human_verified"
-}
-```
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| method | enum | yes | Records how the Pattern was derived from the Report. |
-| mapping_version | string | yes | Version of report_to_pattern_mapping.md used. |
-| prompt_version | string/null | yes | Prompt template version when LLM assistance is used. |
-| model | string/null | yes | Model identifier when LLM assistance is used. |
-| input_reports| array | yes | List of input Bug Reports used for derivation, each with its hash. |
-| generated_at | ISO date string | yes | Time at which the Pattern was generated. |
-| validation_status | enum | yes | Current validation and human-review status. |
-
-Each input_reports item contains:
-
-| Field	| Type	| Required	| Purpose|
-| report_id	| string	| yes	| Unique identifier of the source Bug Report.|
-| report_hash	string	| yes	| SHA256 hash of the exact input Bug Report used.|
-
-Allowed method values:
-
-- direct_mapping
-- llm_assisted
-- manual
-- hybrid
-
-Allowed validation_status values:
-
-- not_reviewed
-- automatically_validated
-- human_verified
-- needs_revision
-
-derivation_information describes the creation of this Pattern record.
-It does not replace the historical bug source, which is preserved in
-provenance.
-validation_status evaluates the quality of the Pattern abstraction, not the reliability of the original Issue. A Pattern may be marked needs_revision if its abstraction rationale is weak, evidence is insufficient, or classification is ambiguous.
-
-## 8. Provenance
-
-```json
-"provenance": {
-  "supporting_reports": [
-    {
-      "report_id": "pytorch_191238",
-      "relation": "direct_evidence",
-      "evidence_refs": [
-        "report:pytorch_191238:issue_body",
-        "report:pytorch_191238:reproducer_01"
-      ],
-      "source_verification": {
-        "issue_verification_status": "official_confirmed",
-        "fix_status": "fixed",
-        "reproduction_status": "not_attempted"
-      }
-    }
-  ],
-  "abstraction_rationale": "The reported failure is abstracted as an unaligned-storage pattern because the crash requires a memory-alignment condition and is attributed to a backend execution path.",
-  "unresolved_information": [
-    "The exact affected BLAS implementation is not confirmed."
-  ]
-}
-```
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| supporting_reports | array | yes | Reports that directly support or corroborate this Pattern. |
-| abstraction_rationale | string | yes | Explains why the Report evidence supports this Pattern abstraction. |
-| unresolved_information | array | yes | Records important missing or uncertain information without fabrication. |
-
-
-Each `supporting_reports` item contains:
-
-```json
-{
-  "report_id": null,
-  "relation": "direct_evidence",
-  "evidence_refs": [],
-  "source_verification": {
-    "issue_verification_status": "unknown",
-    "fix_status": "unknown",
-    "reproduction_status": "not_attempted"
-  }
-}
-```
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| report_id | string | yes | Unique identifier of the supporting Bug Report. |
-| relation | enum | yes | How this Report relates to the Pattern. |
-| evidence_refs | array | yes | Specific evidence locations within the Report. |
-| source_verification | object | yes | Verification status of this individual source Report. |
-
-`source_verification` fields:
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| issue_verification_status | enum | yes | Historical status and curation level of this Issue or benchmark record. |
-| fix_status | enum | yes | Whether a linked official fix is known. |
-| reproduction_status | enum | yes | Whether this Bug was reproduced in the current project. |
-
-Allowed `relation` values:
-
-- `direct_evidence`
-- `corroborating_evidence`
-
-Allowed `issue_verification_status` values:
-
-- `official_confirmed`
-- `official_triaged`
-- `benchmark_curated`
-- `user_reported`
-- `unknown`
-
-Allowed `fix_status` values:
-
-- `fixed`
-- `unfixed`
-- `unknown`
-
-Allowed `reproduction_status` values:
-
-- `reproduced`
-- `not_reproduced`
-- `not_attempted`
-
-Rules:
-
-- Initial Report-to-Pattern extraction must create exactly one `direct_evidence` entry corresponding to the input Report.
-- The LLM must not invent additional Report IDs.
-- A `corroborating_evidence` entry may be added only during later matching and human review.
-- A second Report may be added only when it corroborates the same API-specific trigger-mechanism-failure abstraction.
-- Every `supporting_reports` entry must include `source_verification`.
-- `issue_verification_status` describes the historical Issue or benchmark record. It does not prove that every mechanism claim in this Pattern is officially confirmed.
-
-## 9. Scope
-
-```json
-"scope": {
-  "framework": "pytorch",
-  "primary_api": "torch.matmul",
-  "confirmed_apis": [
-    "torch.matmul"
-  ],
-  "operator": "aten::matmul",
-  "module": "linear_algebra"
-}
-```
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| framework | enum | yes | Target deep learning framework. |
-| primary_api | string | yes | Main API directly associated with this Pattern. |
-| confirmed_apis | array | yes | APIs explicitly supported by historical evidence. Must include primary_api. |
-| operator | string/null | yes | Operator identity when explicitly available or deterministically normalized. |
-| module | string/null | yes | Framework module or functional area when available. |
-
-Current project value for framework:
-
-- pytorch
-
-Rules:
-
-- confirmed_apis must not contain APIs included only because they are
-  semantically similar.
-- If a historical Issue explicitly identifies multiple affected APIs, all of
-  them may be recorded in confirmed_apis.
-
-## 10. Defect Classification
-
-```json
-"defect_classification": {
-  "primary_defect_class": "memory_layout_boundary",
-  "secondary_defect_classes": [
-    "backend_dispatch_boundary"
-  ],
-  "risk_dimensions": [
-    "memory",
-    "layout",
-    "backend",
-    "shape"
-  ]
-}
-```
-
-| Field | Type | Required | Purpose |
-|---|---|---:|---|
-| primary_defect_class | enum | yes | Main defect theme of the Pattern. |
-| secondary_defect_classes | array | yes | Additional defect themes when directly relevant. |
-| risk_dimensions | array | yes | Input, execution, or API dimensions associated with the risk. |
-
-Allowed `primary_defect_class` and `secondary_defect_classes` values:
-
-- `shape_boundary`
-- `dtype_boundary`
-- `device_transition`
-- `memory_layout_boundary`
-- `numerical_edge_case`
-- `gradient_autograd_boundary`
-- `backend_dispatch_boundary`
-- `execution_state_boundary`
-- `graph_transformation_boundary`
-- `api_contract_boundary`
-- `concurrency_boundary`
-
-Allowed `risk_dimensions` values:
-
-- `shape`
-- `dtype`
-- `value`
-- `device`
-- `backend`
-- `layout`
-- `memory`
-- `aliasing`
-- `output_tensor`
-- `state`
-- `execution`
-- `graph`
-- `concurrency`
-- `api_contract`
-
-Rules:
-
-- `primary_defect_class` must contain exactly one category.
-- `secondary_defect_classes` may be empty.
-- `risk_dimensions` may contain multiple values or be an empty array when no concrete risk dimension can be determined from the available evidence.
-- Defect classes describe the defect mechanism theme.
-- Risk dimensions describe where the triggering risk appears.
-- Do not use defect classes and risk dimensions interchangeably.
-
-## 11. Trigger Signature
-
-```json
-"trigger_signature": {
-  "conditions": [
-    {
-      "condition_id": "tc_memory_alignment_01",
-      "dimension": "memory",
-      "subject": "input_tensor",
-      "predicate": "data_ptr % 4 != 0",
-      "necessity": "required",
-      "evidence_status": "source_explicit",
-      "evidence_refs": [
-        "report:pytorch_191238:reproducer_01"
-      ]
-    }
-  ],
-  "operation_context": {
-    "description": "CPU matrix multiplication on an M=1 execution path.",
-    "evidence_status": "source_explicit",
-    "evidence_refs": [
-      "report:pytorch_191238:issue_body"
-    ]
-  }
-}
-```
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| conditions | array | yes | Individual normalized trigger conditions. |
-| operation_context | object/null | yes | Required call context or operation sequence when known. |
-
-Each condition contains:
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| condition_id | string | yes | Identifier unique within this Pattern. |
-| dimension | enum | yes | Risk dimension to which the condition belongs. |
-| subject | string | yes | Original API argument, input, output, or state affected. |
-| predicate | string | yes | Normalized condition expression. |
-| necessity | enum | yes | Whether the evidence indicates that this condition is required. |
-| evidence_status | enum | yes | Origin of this condition. |
-| evidence_refs | array | yes | Supporting evidence identifiers. |
-
-Allowed necessity values:
-
-- required
-- contributing
-- unknown
-
-Rules:
-
-- A Pattern with no known trigger condition may use an empty conditions list,
-  but must have low trigger_confidence and document the uncertainty.
-- Trigger Signature records historical conditions.
-- It must not describe implementation-level input generation procedures.
-- Executable generation constraints belong to HarnessSpec.
-
-## 12. Defect Mechanism
-
-```json
-"defect_mechanism": {
-  "hypotheses": [
-    {
-      "hypothesis_id": "dm_01",
-      "layer": "backend",
-      "description": "The BLAS execution path assumes aligned tensor storage.",
-      "status": "patch_derived",
-      "evidence_refs": [
-        "report:pytorch_191238:fix_commit"
-      ],
-      "confidence": "high"
-    }
-  ]
-}
-```
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| hypotheses | array | yes | One or more evidence-backed explanations of why the failure occurs. |
-
-Each hypothesis contains:
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| hypothesis_id | string | yes | Identifier unique within this Pattern. |
-| layer | enum | yes | Framework layer at which the mechanism occurs. |
-| description | string | yes | Concise mechanism explanation. |
-| status | enum | yes | Whether the mechanism is confirmed or inferred. |
-| evidence_refs | array | yes | Supporting evidence identifiers. |
-| confidence | enum | yes | Confidence in this specific hypothesis. |
-
-Allowed layer values:
-
-- api
-- aten
-- kernel
-- backend
-- numerical
-- unknown
-
-Allowed status values:
-
-- official_confirmed
-- patch_derived
-- source_reported
-- analyst_inferred
-- unknown
-
-|Status	 | Meaning|
-|official_confirmed|	Confirmed by framework developers or official triage.|
-|patch_derived	|Mechanism inferred from the linked fix or commit.|
-|source_reported	|Mechanism described by the original issue reporter.|
-|analyst_inferred	|Inferred by LLM or human analyst from available evidence.|
-|unknown|	No reliable root cause information available.|
-
-Rules:
-
-- An empty hypotheses list is valid when the root cause is unavailable.
-- Every non-empty mechanism hypothesis must include at least one evidence reference.
-- `official_confirmed`, `patch_derived`, and `source_reported` claims must be directly supported by the cited evidence.
-- `analyst_inferred` claims must cite their supporting evidence and must not use high confidence.
-- Do not convert an unknown root cause into an asserted fact.
-- Multiple conflicting hypotheses may coexist; do not silently overwrite them.
-
-## 13. Observed Failure and Historical Oracle
-
-```json
-"observed_failure": {
-  "failure_type": "crash",
-  "description": "The process terminates with SIGBUS.",
-  "historical_oracle": {
-    "kind": "signal",
-    "condition": "SIGBUS",
-    "evidence_status": "source_explicit",
-    "evidence_refs": [
-      "report:pytorch_191238:issue_body"
-    ]
-  },
-  "evidence_refs": [
-    "report:pytorch_191238:issue_body"
-  ]
-}
-```
-
-| Field | Type | Required | Purpose |
-|-------|------|----------|---------|
-| failure_type | enum | yes | Historical observable failure category. |
-| description | string/null | yes | Short factual description of the observed failure. |
-| historical_oracle | object/null | yes | How the historical Bug was identified. |
-| evidence_refs | array | yes | Evidence supporting the failure behavior. |
-
-Allowed failure_type values:
-
-- crash
-- exception
-- incorrect_output
-- timeout_hang
-- memory_error
-- unknown
-
-Allowed historical Oracle kind values:
-
-- signal
-- exception_class
-- differential_reference
-- output_property
-- timeout
-- sanitizer
-- unknown
-
-Rules:
-
-- Historical Oracle records only what the original evidence used or observed.
-- A proposed new oracle, such as a new differential test or sanitizer setup,
-  belongs to Knowledge or HarnessSpec.
-- If no historical oracle exists, use null and lower oracle_confidence.
-
-## 14. Confidence
-
-```json
-"confidence": {
-  "trigger_confidence": "high",
-  "mechanism_confidence": "medium",
-  "oracle_confidence": "high"
-}
-```
-
-| Field | Purpose |
-|-------|---------|
-| trigger_confidence | Confidence that the Trigger Signature reflects historical evidence. |
-| mechanism_confidence | Confidence in the defect mechanism explanation. |
-| oracle_confidence | Confidence in the historical Failure and Oracle description. |
-
-All values must use:
-
-- high
-- medium
-- low
-
-Confidence must not be assigned solely because an LLM produced a fluent answer.
-
-Note: source_reliability is removed because reliability should be recorded per supporting report (see supporting_reports.source_verification in Section 8), not aggregated into a single field.
-
-## 15. Validation Rules
-
-A Pattern v2 record is valid only if all of the following hold:
-
-1. `schema_version` is `2.1`.
-2. `metadata.pattern_level` is `api_specific`.
-3. At least one `supporting_reports` entry exists.
-4. At least one `supporting_reports` entry has `relation: direct_evidence`.
-5. Every `supporting_reports` entry includes `source_verification`.
-6. `scope.primary_api` appears in `scope.confirmed_apis`.
-7. All defect classes, dimensions, statuses, and confidence values use controlled vocabularies.
-8. Every Trigger condition includes `evidence_status` and `evidence_refs`.
-9. Every `official_confirmed`, `patch_derived`, or `source_reported` mechanism hypothesis includes at least one evidence reference.
-10. `historical_oracle` contains only historically supported observations.
-11. Pattern v2 contains no Harness Strategy, executable code, Strategy Primitive, or HarnessSpec field.
-12. Unknown free-text scalar information uses `null`, not an empty string.
-13. A Pattern without Trigger Signature or historical Oracle must have the corresponding confidence set to `low`.
-14. Material uncertainty that affects interpretation or later review should be recorded in `unresolved_information`.
-
-## 16. Complete Example
-
-```json
-{
-  "schema_version": "2.1",
-
-  "metadata": {
-    "pattern_id": "pt_matmul_unaligned_storage_p001",
-    "canonical_name": "matmul_unaligned_storage",
-    "pattern_level": "api_specific"
-  },
-
-  "derivation_information": {
-    "method": "hybrid",
-    "mapping_version": "2.1",
-    "prompt_version": "pattern_extract_v2_1",
+    "method": "llm_assisted",
+    "mapping_version": "4.2",
+    "prompt_version": "pattern_extract_v4_2",
     "model": "deepseek-v4-pro",
     "input_reports": [
       {
-        "report_id": "pytorch_191238",
+        "report_id": "br_example",
         "report_hash": "sha256:example"
       }
     ],
-    "generated_at": "2026-08-28",
-    "validation_status": "human_verified"
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_example",
+      "report_revision": 1,
+      "report_hash": "sha256:example",
+      "evidence_refs": ["ev_example"]
     },
-
-    "provenance": {
-    "supporting_reports": [
-      {
-        "report_id": "pytorch_191238",
-        "relation": "direct_evidence",
-        "evidence_refs": [
-          "report:pytorch_191238:issue_body",
-          "report:pytorch_191238:reproducer_01"
-        ],
-        "source_verification": {
-          "issue_verification_status": "official_confirmed",
-          "fix_status": "fixed",
-          "reproduction_status": "not_attempted"
-        }
-      }
-    ],
-    "abstraction_rationale": "The issue is represented as an unaligned-storage Pattern because the failure depends on a storage-alignment condition and occurs in a backend execution path.",
+    "abstraction_rationale": "The cited Report describes this API-specific historical behavior.",
     "unresolved_information": []
   },
-
   "scope": {
     "framework": "pytorch",
-    "primary_api": "torch.matmul",
-    "confirmed_apis": [
-      "torch.matmul"
-    ],
-    "operator": "aten::matmul",
-    "module": "linear_algebra"
+    "target_api": "torch.example"
   },
-
-  "defect_classification": {
-    "primary_defect_class": "memory_layout_boundary",
-    "secondary_defect_classes": [
-      "backend_dispatch_boundary"
-    ],
-    "risk_dimensions": [
-      "memory",
-      "layout",
-      "backend",
-      "shape"
-    ]
-  },
-
-  "trigger_signature": {
-    "conditions": [
-      {
-        "condition_id": "tc_memory_alignment_01",
-        "dimension": "memory",
-        "subject": "input_tensor",
-        "predicate": "data_ptr % 4 != 0",
-        "necessity": "required",
-        "evidence_status": "source_explicit",
-        "evidence_refs": [
-          "report:pytorch_191238:reproducer_01"
-        ]
-      },
-      {
-        "condition_id": "tc_dtype_01",
-        "dimension": "dtype",
-        "subject": "input_tensor",
-        "predicate": "dtype == float32",
-        "necessity": "contributing",
-        "evidence_status": "source_explicit",
-        "evidence_refs": [
-          "report:pytorch_191238:issue_body"
-        ]
-      },
-      {
-        "condition_id": "tc_shape_01",
-        "dimension": "shape",
-        "subject": "input_tensor",
-        "predicate": "leading_matrix_dimension == 1",
-        "necessity": "contributing",
-        "evidence_status": "source_explicit",
-        "evidence_refs": [
-          "report:pytorch_191238:issue_body"
-        ]
-      }
-    ],
-    "operation_context": {
-      "description": "CPU matrix multiplication on an M=1 backend execution path.",
+  "historical_conditions": [
+    {
+      "condition_id": "tc_01",
+      "statement": "The historical case used an empty input.",
+      "necessity": "unknown",
       "evidence_status": "source_explicit",
-      "evidence_refs": [
-        "report:pytorch_191238:issue_body"
-      ]
+      "evidence_refs": ["ev_example"]
     }
-  },
-
-  "defect_mechanism": {
-    "hypotheses": [
-      {
-        "hypothesis_id": "dm_01",
-        "layer": "backend",
-        "description": "A BLAS-backed execution path assumes aligned tensor storage.",
-        "status": "analyst_inferred",
-        "evidence_refs": [
-          "report:pytorch_191238:issue_body"
-        ],
-        "confidence": "medium"
-      }
-    ]
-  },
-
+  ],
+  "defect_mechanism": null,
   "observed_failure": {
-    "failure_type": "crash",
-    "description": "The process terminates with SIGBUS during CPU matmul execution.",
-    "historical_oracle": {
-      "kind": "signal",
-      "condition": "SIGBUS",
-      "evidence_status": "source_explicit",
-      "evidence_refs": [
-        "report:pytorch_191238:issue_body"
-      ]
-    },
-    "evidence_refs": [
-      "report:pytorch_191238:issue_body"
-    ]
-  },
-
-  "confidence": {
-    "trigger_confidence": "high",
-    "mechanism_confidence": "medium",
-    "oracle_confidence": "high"
+    "description": "The process terminated unexpectedly.",
+    "symptom_category": "crash",
+    "evidence_status": "analyst_normalized",
+    "evidence_refs": ["ev_example"],
+    "historical_observations": []
   }
 }
 ```
 
-## 17. Versioning and Legacy Notes
+## 4. Field semantics
 
-- Existing Pattern v1 records are preserved under `legacy/bug_patterns_v1/`.
-- Current Pattern v2 records are written to `bug_patterns/<api>/`.
-- Pattern v1 and Pattern v2 records must never be mixed in the same API output directory.
-- Existing v1 `harness_strategy` information must not be copied directly into Pattern v2. It may later be reviewed as candidate material for Knowledge.
-- Existing v1 category information may be reviewed as candidate material for `defect_classification`, but must be revalidated against the source Report.
-- Existing v1 trigger strings must be re-extracted into structured `trigger_signature.conditions` using reviewed Report evidence.
-- Existing v1 source information must be re-extracted into `provenance.supporting_reports`.
-- If a legacy record lacks sufficient evidence, it remains in `legacy/` and must not be promoted to Pattern v2 without source review.
+### 4.1 Metadata and derivation
 
-Pattern v2 is the evidence and mechanism layer. It must remain independent
-from later Knowledge and HarnessSpec design decisions.
+`metadata` provides a stable Pattern identity. `derivation_information` records how the artifact was created and the exact Report hash used. These fields are Builder-owned, not model-generated.
+
+### 4.2 Provenance
+
+`source_report` binds the Pattern to one Report revision and its content hash. The Builder computes `evidence_refs` as the exact de-duplicated union referenced by `historical_conditions`, `defect_mechanism`, `observed_failure`, and `historical_observations`; the model does not declare this provenance index. `abstraction_rationale` explains the bounded Report-to-Pattern transformation. `unresolved_information` records material gaps without inventing values.
+
+### 4.3 Scope
+
+`target_api` is the one API represented by this Pattern. It must exactly match an `affected` API assertion in the Report. APIs that are only mentioned cannot become targets. Cross-API knowledge transfer is not represented here.
+
+### 4.4 Historical conditions
+
+Each item is a source-grounded statement about the historical invocation, input, environment, execution context, or externally visible state:
+
+- `statement`: normalized condition without prescribing future generation;
+- `necessity`: `required`, `contributing`, or `unknown`;
+- `evidence_status`: how the statement relates to the source;
+- `evidence_refs`: supporting Report Evidence IDs.
+
+The default for necessity is `unknown`. A concrete value in one reproducer does not prove necessity.
+
+Implementation defects, missing checks, causal explanations, patch actions, and corrected expectations are not historical conditions. They belong in `defect_mechanism` or `observed_failure.historical_observations` as appropriate.
+
+### 4.5 Defect mechanism
+
+`defect_mechanism` is either `null` or one evidence-backed object containing `description`, optional `root_cause_category`, `evidence_status`, and `evidence_refs`. A failure symptom or trigger keyword cannot by itself establish a cause.
+
+The optional root-cause vocabulary reuses the 13 categories reported by Chen et al.:
+
+1. `type_issue`
+2. `tensor_shape_misalignment`
+3. `incorrect_algorithm_implementation`
+4. `environment_incompatibility`
+5. `api_incompatibility`
+6. `api_misuse`
+7. `incorrect_assignment`
+8. `incorrect_exception_handling`
+9. `misconfiguration`
+10. `numerical_issue`
+11. `concurrency_issue`
+12. `dependent_module_issue`
+13. `others`
+
+The label classifies a supported mechanism; it is not a substitute for one. If the mechanism is supported but its category is uncertain, use `null`. `others` means a known mechanism outside the other categories, not “unknown”.
+
+### 4.6 Observed failure
+
+`description` preserves the API-specific historical manifestation. `symptom_category` is one optional Chen-category label: `crash`, `incorrect_functionality`, `build_failure`, `poor_performance`, `hang`, or `unreported`. Use `null` when the evidence does not support a reliable mapping; use `unreported` only when the source explicitly indicates that the symptom was not reported.
+
+`historical_observations` stores evidence-linked statements describing detection, comparison, reproduction, or corrected expected behavior. It must not repeat invocation/input facts already captured by `historical_conditions`, or causal and patch-action details already captured by `defect_mechanism`. It is deliberately free text rather than a custom oracle taxonomy. It records history and does not prescribe the future Harness oracle.
+
+Each semantic fact is assigned to its narrowest field. One Evidence ID may support several distinct statements, but substantially equivalent statements are not duplicated merely to make the Pattern appear more complete.
+
+### 4.7 Evidence status
+
+Allowed values are:
+
+- `source_explicit`: stated directly in source text;
+- `code_derived`: directly derived from cited source code;
+- `patch_derived`: directly derived from a cited patch;
+- `analyst_normalized`: conservative restatement or taxonomy mapping grounded in cited evidence.
+
+`analyst_normalized` does not authorize new facts or causal claims.
+
+## 5. Taxonomy provenance
+
+The root-cause and symptom vocabularies are reused from Chen et al., *Toward Understanding Deep Learning Framework Bugs*, ACM TOSEM 2023, DOI `10.1145/3587155`. The paper's categories improve external grounding; our evidence links, nullable labels, and API-specific projection are project-specific representation choices and must be described as such.
+
+## 6. Validation boundary
+
+Automatic validation checks shape, version, IDs, selected API equality, evidence-reference membership, controlled values, and absence of downstream fields. It cannot prove semantic correctness of a condition, causal explanation, or taxonomy label.
+
+Patterns used in experiments require the lightweight human review defined in `../quality/pattern_review_protocol.md`. Bulk exploratory Patterns may be reviewed by a predeclared stratified sample, but an unreviewed Pattern must not be presented as ground truth.

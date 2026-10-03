@@ -1,0 +1,91 @@
+{
+  "schema_version": "4.0",
+  "metadata": {
+    "pattern_id": "pt_v4_torch_compile_advanced_indexing_sum_out_of_bounds_read_p001",
+    "canonical_name": "torch_compile_advanced_indexing_sum_out_of_bounds_read",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "4.0",
+    "prompt_version": "pattern_extract_v4_0",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_pytorch_100343",
+        "report_hash": "sha256:af1e0a9e2e16a00639b5f13c813db6e05d5cf1aa6d585754e65282239f92b5a6"
+      }
+    ],
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_pytorch_pytorch_100343",
+      "evidence_refs": [
+        "ev_3ce523f4035fec0c",
+        "ev_80fef2c21f3db631",
+        "ev_53fc887ffb263abb"
+      ],
+      "report_revision": 3,
+      "report_hash": "sha256:af1e0a9e2e16a00639b5f13c813db6e05d5cf1aa6d585754e65282239f92b5a6"
+    },
+    "abstraction_rationale": "The selected affected API torch.compile is paired with the report's trigger and failure observation: compiling a model that performs advanced indexing and torch.sum produced an out-of-bounds read instead of an IndexError. The pattern normalizes that scenario around torch.compile and preserves the evidence-supported missing runtime index validation discussed in the report.",
+    "unresolved_information": [
+      "No explicit root-cause claim was mapped in reported_diagnosis; the mechanism is derived from reporter/comment discussion.",
+      "No explicitly labelled reproduction section or captured reproduction artifact was mapped."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.compile"
+  },
+  "historical_conditions": [
+    {
+      "statement": "torch.compile is applied to a CPU model that indexes an input tensor of shape (2, 10) with an integer index tensor containing out-of-bounds index 3 for dimension 0 and then reduces the indexed result with torch.sum(dim=1).",
+      "necessity": "unknown",
+      "evidence_status": "analyst_normalized",
+      "evidence_refs": [
+        "ev_80fef2c21f3db631",
+        "ev_3ce523f4035fec0c"
+      ],
+      "condition_id": "tc_01"
+    }
+  ],
+  "defect_mechanism": {
+    "description": "Generated code from torch.compile performs indirect indexing x[idx] without a runtime bounds check when index values are unknown until execution, allowing out-of-bounds reads instead of raising IndexError.",
+    "root_cause_category": null,
+    "evidence_status": "analyst_normalized",
+    "evidence_refs": [
+      "ev_fcf096993fb8ca9c",
+      "ev_1d738ccc89b220f0"
+    ]
+  },
+  "observed_failure": {
+    "description": "The compiled model completed successfully and printed values containing NaN and large numbers that were labelled as an out-of-bound read, while the same non-compiled model raised IndexError for out-of-bounds index 3.",
+    "symptom_category": "incorrect_functionality",
+    "evidence_status": "analyst_normalized",
+    "evidence_refs": [
+      "ev_53fc887ffb263abb",
+      "ev_3ce523f4035fec0c"
+    ],
+    "historical_observations": [
+      {
+        "statement": "The compiled model output was labelled as a successful out-of-bound read and contained NaN and large values at positions corresponding to the invalid index.",
+        "evidence_status": "analyst_normalized",
+        "evidence_refs": [
+          "ev_53fc887ffb263abb"
+        ],
+        "observation_id": "ho_01"
+      },
+      {
+        "statement": "The same model executed without torch.compile raised IndexError: index 3 is out of bounds for dimension 0 with size 2.",
+        "evidence_status": "analyst_normalized",
+        "evidence_refs": [
+          "ev_3ce523f4035fec0c"
+        ],
+        "observation_id": "ho_02"
+      }
+    ]
+  }
+}

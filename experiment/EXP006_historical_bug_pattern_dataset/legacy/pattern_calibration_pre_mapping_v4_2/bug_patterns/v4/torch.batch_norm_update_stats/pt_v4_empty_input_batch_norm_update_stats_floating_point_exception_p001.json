@@ -1,0 +1,91 @@
+{
+  "schema_version": "4.0",
+  "metadata": {
+    "pattern_id": "pt_v4_empty_input_batch_norm_update_stats_floating_point_exception_p001",
+    "canonical_name": "empty_input_batch_norm_update_stats_floating_point_exception",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "4.0",
+    "prompt_version": "pattern_extract_v4_0",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_pytorch_120803",
+        "report_hash": "sha256:e1d914d1027f1f5b5e40d3e81a9a24eb298f8640469ff653c82ccdcd3ba839dc"
+      }
+    ],
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_pytorch_pytorch_120803",
+      "evidence_refs": [
+        "ev_8283d31bae59a860",
+        "ev_1b48c3e0224e3374",
+        "ev_afe2e8c7d534d3b4",
+        "ev_aa9d470764440605",
+        "ev_99a7ac3d3b6d7851",
+        "ev_db29e00322906325",
+        "ev_4718a2ce38ec2621",
+        "ev_a7f087e8219f5497"
+      ],
+      "report_revision": 4,
+      "report_hash": "sha256:e1d914d1027f1f5b5e40d3e81a9a24eb298f8640469ff653c82ccdcd3ba839dc"
+    },
+    "abstraction_rationale": "The single affected API is torch.batch_norm_update_stats. The historical failure is scoped to an empty-input call path, with patch evidence showing CPU and CUDA update paths added an empty-input guard before a division.",
+    "unresolved_information": [
+      "No explicit root-cause statement was mapped in reported_diagnosis; defect_mechanism is inferred from patch evidence.",
+      "No explicit expected behavior was mapped.",
+      "No explicit historical oracle was mapped."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats"
+  },
+  "historical_conditions": [
+    {
+      "statement": "An invocation of torch.batch_norm_update_stats used an input tensor with shape [0,0], running_mean and running_var tensors with shape [1], and momentum=0.0.",
+      "necessity": "unknown",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_8283d31bae59a860",
+        "ev_1b48c3e0224e3374"
+      ],
+      "condition_id": "tc_01"
+    }
+  ],
+  "defect_mechanism": {
+    "description": "The CPU and CUDA batch_norm_update_stats implementations computed n = input.numel() / n_input without first rejecting zero-element inputs. For an input of shape [0,0], n_input is 0, so the division by zero produced a floating point exception. The fix adds TORCH_CHECK(input.numel() != 0) before that division in both paths.",
+    "root_cause_category": "numerical_issue",
+    "evidence_status": "patch_derived",
+    "evidence_refs": [
+      "ev_99a7ac3d3b6d7851",
+      "ev_db29e00322906325",
+      "ev_4718a2ce38ec2621"
+    ]
+  },
+  "observed_failure": {
+    "description": "Calling torch.batch_norm_update_stats with an empty input tensor of shape [0,0] produced a floating point exception (core dumped).",
+    "symptom_category": "crash",
+    "evidence_status": "source_explicit",
+    "evidence_refs": [
+      "ev_afe2e8c7d534d3b4",
+      "ev_8283d31bae59a860",
+      "ev_aa9d470764440605"
+    ],
+    "historical_observations": [
+      {
+        "statement": "The issue was reported as reproducible on Linux (Ubuntu), but not on Mac M1.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_a7f087e8219f5497"
+        ],
+        "observation_id": "ho_01"
+      }
+    ]
+  }
+}

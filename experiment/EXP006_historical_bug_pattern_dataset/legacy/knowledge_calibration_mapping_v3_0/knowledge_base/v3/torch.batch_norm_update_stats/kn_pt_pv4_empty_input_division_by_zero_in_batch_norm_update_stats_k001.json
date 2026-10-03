@@ -1,0 +1,85 @@
+{
+  "schema_version": "3.0",
+  "metadata": {
+    "knowledge_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k001",
+    "canonical_name": "empty_input_division_by_zero_in_batch_norm_update_stats"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "3.0",
+    "prompt_version": "knowledge_extract_v3_0",
+    "model": "deepseek-v4-pro",
+    "input_pattern": {
+      "pattern_id": "pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001",
+      "pattern_hash": "sha256:b161ca7ef740464a0c602f255bc128e359abcf1b9cf376f100d5669abfe852df"
+    },
+    "generated_at": "2026-10-03",
+    "validation_status": "structurally_validated"
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats"
+  },
+  "learned_hypothesis": {
+    "statement": "On CPU Linux without CUDA, torch.batch_norm_update_stats may reach a statistics computation that divides by zero before input validation when the input is zero-element and its second dimension is zero, potentially terminating with a floating point exception rather than producing a normal input validation error.",
+    "abstraction_rationale": "The statement abstracts from the pattern's historical condition and mechanism: the report supplies a zero-element input with zero second dimension, the patch-derived mechanism identifies a division-by-zero before validation, and the observed failure confirms the floating point exception. It generalizes from the exact input shape to the condition that the second dimension is zero while preserving uncertainty about other shapes and environments.",
+    "evidence_status": "analyst_inferred",
+    "evidence_refs": [
+      "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_conditions",
+      "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:defect_mechanism",
+      "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:observed_failure"
+    ],
+    "limitations": [
+      "Both historical conditions have unknown necessity, so the condition required to trigger the failure is not established.",
+      "The mechanism is patch-derived rather than a mapped reported diagnosis, so the path for other empty shapes is not fully established.",
+      "The proposed validation error is a historical proposed test expectation, not a confirmed current-version contract."
+    ]
+  },
+  "exploration_guidance": {
+    "historical_anchors": [],
+    "variation_opportunities": [
+      {
+        "statement": "Explore zero-element input shapes with a zero second dimension beyond the exact historical input, varying the leading dimension to investigate whether the same division-by-zero path is reachable.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:defect_mechanism",
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_condition:tc_01"
+        ]
+      },
+      {
+        "statement": "Explore different platform and CUDA availability states, including non-Linux and CUDA-enabled settings, to investigate whether the floating point exception path is environment-specific.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_condition:tc_02",
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_observation:ho_01"
+        ]
+      },
+      {
+        "statement": "Explore zero-element input shapes whose second dimension is nonzero to contrast input validation behavior with the zero-second-dimension division-by-zero path.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:defect_mechanism",
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_observation:ho_02"
+        ]
+      }
+    ],
+    "observation_candidates": [
+      {
+        "statement": "Observe whether the call terminates with a floating point exception for zero-element inputs with a zero second dimension.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:observed_failure",
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:defect_mechanism"
+        ]
+      },
+      {
+        "statement": "Observe whether the API raises an input validation error for empty inputs rather than terminating with a floating point exception.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:observed_failure",
+          "pattern:pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001:historical_observation:ho_02"
+        ]
+      }
+    ]
+  }
+}

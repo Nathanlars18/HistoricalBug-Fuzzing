@@ -1,160 +1,155 @@
-# Pattern-to-Knowledge Rules v2.1
+# Pattern-to-Knowledge Rules v3.1
 
-## 1. Purpose
+## 1. Purpose and cardinality
 
-This document defines how one API-specific historical Bug Pattern is mapped to
-one API-specific Knowledge candidate during initial extraction.
+Map one API-specific Pattern v4.0 into at most one API-specific Knowledge v3.0
+record. A result may be:
 
-```text
-API-specific Bug Pattern
-        ↓
-API-specific Knowledge
-        ↓
-HarnessSpec
-```
+- `candidate`: one evidence-grounded Knowledge candidate; or
+- `not_extractable`: the Pattern cannot support a useful testing hypothesis
+  without unsupported speculation.
 
-A Pattern records evidence-backed historical defect information. A Knowledge
-record abstracts that information into a reusable testing principle,
-applicability boundary, exploration goals, and Oracle guidance.
+Never create content merely to satisfy a field or record-count target.
 
-Field names, controlled vocabularies, output format, defaults, and validation
-constraints are defined in:
+## 2. Layer boundary
 
-- `knowledge_schema.md`
-- `knowledge_extraction_contract.json`
+Pattern records historical evidence. Knowledge proposes a bounded, same-API
+testing hypothesis and open exploration guidance. HarnessSpec later determines
+current applicability, implementability, risk-dimension tags, concrete target
+properties, Activation, Oracles, branches, and budgets.
 
-## 2. Mapping Boundary
+Do not emit concrete Tensor values, exact reproduction steps, mutations,
+Strategy Primitives, validity/risk/activation predicates, HarnessSpec fields,
+instrumentation, source code, or feedback logic.
 
-Input: one API-specific Pattern with a stable Pattern ID, Pattern hash,
-directly supported API scope, and addressable Pattern evidence references.
+## 3. Deterministic mapping
 
-Output: one API-specific Knowledge candidate.
+The Builder supplies:
 
-```text
-One API-specific Pattern
-        ↓
-One API-specific Knowledge candidate
-```
+| Pattern field | Knowledge field |
+| --- | --- |
+| Pattern ID and canonical hash | `derivation_information.input_pattern` |
+| `scope.framework` | `scope.framework` |
+| `scope.target_api` | `scope.target_api` |
+| Builder/model/mapping identity | remaining derivation fields |
+| accepted evidence references | all claim-reference validation |
 
-This is an initial extraction constraint for traceability. It does not claim
-that all testing knowledge is naturally one-to-one with Patterns.
+The model must not emit or change those fields.
 
-Do not produce:
+## 4. Semantic mapping
 
-- multiple Knowledge candidates;
-- concrete input generation, Strategy Primitives, predicates, HarnessSpec,
-  code-generation prompts, or Harness code.
+### 4.1 Learned hypothesis
 
-## 3. Field Mapping
+Derive one hypothesis from the smallest sufficient combination of:
 
-| Pattern evidence | Knowledge representation | Mapping rule |
-| --- | --- | --- |
-| `metadata.canonical_name` and `scope.primary_api` | `canonical_name` | Create a concise API-specific testing-principle name. Do not retain a defect-oriented Pattern name when a clearer testing-principle name is available. |
-| Pattern ID and Pattern hash | `derivation_information.input_patterns` | Added by the script. |
-| Pattern ID and selected Pattern evidence references | `evidence_basis.supporting_patterns` | Added by the script as one `direct_derivation` entry. |
-| Evidence supporting the abstraction | `evidence_basis.derivation_rationale` | Explain why the Pattern supports the resulting Knowledge principle. |
-| Material unresolved Pattern uncertainty | `evidence_basis.limitations` | Preserve only uncertainty that materially limits applicability, exploration, or Oracle interpretation. |
-| `scope.framework`, `scope.primary_api`, `scope.confirmed_apis` | `scope` | Inherited by the script. `confirmed_apis` becomes `directly_supported_apis`. |
-| `defect_classification`, `trigger_signature`, and `defect_mechanism` | `knowledge_statement.risk_principle` | Abstract the reusable testing risk; do not reproduce the full trigger or mechanism. |
-| Trigger, mechanism, and failure evidence | `knowledge_statement.testing_objective` | State what testing should explore or observe at a high level. |
-| `observed_failure` and relevant mechanism evidence | `knowledge_statement.failure_relevance` | Explain why the objective may reveal historically relevant behavior; otherwise use `null`. |
-| Pattern scope, trigger, and mechanism evidence | `applicability.applicability_conditions` | Derive semantic prerequisites within the directly supported API scope. |
-| Known semantic limits in Pattern evidence | `applicability.exclusion_conditions` | Derive known reasons not to select the Knowledge. |
-| Pattern scope, trigger, and mechanism evidence | `applicability.rationale` | State a concise applicability boundary within the directly supported API scope. |
-| Selected risk dimensions, triggers, and mechanism evidence | `testing_guidance.exploration_goals` | Derive the smallest useful set of high-level exploration goals. |
-| Exploration-goal target dimensions | `testing_guidance.risk_dimensions` | Use the de-duplicated set of `target_dimension` values. |
-| `observed_failure.historical_oracle` and `observed_failure` | `testing_guidance.oracle_guidance` | Preserve evidence-supported observation targets only. |
-| Pattern confidence and evidence completeness | `confidence` | Reassess Knowledge confidence; do not mechanically copy Pattern confidence. |
+- `historical_conditions`;
+- an optional supported `defect_mechanism`;
+- `observed_failure` and its historical observations.
 
-## 4. Essential Mapping Rules
+The statement must generalize beyond the exact reproducer without claiming a
+new historical fact, cross-API transfer, or current-version failure. The
+abstraction rationale must explain the evidence link and preserve uncertainty
+about conditions whose necessity is not established.
 
-### 4.1 Evidence and abstraction
+State a bounded risk relationship: an evidence-grounded boundary or mechanism
+may expose a class of unsafe or inconsistent behavior in the target API. Do not
+substitute the meta-claim that testing an input is useful, and do not reproduce
+the complete historical input, environment, and expected failure.
 
-Every nontrivial Knowledge claim must cite only identifiers supplied in
-`available_evidence_refs`.
+A condition marked `contributing` or `unknown` may motivate a candidate
+boundary, but it must not be written as an established prerequisite, scope
+restriction, or proven trigger. Use modal language, explain the uncertainty in
+the rationale or limitations, and leave the condition open to variation. This
+rule permits evidence-grounded exploration without converting one historical
+example into a reproduction recipe.
 
-Knowledge must not add a historical fact, API, root cause, failure, or source
-identifier that is absent from the input Pattern.
+Use `pattern_derived` only when the semantic content is conservatively entailed
+by the cited Pattern. Use `analyst_inferred` for an evidence-grounded but
+interpretive extension, including a new counterfactual, comparison, candidate
+boundary, or variation dimension. If no meaningful statement can be produced
+under those rules, return `not_extractable`.
 
-Use:
+### 4.2 Historical anchors
 
-- `pattern_explicit` for directly preserved Pattern claims;
-- `pattern_derived` for evidence-backed abstraction;
-- `analyst_inferred` only for cautious interpretation with cited evidence;
-- `unknown`, `null`, an empty array, or `low` when evidence is insufficient.
+An anchor may cite only an individual `historical_condition` whose `necessity`
+equals `required`. Do not automatically copy every required condition; retain
+only conditions material to the hypothesis.
 
-If the Pattern cannot support a required Knowledge statement without
-speculation, return the conservative candidate and let validation mark it
-`needs_revision`; do not invent a plausible statement.
+Never promote `contributing` or `unknown` conditions to anchors. Anchors apply
+only to later Knowledge-directed exploration, not to generic testing.
 
-### 4.2 Scope and applicability
+### 4.3 Variation opportunities
 
-`directly_supported_apis` is inherited from Pattern evidence. It must match the API scope directly supported by the source Pattern.
+Use variation opportunities to retain meaningful fuzzing freedom and explore
+nearby or combined states instead of fixing the complete historical input.
+They may be informed by:
 
-Applicability conditions answer whether this Knowledge is relevant to a testing
-scenario within its directly supported API scope. They use only:
+- `contributing` and `unknown` historical conditions;
+- aspects of a required condition that evidence does not require to remain
+  constant;
+- supported mechanism and failure evidence.
 
-- `api_semantics`;
-- `input_capability`;
-- `execution_capability`.
+Do not silently transform a historical example into a necessary future value.
+Do not promise that a variation will trigger a Bug. Interpretive opportunities
+use `analyst_inferred`.
 
-Conditions must be semantic statements, not concrete Tensor settings, API-call
-code, mutation operations, or executable predicates.
+### 4.4 Observation candidates
 
-Use `exclusion_conditions` only for known semantic inapplicability. Use
-`evidence_basis.limitations` for missing or insufficient evidence.
+Derive candidates conservatively from `observed_failure`, individual
+historical observations, and supported mechanism evidence. A historical
+symptom is not automatically a sound future Oracle. State only what may be
+worth observing; leave executable Oracle selection and implementation to
+HarnessSpec. A proposed historical fix or test expectation may motivate a
+candidate observation, but must not be presented as the current expected
+behavior of the API.
 
-### 4.3 Exploration and Oracle guidance
+### 4.5 Limitations
 
-Each exploration goal has one `target_dimension`, one high-level statement,
-one priority, and cited evidence.
+Preserve unresolved information that materially limits the hypothesis,
+generalization, or candidate observation. Missing evidence is a limitation,
+not an exclusion condition or a fact to infer.
 
-`risk_dimensions` must equal the de-duplicated set of exploration-goal target
-dimensions. Do not copy every Pattern risk dimension automatically.
+## 5. Taxonomy rule
 
-Use `historical_observable` only for an evidence-backed historical observation.
+Chen root-cause and symptom categories remain Pattern annotations. Do not copy
+them into Knowledge, and do not mechanically map them to variation
+opportunities, observations, Harness risk dimensions, Primitives, or Oracles.
 
-Use `derived_oracle_candidate` only when cautiously inferred from Pattern
-evidence. It must have `analyst_inferred` status and cannot have `high`
-confidence.
+Knowledge v3 defines no defect taxonomy and no operational risk-dimension
+taxonomy.
 
-Oracle guidance must not contain executable assertions, instrumentation,
-timeout thresholds, sanitizer configuration, reference calls, or C++ code.
+## 6. Evidence rules
 
-### 4.4 Confidence
+- Every asserted item cites one or more supplied Pattern evidence references.
+- Do not cite Reports, Issues, commits, or external sources directly.
+- Do not invent an API, historical condition, mechanism, failure, source, or
+  evidence reference.
+- `pattern_derived` describes a conservative evidence-backed abstraction.
+- `analyst_inferred` identifies a proposed interpretation, not a historical
+  fact.
+- Empty arrays are valid. Empty strings and placeholder objects are invalid.
 
-Confidence measures evidence support, not how fluent or broad a statement
-appears.
+## 7. LLM and Builder responsibilities
 
-- `high`: directly and consistently supported by Pattern evidence;
-- `medium`: strongly supported but requires modest interpretation;
-- `low`: incomplete, weakly supported, unknown, or analyst-inferred.
+The LLM emits only:
 
-`abstraction_confidence` cannot be `high` when the main Knowledge statement is
-`analyst_inferred`.
-
-`applicability_confidence` is `low` when Applicability makes no claim.
-
-`oracle_guidance_confidence` is `low` when `oracle_guidance` is empty.
-
-## 5. LLM and Script Responsibilities
-
-The LLM emits:
-
+- extraction status and an optional non-extraction reason;
 - `canonical_name`;
-- derivation rationale and limitations;
-- Knowledge statement;
-- applicability and exclusion conditions;
-- applicability conditions, exclusions, and rationale;
-- exploration goals;
-- Oracle guidance;
-- confidence values.
+- the learned hypothesis;
+- historical anchors;
+- variation opportunities;
+- observation candidates.
 
-The script:
+The Builder:
 
-- supplies the Pattern, Pattern hash, and allowed evidence references;
-- creates provenance, scope, derivation metadata, and deterministic IDs;
-- assigns condition and goal IDs;
-- validates evidence references, controlled values, scope inheritance, and
-  exploration-goal dimensions;
-- rejects unsupported code, predicates, concrete test construction and HarnessSpec content.
+- validates Pattern v4.0 and computes its canonical hash;
+- supplies addressable evidence references and required-condition references;
+- injects IDs, derivation metadata, scope, and structural-validation status;
+- rejects unsupported references, promoted non-required anchors, forbidden
+  downstream fields, and unknown fields;
+- writes a Knowledge record only for a validated `candidate` result;
+- reports `not_extractable` without writing a fabricated Knowledge record.
+
+Automatic validation does not prove that free text contains no overgeneralized
+semantic claim. Experiment-used Knowledge must pass the review defined in
+`../quality/knowledge_review_protocol.md`.

@@ -1,4 +1,4 @@
-"""Batch Knowledge v3 extraction from Pattern v4 (invokes the LLM)."""
+"""Batch Knowledge extraction from Pattern v4 (invokes the LLM)."""
 import subprocess
 import sys
 from pathlib import Path

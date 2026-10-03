@@ -1,0 +1,93 @@
+{
+  "schema_version": "4.0",
+  "metadata": {
+    "pattern_id": "pt_v4_torch_compile_cpu_indirect_indexing_missing_bounds_check_p001",
+    "canonical_name": "torch_compile_cpu_indirect_indexing_missing_bounds_check",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "4.1",
+    "prompt_version": "pattern_extract_v4_1",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_pytorch_100343",
+        "report_hash": "sha256:af1e0a9e2e16a00639b5f13c813db6e05d5cf1aa6d585754e65282239f92b5a6"
+      }
+    ],
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_pytorch_pytorch_100343",
+      "evidence_refs": [
+        "ev_1d738ccc89b220f0",
+        "ev_3ce523f4035fec0c",
+        "ev_53fc887ffb263abb",
+        "ev_80fef2c21f3db631",
+        "ev_fcf096993fb8ca9c"
+      ],
+      "report_revision": 3,
+      "report_hash": "sha256:af1e0a9e2e16a00639b5f13c813db6e05d5cf1aa6d585754e65282239f92b5a6"
+    },
+    "abstraction_rationale": "Selected API is torch.compile. The report attributes an out-of-bounds read to torch.compile when it compiles a CPU model using indirect indexing x[self.idx] inside torch.sum. torch.sum is only mentioned, so this pattern remains scoped to torch.compile.",
+    "unresolved_information": [
+      "No explicit root-cause claim was mapped in reported_diagnosis; the mechanism is based on comment-thread diagnostic text rather than a normalized root_cause_claim.",
+      "No explicit expected-behavior claim or historical oracle was mapped; the comparison with eager execution is the only source of corrected-behavior evidence."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.compile"
+  },
+  "historical_conditions": [
+    {
+      "statement": "A CPU model compiled with torch.compile executes forward logic that applies torch.sum(x[self.idx], dim=1), where self.idx is a CPU tensor containing out-of-bounds indices ([[1, 3, 2], [1, 4, 3]]) for an input x with first dimension size 2.",
+      "necessity": "unknown",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_3ce523f4035fec0c",
+        "ev_80fef2c21f3db631"
+      ],
+      "condition_id": "tc_01"
+    }
+  ],
+  "defect_mechanism": {
+    "description": "The torch.compile-generated C++ path for indirect indexing x[idx] does not validate that idx is within bounds before accessing memory. Because the real index values are only known when the generated C++ code runs, an out-of-bounds CPU index results in an illegal memory read rather than the eager IndexError. The comment-thread diagnostic indicates that validation would need to be performed in the generated C++ code, in contrast to the Triton backend's device_asserts.",
+    "root_cause_category": null,
+    "evidence_status": "source_explicit",
+    "evidence_refs": [
+      "ev_fcf096993fb8ca9c",
+      "ev_1d738ccc89b220f0"
+    ]
+  },
+  "observed_failure": {
+    "description": "The torch.compile-compiled CPU model returned a tensor with nan and an anomalous large value (-1.7412e+38) in positions using out-of-bounds indices, while the same model without torch.compile raised IndexError: index 3 is out of bounds for dimension 0 with size 2.",
+    "symptom_category": "incorrect_functionality",
+    "evidence_status": "source_explicit",
+    "evidence_refs": [
+      "ev_3ce523f4035fec0c",
+      "ev_53fc887ffb263abb"
+    ],
+    "historical_observations": [
+      {
+        "statement": "The issue body labels the compiled output as 'success, out-of-bound read' and shows nan and -1.7412e+38 in the output tensor.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_53fc887ffb263abb"
+        ],
+        "observation_id": "ho_01"
+      },
+      {
+        "statement": "Running the same input through func(input_tensor) without torch.compile raises 'IndexError: index 3 is out of bounds for dimension 0 with size 2'.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_3ce523f4035fec0c"
+        ],
+        "observation_id": "ho_02"
+      }
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -7,6 +8,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 import requests
+import build_bug_report_json as report_builder
 
 
 BASE_DIR = os.path.dirname(
@@ -22,7 +24,8 @@ BUG_REPORT_DIR = os.path.join(
 
 DEFAULT_OUTPUT_DIR = os.path.join(
     EXP006_DIR,
-    "bug_patterns"
+    "bug_patterns",
+    "v4"
 )
 
 CONTRACT_FILE = os.path.join(
@@ -37,9 +40,9 @@ MAPPING_FILE = os.path.join(
     "report_to_pattern_mapping.md"
 )
 
-SCHEMA_VERSION = "2.1"
-MAPPING_VERSION = "2.1"
-PROMPT_VERSION = "pattern_extract_v2_5"
+SCHEMA_VERSION = "4.0"
+MAPPING_VERSION = "4.2"
+PROMPT_VERSION = "pattern_extract_v4_2"
 
 DEFAULT_MODEL = "deepseek-v4-pro"
 
@@ -48,16 +51,15 @@ DEFAULT_API_URL = (
 )
 
 MAX_LLM_ATTEMPTS = 3
+MAX_PROMPT_CHARS = 150000
 
 CANDIDATE_KEYS = {
     "canonical_name",
     "provenance",
     "scope",
-    "defect_classification",
-    "trigger_signature",
+    "historical_conditions",
     "defect_mechanism",
-    "observed_failure",
-    "confidence"
+    "observed_failure"
 }
 
 FORBIDDEN_FIELD_NAMES = {
@@ -238,19 +240,6 @@ def normalize_candidate(candidate):
 
     require_dict(candidate, "Pattern candidate")
 
-    classification = candidate.get(
-        "defect_classification"
-    )
-
-    if isinstance(classification, dict):
-        if (
-            "secondary_categories" in classification
-            and "secondary_defect_classes" not in classification
-        ):
-            classification["secondary_defect_classes"] = (
-                classification.pop("secondary_categories")
-            )
-
     return candidate
 
 
@@ -343,53 +332,89 @@ def report_supports_api(report, selected_api):
     return any(
         isinstance(item, dict)
         and str(item.get("api_name", "")).casefold() == selected
-        and item.get("relation") in {"primary", "affected"}
+        and item.get("relation") == "affected"
         for item in assertions
     )
 
 
-def latest_report_paths_for_api(api):
-    """Return one newest Report revision per supported Report ID."""
+def latest_report_records():
+    """Select latest identity/revision before API or approval filtering. Fail closed."""
     latest = {}
+    seen = set()
     for path in sorted(Path(BUG_REPORT_DIR).rglob("revision_*.json")):
         try:
             report = load_json(str(path))
-        except (OSError, json.JSONDecodeError):
-            continue
-        if not report_supports_api(report, api):
-            continue
-        report_id = get_report_id(report, path.stem)
-        revision = report.get("revision_information", {}).get("revision_number", 0)
-        try:
-            revision = int(revision)
-        except (TypeError, ValueError):
-            revision = 0
+            report_id = report["identity"]["report_id"]
+            revision = report["revision_information"]["revision_number"]
+            if not isinstance(report_id, str) or not report_id or type(revision) is not int or revision < 1:
+                raise ValueError("Invalid Report identity/revision")
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise ValueError(f"Cannot select latest Report safely: {path}: {exc}") from exc
         previous = latest.get(report_id)
-        if previous is None or revision > previous[0] or (revision == previous[0] and str(path) > str(previous[1])):
-            latest[report_id] = (revision, path)
-    return [item[1] for item in sorted(latest.values(), key=lambda item: (item[0], str(item[1])))]
+        if (report_id, revision) in seen:
+            raise ValueError(f"Duplicate Report identity/revision: {report_id} r{revision}")
+        seen.add((report_id, revision))
+        if previous is None or revision > previous[0]:
+            latest[report_id] = (revision, path, report)
+    return [latest[key] for key in sorted(latest)]
+
+
+def latest_report_paths_for_api(api):
+    return [path for _, path, report in latest_report_records() if report_supports_api(report, api)]
 
 
 def build_report_context(report, fallback_report_id, selected_api):
+    report_builder.validate_report(report)
+    review = report["review"]
+    if review["validation_status"] != "passed":
+        raise ValueError("Report must be validation-passed")
+    if review["human_review_status"] == "rejected":
+        raise ValueError("Human-rejected Report must not enter Pattern extraction")
+    if not report_supports_api(report, selected_api):
+        raise ValueError("Selected API is not affected in this Report revision")
     report_id = get_report_id(report, fallback_report_id)
     framework = get_framework(report)
     evidence_items = report.get("evidence_items", [])
     if not isinstance(evidence_items, list):
         raise ValueError("Report evidence_items must be an array")
-    available_evidence_refs = []
+    evidence_by_id = {}
     for item in evidence_items:
         if not isinstance(item, dict) or not item.get("evidence_id"):
             raise ValueError("Every evidence item must contain evidence_id")
-        available_evidence_refs.append(item["evidence_id"])
+        evidence_id = item["evidence_id"]
+        if evidence_id in evidence_by_id:
+            raise ValueError(f"Duplicate Report evidence_id: {evidence_id}")
+        evidence_by_id[evidence_id] = item
+    available_evidence_refs = [item["evidence_id"] for item in evidence_items]
     if not available_evidence_refs:
-        raise ValueError("Report has no addressable evidence_items")
-    return {
+        raise ValueError("Report has no addressable source evidence")
+    artifacts = {a["artifact_id"]: a for a in report["source_bundle"]["source_artifacts"]}
+    by_id = {}
+    for evidence_id in available_evidence_refs:
+        item = evidence_by_id[evidence_id]
+        artifact = artifacts.get(item["source_artifact_ref"])
+        if artifact is None:
+            raise ValueError(f"Evidence references an unknown source artifact: {evidence_id}")
+        locator = {"artifact_path": artifact["local_path"], **item["locator"]}
+        _, content = report_builder.resolve_locator(locator, report_builder.PROJECT_ROOT)
+        by_id[evidence_id] = {
+            "evidence_id": evidence_id,
+            "artifact_role": artifact["artifact_role"],
+            "attribution": {"actor": None, "actor_role": "unknown"},
+            "content": content,
+        }
+    context = {
         "report_id": report_id,
+        "report_revision": report["revision_information"]["revision_number"],
         "framework": framework,
         "selected_api": selected_api,
         "available_evidence_refs": available_evidence_refs,
         "report": report,
+        "resolved_evidence": [by_id[ref] for ref in available_evidence_refs],
     }
+    if len(json.dumps(context, ensure_ascii=False)) > MAX_PROMPT_CHARS:
+        raise ValueError("Report evidence exceeds context budget; do not silently truncate")
+    return context
 
 
 def build_prompt(report_context, contract, mapping):
@@ -486,6 +511,32 @@ def validate_evidence_refs(
             )
 
 
+def semantic_evidence_refs(candidate):
+    """Return the exact evidence union used by semantic Pattern fields."""
+    refs = []
+
+    def collect(value):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key == "evidence_refs":
+                    validate_string_list(item, "evidence_refs")
+                    refs.extend(item)
+                else:
+                    collect(item)
+        elif isinstance(value, list):
+            for item in value:
+                collect(item)
+
+    for field in (
+        "historical_conditions",
+        "defect_mechanism",
+        "observed_failure",
+    ):
+        collect(candidate.get(field))
+
+    return sorted(set(refs))
+
+
 def validate_response_envelope(response):
     validate_exact_keys(
         response,
@@ -503,558 +554,265 @@ def validate_response_envelope(response):
         )
 
 
-def validate_candidate(
-    candidate,
-    report_context,
-    contract
-):
-    validate_exact_keys(
-        candidate,
-        CANDIDATE_KEYS,
-        "Pattern candidate"
-    )
+def validate_candidate(candidate, report_context, contract):
+    validate_exact_keys(candidate, CANDIDATE_KEYS, "Pattern candidate")
 
     forbidden_path = contains_forbidden_key(candidate)
-
     if forbidden_path:
-        raise ValueError(
-            f"Forbidden field detected: {forbidden_path}"
-        )
+        raise ValueError(f"Forbidden field detected: {forbidden_path}")
 
     empty_string_path = find_empty_string(candidate)
-
     if empty_string_path:
-        raise ValueError(
-            f"Empty string is not allowed: {empty_string_path}"
-        )
+        raise ValueError(f"Empty string is not allowed: {empty_string_path}")
 
-    vocabularies = contract[
-        "controlled_vocabularies"
-    ]
+    vocabularies = contract["controlled_vocabularies"]
+    allowed_refs = set(report_context["available_evidence_refs"])
 
-    allowed_refs = set(
-        report_context["available_evidence_refs"]
-    )
-
-    require_string(
-        candidate["canonical_name"],
-        "canonical_name"
-    )
-
-    if not re.fullmatch(
-        r"[a-z][a-z0-9_]*",
-        candidate["canonical_name"]
-    ):
-        raise ValueError(
-            "canonical_name must use lower_snake_case"
-        )
+    require_string(candidate["canonical_name"], "canonical_name")
+    if not re.fullmatch(r"[a-z][a-z0-9_]*", candidate["canonical_name"]):
+        raise ValueError("canonical_name must use lower_snake_case")
 
     provenance = candidate["provenance"]
-
     validate_exact_keys(
         provenance,
-        {
-            "supporting_reports",
-            "abstraction_rationale",
-            "unresolved_information"
-        },
-        "provenance"
+        {"source_report", "abstraction_rationale", "unresolved_information"},
+        "provenance",
     )
-
     require_string(
         provenance["abstraction_rationale"],
-        "provenance.abstraction_rationale"
+        "provenance.abstraction_rationale",
     )
-
     validate_string_list(
         provenance["unresolved_information"],
-        "provenance.unresolved_information"
+        "provenance.unresolved_information",
     )
 
-    supporting_reports = provenance[
-        "supporting_reports"
-    ]
-
-    require_list(
-        supporting_reports,
-        "provenance.supporting_reports"
-    )
-
-    if len(supporting_reports) != 1:
-        raise ValueError(
-            "Initial extraction must contain exactly one "
-            "supporting Report"
-        )
-
-    supporting_report = supporting_reports[0]
-
+    source_report = provenance["source_report"]
     validate_exact_keys(
-        supporting_report,
-        {
-            "report_id",
-            "relation",
-            "evidence_refs",
-            "source_verification"
-        },
-        "provenance.supporting_reports[0]"
+        source_report,
+        {"report_id"},
+        "provenance.source_report",
     )
-
-    if (
-        supporting_report["report_id"]
-        != report_context["report_id"]
-    ):
-        raise ValueError(
-            "supporting_reports[0].report_id must match "
-            "the input Report ID"
-        )
-
-    if supporting_report["relation"] != "direct_evidence":
-        raise ValueError(
-            "Initial extraction relation must be direct_evidence"
-        )
-
-    validate_evidence_refs(
-        supporting_report["evidence_refs"],
-        allowed_refs,
-        "provenance.supporting_reports[0].evidence_refs",
-        required=True
-    )
-
-    source_verification = supporting_report[
-        "source_verification"
-    ]
-
-    validate_exact_keys(
-        source_verification,
-        {
-            "issue_verification_status",
-            "fix_status",
-            "reproduction_status"
-        },
-        "source_verification"
-    )
-
-    validate_enum(
-        source_verification[
-            "issue_verification_status"
-        ],
-        vocabularies["issue_verification_status"],
-        "issue_verification_status"
-    )
-
-    validate_enum(
-        source_verification["fix_status"],
-        vocabularies["fix_status"],
-        "fix_status"
-    )
-
-    validate_enum(
-        source_verification[
-            "reproduction_status"
-        ],
-        vocabularies["reproduction_status"],
-        "reproduction_status"
-    )
+    if source_report["report_id"] != report_context["report_id"]:
+        raise ValueError("provenance.source_report.report_id must match the input Report")
 
     scope = candidate["scope"]
+    validate_exact_keys(scope, {"target_api"}, "scope")
+    require_string(scope["target_api"], "scope.target_api")
+    if scope["target_api"] != report_context["selected_api"]:
+        raise ValueError("scope.target_api must match the selected API exactly")
 
-    validate_exact_keys(
-        scope,
-        {
-            "primary_api",
-            "confirmed_apis",
-            "operator",
-            "module"
-        },
-        "scope"
-    )
-
-    require_string(
-        scope["primary_api"],
-        "scope.primary_api"
-    )
-
-    validate_string_list(
-        scope["confirmed_apis"],
-        "scope.confirmed_apis"
-    )
-
-    if scope["primary_api"] not in scope["confirmed_apis"]:
-        raise ValueError(
-            "scope.primary_api must appear in "
-            "scope.confirmed_apis"
-        )
-
-    selected_api = report_context["selected_api"]
-    if scope["primary_api"] != selected_api:
-        raise ValueError(
-            f"scope.primary_api must match selected API {selected_api!r}"
-        )
-    if selected_api not in scope["confirmed_apis"]:
-        raise ValueError(
-            f"scope.confirmed_apis must include selected API {selected_api!r}"
-        )
-
-    for optional_key in ["operator", "module"]:
-        value = scope[optional_key]
-
-        if value is not None:
-            require_string(
-                value,
-                f"scope.{optional_key}"
-            )
-
-    classification = candidate[
-        "defect_classification"
-    ]
-
-    validate_exact_keys(
-        classification,
-        {
-            "primary_defect_class",
-            "secondary_defect_classes",
-            "risk_dimensions"
-        },
-        "defect_classification"
-    )
-
-    validate_enum(
-        classification["primary_defect_class"],
-        vocabularies["defect_classes"],
-        "primary_defect_class"
-    )
-
-    validate_string_list(
-        classification[
-            "secondary_defect_classes"
-        ],
-        "secondary_defect_classes"
-    )
-
-    for defect_class in classification[
-        "secondary_defect_classes"
-    ]:
-        validate_enum(
-            defect_class,
-            vocabularies["defect_classes"],
-            "secondary_defect_classes"
-        )
-
-    validate_string_list(
-        classification["risk_dimensions"],
-        "risk_dimensions"
-    )
-
-    for dimension in classification["risk_dimensions"]:
-        validate_enum(
-            dimension,
-            vocabularies["risk_dimensions"],
-            "risk_dimensions"
-        )
-
-    trigger_signature = candidate[
-        "trigger_signature"
-    ]
-
-    validate_exact_keys(
-        trigger_signature,
-        {
-            "conditions",
-            "operation_context"
-        },
-        "trigger_signature"
-    )
-
-    conditions = trigger_signature["conditions"]
-
-    require_list(
-        conditions,
-        "trigger_signature.conditions"
-    )
-
+    conditions = candidate["historical_conditions"]
+    require_list(conditions, "historical_conditions")
     for index, condition in enumerate(conditions):
-        label = f"trigger_signature.conditions[{index}]"
-
+        label = f"historical_conditions[{index}]"
         validate_exact_keys(
             condition,
-            {
-                "dimension",
-                "subject",
-                "predicate",
-                "necessity",
-                "evidence_status",
-                "evidence_refs"
-            },
-            label
+            {"statement", "necessity", "evidence_status", "evidence_refs"},
+            label,
         )
-
-        validate_enum(
-            condition["dimension"],
-            vocabularies["risk_dimensions"],
-            f"{label}.dimension"
-        )
-
-        require_string(
-            condition["subject"],
-            f"{label}.subject"
-        )
-
-        require_string(
-            condition["predicate"],
-            f"{label}.predicate"
-        )
-
+        require_string(condition["statement"], f"{label}.statement")
         validate_enum(
             condition["necessity"],
             vocabularies["condition_necessity"],
-            f"{label}.necessity"
+            f"{label}.necessity",
         )
-
         validate_enum(
             condition["evidence_status"],
             vocabularies["evidence_status"],
-            f"{label}.evidence_status"
+            f"{label}.evidence_status",
         )
-
         validate_evidence_refs(
             condition["evidence_refs"],
             allowed_refs,
             f"{label}.evidence_refs",
-            required=True
-        )
-
-    operation_context = trigger_signature[
-        "operation_context"
-    ]
-
-    if operation_context is not None:
-        validate_exact_keys(
-            operation_context,
-            {
-                "description",
-                "evidence_status",
-                "evidence_refs"
-            },
-            "trigger_signature.operation_context"
-        )
-
-        require_string(
-            operation_context["description"],
-            "trigger_signature.operation_context.description"
-        )
-
-        validate_enum(
-            operation_context["evidence_status"],
-            vocabularies["evidence_status"],
-            "trigger_signature.operation_context.evidence_status"
-        )
-
-        validate_evidence_refs(
-            operation_context["evidence_refs"],
-            allowed_refs,
-            "trigger_signature.operation_context.evidence_refs",
-            required=True
+            required=True,
         )
 
     mechanism = candidate["defect_mechanism"]
-
-    validate_exact_keys(
-        mechanism,
-        {"hypotheses"},
-        "defect_mechanism"
-    )
-
-    hypotheses = mechanism["hypotheses"]
-
-    require_list(
-        hypotheses,
-        "defect_mechanism.hypotheses"
-    )
-
-    for index, hypothesis in enumerate(hypotheses):
-        label = f"defect_mechanism.hypotheses[{index}]"
-
+    if mechanism is not None:
         validate_exact_keys(
-            hypothesis,
-            {
-                "layer",
-                "description",
-                "status",
-                "evidence_refs",
-                "confidence"
-            },
-            label
+            mechanism,
+            {"description", "root_cause_category", "evidence_status", "evidence_refs"},
+            "defect_mechanism",
         )
-
-        validate_enum(
-            hypothesis["layer"],
-            vocabularies["mechanism_layers"],
-            f"{label}.layer"
-        )
-
-        require_string(
-            hypothesis["description"],
-            f"{label}.description"
-        )
-
-        validate_enum(
-            hypothesis["status"],
-            vocabularies["mechanism_status"],
-            f"{label}.status"
-        )
-
-        if hypothesis["status"] == "unknown":
-            raise ValueError(
-                f"{label}.status must not be unknown; "
-                "use an empty hypotheses array when "
-                "the mechanism is unavailable"
+        require_string(mechanism["description"], "defect_mechanism.description")
+        category = mechanism["root_cause_category"]
+        if category is not None:
+            validate_enum(
+                category,
+                vocabularies["root_cause_categories"],
+                "defect_mechanism.root_cause_category",
             )
-
+        validate_enum(
+            mechanism["evidence_status"],
+            vocabularies["evidence_status"],
+            "defect_mechanism.evidence_status",
+        )
         validate_evidence_refs(
-            hypothesis["evidence_refs"],
+            mechanism["evidence_refs"],
             allowed_refs,
-            f"{label}.evidence_refs",
-            required=True
+            "defect_mechanism.evidence_refs",
+            required=True,
         )
 
-        validate_enum(
-            hypothesis["confidence"],
-            vocabularies["confidence"],
-            f"{label}.confidence"
-        )
-
-        if (
-            hypothesis["status"] == "analyst_inferred"
-            and hypothesis["confidence"] == "high"
-        ):
-            raise ValueError(
-                f"{label}: analyst_inferred mechanism "
-                "cannot have high confidence"
-            )
-
-    observed_failure = candidate["observed_failure"]
-
+    failure = candidate["observed_failure"]
     validate_exact_keys(
-        observed_failure,
+        failure,
         {
-            "failure_type",
             "description",
-            "historical_oracle",
-            "evidence_refs"
+            "symptom_category",
+            "evidence_status",
+            "evidence_refs",
+            "historical_observations",
         },
-        "observed_failure"
+        "observed_failure",
     )
-
-    validate_enum(
-        observed_failure["failure_type"],
-        vocabularies["failure_types"],
-        "observed_failure.failure_type"
-    )
-
-    if observed_failure["description"] is not None:
-        require_string(
-            observed_failure["description"],
-            "observed_failure.description"
+    require_string(failure["description"], "observed_failure.description")
+    category = failure["symptom_category"]
+    if category is not None:
+        validate_enum(
+            category,
+            vocabularies["symptom_categories"],
+            "observed_failure.symptom_category",
         )
-
-    known_failure = (
-        observed_failure["failure_type"] != "unknown"
+    validate_enum(
+        failure["evidence_status"],
+        vocabularies["evidence_status"],
+        "observed_failure.evidence_status",
     )
-
     validate_evidence_refs(
-        observed_failure["evidence_refs"],
+        failure["evidence_refs"],
         allowed_refs,
         "observed_failure.evidence_refs",
-        required=known_failure
+        required=True,
     )
 
-    historical_oracle = observed_failure[
-        "historical_oracle"
-    ]
-
-    if historical_oracle is not None:
+    observations = failure["historical_observations"]
+    require_list(observations, "observed_failure.historical_observations")
+    for index, observation in enumerate(observations):
+        label = f"observed_failure.historical_observations[{index}]"
         validate_exact_keys(
-            historical_oracle,
-            {
-                "kind",
-                "condition",
-                "evidence_status",
-                "evidence_refs"
-            },
-            "observed_failure.historical_oracle"
+            observation,
+            {"statement", "evidence_status", "evidence_refs"},
+            label,
         )
-
+        require_string(observation["statement"], f"{label}.statement")
         validate_enum(
-            historical_oracle["kind"],
-            vocabularies["historical_oracle_kinds"],
-            "historical_oracle.kind"
-        )
-
-        require_string(
-            historical_oracle["condition"],
-            "historical_oracle.condition"
-        )
-
-        validate_enum(
-            historical_oracle["evidence_status"],
+            observation["evidence_status"],
             vocabularies["evidence_status"],
-            "historical_oracle.evidence_status"
+            f"{label}.evidence_status",
         )
-
         validate_evidence_refs(
-            historical_oracle["evidence_refs"],
+            observation["evidence_refs"],
             allowed_refs,
-            "historical_oracle.evidence_refs",
-            required=True
+            f"{label}.evidence_refs",
+            required=True,
         )
 
-    confidence = candidate["confidence"]
 
+def validate_stored_pattern(pattern, contract):
+    """Validate the current Pattern record shape without reclassifying it."""
+    require_dict(pattern, "Pattern")
+    if pattern.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(
+            f"Expected Pattern schema {SCHEMA_VERSION}; re-extract legacy data from Reports"
+        )
     validate_exact_keys(
-        confidence,
+        pattern,
         {
-            "trigger_confidence",
-            "mechanism_confidence",
-            "oracle_confidence"
+            "schema_version",
+            "metadata",
+            "derivation_information",
+            "provenance",
+            "scope",
+            "historical_conditions",
+            "defect_mechanism",
+            "observed_failure",
         },
-        "confidence"
+        "Pattern",
     )
+    validate_exact_keys(
+        pattern["metadata"],
+        {"pattern_id", "canonical_name", "pattern_level"},
+        "metadata",
+    )
+    require_string(pattern["metadata"]["pattern_id"], "metadata.pattern_id")
+    if pattern["metadata"]["pattern_level"] != "api_specific":
+        raise ValueError("metadata.pattern_level must be api_specific")
 
-    for key, value in confidence.items():
-        validate_enum(
-            value,
-            vocabularies["confidence"],
-            f"confidence.{key}"
-        )
+    scope = pattern["scope"]
+    validate_exact_keys(scope, {"framework", "target_api"}, "scope")
+    require_string(scope["framework"], "scope.framework")
 
-    if not conditions and (
-        confidence["trigger_confidence"] != "low"
-    ):
+    source_report = pattern["provenance"].get("source_report")
+    require_dict(source_report, "provenance.source_report")
+    validate_exact_keys(
+        source_report,
+        {"report_id", "report_revision", "report_hash", "evidence_refs"},
+        "provenance.source_report",
+    )
+    if type(source_report["report_revision"]) is not int or source_report["report_revision"] < 1:
+        raise ValueError("provenance.source_report.report_revision must be a positive integer")
+    require_string(source_report["report_hash"], "provenance.source_report.report_hash")
+    validate_string_list(
+        source_report["evidence_refs"],
+        "provenance.source_report.evidence_refs",
+    )
+    declared_refs = source_report["evidence_refs"]
+    if not declared_refs:
+        raise ValueError("provenance.source_report.evidence_refs must not be empty")
+    if len(declared_refs) != len(set(declared_refs)):
+        raise ValueError("provenance.source_report.evidence_refs must not contain duplicates")
+
+    candidate = {
+        "canonical_name": pattern["metadata"]["canonical_name"],
+        "provenance": copy.deepcopy(pattern["provenance"]),
+        "scope": copy.deepcopy(pattern["scope"]),
+        "historical_conditions": copy.deepcopy(pattern["historical_conditions"]),
+        "defect_mechanism": copy.deepcopy(pattern["defect_mechanism"]),
+        "observed_failure": copy.deepcopy(pattern["observed_failure"]),
+    }
+    candidate["scope"].pop("framework")
+    candidate["provenance"]["source_report"].pop("report_revision")
+    candidate["provenance"]["source_report"].pop("report_hash")
+    candidate["provenance"]["source_report"].pop("evidence_refs")
+
+    condition_ids = set()
+    for condition in candidate["historical_conditions"]:
+        condition_id = condition.pop("condition_id", None)
+        require_string(condition_id, "historical_conditions.condition_id")
+        if condition_id in condition_ids:
+            raise ValueError(f"Duplicate condition_id: {condition_id}")
+        condition_ids.add(condition_id)
+
+    observation_ids = set()
+    for observation in candidate["observed_failure"]["historical_observations"]:
+        observation_id = observation.pop("observation_id", None)
+        require_string(observation_id, "historical_observations.observation_id")
+        if observation_id in observation_ids:
+            raise ValueError(f"Duplicate observation_id: {observation_id}")
+        observation_ids.add(observation_id)
+
+    refs = semantic_evidence_refs(candidate)
+    if sorted(declared_refs) != refs:
         raise ValueError(
-            "trigger_confidence must be low when "
-            "no trigger conditions are available"
+            "provenance.source_report.evidence_refs must equal the evidence "
+            "union used by semantic Pattern fields"
         )
-
-    if not hypotheses and (
-        confidence["mechanism_confidence"] != "low"
-    ):
-        raise ValueError(
-            "mechanism_confidence must be low when "
-            "no mechanism hypothesis is available"
-        )
-
-    if historical_oracle is None and (
-        confidence["oracle_confidence"] != "low"
-    ):
-        raise ValueError(
-            "oracle_confidence must be low when "
-            "historical_oracle is null"
-        )
-
+    validate_candidate(
+        candidate,
+        {
+            "report_id": source_report["report_id"],
+            "selected_api": candidate["scope"]["target_api"],
+            "available_evidence_refs": sorted(set(refs)),
+        },
+        contract,
+    )
 
 def next_pattern_id(output_api_dir, framework, canonical_name):
     prefix = (
-        f"{framework_prefix(framework)}_"
+        f"{framework_prefix(framework)}_v4_"
         f"{slugify(canonical_name)}"
     )
 
@@ -1095,25 +853,30 @@ def has_existing_pattern_for_report(
         path = os.path.join(output_api_dir, filename)
         try:
             pattern = load_json(path)
-            supporting_reports = pattern.get(
-                "provenance", {}
-            ).get("supporting_reports", [])
-            direct_support = any(
-                item.get("report_id") == report_id
-                and item.get("relation") == "direct_evidence"
-                for item in supporting_reports
-                if isinstance(item, dict)
-            )
+            if pattern.get("schema_version") != SCHEMA_VERSION:
+                continue
+            source_report = pattern.get("provenance", {}).get("source_report", {})
+            direct_support = source_report.get("report_id") == report_id
             input_reports = pattern.get(
                 "derivation_information", {}
             ).get("input_reports", [])
+            derivation = pattern.get("derivation_information", {})
             exact_input = any(
                 item.get("report_id") == report_id
                 and item.get("report_hash") == report_hash
                 for item in input_reports
                 if isinstance(item, dict)
             )
-            if direct_support and exact_input:
+            current_extractor = (
+                derivation.get("mapping_version") == MAPPING_VERSION
+                and derivation.get("prompt_version") == PROMPT_VERSION
+            )
+            if (
+                direct_support
+                and exact_input
+                and current_extractor
+                and source_report.get("report_hash") == report_hash
+            ):
                 return True
         except (OSError, json.JSONDecodeError, AttributeError):
             continue
@@ -1155,43 +918,41 @@ def enrich_final_pattern(
             "validation_status": "automatically_validated"
         },
 
-        "provenance": candidate["provenance"],
+        "provenance": {
+            **candidate["provenance"],
+            "source_report": {
+                "report_id": candidate["provenance"]["source_report"]["report_id"],
+                "evidence_refs": semantic_evidence_refs(candidate),
+                "report_revision": report_context["report_revision"],
+                "report_hash": report_hash
+            }
+        },
 
         "scope": {
             "framework": report_context["framework"],
             **candidate["scope"]
         },
 
-        "defect_classification": candidate[
-            "defect_classification"
-        ],
-
-        "trigger_signature": candidate[
-            "trigger_signature"
-        ],
+        "historical_conditions": candidate["historical_conditions"],
 
         "defect_mechanism": candidate[
             "defect_mechanism"
         ],
 
-        "observed_failure": candidate[
-            "observed_failure"
-        ],
-
-        "confidence": candidate["confidence"]
+        "observed_failure": candidate["observed_failure"]
     }
 
     for index, condition in enumerate(
-        final_pattern["trigger_signature"]["conditions"],
+        final_pattern["historical_conditions"],
         start=1
     ):
         condition["condition_id"] = f"tc_{index:02d}"
 
-    for index, hypothesis in enumerate(
-        final_pattern["defect_mechanism"]["hypotheses"],
+    for index, observation in enumerate(
+        final_pattern["observed_failure"]["historical_observations"],
         start=1
     ):
-        hypothesis["hypothesis_id"] = f"dm_{index:02d}"
+        observation["observation_id"] = f"ho_{index:02d}"
 
     return final_pattern
 
@@ -1232,10 +993,15 @@ def process_api(
         api
     )
 
+    for existing_path in Path(output_api_dir).glob("*.json"):
+        existing = load_json(existing_path)
+        if not isinstance(existing, dict) or existing.get("schema_version") != SCHEMA_VERSION:
+            raise ValueError("Output directory contains legacy or invalid Patterns; use the separate v4 output root")
+
     report_paths = latest_report_paths_for_api(api)
     if not report_paths:
         raise RuntimeError(
-            f"No v2 Report supports API {api!r} under {BUG_REPORT_DIR}"
+            f"No latest Report supports API {api!r} under {BUG_REPORT_DIR}"
         )
 
     contract = load_json(CONTRACT_FILE)
@@ -1251,6 +1017,7 @@ def process_api(
 
         try:
             report = load_json(str(report_path))
+            report_builder.validate_revision_chain(report_path.parent)
             report_context = build_report_context(
                 report,
                 fallback_report_id,
@@ -1260,13 +1027,14 @@ def process_api(
             OSError,
             json.JSONDecodeError,
             ValueError,
+            report_builder.ReportError,
         ) as error:
-            print(f"[FAILED] {filename}: invalid v2 Report: {error}")
+            print(f"[FAILED] {filename}: Report input rejected: {error}")
             failed_count += 1
             continue
 
         report_id = report_context["report_id"]
-        report_hash = canonical_json_hash(report)
+        report_hash = report["provenance"]["content_hash"]
 
         if has_existing_pattern_for_report(
             output_api_dir,
@@ -1291,6 +1059,13 @@ def process_api(
             contract,
             mapping
         )
+        if len(prompt) > MAX_PROMPT_CHARS:
+            print(f"[FAILED] {filename}: prompt exceeds {MAX_PROMPT_CHARS} characters")
+            failed_count += 1
+            continue
+        if dry_run:
+            print(f"[DRY-RUN] {report_id}: non-rejected input validated; prompt_chars={len(prompt)}; no model call")
+            continue
 
         candidates = None
         previous_response = ""
@@ -1307,6 +1082,8 @@ def process_api(
                 )
             )
             try:
+                if len(attempt_prompt) > MAX_PROMPT_CHARS:
+                    raise ValueError("Repair prompt exceeds context budget")
                 raw_response = call_deepseek(
                     attempt_prompt,
                     api_key,
@@ -1445,12 +1222,13 @@ def process_api(
     print(f"Generated: {generated_count}")
     print(f"Skipped:   {skipped_count}")
     print(f"Failed:    {failed_count}")
+    return 1 if failed_count else 0
 
 
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Build Pattern v2 JSON records from structured "
+            "Build Pattern v4 JSON records from structured "
             "historical Bug Reports."
         )
     )
@@ -1469,7 +1247,7 @@ def main():
         default=DEFAULT_OUTPUT_DIR,
         help=(
             "Output root directory. Defaults to "
-            "EXP006/bug_patterns."
+            "EXP006/bug_patterns/v4."
         )
     )
 
@@ -1503,14 +1281,13 @@ def main():
         "--dry-run",
         action="store_true",
         help=(
-            "Call the LLM and validate output without "
-            "writing Pattern JSON files."
+            "Validate non-rejected inputs and prompt size without model calls or writes."
         )
     )
 
     args = parser.parse_args()
 
-    if not args.api_key:
+    if not args.api_key and not args.dry_run:
         raise RuntimeError(
             "Missing DeepSeek API key. Set DEEPSEEK_API_KEY "
             "or pass --api-key."
@@ -1520,7 +1297,7 @@ def main():
         args.output
     )
 
-    process_api(
+    return process_api(
         api=args.api,
         api_key=args.api_key,
         output_root=output_root,
@@ -1531,4 +1308,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -1,0 +1,99 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_torch_matmul_long_dtype_boundary_p001",
+    "canonical_name": "torch_matmul_long_dtype_boundary",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_4",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_71774",
+        "report_hash": "sha256:bd38df741c3c2bfdd70421a7081dc5fbf92435a16cf97f385a331933322dcbbd"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_71774",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ad9f06e799c7",
+          "ev_art_primary_report_api_reference_c33d173b9e71",
+          "ev_art_primary_report_reproduction_69a6f591fc72"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report directly associates torch.matmul with a dtype-specific failure observed with dtype=torch.long; no separate root-cause hypothesis is available.",
+    "unresolved_information": [
+      "The captured text contains an unclosed code fence in /reported_behavior/reproduction (ev_art_primary_report_reproduction_69a6f591fc72).",
+      "The root cause, exact failure type, and detection oracle are not stated in the input report."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "confirmed_apis": [
+      "torch.matmul"
+    ],
+    "operator": "matmul",
+    "module": "torch"
+  },
+  "defect_classification": {
+    "primary_defect_class": "dtype_boundary",
+    "secondary_defect_classes": [],
+    "risk_dimensions": [
+      "dtype"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "dtype",
+        "subject": "torch.matmul input tensors",
+        "predicate": "dtype == torch.long",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ad9f06e799c7"
+        ],
+        "condition_id": "tc_01"
+      }
+    ],
+    "operation_context": {
+      "description": "Observed in opinfo tests on Windows CI and internal @mode/opt.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_ad9f06e799c7"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "unknown",
+    "description": "The report states the bug was found in opinfo tests, observed in Windows CI test and internal @mode/opt, and only seen on dtype=torch.long, not with ints.",
+    "historical_oracle": null,
+    "evidence_refs": [
+      "ev_art_primary_report_bug_description_ad9f06e799c7"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "low"
+  }
+}

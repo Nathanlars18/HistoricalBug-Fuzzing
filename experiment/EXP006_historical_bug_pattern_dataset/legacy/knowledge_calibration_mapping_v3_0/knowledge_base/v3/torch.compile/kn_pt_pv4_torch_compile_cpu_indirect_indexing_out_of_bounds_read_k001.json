@@ -1,0 +1,99 @@
+{
+  "schema_version": "3.0",
+  "metadata": {
+    "knowledge_id": "kn_pt_pv4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_k001",
+    "canonical_name": "torch_compile_cpu_indirect_indexing_out_of_bounds_read"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "3.0",
+    "prompt_version": "knowledge_extract_v3_0",
+    "model": "deepseek-v4-pro",
+    "input_pattern": {
+      "pattern_id": "pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001",
+      "pattern_hash": "sha256:e22a07e56ac4d9850cf18d6e15f2baee8962096a0dd21a38224b637f2b75c0b9"
+    },
+    "generated_at": "2026-10-03",
+    "validation_status": "structurally_validated"
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.compile"
+  },
+  "learned_hypothesis": {
+    "statement": "When torch.compile runs a CPU model whose forward uses indirect indexing, compiled execution may perform an out-of-bound read and produce invalid numeric values instead of raising IndexError if the index values are not validated before generated code executes.",
+    "abstraction_rationale": "The hypothesis abstracts the required CPU torch.compile indirect-indexing condition and the observed failure where compiled execution completed with invalid values while eager execution raised IndexError. It does not assert that all such cases fail or that the historical bug is still present; current applicability remains for HarnessSpec to determine.",
+    "evidence_status": "pattern_derived",
+    "evidence_refs": [
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_01",
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_02",
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:defect_mechanism",
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:observed_failure"
+    ],
+    "limitations": [
+      "The hypothesis is derived from a single report; generalization beyond the reported CPU environment and indirect-indexing shape is not established.",
+      "The root cause was not explicitly mapped and the fix disposition is ambiguous, so the hypothesis should not be read as a current-version failure claim."
+    ]
+  },
+  "exploration_guidance": {
+    "historical_anchors": [
+      {
+        "statement": "The reported invocation compiles a model with torch.compile and executes it on CPU.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_01"
+        ]
+      },
+      {
+        "statement": "The model forward uses indirect indexing where some index values can fall outside the indexed tensor's first dimension.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_02"
+        ]
+      }
+    ],
+    "variation_opportunities": [
+      {
+        "statement": "Vary the shapes and sizes of the indexed tensor and the indirect index tensor, including different counts and positions of out-of-range indices.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_02",
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:defect_mechanism",
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:observed_failure"
+        ]
+      },
+      {
+        "statement": "Explore indirect index tensors that vary across calls or are produced dynamically, while still using torch.compile on CPU.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_02",
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:defect_mechanism"
+        ]
+      }
+    ],
+    "observation_candidates": [
+      {
+        "statement": "Whether compiled execution raises an exception or returns a completed tensor when indirect indexing contains out-of-range indices.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:observed_failure",
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_observation:ho_01"
+        ]
+      },
+      {
+        "statement": "Whether the returned tensor contains NaN or very large values at positions associated with out-of-range indices.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:observed_failure"
+        ]
+      },
+      {
+        "statement": "Whether eager execution raises IndexError for the corresponding indirect-indexing case.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_observation:ho_01"
+        ]
+      }
+    ]
+  }
+}

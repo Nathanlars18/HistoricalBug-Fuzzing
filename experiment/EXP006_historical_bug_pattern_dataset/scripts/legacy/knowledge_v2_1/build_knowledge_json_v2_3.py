@@ -28,7 +28,7 @@ PATTERN_DIR = os.path.join(
 DEFAULT_OUTPUT_DIR = os.path.join(
     EXP006_DIR,
     "knowledge_base",
-    "v3"
+    "pattern_v4"
 )
 
 CONTRACT_FILE = os.path.join(
@@ -43,9 +43,9 @@ RULE_FILE = os.path.join(
     "pattern_to_knowledge_rules.md"
 )
 
-SCHEMA_VERSION = "3.0"
-MAPPING_VERSION = "3.1"
-PROMPT_VERSION = "knowledge_extract_v3_1"
+SCHEMA_VERSION = "2.1"
+MAPPING_VERSION = "2.3"
+PROMPT_VERSION = "knowledge_extract_v2_3"
 INPUT_PATTERN_SCHEMA_VERSION = "4.0"
 
 DEFAULT_MODEL = "deepseek-v4-pro"
@@ -56,8 +56,11 @@ DEFAULT_API_URL = (
 
 CANDIDATE_KEYS = {
     "canonical_name",
-    "learned_hypothesis",
-    "exploration_guidance"
+    "evidence_basis",
+    "knowledge_statement",
+    "applicability",
+    "testing_guidance",
+    "confidence"
 }
 
 FORBIDDEN_FIELD_NAMES = {
@@ -71,12 +74,6 @@ FORBIDDEN_FIELD_NAMES = {
     "activation_predicate",
     "tensor_construction",
     "input_mutation",
-    "risk_dimension",
-    "risk_dimensions",
-    "oracle_guidance",
-    "applicability",
-    "priority",
-    "confidence",
     "harness_code",
     "generated_code",
     "code_generation_prompt",
@@ -106,6 +103,11 @@ def require_list(value, label):
 def require_string(value, label):
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{label} must be a non-empty string")
+
+
+def require_string_or_null(value, label):
+    if value is not None:
+        require_string(value, label)
 
 
 def validate_exact_keys(value, expected_keys, label):
@@ -341,9 +343,6 @@ def validate_evidence_refs(
             f"{label} must not be empty"
         )
 
-    if len(evidence_refs) != len(set(evidence_refs)):
-        raise ValueError(f"{label} must not contain duplicates")
-
     for evidence_ref in evidence_refs:
         require_string(
             evidence_ref,
@@ -486,35 +485,21 @@ def build_pattern_context(pattern):
             "Pattern has no addressable evidence fields"
         )
 
-    required_condition_refs = []
-
-    for index, condition in enumerate(
-        pattern.get("historical_conditions", []),
-        start=1
-    ):
-        if condition.get("necessity") != "required":
-            continue
-
-        condition_id = condition.get("condition_id") or index
-        required_condition_refs.append(
-            f"pattern:{pattern_id}:historical_condition:{condition_id}"
-        )
-
     return {
         "pattern_id": pattern_id,
         "pattern_hash": canonical_json_hash(pattern),
         "framework": scope["framework"],
-        "target_api": scope["target_api"],
+        "primary_api": scope["target_api"],
+        "directly_supported_apis": [scope["target_api"]],
         "available_evidence_refs": available_evidence_refs,
-        "required_condition_refs": required_condition_refs,
         "pattern": pattern
     }
 
 
 def build_prompt(pattern_context, contract, rules):
     return f"""
-You are deciding whether one API-specific historical Bug Pattern supports
-at most one evidence-grounded API-specific Knowledge candidate.
+You are deriving one evidence-grounded API-specific Knowledge candidate
+from one API-specific historical Bug Pattern.
 
 Follow the Pattern-to-Knowledge Rules and the Knowledge Extraction Contract
 exactly.
@@ -545,65 +530,203 @@ Input Pattern Context
 def validate_response_envelope(response):
     validate_exact_keys(
         response,
-        {"status", "reason", "knowledge"},
+        {"knowledge"},
         "LLM response"
     )
 
-    validate_enum(
-        response["status"],
-        {"candidate", "not_extractable"},
-        "LLM response.status"
+    require_dict(
+        response["knowledge"],
+        "LLM response.knowledge"
     )
 
-    if response["status"] == "not_extractable":
-        require_string(response["reason"], "LLM response.reason")
-        if response["knowledge"] is not None:
-            raise ValueError(
-                "not_extractable response must use knowledge=null"
-            )
-        return
 
-    if response["reason"] is not None:
-        raise ValueError("candidate response must use reason=null")
-
-    require_dict(response["knowledge"], "LLM response.knowledge")
-
-
-def validate_guidance_items(
-    items,
+def validate_conditions(
+    conditions,
     label,
     vocabularies,
-    allowed_refs,
-    allowed_anchor_refs=None
+    allowed_refs
 ):
-    require_list(items, label)
+    require_list(conditions, label)
 
-    for index, item in enumerate(items):
+    for index, condition in enumerate(conditions):
         item_label = f"{label}[{index}]"
+
         validate_exact_keys(
-            item,
-            {"statement", "evidence_status", "evidence_refs"},
+            condition,
+            {
+                "condition_kind",
+                "statement",
+                "evidence_status",
+                "evidence_refs"
+            },
             item_label
         )
-        require_string(item["statement"], f"{item_label}.statement")
+
         validate_enum(
-            item["evidence_status"],
+            condition["condition_kind"],
+            vocabularies["condition_kind"],
+            f"{item_label}.condition_kind"
+        )
+
+        require_string(
+            condition["statement"],
+            f"{item_label}.statement"
+        )
+
+        validate_enum(
+            condition["evidence_status"],
             vocabularies["evidence_status"],
             f"{item_label}.evidence_status"
         )
+
+        if condition["evidence_status"] == "unknown":
+            raise ValueError(
+                f"{item_label}.evidence_status cannot be "
+                "unknown for an asserted condition"
+            )
+
         validate_evidence_refs(
-            item["evidence_refs"],
+            condition["evidence_refs"],
             allowed_refs,
             f"{item_label}.evidence_refs",
             required=True
         )
 
-        if allowed_anchor_refs is not None:
-            unsupported = set(item["evidence_refs"]) - allowed_anchor_refs
-            if unsupported:
+
+def validate_exploration_goals(
+    goals,
+    vocabularies,
+    allowed_refs
+):
+    require_list(goals, "testing_guidance.exploration_goals")
+
+    for index, goal in enumerate(goals):
+        label = (
+            "testing_guidance."
+            f"exploration_goals[{index}]"
+        )
+
+        validate_exact_keys(
+            goal,
+            {
+                "target_dimension",
+                "statement",
+                "priority",
+                "evidence_status",
+                "evidence_refs"
+            },
+            label
+        )
+
+        validate_enum(
+            goal["target_dimension"],
+            vocabularies["risk_dimensions"],
+            f"{label}.target_dimension"
+        )
+
+        require_string(
+            goal["statement"],
+            f"{label}.statement"
+        )
+
+        validate_enum(
+            goal["priority"],
+            vocabularies["goal_priority"],
+            f"{label}.priority"
+        )
+
+        validate_enum(
+            goal["evidence_status"],
+            vocabularies["evidence_status"],
+            f"{label}.evidence_status"
+        )
+
+        if goal["evidence_status"] == "unknown":
+            raise ValueError(
+                f"{label}.evidence_status cannot be "
+                "unknown for an asserted exploration goal"
+            )
+
+        validate_evidence_refs(
+            goal["evidence_refs"],
+            allowed_refs,
+            f"{label}.evidence_refs",
+            required=True
+        )
+
+
+def validate_oracle_guidance(
+    oracle_guidance,
+    vocabularies,
+    allowed_refs
+):
+    require_list(
+        oracle_guidance,
+        "testing_guidance.oracle_guidance"
+    )
+
+    for index, oracle in enumerate(oracle_guidance):
+        label = (
+            "testing_guidance."
+            f"oracle_guidance[{index}]"
+        )
+
+        validate_exact_keys(
+            oracle,
+            {
+                "objective",
+                "observation_kind",
+                "evidence_status",
+                "evidence_refs",
+                "confidence"
+            },
+            label
+        )
+
+        require_string(
+            oracle["objective"],
+            f"{label}.objective"
+        )
+
+        validate_enum(
+            oracle["observation_kind"],
+            vocabularies["observation_kind"],
+            f"{label}.observation_kind"
+        )
+
+        validate_enum(
+            oracle["evidence_status"],
+            vocabularies["evidence_status"],
+            f"{label}.evidence_status"
+        )
+
+        validate_evidence_refs(
+            oracle["evidence_refs"],
+            allowed_refs,
+            f"{label}.evidence_refs",
+            required=True
+        )
+
+        validate_enum(
+            oracle["confidence"],
+            vocabularies["confidence"],
+            f"{label}.confidence"
+        )
+
+        if (
+            oracle["observation_kind"]
+            == "derived_oracle_candidate"
+        ):
+            if oracle["evidence_status"] != "analyst_inferred":
                 raise ValueError(
-                    f"{item_label} cites a non-required historical "
-                    f"condition: {sorted(unsupported)}"
+                    f"{label}: derived_oracle_candidate must "
+                    "use analyst_inferred evidence status"
+                )
+
+            if oracle["confidence"] == "high":
+                raise ValueError(
+                    f"{label}: derived_oracle_candidate cannot "
+                    "have high confidence"
                 )
 
 
@@ -657,70 +780,261 @@ def validate_candidate(
             "canonical_name must use lower_snake_case"
         )
 
-    hypothesis = candidate["learned_hypothesis"]
+    evidence_basis = candidate["evidence_basis"]
+
     validate_exact_keys(
-        hypothesis,
+        evidence_basis,
         {
-            "statement",
-            "abstraction_rationale",
-            "evidence_status",
-            "evidence_refs",
+            "derivation_rationale",
             "limitations"
         },
-        "learned_hypothesis"
+        "evidence_basis"
     )
-    require_string(hypothesis["statement"], "learned_hypothesis.statement")
+
     require_string(
-        hypothesis["abstraction_rationale"],
-        "learned_hypothesis.abstraction_rationale"
+        evidence_basis["derivation_rationale"],
+        "evidence_basis.derivation_rationale"
     )
+
+    validate_string_list(
+        evidence_basis["limitations"],
+        "evidence_basis.limitations"
+    )
+
+    statement = candidate["knowledge_statement"]
+
+    validate_exact_keys(
+        statement,
+        {
+            "risk_principle",
+            "testing_objective",
+            "failure_relevance",
+            "evidence_status",
+            "evidence_refs"
+        },
+        "knowledge_statement"
+    )
+
+    require_string(
+        statement["risk_principle"],
+        "knowledge_statement.risk_principle"
+    )
+
+    require_string(
+        statement["testing_objective"],
+        "knowledge_statement.testing_objective"
+    )
+
+    require_string_or_null(
+        statement["failure_relevance"],
+        "knowledge_statement.failure_relevance"
+    )
+
     validate_enum(
-        hypothesis["evidence_status"],
+        statement["evidence_status"],
         vocabularies["evidence_status"],
-        "learned_hypothesis.evidence_status"
+        "knowledge_statement.evidence_status"
     )
+
+    if statement["evidence_status"] == "unknown":
+        raise ValueError(
+            "knowledge_statement.evidence_status cannot "
+            "be unknown for an asserted Knowledge statement"
+        )
+
     validate_evidence_refs(
-        hypothesis["evidence_refs"],
+        statement["evidence_refs"],
         allowed_refs,
-        "learned_hypothesis.evidence_refs",
+        "knowledge_statement.evidence_refs",
         required=True
     )
-    validate_string_list(
-        hypothesis["limitations"],
-        "learned_hypothesis.limitations"
+
+    applicability = candidate["applicability"]
+
+    validate_exact_keys(
+        applicability,
+        {
+            "applicability_conditions",
+            "exclusion_conditions",
+            "rationale",
+            "evidence_status",
+            "evidence_refs"
+        },
+        "applicability"
     )
 
-    guidance = candidate["exploration_guidance"]
-    validate_exact_keys(
-        guidance,
-        {
-            "historical_anchors",
-            "variation_opportunities",
-            "observation_candidates"
-        },
-        "exploration_guidance"
-    )
-    validate_guidance_items(
-        guidance["historical_anchors"],
-        "exploration_guidance.historical_anchors",
+    validate_conditions(
+        applicability["applicability_conditions"],
+        "applicability.applicability_conditions",
         vocabularies,
+        allowed_refs
+    )
+
+    validate_conditions(
+        applicability["exclusion_conditions"],
+        "applicability.exclusion_conditions",
+        vocabularies,
+        allowed_refs
+    )
+
+    require_string_or_null(
+        applicability["rationale"],
+        "applicability.rationale"
+    )
+
+    validate_enum(
+        applicability["evidence_status"],
+        vocabularies["evidence_status"],
+        "applicability.evidence_status"
+    )
+
+    applicability_is_active = any(
+        [
+            applicability["applicability_conditions"],
+            applicability["exclusion_conditions"],
+            applicability["rationale"] is not None
+        ]
+    )
+
+    if (
+        applicability_is_active
+        and applicability["evidence_status"] == "unknown"
+    ):
+        raise ValueError(
+            "applicability.evidence_status cannot be "
+            "unknown when Applicability makes a claim"
+        )
+
+    validate_evidence_refs(
+        applicability["evidence_refs"],
         allowed_refs,
-        allowed_anchor_refs=set(pattern_context["required_condition_refs"])
+        "applicability.evidence_refs",
+        required=applicability_is_active
     )
-    validate_guidance_items(
-        guidance["variation_opportunities"],
-        "exploration_guidance.variation_opportunities",
+
+    testing_guidance = candidate["testing_guidance"]
+
+    validate_exact_keys(
+        testing_guidance,
+        {
+            "risk_dimensions",
+            "exploration_goals",
+            "oracle_guidance"
+        },
+        "testing_guidance"
+    )
+
+    validate_string_list(
+        testing_guidance["risk_dimensions"],
+        "testing_guidance.risk_dimensions"
+    )
+
+    for dimension in testing_guidance["risk_dimensions"]:
+        validate_enum(
+            dimension,
+            vocabularies["risk_dimensions"],
+            "testing_guidance.risk_dimensions"
+        )
+
+    validate_exploration_goals(
+        testing_guidance["exploration_goals"],
         vocabularies,
         allowed_refs
     )
-    validate_guidance_items(
-        guidance["observation_candidates"],
-        "exploration_guidance.observation_candidates",
+
+    expected_dimensions = []
+
+    for goal in testing_guidance["exploration_goals"]:
+        dimension = goal["target_dimension"]
+
+        if dimension not in expected_dimensions:
+            expected_dimensions.append(dimension)
+
+    if testing_guidance["risk_dimensions"] != expected_dimensions:
+        raise ValueError(
+            "testing_guidance.risk_dimensions must equal "
+            "the ordered de-duplicated target_dimension "
+            "values from exploration_goals"
+        )
+
+    validate_oracle_guidance(
+        testing_guidance["oracle_guidance"],
         vocabularies,
         allowed_refs
     )
+
+    confidence = candidate["confidence"]
+
+    validate_exact_keys(
+        confidence,
+        {
+            "evidence_confidence",
+            "abstraction_confidence",
+            "applicability_confidence",
+            "oracle_guidance_confidence"
+        },
+        "confidence"
+    )
+
+    for key, value in confidence.items():
+        validate_enum(
+            value,
+            vocabularies["confidence"],
+            f"confidence.{key}"
+        )
+
+    if (
+        statement["evidence_status"] == "analyst_inferred"
+        and confidence["abstraction_confidence"] == "high"
+    ):
+        raise ValueError(
+            "abstraction_confidence cannot be high when "
+            "knowledge_statement is analyst_inferred"
+        )
+
+    if (
+        not applicability_is_active
+        and confidence["applicability_confidence"] != "low"
+    ):
+        raise ValueError(
+            "applicability_confidence must be low when "
+            "Applicability makes no claim"
+        )
+
+    if (
+        not testing_guidance["oracle_guidance"]
+        and confidence["oracle_guidance_confidence"] != "low"
+    ):
+        raise ValueError(
+            "oracle_guidance_confidence must be low when "
+            "oracle_guidance is empty"
+        )
 
     return candidate
+
+
+def collect_evidence_refs(value):
+    refs = []
+
+    def visit(item):
+        if isinstance(item, dict):
+            evidence_refs = item.get("evidence_refs")
+
+            if isinstance(evidence_refs, list):
+                for evidence_ref in evidence_refs:
+                    if evidence_ref not in refs:
+                        refs.append(evidence_ref)
+
+            for nested in item.values():
+                visit(nested)
+
+        elif isinstance(item, list):
+            for nested in item:
+                visit(nested)
+
+    visit(value)
+
+    return refs
 
 
 def next_knowledge_id(
@@ -757,8 +1071,7 @@ def next_knowledge_id(
 def has_existing_knowledge_for_pattern(
     output_api_dir,
     pattern_id,
-    pattern_hash,
-    model
+    pattern_hash
 ):
     if not os.path.isdir(output_api_dir):
         return False
@@ -775,23 +1088,21 @@ def has_existing_knowledge_for_pattern(
         try:
             knowledge = load_json(path)
 
-            if knowledge.get("schema_version") != SCHEMA_VERSION:
-                continue
-
-            derivation = knowledge.get(
+            input_patterns = knowledge.get(
                 "derivation_information",
                 {}
+            ).get(
+                "input_patterns",
+                []
             )
-            input_pattern = derivation.get("input_pattern", {})
 
-            if (
-                input_pattern.get("pattern_id") == pattern_id
-                and input_pattern.get("pattern_hash") == pattern_hash
-                and derivation.get("mapping_version") == MAPPING_VERSION
-                and derivation.get("prompt_version") == PROMPT_VERSION
-                and derivation.get("model") == model
-            ):
-                return True
+            for input_pattern in input_patterns:
+                if (
+                    input_pattern.get("pattern_id")
+                    == pattern_id
+                    and input_pattern.get("pattern_hash") == pattern_hash
+                ):
+                    return True
 
         except (
             OSError,
@@ -809,6 +1120,8 @@ def enrich_final_knowledge(
     knowledge_id,
     model
 ):
+    source_refs = collect_evidence_refs(candidate)
+
     final_knowledge = {
         "schema_version": SCHEMA_VERSION,
 
@@ -816,7 +1129,8 @@ def enrich_final_knowledge(
             "knowledge_id": knowledge_id,
             "canonical_name": candidate[
                 "canonical_name"
-            ]
+            ],
+            "knowledge_level": "api_specific"
         },
 
         "derivation_information": {
@@ -824,29 +1138,90 @@ def enrich_final_knowledge(
             "mapping_version": MAPPING_VERSION,
             "prompt_version": PROMPT_VERSION,
             "model": model,
-            "input_pattern": {
-                "pattern_id": pattern_context["pattern_id"],
-                "pattern_hash": pattern_context["pattern_hash"]
-            },
+            "input_patterns": [
+                {
+                    "pattern_id": pattern_context[
+                        "pattern_id"
+                    ],
+                    "pattern_hash": pattern_context[
+                        "pattern_hash"
+                    ]
+                }
+            ],
             "generated_at": datetime.now(
                 timezone.utc
             ).date().isoformat(),
-            "validation_status": "structurally_validated"
+            "validation_status": (
+                "automatically_validated"
+            )
+        },
+
+        "evidence_basis": {
+            "supporting_patterns": [
+                {
+                    "pattern_id": pattern_context[
+                        "pattern_id"
+                    ],
+                    "relation": "direct_derivation",
+                    "evidence_refs": source_refs
+                }
+            ],
+            "derivation_rationale": candidate[
+                "evidence_basis"
+            ]["derivation_rationale"],
+            "limitations": candidate[
+                "evidence_basis"
+            ]["limitations"]
         },
 
         "scope": {
             "framework": pattern_context["framework"],
-            "target_api": pattern_context["target_api"]
+            "primary_api": pattern_context[
+                "primary_api"
+            ],
+            "directly_supported_apis": pattern_context[
+                "directly_supported_apis"
+            ]
         },
 
-        "learned_hypothesis": candidate[
-            "learned_hypothesis"
+        "knowledge_statement": candidate[
+            "knowledge_statement"
         ],
 
-        "exploration_guidance": candidate[
-            "exploration_guidance"
-        ]
+        "applicability": candidate[
+            "applicability"
+        ],
+
+        "testing_guidance": candidate[
+            "testing_guidance"
+        ],
+
+        "confidence": candidate["confidence"]
     }
+
+    for index, condition in enumerate(
+        final_knowledge["applicability"][
+            "applicability_conditions"
+        ],
+        start=1
+    ):
+        condition["condition_id"] = f"ac_{index:02d}"
+
+    for index, condition in enumerate(
+        final_knowledge["applicability"][
+            "exclusion_conditions"
+        ],
+        start=1
+    ):
+        condition["condition_id"] = f"ec_{index:02d}"
+
+    for index, goal in enumerate(
+        final_knowledge["testing_guidance"][
+            "exploration_goals"
+        ],
+        start=1
+    ):
+        goal["goal_id"] = f"eg_{index:02d}"
 
     return final_knowledge
 
@@ -925,7 +1300,6 @@ def process_api(
     skipped_count = 0
     failed_count = 0
     needs_revision_count = 0
-    not_extractable_count = 0
     selected_pattern_found = False
 
     for filename in sorted(os.listdir(input_api_dir)):
@@ -970,8 +1344,7 @@ def process_api(
         if has_existing_knowledge_for_pattern(
             output_api_dir,
             pattern_id,
-            pattern_context["pattern_hash"],
-            model
+            pattern_context["pattern_hash"]
         ):
             print(
                 f"[SKIP] {filename}: existing Knowledge "
@@ -1011,14 +1384,6 @@ def process_api(
             )
 
             failed_count += 1
-            continue
-
-        if response["status"] == "not_extractable":
-            print(
-                f"[NOT_EXTRACTABLE] {filename}: "
-                f"{response['reason']}"
-            )
-            not_extractable_count += 1
             continue
 
         try:
@@ -1121,7 +1486,6 @@ def process_api(
     print("Knowledge extraction complete")
     print(f"Generated:      {generated_count}")
     print(f"Skipped:        {skipped_count}")
-    print(f"Not extractable:{not_extractable_count:>7}")
     print(f"Needs revision: {needs_revision_count}")
     print(f"Failed:         {failed_count}")
 
@@ -1129,7 +1493,7 @@ def process_api(
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Build Knowledge v3 JSON records from "
+            "Build Knowledge v2 JSON records from "
             "API-specific historical Bug Patterns."
         )
     )
@@ -1148,7 +1512,7 @@ def main():
         default=DEFAULT_OUTPUT_DIR,
         help=(
             "Output root directory. Defaults to "
-            "EXP006/knowledge_base/v3."
+            "EXP006/knowledge_base/pattern_v4."
         )
     )
 

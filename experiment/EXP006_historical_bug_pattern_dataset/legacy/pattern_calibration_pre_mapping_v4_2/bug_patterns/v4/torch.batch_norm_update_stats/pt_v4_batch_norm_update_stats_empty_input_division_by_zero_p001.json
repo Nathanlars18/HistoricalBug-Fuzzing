@@ -1,0 +1,112 @@
+{
+  "schema_version": "4.0",
+  "metadata": {
+    "pattern_id": "pt_v4_batch_norm_update_stats_empty_input_division_by_zero_p001",
+    "canonical_name": "batch_norm_update_stats_empty_input_division_by_zero",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "4.1",
+    "prompt_version": "pattern_extract_v4_1",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_pytorch_120803",
+        "report_hash": "sha256:e1d914d1027f1f5b5e40d3e81a9a24eb298f8640469ff653c82ccdcd3ba839dc"
+      }
+    ],
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_pytorch_pytorch_120803",
+      "evidence_refs": [
+        "ev_1b48c3e0224e3374",
+        "ev_4718a2ce38ec2621",
+        "ev_54fcf0e3c217a724",
+        "ev_8283d31bae59a860",
+        "ev_99a7ac3d3b6d7851",
+        "ev_a7f087e8219f5497",
+        "ev_afe2e8c7d534d3b4",
+        "ev_db29e00322906325"
+      ],
+      "report_revision": 4,
+      "report_hash": "sha256:e1d914d1027f1f5b5e40d3e81a9a24eb298f8640469ff653c82ccdcd3ba839dc"
+    },
+    "abstraction_rationale": "The report concerns `torch.batch_norm_update_stats` failing with a floating-point exception on empty input. The pattern captures the empty-input condition and the missing zero-element validation/division-by-zero defect supported by the reproducer and the proposed patch.",
+    "unresolved_information": [
+      "No explicit root-cause claim was present in `reported_diagnosis`; defect_mechanism is inferred from the proposed patch."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats"
+  },
+  "historical_conditions": [
+    {
+      "statement": "`torch.batch_norm_update_stats` is called with an input tensor that has zero elements (e.g., shape `[0,0]`).",
+      "necessity": "unknown",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_8283d31bae59a860",
+        "ev_1b48c3e0224e3374"
+      ],
+      "condition_id": "tc_01"
+    }
+  ],
+  "defect_mechanism": {
+    "description": "The CPU `batch_norm_update_stats` implementation lacked a zero-element input check before computing `n = input.numel() / n_input`; with an input shape of `[0,0]`, `n_input` was 0, resulting in a division by zero and the observed floating-point exception.",
+    "root_cause_category": "numerical_issue",
+    "evidence_status": "patch_derived",
+    "evidence_refs": [
+      "ev_db29e00322906325",
+      "ev_99a7ac3d3b6d7851"
+    ]
+  },
+  "observed_failure": {
+    "description": "Calling `torch.batch_norm_update_stats` with empty input produced `Floating point exception (core dumped)`.",
+    "symptom_category": "crash",
+    "evidence_status": "source_explicit",
+    "evidence_refs": [
+      "ev_afe2e8c7d534d3b4",
+      "ev_8283d31bae59a860"
+    ],
+    "historical_observations": [
+      {
+        "statement": "The provided reproducer calls `torch.batch_norm_update_stats` with `inp = torch.rand([0,0])`, `running_mean = torch.rand([1])`, `running_var = torch.rand([1])`, and `momentum=0.0`.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_1b48c3e0224e3374"
+        ],
+        "observation_id": "ho_01"
+      },
+      {
+        "statement": "The issue is reproducible on Linux (Ubuntu), but not on Mac M1.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_a7f087e8219f5497"
+        ],
+        "observation_id": "ho_02"
+      },
+      {
+        "statement": "The proposed patch adds a `TORCH_CHECK(input.numel() != 0, ...)` guard in the CPU update stats template and a corresponding guard in the CUDA implementation.",
+        "evidence_status": "patch_derived",
+        "evidence_refs": [
+          "ev_db29e00322906325",
+          "ev_4718a2ce38ec2621"
+        ],
+        "observation_id": "ho_03"
+      },
+      {
+        "statement": "The patch test expects a `RuntimeError` containing `input tensor must have at least one element` when `torch.batch_norm_update_stats` is called with empty input.",
+        "evidence_status": "patch_derived",
+        "evidence_refs": [
+          "ev_54fcf0e3c217a724"
+        ],
+        "observation_id": "ho_04"
+      }
+    ]
+  }
+}

@@ -1,84 +1,29 @@
-import os
+"""Batch extraction from current structured Reports (invokes the LLM)."""
 import subprocess
+import sys
+from pathlib import Path
+
+from build_pattern_json import DEFAULT_OUTPUT_DIR, latest_report_records
 
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
-
-
-EXP006_DIR = os.path.dirname(BASE_DIR)
-
-
-BUG_REPORT_DIR = os.path.join(
-    EXP006_DIR,
-    "bug_reports"
-)
-
-
-OUTPUT_DIR = os.path.join(
-    EXP006_DIR,
-    "bug_patterns"
-)
-
-
-BUILD_SCRIPT = os.path.join(
-    BASE_DIR,
-    "build_pattern_json.py"
-)
+def discover_apis():
+    return sorted({
+        assertion["api_name"]
+        for _, _, report in latest_report_records()
+        for assertion in report.get("scope_assertions", {}).get("api_assertions", [])
+        if assertion.get("relation") == "affected" and assertion.get("api_name")
+    })
 
 
 def main():
-
-    apis = [
-        api
-        for api in os.listdir(BUG_REPORT_DIR)
-        if os.path.isdir(
-            os.path.join(
-                BUG_REPORT_DIR,
-                api
-            )
-        )
-    ]
+    script = Path(__file__).with_name("build_pattern_json.py")
+    failed = 0
+    for api in discover_apis():
+        result = subprocess.run([sys.executable, "-B", str(script), "--api", api,
+                                 "--output", DEFAULT_OUTPUT_DIR], check=False)
+        failed += result.returncode != 0
+    raise SystemExit(1 if failed else 0)
 
 
-    print(
-        "Total APIs:",
-        len(apis)
-    )
-
-
-    for api in sorted(apis):
-
-        print("="*50)
-        print("Processing:", api)
-
-
-        cmd = [
-            "python3",
-            BUILD_SCRIPT,
-            "--api",
-            api,
-            "--output",
-            OUTPUT_DIR
-        ]
-
-
-        try:
-
-            subprocess.run(
-                cmd,
-                check=True
-            )
-
-
-        except subprocess.CalledProcessError:
-
-            print(
-                "Failed:",
-                api
-            )
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

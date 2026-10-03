@@ -1,0 +1,113 @@
+{
+  "schema_version": "4.0",
+  "metadata": {
+    "pattern_id": "pt_v4_cosine_embedding_loss_missing_input_dimension_check_p001",
+    "canonical_name": "cosine_embedding_loss_missing_input_dimension_check",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "4.0",
+    "prompt_version": "pattern_extract_v4_0",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_pytorch_112732",
+        "report_hash": "sha256:0733a114ae798fd55f648220e0bc76da0ce738016442691fb42561547d8bb608"
+      }
+    ],
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_pytorch_pytorch_112732",
+      "evidence_refs": [
+        "ev_fabc68ef1eea2ee1",
+        "ev_d865d2707eea0525",
+        "ev_652ea3c9a92fb35b",
+        "ev_3155b255fee1c1d5",
+        "ev_97c40327c2041b9f",
+        "ev_2c4d088794096ed1",
+        "ev_cecfcbed689300f3",
+        "ev_b98e6d3087868a28",
+        "ev_5357ce0a32a66c83"
+      ],
+      "report_revision": 3,
+      "report_hash": "sha256:0733a114ae798fd55f648220e0bc76da0ce738016442691fb42561547d8bb608"
+    },
+    "abstraction_rationale": "The report links a segmentation fault to torch.nn.functional.cosine_embedding_loss input handling. The associated PR patch and comment indicate that only input1's dimensionality was checked before the target-dimension branch, allowing mismatched input1 and input2 shapes to proceed to a crashing code path.",
+    "unresolved_information": []
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.nn.functional.cosine_embedding_loss"
+  },
+  "historical_conditions": [
+    {
+      "statement": "A reproducer called torch.nn.functional.cosine_embedding_loss with input1 as an empty (0, 0) float16 tensor, input2 as an empty (0,) int8 tensor, and target as an empty (0,) float32 tensor.",
+      "necessity": "unknown",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_fabc68ef1eea2ee1",
+        "ev_d865d2707eea0525"
+      ],
+      "condition_id": "tc_01"
+    },
+    {
+      "statement": "The two input tensors had different dimensionalities/shapes: input1 was 2D while input2 was 1D, which the linked documentation describes as not allowed for CosineEmbeddingLoss and which was not checked in the code.",
+      "necessity": "contributing",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_652ea3c9a92fb35b",
+        "ev_3155b255fee1c1d5"
+      ],
+      "condition_id": "tc_02"
+    }
+  ],
+  "defect_mechanism": {
+    "description": "The native cosine_embedding_loss implementation only validated input1.dim() in the target-dimension branches. With a 1D target, input1 having dim 2 passed the existing check while input2 having dim 1 was not rejected, so execution continued into a code path that produced a segmentation fault.",
+    "root_cause_category": "tensor_shape_misalignment",
+    "evidence_status": "patch_derived",
+    "evidence_refs": [
+      "ev_97c40327c2041b9f",
+      "ev_652ea3c9a92fb35b"
+    ]
+  },
+  "observed_failure": {
+    "description": "The call emitted a deprecation warning and then terminated with 'Segmentation fault (core dumped)'.",
+    "symptom_category": "crash",
+    "evidence_status": "source_explicit",
+    "evidence_refs": [
+      "ev_d865d2707eea0525",
+      "ev_2c4d088794096ed1",
+      "ev_cecfcbed689300f3"
+    ],
+    "historical_observations": [
+      {
+        "statement": "The reporter observed 'Segmentation fault (core dumped)'.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_2c4d088794096ed1"
+        ],
+        "observation_id": "ho_01"
+      },
+      {
+        "statement": "A commenter reproduced the crash on nightly and marked it high priority.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_b98e6d3087868a28"
+        ],
+        "observation_id": "ho_02"
+      },
+      {
+        "statement": "The associated PR added tests expecting RuntimeError rather than a crash for mismatched input shapes.",
+        "evidence_status": "patch_derived",
+        "evidence_refs": [
+          "ev_5357ce0a32a66c83"
+        ],
+        "observation_id": "ho_03"
+      }
+    ]
+  }
+}

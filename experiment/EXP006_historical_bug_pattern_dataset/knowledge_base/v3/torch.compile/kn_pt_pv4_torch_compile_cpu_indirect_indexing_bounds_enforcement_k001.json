@@ -1,0 +1,114 @@
+{
+  "schema_version": "3.0",
+  "metadata": {
+    "knowledge_id": "kn_pt_pv4_torch_compile_cpu_indirect_indexing_bounds_enforcement_k001",
+    "canonical_name": "torch_compile_cpu_indirect_indexing_bounds_enforcement"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "3.1",
+    "prompt_version": "knowledge_extract_v3_1",
+    "model": "deepseek-v4-pro",
+    "input_pattern": {
+      "pattern_id": "pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001",
+      "pattern_hash": "sha256:e22a07e56ac4d9850cf18d6e15f2baee8962096a0dd21a38224b637f2b75c0b9"
+    },
+    "generated_at": "2026-10-03",
+    "validation_status": "structurally_validated"
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.compile"
+  },
+  "learned_hypothesis": {
+    "statement": "Under torch.compile on CPU, a forward that performs indirect indexing may compile to an execution path that does not validate index-tensor values against the indexed tensor's dimensions; index values outside an indexed dimension boundary may then complete and yield non-finite or out-of-range values instead of raising an eager-style IndexError, making the near/out-of-bounds region for indirect indices a candidate boundary for inconsistent compiled/eager behavior.",
+    "abstraction_rationale": "The Pattern contains a required torch.compile-on-CPU condition and a required indirect-indexing condition with index values outside the indexed dimension. The defect mechanism and observed failure describe missing runtime bounds validation in generated code and completed compiled execution with abnormal values, while eager execution raises IndexError. The hypothesis abstracts away the exact index values and reduction operation to a same-API boundary around indirect-index values near or beyond indexed dimension sizes, without asserting current-version failure or that all variants are unsafe.",
+    "evidence_status": "analyst_inferred",
+    "evidence_refs": [
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_conditions",
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:defect_mechanism",
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:observed_failure",
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_01",
+      "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_02"
+    ],
+    "limitations": [
+      "The Pattern does not establish that the reported environment version is necessary; compiled CPU bounds behavior may vary across torch.compile versions and execution contexts.",
+      "The mechanism is normalized from comment evidence and no explicit root-cause claim is mapped; it is not established that all indirect-indexing forms or tensor types are affected.",
+      "The historical fix evidence is ambiguous because one observation states a master fix and another clarifies it was only for CUDA at that time; current CPU behavior is therefore not established."
+    ]
+  },
+  "exploration_guidance": {
+    "historical_anchors": [
+      {
+        "statement": "The model is executed on CPU under torch.compile.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_01"
+        ]
+      },
+      {
+        "statement": "The forward performs indirect indexing with index tensor values outside the indexed tensor dimension.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_02"
+        ]
+      }
+    ],
+    "variation_opportunities": [
+      {
+        "statement": "Vary the index tensor's shape, the number of out-of-bounds positions, and their location along the indexed dimension while retaining torch.compile CPU execution.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_02"
+        ]
+      },
+      {
+        "statement": "Vary the indexed tensor's dimension sizes and number of indexed dimensions so that some runtime index values cross the boundary and others stay within bounds.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_02",
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:defect_mechanism"
+        ]
+      },
+      {
+        "statement": "Vary the PyTorch version and CPU environment context while keeping torch.compile as the target API, treating the reported environment as unknown rather than a required boundary.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_condition:tc_03"
+        ]
+      }
+    ],
+    "observation_candidates": [
+      {
+        "statement": "Observe whether compiled CPU execution with out-of-bounds indirect indexing raises an eager-style exception or completes and returns a tensor.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_observation:ho_01",
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:observed_failure"
+        ]
+      },
+      {
+        "statement": "Observe whether a returned tensor contains non-finite or out-of-range values instead of being rejected.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:observed_failure"
+        ]
+      },
+      {
+        "statement": "Observe whether the same indirect-indexing computation behaves differently between eager execution and compiled CPU execution.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_observation:ho_01",
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:observed_failure"
+        ]
+      },
+      {
+        "statement": "Observe whether the compiled CPU path enforces indirect-index bounds, because the historical fix evidence is ambiguous about CPU coverage.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_torch_compile_cpu_indirect_indexing_out_of_bounds_read_p001:historical_observation:ho_02"
+        ]
+      }
+    ]
+  }
+}

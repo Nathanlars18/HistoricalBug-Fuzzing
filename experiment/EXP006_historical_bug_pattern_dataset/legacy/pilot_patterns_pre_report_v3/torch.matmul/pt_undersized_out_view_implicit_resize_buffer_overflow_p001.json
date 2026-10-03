@@ -1,0 +1,126 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_undersized_out_view_implicit_resize_buffer_overflow_p001",
+    "canonical_name": "undersized_out_view_implicit_resize_buffer_overflow",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_4",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_170573",
+        "report_hash": "sha256:821c07ee35616aafeae2fe4c6d44ef21669cada567c997e523ad563c8cd8edc7"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_170573",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_4204d6b659a5"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes one out-view implicit-resize mechanism affecting torch.matmul and other standard operations. Since torch.matmul is the selected primary API and the report does not isolate independent per-API defect units, it is represented as one pattern.",
+    "unresolved_information": [
+      "The reproduction script exercises torch.add, not torch.matmul, so torch.matmul-specific triggering is supported by the report's affected-operations statement rather than an isolated reproducer.",
+      "No fixing commit or official root-cause confirmation is referenced.",
+      "The captured Issue text lacks its canonical URL and contains an unclosed code fence, limiting exact extraction."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "confirmed_apis": [
+      "torch.matmul"
+    ],
+    "operator": null,
+    "module": null
+  },
+  "defect_classification": {
+    "primary_defect_class": "memory_layout_boundary",
+    "secondary_defect_classes": [
+      "shape_boundary",
+      "api_contract_boundary"
+    ],
+    "risk_dimensions": [
+      "shape",
+      "memory",
+      "output_tensor",
+      "api_contract"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "api_contract",
+        "subject": "torch.matmul",
+        "predicate": "is called with out=<undersized view>",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_api_reference_8e615caa1f9b"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "shape",
+        "subject": "out view",
+        "predicate": "has fewer elements than the required output shape",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_4204d6b659a5"
+        ],
+        "condition_id": "tc_02"
+      }
+    ],
+    "operation_context": {
+      "description": "Call torch.matmul(..., out=undersized_view) where the out view has fewer elements than the operation result. The report's reproducer uses torch.add(a, b, out=out_view), but lists torch.matmul among affected operations.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_4204d6b659a5"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": [
+      {
+        "layer": "api",
+        "description": "PyTorch fails to validate the output size requirements for a view out argument and triggers a deprecated implicit resize path. The path updates tensor metadata shape to match the operation result but cannot reallocate the view's storage, so the kernel may write the full result into the old undersized storage buffer.",
+        "status": "source_reported",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_4204d6b659a5"
+        ],
+        "confidence": "medium",
+        "hypothesis_id": "dm_01"
+      }
+    ]
+  },
+  "observed_failure": {
+    "failure_type": "memory_error",
+    "description": "Instead of raising RuntimeError, the operation emits a resize warning, continues execution, and may modify memory after the undersized output view, such as a canary region.",
+    "historical_oracle": null,
+    "evidence_refs": [
+      "ev_art_primary_report_bug_description_4204d6b659a5"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "medium",
+    "oracle_confidence": "low"
+  }
+}

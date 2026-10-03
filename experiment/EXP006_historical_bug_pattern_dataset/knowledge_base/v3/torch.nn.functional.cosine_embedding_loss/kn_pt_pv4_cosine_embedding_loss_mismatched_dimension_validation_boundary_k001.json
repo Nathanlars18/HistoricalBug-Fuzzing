@@ -1,0 +1,79 @@
+{
+  "schema_version": "3.0",
+  "metadata": {
+    "knowledge_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+    "canonical_name": "cosine_embedding_loss_mismatched_dimension_validation_boundary"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "3.1",
+    "prompt_version": "knowledge_extract_v3_1",
+    "model": "deepseek-v4-pro",
+    "input_pattern": {
+      "pattern_id": "pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001",
+      "pattern_hash": "sha256:adf1c2464bc35849a5348dde276cf8a11f283773932a065f5d929779117f52ea"
+    },
+    "generated_at": "2026-10-03",
+    "validation_status": "structurally_validated"
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.nn.functional.cosine_embedding_loss"
+  },
+  "learned_hypothesis": {
+    "statement": "For torch.nn.functional.cosine_embedding_loss, calls with input1 and input2 whose dimensionality/shape relationship is inconsistent may expose an asymmetric dimension-checking boundary: historical evidence indicates the implementation checked only input1's dimension and did not enforce that input2 matched, allowing some mismatched empty input pairs to proceed to unsafe native execution and crash. The hypothesis is that exercising such dimension-mismatch boundaries, especially with empty or near-empty tensors, may reveal validation gaps or crash-like unsafe behavior.",
+    "abstraction_rationale": "The Pattern provides a patch-derived mechanism indicating that the C++ path checked only input1's dimensionality and did not enforce a matching input2 dimension, while the reported failure was a segmentation fault for empty mismatched tensors. The candidate abstracts that into a same-API testing hypothesis around asymmetric dimension checking rather than preserving the exact (0,0)/(0,) reproducer. The empty-tensor and exact shape/dtype conditions are marked unknown and the mismatched shape/dimension condition is contributing, so they are not treated as established prerequisites; they motivate exploration of mismatched-dimension boundaries.",
+    "evidence_status": "analyst_inferred",
+    "evidence_refs": [
+      "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_conditions",
+      "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_condition:tc_01",
+      "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_condition:tc_03",
+      "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:defect_mechanism",
+      "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:observed_failure"
+    ],
+    "limitations": [
+      "The defect mechanism is patch-derived/inferred rather than an explicit root-cause statement in the report, so the exact validation gap is not independently confirmed.",
+      "The empty-tensor and exact shape/dtype conditions are marked unknown or contributing, so they are not established necessary triggers.",
+      "This is a historical testing hypothesis; it does not assert that current torch.nn.functional.cosine_embedding_loss still crashes or fails on such inputs."
+    ]
+  },
+  "exploration_guidance": {
+    "historical_anchors": [],
+    "variation_opportunities": [
+      {
+        "statement": "Vary the dimensionality and shape relationship between input1 and input2, including mismatched ranks and same-rank but incompatible sizes, while preserving an empty or near-empty tensor character.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_condition:tc_03",
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:defect_mechanism"
+        ]
+      },
+      {
+        "statement": "Explore both empty and small non-empty shape combinations around the mismatched-dimension boundary to investigate whether the validation gap is specific to empty tensors or broader dimension mismatches.",
+        "evidence_status": "analyst_inferred",
+        "evidence_refs": [
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_condition:tc_01",
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:historical_condition:tc_03",
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:defect_mechanism"
+        ]
+      }
+    ],
+    "observation_candidates": [
+      {
+        "statement": "Observe whether calls with mismatched input1/input2 dimensions are rejected by an exception or proceed into an unsafe native execution path that terminates abnormally, such as a segmentation fault.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:defect_mechanism",
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:observed_failure"
+        ]
+      },
+      {
+        "statement": "Observe whether the API's dimension validation treats input2 differently from input1 when the two tensors have mismatched ranks or shapes.",
+        "evidence_status": "pattern_derived",
+        "evidence_refs": [
+          "pattern:pt_v4_cosine_embedding_loss_mismatched_input_shapes_segmentation_fault_p001:defect_mechanism"
+        ]
+      }
+    ]
+  }
+}

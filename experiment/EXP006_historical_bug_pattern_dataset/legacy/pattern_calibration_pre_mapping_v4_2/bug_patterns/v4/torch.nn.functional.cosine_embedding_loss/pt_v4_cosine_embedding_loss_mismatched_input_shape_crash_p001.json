@@ -1,0 +1,122 @@
+{
+  "schema_version": "4.0",
+  "metadata": {
+    "pattern_id": "pt_v4_cosine_embedding_loss_mismatched_input_shape_crash_p001",
+    "canonical_name": "cosine_embedding_loss_mismatched_input_shape_crash",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "4.1",
+    "prompt_version": "pattern_extract_v4_1",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_pytorch_112732",
+        "report_hash": "sha256:0733a114ae798fd55f648220e0bc76da0ce738016442691fb42561547d8bb608"
+      }
+    ],
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_pytorch_pytorch_112732",
+      "evidence_refs": [
+        "ev_2c4d088794096ed1",
+        "ev_3155b255fee1c1d5",
+        "ev_5357ce0a32a66c83",
+        "ev_652ea3c9a92fb35b",
+        "ev_97c40327c2041b9f",
+        "ev_afc780ccb7486d98",
+        "ev_b98e6d3087868a28",
+        "ev_cecfcbed689300f3",
+        "ev_d865d2707eea0525",
+        "ev_fabc68ef1eea2ee1"
+      ],
+      "report_revision": 3,
+      "report_hash": "sha256:0733a114ae798fd55f648220e0bc76da0ce738016442691fb42561547d8bb608"
+    },
+    "abstraction_rationale": "The admitted report describes a segmentation fault in torch.nn.functional.cosine_embedding_loss when called with empty tensors whose input shapes differ, and the resolution patch adds dimension/shape validation. This pattern is scoped to that selected affected API and does not transfer the mechanism to other APIs.",
+    "unresolved_information": [
+      "No explicit root-cause statement was mapped in reported_diagnosis; the mechanism is inferred from the issue comment and resolution patch evidence."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.nn.functional.cosine_embedding_loss"
+  },
+  "historical_conditions": [
+    {
+      "statement": "The reproducer called torch.nn.functional.cosine_embedding_loss with empty tensors: input1 shape [0, 0] and dtype float16, input2 shape [0] and dtype int8, and target shape [0] and dtype float32.",
+      "necessity": "unknown",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_fabc68ef1eea2ee1",
+        "ev_d865d2707eea0525"
+      ],
+      "condition_id": "tc_01"
+    },
+    {
+      "statement": "input1 and input2 had different dimensionalities and non-matching shapes, which the documentation does not allow for cosine embedding loss.",
+      "necessity": "contributing",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_652ea3c9a92fb35b",
+        "ev_fabc68ef1eea2ee1"
+      ],
+      "condition_id": "tc_02"
+    },
+    {
+      "statement": "The affected implementation did not validate that both input tensors meet the expected dimension/shape constraints before computation.",
+      "necessity": "contributing",
+      "evidence_status": "patch_derived",
+      "evidence_refs": [
+        "ev_97c40327c2041b9f",
+        "ev_3155b255fee1c1d5",
+        "ev_652ea3c9a92fb35b"
+      ],
+      "condition_id": "tc_03"
+    }
+  ],
+  "defect_mechanism": {
+    "description": "The implementation did not enforce equal dimensionality/shape for input1 and input2. Mismatched empty input shapes were allowed to proceed into the computation and resulted in a segmentation fault instead of a controlled RuntimeError.",
+    "root_cause_category": null,
+    "evidence_status": "patch_derived",
+    "evidence_refs": [
+      "ev_652ea3c9a92fb35b",
+      "ev_97c40327c2041b9f",
+      "ev_3155b255fee1c1d5"
+    ]
+  },
+  "observed_failure": {
+    "description": "Calling torch.nn.functional.cosine_embedding_loss with empty tensors and mismatched input shapes produced a segmentation fault (core dumped).",
+    "symptom_category": "crash",
+    "evidence_status": "source_explicit",
+    "evidence_refs": [
+      "ev_2c4d088794096ed1",
+      "ev_d865d2707eea0525",
+      "ev_cecfcbed689300f3",
+      "ev_fabc68ef1eea2ee1"
+    ],
+    "historical_observations": [
+      {
+        "statement": "The crash was reproduced on the nightly build.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_b98e6d3087868a28"
+        ],
+        "observation_id": "ho_01"
+      },
+      {
+        "statement": "The resolution added tests expecting RuntimeError for differing input shapes/dimensions, including input1 [0,0] with input2 [0] and input1 [1,5] with input2 [1,6].",
+        "evidence_status": "patch_derived",
+        "evidence_refs": [
+          "ev_5357ce0a32a66c83",
+          "ev_afc780ccb7486d98"
+        ],
+        "observation_id": "ho_02"
+      }
+    ]
+  }
+}

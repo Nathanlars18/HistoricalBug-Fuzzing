@@ -1,0 +1,106 @@
+{
+  "schema_version": "4.0",
+  "metadata": {
+    "pattern_id": "pt_v4_empty_input_division_by_zero_in_batch_norm_update_stats_p001",
+    "canonical_name": "empty_input_division_by_zero_in_batch_norm_update_stats",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "4.2",
+    "prompt_version": "pattern_extract_v4_2",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_pytorch_120803",
+        "report_hash": "sha256:e1d914d1027f1f5b5e40d3e81a9a24eb298f8640469ff653c82ccdcd3ba839dc"
+      }
+    ],
+    "generated_at": "2026-10-03",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "source_report": {
+      "report_id": "br_pytorch_pytorch_120803",
+      "evidence_refs": [
+        "ev_1b48c3e0224e3374",
+        "ev_353079a41b4274dd",
+        "ev_54fcf0e3c217a724",
+        "ev_8283d31bae59a860",
+        "ev_99a7ac3d3b6d7851",
+        "ev_a7f087e8219f5497",
+        "ev_afe2e8c7d534d3b4",
+        "ev_db29e00322906325"
+      ],
+      "report_revision": 4,
+      "report_hash": "sha256:e1d914d1027f1f5b5e40d3e81a9a24eb298f8640469ff653c82ccdcd3ba839dc"
+    },
+    "abstraction_rationale": "Derived from report br_pytorch_pytorch_120803 for torch.batch_norm_update_stats: an empty input tensor on Linux CPU caused a floating point exception, addressed by adding a non-empty input check.",
+    "unresolved_information": [
+      "No reported_diagnosis root-cause claim was mapped in the report; the mechanism was inferred from the resolution patch and PR title.",
+      "No explicit expected behavior statement was mapped in the report.",
+      "No explicit historical oracle statement was mapped in the report."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats"
+  },
+  "historical_conditions": [
+    {
+      "statement": "The input tensor passed to torch.batch_norm_update_stats had shape [0,0] (zero elements).",
+      "necessity": "unknown",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_8283d31bae59a860",
+        "ev_1b48c3e0224e3374"
+      ],
+      "condition_id": "tc_01"
+    },
+    {
+      "statement": "The invocation occurred on Linux (Ubuntu 22.04.3 LTS x86_64) with CUDA unavailable.",
+      "necessity": "unknown",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_353079a41b4274dd"
+      ],
+      "condition_id": "tc_02"
+    }
+  ],
+  "defect_mechanism": {
+    "description": "In the CPU batch_norm_update_stats implementation, n_input is set to input.size(1) and n is computed as input.numel() / n_input. For an input tensor of shape [0,0], both input.numel() and n_input are zero, so the division computes 0 / 0 and causes a floating point exception before any input validation.",
+    "root_cause_category": "numerical_issue",
+    "evidence_status": "patch_derived",
+    "evidence_refs": [
+      "ev_db29e00322906325",
+      "ev_99a7ac3d3b6d7851"
+    ]
+  },
+  "observed_failure": {
+    "description": "Calling torch.batch_norm_update_stats with an input tensor of shape [0,0] terminated with 'Floating point exception (core dumped)'.",
+    "symptom_category": "crash",
+    "evidence_status": "source_explicit",
+    "evidence_refs": [
+      "ev_afe2e8c7d534d3b4",
+      "ev_8283d31bae59a860"
+    ],
+    "historical_observations": [
+      {
+        "statement": "The issue is reproducible on Linux (Ubuntu), but not on Mac M1.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_a7f087e8219f5497"
+        ],
+        "observation_id": "ho_01"
+      },
+      {
+        "statement": "A proposed test expects torch.batch_norm_update_stats with an empty input to raise RuntimeError with the message 'input tensor must have at least one element, but got input_sizes = [0, 1]'.",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_54fcf0e3c217a724"
+        ],
+        "observation_id": "ho_02"
+      }
+    ]
+  }
+}

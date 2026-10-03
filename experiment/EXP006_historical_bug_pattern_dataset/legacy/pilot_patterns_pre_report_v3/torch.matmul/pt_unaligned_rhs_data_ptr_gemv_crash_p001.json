@@ -1,0 +1,142 @@
+{
+  "schema_version": "2.1",
+  "metadata": {
+    "pattern_id": "pt_unaligned_rhs_data_ptr_gemv_crash_p001",
+    "canonical_name": "unaligned_rhs_data_ptr_gemv_crash",
+    "pattern_level": "api_specific"
+  },
+  "derivation_information": {
+    "method": "llm_assisted",
+    "mapping_version": "2.1",
+    "prompt_version": "pattern_extract_v2_4",
+    "model": "deepseek-v4-pro",
+    "input_reports": [
+      {
+        "report_id": "br_pytorch_github_191238",
+        "report_hash": "sha256:d0ff85c09d23f67a8b09e78ba9cc79ba2a2d7f6763c364283ef37d5aab9236ce"
+      }
+    ],
+    "generated_at": "2026-09-14",
+    "validation_status": "automatically_validated"
+  },
+  "provenance": {
+    "supporting_reports": [
+      {
+        "report_id": "br_pytorch_github_191238",
+        "relation": "direct_evidence",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e"
+        ],
+        "source_verification": {
+          "issue_verification_status": "user_reported",
+          "fix_status": "unknown",
+          "reproduction_status": "not_attempted"
+        }
+      }
+    ],
+    "abstraction_rationale": "The report describes a single testable failure unit: torch.matmul with an unaligned right-hand float32 tensor and M == 1 crashes with SIGBUS, while M >= 2 does not.",
+    "unresolved_information": [
+      "The report does not establish whether the crash is specific to float32 or also affects other dtypes.",
+      "The report does not confirm whether unaligned storage is considered supported for torch.matmul inputs.",
+      "The GEMV-path specificity is reporter-observed and not officially confirmed as root cause."
+    ]
+  },
+  "scope": {
+    "framework": "pytorch",
+    "primary_api": "torch.matmul",
+    "confirmed_apis": [
+      "torch.matmul"
+    ],
+    "operator": "matmul",
+    "module": "torch"
+  },
+  "defect_classification": {
+    "primary_defect_class": "memory_layout_boundary",
+    "secondary_defect_classes": [
+      "shape_boundary"
+    ],
+    "risk_dimensions": [
+      "memory",
+      "layout",
+      "shape"
+    ]
+  },
+  "trigger_signature": {
+    "conditions": [
+      {
+        "dimension": "memory",
+        "subject": "right-hand operand tensor data pointer",
+        "predicate": "is not 4-byte aligned",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e"
+        ],
+        "condition_id": "tc_01"
+      },
+      {
+        "dimension": "dtype",
+        "subject": "right-hand operand tensor dtype",
+        "predicate": "is float32",
+        "necessity": "unknown",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e"
+        ],
+        "condition_id": "tc_02"
+      },
+      {
+        "dimension": "shape",
+        "subject": "torch.matmul left-hand operand row dimension M",
+        "predicate": "equals 1",
+        "necessity": "required",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e"
+        ],
+        "condition_id": "tc_03"
+      },
+      {
+        "dimension": "shape",
+        "subject": "torch.matmul operation size",
+        "predicate": "is large",
+        "necessity": "unknown",
+        "evidence_status": "source_explicit",
+        "evidence_refs": [
+          "ev_art_primary_report_bug_description_ce75e49cc13e"
+        ],
+        "condition_id": "tc_04"
+      }
+    ],
+    "operation_context": {
+      "description": "torch.matmul is called with the unaligned float32 tensor as the right-hand operand and a single-row left-hand operand (M == 1).",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_ce75e49cc13e"
+      ]
+    }
+  },
+  "defect_mechanism": {
+    "hypotheses": []
+  },
+  "observed_failure": {
+    "failure_type": "crash",
+    "description": "Process crashes with SIGBUS when a float32 tensor whose data_ptr() is not 4-byte aligned is used as the right-hand operand of a large matmul with M == 1; with M >= 2 the identical call is reported fine.",
+    "historical_oracle": {
+      "kind": "signal",
+      "condition": "SIGBUS signal is raised by the process during the torch.matmul call.",
+      "evidence_status": "source_explicit",
+      "evidence_refs": [
+        "ev_art_primary_report_bug_description_ce75e49cc13e"
+      ]
+    },
+    "evidence_refs": [
+      "ev_art_primary_report_bug_description_ce75e49cc13e"
+    ]
+  },
+  "confidence": {
+    "trigger_confidence": "high",
+    "mechanism_confidence": "low",
+    "oracle_confidence": "high"
+  }
+}
