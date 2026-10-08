@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:historicalbug-fuzzing:schema:api-profile-validation-case:1.0",
+  "title": "HistoricalBug-Fuzzing API Profile Validation Case v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "purpose",
+    "target",
+    "arguments",
+    "source_evidence_refs",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {"$ref": "#/$defs/non_empty_string"},
+    "purpose": {"const": "ordinary_valid_smoke"},
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "framework_commit",
+        "python_api",
+        "operator_name",
+        "operator_overload"
+      ],
+      "properties": {
+        "framework_commit": {
+          "type": "string",
+          "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+        },
+        "python_api": {"$ref": "#/$defs/non_empty_string"},
+        "operator_name": {"$ref": "#/$defs/non_empty_string"},
+        "operator_overload": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "arguments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["binding_parameter_ref", "value"],
+        "properties": {
+          "binding_parameter_ref": {"$ref": "#/$defs/non_empty_string"},
+          "value": {"$ref": "#/$defs/value"}
+        }
+      }
+    },
+    "source_evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/non_empty_string"}
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/evidence"}
+    }
+  },
+  "$defs": {
+    "non_empty_string": {"type": "string", "minLength": 1},
+    "nullable_string": {
+      "anyOf": [
+        {"$ref": "#/$defs/non_empty_string"},
+        {"type": "null"}
+      ]
+    },
+    "value": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "shape", "dtype", "fill"],
+          "properties": {
+            "kind": {"const": "tensor"},
+            "shape": {
+              "type": "array",
+              "items": {"type": "integer", "minimum": 0}
+            },
+            "dtype": {"enum": ["float32", "float64", "int64", "bool"]},
+            "fill": {"enum": ["zeros", "ones"]}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {"const": "floating"},
+            "value": {"type": "number"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {"const": "integer"},
+            "value": {"type": "integer"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {"const": "boolean"},
+            "value": {"type": "boolean"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {"kind": {"const": "none"}}
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "source_kind",
+        "source_location",
+        "source_revision",
+        "locator",
+        "content_hash",
+        "excerpt"
+      ],
+      "properties": {
+        "evidence_id": {"$ref": "#/$defs/non_empty_string"},
+        "source_kind": {"enum": ["official_documentation", "pytorch_source"]},
+        "source_location": {"$ref": "#/$defs/non_empty_string"},
+        "source_revision": {"$ref": "#/$defs/non_empty_string"},
+        "locator": {"$ref": "#/$defs/non_empty_string"},
+        "content_hash": {
+          "anyOf": [
+            {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            {"type": "null"}
+          ]
+        },
+        "excerpt": {"type": "string", "minLength": 1, "maxLength": 1000}
+      }
+    }
+  }
+}

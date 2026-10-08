@@ -1,4 +1,4 @@
-# Adaptive Feedback Loop Protocol v0.5
+# Adaptive Feedback Loop Protocol v0.7
 
 ## 1. Purpose
 
@@ -8,7 +8,8 @@ This protocol defines the deterministic outer feedback loop used by the
 After each eligible fuzzing round, the feedback controller:
 
 1. validates the supplied round evidence;
-2. records the Round Gate Result, per-Branch diagnoses, and Coverage trend;
+2. records the Round Gate Result, per-Branch condition observations, and any
+   available Coverage measurements;
 3. selects one deterministic Budget Action and Run Disposition;
 4. emits one structured Materialization Request for an effective budget change;
 5. uses the existing HarnessSpec, Strategy, and Harness Builders in deterministic
@@ -72,8 +73,7 @@ The following remain unchanged throughout one Adaptive repeat:
 - Branch exploration goals;
 - Branch validity intents;
 - Target Properties;
-- Activation Targets and predicates;
-- Oracle Requirements and expected behavior;
+- Target Conditions, their observation phases, and behavior checks;
 - Strategy Primitive and Helper semantics;
 - total round budget;
 - feedback policy version;
@@ -84,56 +84,35 @@ order to improve a measured rate.
 
 ### 3.2 Mutable State
 
-Protocol v0.5 permits modification of only:
+Protocol v0.7 permits modification of only:
 
 - positive Branch budget allocations;
 - revision lineage and provenance;
 - lifecycle state associated with candidate acceptance or rollback.
 
 Branch creation, removal, merging, splitting, and semantic parameter adjustment
-are outside Protocol v0.5.
+are outside Protocol v0.7.
 
-## 4. Activation Accounting
+## 4. Condition and Behavior Accounting
 
-Individual Activation Targets retain their existing runtime observations.
+The controller resolves each `target_condition` independently through the
+Harness Artifact trace references and observation locator. Measurements are
+keyed by condition ID and observation phase. A condition that evaluates false
+is still an observed exploration value; false is not an input rejection or a
+failed check. No cross-condition AND/OR activation is inferred.
 
-For every Branch with one or more Activation Targets, the generated Harness
-provides one Branch-level combined Activation assessment per executed fuzz
-case:
+Each condition records checked, true, unevaluable, and checker-error counts,
+its checked-case rate when defined, instrumentation bindings, and an explicit
+availability state. Missing or ambiguous instrumentation makes only that
+condition-phase unavailable. A separate usable condition can still inform a
+diagnosis. Successful checked cases, rather than checked plus unevaluable
+cases, determine whether a rate meets the policy's minimum sample count.
 
-- `branch_activation_checked`: all required Activation Target predicates were
-  evaluated successfully and produced Boolean results for that Branch;
-- `branch_activation_true`: all required Activation Target predicates evaluated
-  to true in the same fuzz case;
-- `branch_activation_unevaluable`: a combined assessment was attempted, but at
-  least one required predicate could not produce a Boolean result and no
-  successful combined check was recorded for that fuzz case;
-- `branch_activation_check_error`: a Branch checker failed because of an
-  implementation or execution error.
-
-`branch_activation_true` is a subset of `branch_activation_checked`. The
-checked, unevaluable, and checker-error outcomes are mutually exclusive for one
-Branch in one fuzz case, and each counter is incremented at most once per fuzz
-case.
-
-The Branch Activation Rate is defined only when the corresponding checked count
-meets the minimum sample requirement in the Adaptive Feedback Policy:
-
-```text
-branch_activation_rate
-=
-branch_activation_true
-/
-branch_activation_checked
-```
-
-Target-level `activation_checked`, `activation_true`,
-`activation_unevaluable`, and `activation_check_error` counts remain available
-for Evaluation Target metrics and diagnosis. They are distinct from the
-Branch-level counters and must not be summed or otherwise aggregated to infer
-joint Branch activation.
-
-A Branch without required Activation Targets has no Branch Activation Rate.
+Behavior checks are recorded by check ID with opportunity and evaluated counts.
+When the Spec has no behavior checks, behavior evidence is not applicable. A
+required behavior check with missing instrumentation is reported separately
+from exceptions and input rejection. Target API exceptions have their own
+counter and are not treated as input rejection.
 
 ## 5. Feedback Evidence Eligibility
 
@@ -154,10 +133,12 @@ At minimum:
 - runtime counters are non-negative and internally consistent;
 - `invalid_site_records` is zero;
 - the run termination reason is known;
-- coverage evidence identifies the expected framework build and target scope;
+- optional Coverage evidence identifies the expected framework build, target
+  scope, and exact Harness binary;
 - no required input artifact is missing or unresolved;
-- every Branch-level Activation checker-error count is at or below the frozen
-  policy limit.
+- identity, counter, and instrumentation-map integrity checks pass. Condition
+  checker errors remain condition-level observations and do not automatically
+  invalidate unrelated condition measurements.
 
 A final runtime snapshot is preferred. A periodic snapshot may be used only when
 the Fuzzing Round record confirms the expected round termination and the
@@ -167,7 +148,7 @@ The eligibility gate produces exactly one Round Gate Result:
 
 - `evidence_ineligible`: required evidence is missing, inconsistent, stale, or
   belongs to a different run or artifact;
-- `crash_or_sanitizer_candidate`: the round contains an observation that must be
+- `abnormal_candidate_observed`: the round contains an observation that must be
   preserved and handed to crash analysis before adaptation;
 - `insufficient_total_samples`: evidence is structurally eligible but the
   completed-iteration count is below the policy minimum;
@@ -197,7 +178,7 @@ normalized round evidence
         ↓
 Round Gate Result
         ↓
-per-Branch diagnosis + global Coverage trend
+per-condition diagnosis + optional Coverage measurements
         ↓
 Budget Action + Run Disposition
         ↓
@@ -231,19 +212,25 @@ precedence:
 
 1. `branch_under_sampled`;
 2. `branch_rejection_dominated`;
-3. `branch_target_unreachable`;
+3. `branch_target_not_observed`;
 4. `branch_activation_unevaluable`;
 5. `branch_activation_absent`;
 6. `branch_activation_rare`;
 7. `branch_oracle_unevaluable`;
-8. `branch_healthy`.
+8. `branch_no_detected_bottleneck`.
 
-`branch_activation_unevaluable`, `branch_activation_absent`, and
-`branch_activation_rare` apply only to a Branch with Activation Targets.
-Absent and rare require enough successful checked cases; unevaluable requires
-enough attempted assessments but no successful checked cases. An unevaluable
-Branch is neither a budget recipient nor a donor. A Branch without Activation
-Targets is evaluated without a Branch Activation Rate.
+These are diagnoses under the frozen thresholds, not proofs of unreachability,
+health, root cause, or a confirmed bug. Decision v1.3 uses these observational
+names. Version 1.2 records retain their old names and verified hashes unchanged.
+Coverage remains diagnostic; this revision introduces no new budget rule.
+
+For Spec v2.2, the activation labels summarize one explicitly recorded
+`trigger_condition` and phase. They do not assert that every condition in a
+Branch was jointly true. Absent and rare require the policy minimum of
+successful checks. If no condition-phase is sufficiently observable, the
+Branch is under-sampled or unevaluable and cannot donate or receive budget
+solely on that missing signal. A Branch without Target Conditions has no
+condition activation diagnosis.
 
 Lower-priority observations may be preserved as supporting diagnostics. They do
 not independently trigger another budget modification in the same transition.
@@ -254,17 +241,33 @@ Eligible coverage evidence produces one of:
 
 - `coverage_growing`;
 - `coverage_plateau`;
-- `coverage_unavailable`.
+- `coverage_unavailable`;
+- `coverage_not_assessed` when a summary is collected but no comparable
+  baseline is available.
 
-Coverage trend is global to the registered target scope. Protocol v0.5 does not
+Coverage is supporting evidence only; it never drives allocation by itself.
+The decision records the summary hash, collection state, measurements, scope
+hash, framework commit, image, binary hash, and quality status when available.
+Coverage is global to the registered target scope. Protocol v0.7 does not
 claim Branch-level Coverage attribution unless an independently validated
 Branch-level Coverage record is supplied.
+
+Coverage Summary quality states are `complete`, `partial_warning`, and
+`partial_failure`. A warning preserves the measured values and warning text.
+A partial failure preserves the completed and planned replay-batch counts,
+failure message, available profile hash, and the hashed Summary reference;
+measurements remain null. If no Summary can be written, the Fuzzing Round keeps
+a hashed diagnostic file reference and Feedback records the failure reason.
+These states make Coverage unavailable or incomplete for diagnosis while the
+Round's independently validated Runtime Snapshot remains eligible for the
+ordinary feedback gate. A broken evidence hash is an input-integrity error and
+must be reported explicitly rather than treated as a replay failure.
 
 ### 7.4 Policy Evaluation
 
 The frozen Adaptive Feedback Policy maps the Round Gate Result, ordered
-per-Branch diagnoses, global Coverage trend, and relevant prior Feedback
-Decisions to one Budget Action and one Run Disposition.
+per-Branch diagnoses, Coverage measurements as supporting evidence, and
+relevant prior Feedback Decisions to one Budget Action and one Run Disposition.
 
 Exact thresholds, history windows, and consecutive-round requirements are
 defined only by the policy.
@@ -329,14 +332,15 @@ Harness Generator. The feedback controller:
 4. ensures that the total allocation equals 256 slots;
 5. resolves ties by canonical `branch_id` order;
 6. derives each stored share as `selector_slots / 256`;
-7. confirms that candidate selector ranges differ from the current ranges.
+7. confirms that candidate selector ranges differ from the current ranges and
+   every gross transfer is within the per-transition limit.
 
 The adaptive policy owns all numeric thresholds and history rules, including:
 
 - minimum usable sample counts;
 - Branch floors and ceilings;
 - maximum transfer per transition;
-- Activation and Coverage thresholds;
+- Target Condition and behavior-check evidence thresholds;
 - consecutive-round and retry limits;
 - permitted snapshot staleness;
 - deterministic tie-breaking.
@@ -344,6 +348,12 @@ The adaptive policy owns all numeric thresholds and history rules, including:
 The policy distinguishes a first eligible low or zero Activation observation
 from persistent zero Activation after an exploration boost. It must prevent
 unbounded repeated increases to a Branch that remains ineffective.
+
+Every increase and restoration moves no more than the frozen per-transition
+limit. If restoring a prior vector requires more slots, the controller moves
+toward it in bounded steps and leaves the restoration episode open until the
+saved vector is fully recovered. It does not undo unrelated changes made since
+the original boost.
 
 A proposed allocation that materializes to the same selector ranges yields
 `retain_current` and `not_attempted`.
@@ -389,7 +399,7 @@ of the following hold:
 4. only Branch budget shares and permitted revision, policy, Materialization
    Request, provenance, review, or lifecycle metadata differ;
 5. Knowledge, validity constraints, Branch semantics, Target Properties,
-   Activation Targets, and Oracle Requirements are unchanged under canonical
+   Target Conditions, and behavior checks are unchanged under canonical
    comparison;
 6. API Profile, Helper Profile, Primitive Catalog, and Harness Template
    references and versions are unchanged;
@@ -502,15 +512,12 @@ The feedback controller does not directly stop a fuzzing process. It returns a
 Run Disposition, and the experiment Runner applies that disposition at the
 round boundary.
 
-The Runner terminates the current repeat when the registered experiment
-protocol or Adaptive Feedback Policy requires it, including:
-
-- completion of the final scheduled round;
-- `handoff_crash_analysis`;
-- repeated unusable evidence;
-- repeated rejected candidates;
-- absence of an effective permitted adjustment;
-- an unrecoverable infrastructure or capability failure.
+The scheduled final round ends the repeat. An unrecoverable infrastructure
+failure may abort it; `handoff_crash_analysis` preserves evidence and delegates
+continuation to the Runner's registered abnormal-event policy. Repeated unusable
+evidence or rejected candidates freeze adaptation at the policy limit, rather
+than ending the remaining fuzzing budget. No effective permitted adjustment
+means retain the current allocation and continue, not early success.
 
 Final-round completion is a scheduler condition, not a feedback diagnosis. No
 unused next HarnessSpec revision is created after it.
@@ -535,7 +542,7 @@ It must also preserve:
 
 - the Round Gate Result;
 - ordered per-Branch primary and supporting diagnoses;
-- the global Coverage trend;
+- Coverage collection state and measurements;
 - the Budget Action;
 - the Materialization Outcome;
 - the Run Disposition;

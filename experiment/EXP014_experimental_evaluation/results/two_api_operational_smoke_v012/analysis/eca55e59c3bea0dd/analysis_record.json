@@ -1,0 +1,1369 @@
+{
+  "analysis_format_version": "1.0",
+  "analysis_id": "analysis:pytorch_2_10_operational_smoke_v012:eca55e59c3bea0dd",
+  "analysis_key": "eca55e59c3bea0dd275a360e2398f8a20d637f8c4f49a484bc4a0cb260183d53",
+  "analyzer": {
+    "analyzer_id": "analyze_experiment_results",
+    "analyzer_version": "0.5.0",
+    "content_hash": "10fca6e26e34a2d60fb06220a4376e62fe01e42a46efcd1112368eee6468d387"
+  },
+  "matrix_id": "pytorch_2_10_operational_smoke_v012",
+  "analysis_cutoff_at": "2026-10-08T08:48:37.554139Z",
+  "analysis_window": {
+    "status": "final",
+    "as_of": "2026-10-08T08:48:37.554139Z",
+    "generated_at": "2026-10-08T08:49:54.541927Z"
+  },
+  "input_hashes": {
+    "matrix": "15350e377102aada1894f019fc70daebbd15a553dc0375ac422607db1ad1641c",
+    "execution_index": "9396728dc3a125cc7862e7592f7b9adc7a3125b52a538f0696ba4559d5098ecd",
+    "result_provenance": "08c2f407d8ff84bed5021d2af0930cda67ea40b7199c8e0a9a1dd807b7ade172",
+    "evaluation_target_manifest": "c51e75acfc6a362eb15b7a0ae8af4ce7956859afda51524281d50284b2f14c23",
+    "harness_artifacts": [
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/bug_aware_static/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_static/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_0def3d5da005/harness_artifact.json",
+        "content_hash": "aab5eaf2dd4d120c782f7804c42d70803439ac19c76a13d517125fc809673f20"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/structured_baseline/harnesses/pytorch/torch_batch_norm_update_stats/controlled_baseline/ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3/harness_artifact.json",
+        "content_hash": "a2e28a1f663afe4026ea7a5adba1717802e7278f65a795b394cdbc970a7fb608"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/bug_aware_static/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2_1db0a08e49f6/harness_artifact.json",
+        "content_hash": "ecc5c22f91ce853cc5b0e17a775b962a577527ad3826b31e7a11a6439bd43721"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/structured_baseline/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r3_2a90c4c4502e/harness_artifact.json",
+        "content_hash": "698cb1310170bead2a7b3d3ddbeafd69068a507dbdb854d52512a748294cbc3a"
+      }
+    ],
+    "round_records": [
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+        "content_hash": "62c173c472817d1e760d6148b18ac510aacb9ea9e54f367cf784937cfbbd5e75"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+        "content_hash": "a7cb4d58bbf1b30c25981ad7b0fc97491635f7e33438f7aa18d7245bc180e95b"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+        "content_hash": "a96a535151ca95f562be1772505201ae54a6b131e37fa94b6ebff81f866c352f"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+        "content_hash": "ad47c337fdf9cd4ced8667049ee5513e201cbcef8a518cf32778d4369e470e98"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+        "content_hash": "f10ab6697a61ac80f1f3bc8d4b47a912cb9635a9d238efccc65c03e471b67257"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+        "content_hash": "aeb8c27ed25c161ce98922dca7a0dd0d3142cb0cdfa02f333a469093645f96ee"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+        "content_hash": "803ce82ef2ff2a3c871544c9055354fee1f08d2fa4283172f45e2a6a2b9e0a21"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+        "content_hash": "1ba8a194e3bd0e52da78828277ce3f5d5b1dd6615a6c5e008fd6d7deabc2541d"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+        "content_hash": "dbc3f4e40cdf479e63cef5df4a1803f51026b06611d7b9a9430764b4d1e6e51d"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+        "content_hash": "0ccd77f2fd63a5de966453e8b23429cf30889ee0032eba9dca6c60d7d40f959e"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+        "content_hash": "8c02c943cd0ed6ce3439874cfdec43f22edcf4774cf3d24f40bdb4ab12ddddb8"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+        "content_hash": "b306ef8c8b47e433831ed5f2f75b1ae2eafe8ebc0dc823802550e95abbeacef6"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+        "content_hash": "ea528f0db4687733b698284be94ade2497a9830dee92dd0124c418e532e70a70"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+        "content_hash": "68c3d5c460d6c9906573d39168b4a22b462069388fb307b0eaca036b1a09354a"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+        "content_hash": "7a6f9fc8c2973b6007a568f511d8ee4b2d295412fac7b0f89285778bec137fb1"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+        "content_hash": "4278087a9f1f6692875de0a56eec8ab574a9fe17e99e20b1b52b1521c417ccca"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+        "content_hash": "bea8116ab07e8a4c1f29969130c690394fa8570eeca4360b60e47c6a3e878feb"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+        "content_hash": "77e062858d3b0f14fc34f09c583479adb7a544c05d5eca478c713027cd4a46f0"
+      }
+    ],
+    "runtime_snapshots": [
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+        "content_hash": "08af25458ec170ead9108236c871123075555f19125ad8c8eddb2f67320d3e01"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+        "content_hash": "d42abaf6962a8fbc54982ade6db9228065b70740d8e62f8897044389692f8b88"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+        "content_hash": "fbe2558e7971ae1dac3c37602ee02792eb9c23590be51c4469370360d9b9e84f"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+        "content_hash": "100b2d8267d3496e0d8f0bc937cc8744372f0a827fc839d47bee6dc7debeb811"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+        "content_hash": "5c504bf732fe5ac14a668bb3b8453301a467d956381af725fc1d3013cb9dae1d"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+        "content_hash": "f83bcbcfc3541bc688e025f2a0fe6089e44b44a0946d9980cc6f12dae082c085"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+        "content_hash": "32401cefd260faa4fd267cd49a0ca2b816340b21bf9a0f8d5dceb02b2fff2a67"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+        "content_hash": "e8b6aa9538aa24ef57c3fa73855515e658557cb0c8810e70e1f3e7d7c190fb2f"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+        "content_hash": "2abd28f9c91a545949073e7d0be4e33a91203765b4ae4db569b3ef6870e925c0"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+        "content_hash": "b372cddd84018852067837a54e15f20e15d2bd3cd147a4a601bb70dff71711e3"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+        "content_hash": "889cd366e5d37be7c50513a945a80079f65141ba4d6090753c6a5656331752a3"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+        "content_hash": "44f9b8f02b65d09825e159ad83a692af98a14ccc8f8ff7c24ee273d85d13111a"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+        "content_hash": "717086b4444ae676595766844d85d879c729c3dd1b24bcaf3d24604eb10c97c2"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+        "content_hash": "edd4ee415bd27a7de2b694f7606dfa2da7ac5832898151810a2ac729cf7dc7b0"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+        "content_hash": "0e9d5f37f13208084af65d8c3713d1d6c121b2694ad26ed4d57e1db68cf37f5f"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+        "content_hash": "c226782f3c33a05658fc7ed4640ec4ddcb17b3be8a9dc1d72adfe6e961db157a"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+        "content_hash": "b189edab536dcf82b07b76b3c9fa3c7b4e188130d6f923e7cc97009a9b5cf35f"
+      },
+      {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+        "content_hash": "1ae7af6b93d6ef423c0448f8f2ad5a271226dcb9e4478ee2e515f51b601ec1a9"
+      }
+    ],
+    "crash_case_records": [],
+    "cumulative_coverage": [
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "included_profile_count": 1,
+        "status": "complete",
+        "lines_covered": 7935,
+        "lines_total": 172825,
+        "branches_covered": 6182,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b802638035df733f815c790c/coverage_summary.json",
+          "content_hash": "adb55df57e94c4983db918fd9660a5ba0ec0c964c009138436ae44a76183249f"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "included_profile_count": 2,
+        "status": "complete",
+        "lines_covered": 7935,
+        "lines_total": 172825,
+        "branches_covered": 6182,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/e73ab66f58df307cdffcc9e6/coverage_summary.json",
+          "content_hash": "e1aed7858bf8f316448c4def464d97d377ba7bdb3ed42986515bdd2a46b946c8"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "included_profile_count": 3,
+        "status": "complete",
+        "lines_covered": 7935,
+        "lines_total": 172825,
+        "branches_covered": 6182,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/f261142d988463b302b68bd5/coverage_summary.json",
+          "content_hash": "9ef20087191a991dce9be7b0527c5a9ecb4954e8f0b5e89bce606f05912f2300"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "included_profile_count": 1,
+        "status": "complete",
+        "lines_covered": 7935,
+        "lines_total": 172825,
+        "branches_covered": 6182,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b5a672c53524eb7e73ec3c84/coverage_summary.json",
+          "content_hash": "29411c228af626a852bf0cdb86f4d9b92e3f08006065b405de7894b40c299f2e"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "included_profile_count": 2,
+        "status": "complete",
+        "lines_covered": 7935,
+        "lines_total": 172825,
+        "branches_covered": 6182,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/d2e1890cb98c11ba22bb06a1/coverage_summary.json",
+          "content_hash": "0eda0d844874250d05923b33566296091b91912bb0ca9bc6103eca8a837d1837"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "included_profile_count": 3,
+        "status": "complete",
+        "lines_covered": 7935,
+        "lines_total": 172825,
+        "branches_covered": 6182,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/a72d3bc6550d749c837bd9cc/coverage_summary.json",
+          "content_hash": "37c0ebb2598dcc6104a85297bdc3adae1e409edada62c5ed7ebed1f738468976"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "included_profile_count": 1,
+        "status": "complete",
+        "lines_covered": 7898,
+        "lines_total": 172825,
+        "branches_covered": 6170,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/8745ae679bf03a000dbe3405/coverage_summary.json",
+          "content_hash": "8f9cf250f63a50c04c24e3e0dca16ba29f58eaa2b0708469bb5ba8c998875db5"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "included_profile_count": 2,
+        "status": "complete",
+        "lines_covered": 7898,
+        "lines_total": 172825,
+        "branches_covered": 6170,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/14b5e9bcbe1ea15b76e47514/coverage_summary.json",
+          "content_hash": "a66b9bd5080273b4a537dc34b1081aa18af16b531dba53e251c406cad84abdf2"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "included_profile_count": 3,
+        "status": "complete",
+        "lines_covered": 7898,
+        "lines_total": 172825,
+        "branches_covered": 6170,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/db4f55b878ab91e8743af0a2/coverage_summary.json",
+          "content_hash": "3a5b4d78b08570d877656322eb1b6b5deb2f7d35c799b15fead54ac9ebadfb88"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "included_profile_count": 1,
+        "status": "complete",
+        "lines_covered": 9186,
+        "lines_total": 172825,
+        "branches_covered": 6683,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/8535f4c0544ddcc94caad3dc/coverage_summary.json",
+          "content_hash": "d07b6c8db309df753117d7f200122a794fb023b0ad33810e8e11f34755cd8bf6"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "included_profile_count": 2,
+        "status": "complete",
+        "lines_covered": 9186,
+        "lines_total": 172825,
+        "branches_covered": 6683,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/18175c935909e053870052f3/coverage_summary.json",
+          "content_hash": "302a0c41b14ad0f8f1f3d767a5fe00a2e7d0d3c57bd1914c88965cb480d10126"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "included_profile_count": 3,
+        "status": "complete",
+        "lines_covered": 9186,
+        "lines_total": 172825,
+        "branches_covered": 6683,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/455480a78adc887b1c5218f4/coverage_summary.json",
+          "content_hash": "fe6a3c4a9833e059f97f9a207d91c9da5a1d910fa2b6693b79d806c54f561570"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "included_profile_count": 1,
+        "status": "complete",
+        "lines_covered": 9186,
+        "lines_total": 172825,
+        "branches_covered": 6683,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b0bc74e698bd92bbebdedec8/coverage_summary.json",
+          "content_hash": "4514b57cbe89c872456b0bb5dc6a6a4c1a07ffda2ee40400e7dd128258733eba"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "included_profile_count": 2,
+        "status": "complete",
+        "lines_covered": 9186,
+        "lines_total": 172825,
+        "branches_covered": 6683,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/22f25d6e912ceda689f81cc9/coverage_summary.json",
+          "content_hash": "6b459d44e4bd8a7b2529b26ab0e8b1061f3cc02f0f4d36bb0a5df53f3252e6e0"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "included_profile_count": 3,
+        "status": "complete",
+        "lines_covered": 9186,
+        "lines_total": 172825,
+        "branches_covered": 6683,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/04315dbb55f37ddeb5a95873/coverage_summary.json",
+          "content_hash": "6a8876af33a463edbfae4ead645a598011bd20e12b912d4f41c4262183dbdd94"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "included_profile_count": 1,
+        "status": "complete",
+        "lines_covered": 9134,
+        "lines_total": 172825,
+        "branches_covered": 6645,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/ab072fbb6ece3ad8d07010ec/coverage_summary.json",
+          "content_hash": "e0c00a8727c24b8681a714da0ef2ee72d4eba1916de6f57e0044b01a3652caf4"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "included_profile_count": 2,
+        "status": "complete",
+        "lines_covered": 9134,
+        "lines_total": 172825,
+        "branches_covered": 6645,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b05b4063eb769f8b17f1874d/coverage_summary.json",
+          "content_hash": "a8df0c9bb301b61a2892802d03a306a21bd2721b72087ae8def495481215c834"
+        },
+        "quality_status": "partial_warning"
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "included_profile_count": 3,
+        "status": "complete",
+        "lines_covered": 9134,
+        "lines_total": 172825,
+        "branches_covered": 6645,
+        "branches_total": 56868,
+        "summary_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b7232d8445fd4bcacaa2d086/coverage_summary.json",
+          "content_hash": "ee461abee9497877e1a61702e6ae20d1db87262cc5eda0b5c73f400dbab4707c"
+        },
+        "quality_status": "partial_warning"
+      }
+    ],
+    "capture_diagnostics": [
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "status": "complete",
+        "attempts": 5067,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 5003,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "status": "complete",
+        "attempts": 5049,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 4985,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "status": "complete",
+        "attempts": 5589,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 5525,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "status": "complete",
+        "attempts": 5589,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 5525,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "status": "complete",
+        "attempts": 6411,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 6347,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "status": "complete",
+        "attempts": 4917,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 4853,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "status": "complete",
+        "attempts": 0,
+        "saved": 0,
+        "failures": 0,
+        "suppressed": 0,
+        "saturated_process_count": 0,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "status": "complete",
+        "attempts": 0,
+        "saved": 0,
+        "failures": 0,
+        "suppressed": 0,
+        "saturated_process_count": 0,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.batch_norm_update_stats",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "status": "complete",
+        "attempts": 0,
+        "saved": 0,
+        "failures": 0,
+        "suppressed": 0,
+        "saturated_process_count": 0,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "status": "complete",
+        "attempts": 4420,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 4356,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "status": "complete",
+        "attempts": 4586,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 4522,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_adaptive",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "status": "complete",
+        "attempts": 4216,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 4152,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "status": "complete",
+        "attempts": 4383,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 4319,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "status": "complete",
+        "attempts": 4145,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 4081,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "bug_aware_static",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "status": "complete",
+        "attempts": 4563,
+        "saved": 64,
+        "failures": 0,
+        "suppressed": 4499,
+        "saturated_process_count": 1,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 1,
+        "status": "complete",
+        "attempts": 0,
+        "saved": 0,
+        "failures": 0,
+        "suppressed": 0,
+        "saturated_process_count": 0,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 2,
+        "status": "complete",
+        "attempts": 0,
+        "saved": 0,
+        "failures": 0,
+        "suppressed": 0,
+        "saturated_process_count": 0,
+        "process_count": 1
+      },
+      {
+        "api_id": "torch.nn.functional.cosine_embedding_loss",
+        "group_id": "structured_baseline",
+        "repeat_id": "repeat_001",
+        "round_index": 3,
+        "status": "complete",
+        "attempts": 0,
+        "saved": 0,
+        "failures": 0,
+        "suppressed": 0,
+        "saturated_process_count": 0,
+        "process_count": 1
+      }
+    ],
+    "analysis_window": {
+      "status": "final",
+      "as_of": "2026-10-08T08:48:37.554139Z"
+    }
+  },
+  "counts": {
+    "api_count": 2,
+    "round_record_count": 18,
+    "attrited_task_count": 0,
+    "cutoff_case_count": 0,
+    "unresolved_case_or_cluster_count": 0,
+    "coverage_present_round_count": 18,
+    "coverage_warning_round_count": 18,
+    "coverage_partial_failure_round_count": 0,
+    "unmaterialized_candidate_count": 768,
+    "capture_attempt_count": 58935,
+    "capture_saved_count": 768,
+    "capture_suppressed_count": 58167,
+    "capture_failure_count": 0
+  },
+  "attrition": [],
+  "rq_summary": {
+    "rq1": {
+      "RQ1_M1_E2E_HARNESS_RATE": {
+        "success_count": null,
+        "selected_api_count": 2,
+        "rate": null,
+        "wilson_95_interval": null,
+        "per_api": {
+          "torch.batch_norm_update_stats": {
+            "success": true,
+            "failure_reason": null
+          },
+          "torch.nn.functional.cosine_embedding_loss": {
+            "success": true,
+            "failure_reason": null
+          }
+        },
+        "applicable": false,
+        "reason": "Approved artifact reuse is not a new synthesis trial"
+      },
+      "RQ1_M2_OBSERVATION_REACH_RATE": {
+        "computable_api_count": 2,
+        "per_api": {
+          "torch.batch_norm_update_stats": {
+            "median_rate": 1.0,
+            "computable_repeat_count": 1
+          },
+          "torch.nn.functional.cosine_embedding_loss": {
+            "median_rate": 1.0,
+            "computable_repeat_count": 1
+          }
+        }
+      }
+    },
+    "rq2": {
+      "RQ2_M1_TARGET_ACTIVATION_COVERAGE": {
+        "torch.batch_norm_update_stats": {
+          "structured_baseline_median": 0.0,
+          "bug_aware_static_median": 1.0,
+          "paired_difference_median": 1.0
+        },
+        "torch.nn.functional.cosine_embedding_loss": {
+          "structured_baseline_median": 0.5,
+          "bug_aware_static_median": 1.0,
+          "paired_difference_median": 0.5
+        }
+      },
+      "RQ2_M2_REPRODUCIBLE_ANOMALY_YIELD": {
+        "torch.batch_norm_update_stats": {
+          "structured_baseline_median": 0,
+          "bug_aware_static_median": null,
+          "paired_difference_median": null
+        },
+        "torch.nn.functional.cosine_embedding_loss": {
+          "structured_baseline_median": 0,
+          "bug_aware_static_median": null,
+          "paired_difference_median": null
+        }
+      }
+    },
+    "rq3": {
+      "RQ3_M1_ADAPTIVE_ACTIVATION_GAIN": {
+        "torch.batch_norm_update_stats": 0.0,
+        "torch.nn.functional.cosine_embedding_loss": 0.0
+      },
+      "RQ3_M2_POST_FEEDBACK_ANOMALY_GAIN": {
+        "torch.batch_norm_update_stats": null,
+        "torch.nn.functional.cosine_embedding_loss": null
+      }
+    }
+  },
+  "cumulative_coverage": [
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "included_profile_count": 1,
+      "status": "complete",
+      "lines_covered": 7935,
+      "lines_total": 172825,
+      "branches_covered": 6182,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b802638035df733f815c790c/coverage_summary.json",
+        "content_hash": "adb55df57e94c4983db918fd9660a5ba0ec0c964c009138436ae44a76183249f"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "included_profile_count": 2,
+      "status": "complete",
+      "lines_covered": 7935,
+      "lines_total": 172825,
+      "branches_covered": 6182,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/e73ab66f58df307cdffcc9e6/coverage_summary.json",
+        "content_hash": "e1aed7858bf8f316448c4def464d97d377ba7bdb3ed42986515bdd2a46b946c8"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "included_profile_count": 3,
+      "status": "complete",
+      "lines_covered": 7935,
+      "lines_total": 172825,
+      "branches_covered": 6182,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/f261142d988463b302b68bd5/coverage_summary.json",
+        "content_hash": "9ef20087191a991dce9be7b0527c5a9ecb4954e8f0b5e89bce606f05912f2300"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "included_profile_count": 1,
+      "status": "complete",
+      "lines_covered": 7935,
+      "lines_total": 172825,
+      "branches_covered": 6182,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b5a672c53524eb7e73ec3c84/coverage_summary.json",
+        "content_hash": "29411c228af626a852bf0cdb86f4d9b92e3f08006065b405de7894b40c299f2e"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "included_profile_count": 2,
+      "status": "complete",
+      "lines_covered": 7935,
+      "lines_total": 172825,
+      "branches_covered": 6182,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/d2e1890cb98c11ba22bb06a1/coverage_summary.json",
+        "content_hash": "0eda0d844874250d05923b33566296091b91912bb0ca9bc6103eca8a837d1837"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "included_profile_count": 3,
+      "status": "complete",
+      "lines_covered": 7935,
+      "lines_total": 172825,
+      "branches_covered": 6182,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/a72d3bc6550d749c837bd9cc/coverage_summary.json",
+        "content_hash": "37c0ebb2598dcc6104a85297bdc3adae1e409edada62c5ed7ebed1f738468976"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "included_profile_count": 1,
+      "status": "complete",
+      "lines_covered": 7898,
+      "lines_total": 172825,
+      "branches_covered": 6170,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/8745ae679bf03a000dbe3405/coverage_summary.json",
+        "content_hash": "8f9cf250f63a50c04c24e3e0dca16ba29f58eaa2b0708469bb5ba8c998875db5"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "included_profile_count": 2,
+      "status": "complete",
+      "lines_covered": 7898,
+      "lines_total": 172825,
+      "branches_covered": 6170,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/14b5e9bcbe1ea15b76e47514/coverage_summary.json",
+        "content_hash": "a66b9bd5080273b4a537dc34b1081aa18af16b531dba53e251c406cad84abdf2"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "included_profile_count": 3,
+      "status": "complete",
+      "lines_covered": 7898,
+      "lines_total": 172825,
+      "branches_covered": 6170,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/db4f55b878ab91e8743af0a2/coverage_summary.json",
+        "content_hash": "3a5b4d78b08570d877656322eb1b6b5deb2f7d35c799b15fead54ac9ebadfb88"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "included_profile_count": 1,
+      "status": "complete",
+      "lines_covered": 9186,
+      "lines_total": 172825,
+      "branches_covered": 6683,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/8535f4c0544ddcc94caad3dc/coverage_summary.json",
+        "content_hash": "d07b6c8db309df753117d7f200122a794fb023b0ad33810e8e11f34755cd8bf6"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "included_profile_count": 2,
+      "status": "complete",
+      "lines_covered": 9186,
+      "lines_total": 172825,
+      "branches_covered": 6683,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/18175c935909e053870052f3/coverage_summary.json",
+        "content_hash": "302a0c41b14ad0f8f1f3d767a5fe00a2e7d0d3c57bd1914c88965cb480d10126"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "included_profile_count": 3,
+      "status": "complete",
+      "lines_covered": 9186,
+      "lines_total": 172825,
+      "branches_covered": 6683,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/455480a78adc887b1c5218f4/coverage_summary.json",
+        "content_hash": "fe6a3c4a9833e059f97f9a207d91c9da5a1d910fa2b6693b79d806c54f561570"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "included_profile_count": 1,
+      "status": "complete",
+      "lines_covered": 9186,
+      "lines_total": 172825,
+      "branches_covered": 6683,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b0bc74e698bd92bbebdedec8/coverage_summary.json",
+        "content_hash": "4514b57cbe89c872456b0bb5dc6a6a4c1a07ffda2ee40400e7dd128258733eba"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "included_profile_count": 2,
+      "status": "complete",
+      "lines_covered": 9186,
+      "lines_total": 172825,
+      "branches_covered": 6683,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/22f25d6e912ceda689f81cc9/coverage_summary.json",
+        "content_hash": "6b459d44e4bd8a7b2529b26ab0e8b1061f3cc02f0f4d36bb0a5df53f3252e6e0"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "included_profile_count": 3,
+      "status": "complete",
+      "lines_covered": 9186,
+      "lines_total": 172825,
+      "branches_covered": 6683,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/04315dbb55f37ddeb5a95873/coverage_summary.json",
+        "content_hash": "6a8876af33a463edbfae4ead645a598011bd20e12b912d4f41c4262183dbdd94"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "included_profile_count": 1,
+      "status": "complete",
+      "lines_covered": 9134,
+      "lines_total": 172825,
+      "branches_covered": 6645,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/ab072fbb6ece3ad8d07010ec/coverage_summary.json",
+        "content_hash": "e0c00a8727c24b8681a714da0ef2ee72d4eba1916de6f57e0044b01a3652caf4"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "included_profile_count": 2,
+      "status": "complete",
+      "lines_covered": 9134,
+      "lines_total": 172825,
+      "branches_covered": 6645,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b05b4063eb769f8b17f1874d/coverage_summary.json",
+        "content_hash": "a8df0c9bb301b61a2892802d03a306a21bd2721b72087ae8def495481215c834"
+      },
+      "quality_status": "partial_warning"
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "included_profile_count": 3,
+      "status": "complete",
+      "lines_covered": 9134,
+      "lines_total": 172825,
+      "branches_covered": 6645,
+      "branches_total": 56868,
+      "summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/coverage_cumulative/b7232d8445fd4bcacaa2d086/coverage_summary.json",
+        "content_hash": "ee461abee9497877e1a61702e6ae20d1db87262cc5eda0b5c73f400dbab4707c"
+      },
+      "quality_status": "partial_warning"
+    }
+  ],
+  "capture_diagnostics": [
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "status": "complete",
+      "attempts": 5067,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 5003,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "status": "complete",
+      "attempts": 5049,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 4985,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "status": "complete",
+      "attempts": 5589,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 5525,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "status": "complete",
+      "attempts": 5589,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 5525,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "status": "complete",
+      "attempts": 6411,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 6347,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "status": "complete",
+      "attempts": 4917,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 4853,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "status": "complete",
+      "attempts": 0,
+      "saved": 0,
+      "failures": 0,
+      "suppressed": 0,
+      "saturated_process_count": 0,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "status": "complete",
+      "attempts": 0,
+      "saved": 0,
+      "failures": 0,
+      "suppressed": 0,
+      "saturated_process_count": 0,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "status": "complete",
+      "attempts": 0,
+      "saved": 0,
+      "failures": 0,
+      "suppressed": 0,
+      "saturated_process_count": 0,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "status": "complete",
+      "attempts": 4420,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 4356,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "status": "complete",
+      "attempts": 4586,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 4522,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_adaptive",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "status": "complete",
+      "attempts": 4216,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 4152,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "status": "complete",
+      "attempts": 4383,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 4319,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "status": "complete",
+      "attempts": 4145,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 4081,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "bug_aware_static",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "status": "complete",
+      "attempts": 4563,
+      "saved": 64,
+      "failures": 0,
+      "suppressed": 4499,
+      "saturated_process_count": 1,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 1,
+      "status": "complete",
+      "attempts": 0,
+      "saved": 0,
+      "failures": 0,
+      "suppressed": 0,
+      "saturated_process_count": 0,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 2,
+      "status": "complete",
+      "attempts": 0,
+      "saved": 0,
+      "failures": 0,
+      "suppressed": 0,
+      "saturated_process_count": 0,
+      "process_count": 1
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "group_id": "structured_baseline",
+      "repeat_id": "repeat_001",
+      "round_index": 3,
+      "status": "complete",
+      "attempts": 0,
+      "saved": 0,
+      "failures": 0,
+      "suppressed": 0,
+      "saturated_process_count": 0,
+      "process_count": 1
+    }
+  ]
+}

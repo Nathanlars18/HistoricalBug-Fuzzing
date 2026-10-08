@@ -38,6 +38,27 @@ class RoundAdapterTests(unittest.TestCase):
         self.assertEqual(MODULE.signal_name(-11), "SIGSEGV")
         self.assertIsNone(MODULE.signal_name(0))
 
+    def test_nonzero_exit_classification_does_not_infer_target_bug(self) -> None:
+        self.assertEqual(MODULE.classify_nonzero_exit(137, {"OOMKilled": True}, False, False), "container_oom_killed")
+        self.assertEqual(MODULE.classify_nonzero_exit(137, {"OOMKilled": False}, False, False), "signal_termination_unclassified")
+        self.assertEqual(MODULE.classify_nonzero_exit(1, None, False, False), "nonzero_exit_unclassified")
+        self.assertEqual(MODULE.classify_nonzero_exit(124, None, True, False), "adapter_timeout")
+
+    def test_limits_allow_documented_disable_and_default_values(self) -> None:
+        MODULE.validate_limits({"timeout": 0, "rss_limit_mb": 0, "max_len": 1,
+                                "process_memory_mb": 1, "candidate_sample_limit": 0})
+        MODULE.validate_limits({"timeout": None, "rss_limit_mb": None, "max_len": None,
+                                "process_memory_mb": None, "candidate_sample_limit": None})
+
+    def test_capture_summary_bounds_first_n_sampling_without_counting_drops_as_failures(self) -> None:
+        MODULE.validate_capture_counts({"attempts": 9, "saved": 4, "failures": 0,
+                                        "exception_attempts": 7, "oracle_attempts": 2,
+                                        "limit_per_kind": 2, "complete": True}, 2)
+        with self.assertRaises(MODULE.InputError):
+            MODULE.validate_capture_counts({"attempts": 9, "saved": 5, "failures": 0,
+                                            "exception_attempts": 7, "oracle_attempts": 2,
+                                            "limit_per_kind": 2, "complete": True}, 2)
+
     def test_docker_command_preserves_runtime_bindings(self) -> None:
         argv = MODULE.docker_command(
             image="sha256:" + "1" * 64,
@@ -53,6 +74,27 @@ class RoundAdapterTests(unittest.TestCase):
         self.assertIn("/tmp/attempt:/output", argv)
         self.assertIn("-max_total_time=7", joined)
         self.assertIn("-seed=13", joined)
+        self.assertIn("--network", argv)
+        self.assertEqual(argv[argv.index("--network") + 1], "none")
+
+    def test_docker_command_applies_and_records_requested_resource_arguments(self) -> None:
+        argv = MODULE.docker_command(
+            image="sha256:" + "2" * 64,
+            artifact_dir=Path("/tmp/artifact"),
+            attempt_dir=Path("/tmp/attempt"),
+            active_seconds=5,
+            seed=9,
+            container_name="hbfg-limits",
+            limits={"timeout": 3, "rss_limit_mb": 512, "max_len": 1024,
+                     "process_memory_mb": 2048, "candidate_sample_limit": 7},
+        )
+        joined = "\0".join(argv)
+        self.assertIn("--memory", argv)
+        self.assertIn("2048m", argv)
+        self.assertIn("-timeout=3", joined)
+        self.assertIn("-rss_limit_mb=512", joined)
+        self.assertIn("-max_len=1024", joined)
+        self.assertIn("HBFG_CANDIDATE_SAMPLE_LIMIT=7", argv)
 
     def test_candidate_bundle_is_deterministic_and_schema_valid(self) -> None:
         validator = MODULE.schema_validator(
@@ -88,7 +130,7 @@ class RoundAdapterTests(unittest.TestCase):
             self.assertIsNotNone(bundle)
             self.assertIsNotNone(binding)
             self.assertEqual(bundle["candidates"][0]["observation_kind"], "sanitizer")
-            self.assertEqual(bundle["candidates"][0]["iteration_index"], 17)
+            self.assertIsNone(bundle["candidates"][0]["iteration_index"])
             self.assertEqual(observations[0]["candidate_id"], bundle["candidates"][0]["candidate_id"])
 
     def test_runtime_snapshot_identity_and_counts(self) -> None:
@@ -125,6 +167,38 @@ class RoundAdapterTests(unittest.TestCase):
             path.write_text(json.dumps(snapshot), encoding="utf-8")
             with self.assertRaisesRegex(MODULE.InputError, "site_counts length"):
                 MODULE.validate_runtime_snapshot(path, validator, artifact)
+
+    def test_runtime_snapshot_counts_unwinds_as_distinct_invocations(self) -> None:
+        snapshot = {
+            "record_format_version": "1.0", "runtime_version": "1.1",
+            "artifact_id": "ha_test", "generation_key": "1" * 64,
+            "snapshot_kind": "final", "snapshot_interval": 1, "site_count": 0,
+            "started_iterations": 1, "finished_iterations": 0,
+            "unwound_iterations": 1, "invalid_site_records": 0,
+            "export_failures": 0, "site_counts": [],
+        }
+        artifact = {"identity": {"harness_artifact_id": "ha_test", "generation_key": "1" * 64}}
+        validator = MODULE.schema_validator(MODULE.DEFAULTS["runtime_snapshot_schema"], "Runtime Snapshot")
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "snapshot.json"
+            path.write_text(json.dumps(snapshot), encoding="utf-8")
+            self.assertEqual(MODULE.validate_runtime_snapshot(path, validator, artifact)["unwound_iterations"], 1)
+            snapshot["finished_iterations"] = 1
+            path.write_text(json.dumps(snapshot), encoding="utf-8")
+            with self.assertRaises(MODULE.InputError):
+                MODULE.validate_runtime_snapshot(path, validator, artifact)
+
+    def test_round_budget_schema_accepts_measured_wall_and_overrun(self) -> None:
+        schema = json.loads(MODULE.DEFAULTS["round_schema"].read_text(encoding="utf-8"))
+        budget = schema["$defs"]["execution"]["properties"]["budget"]
+        validator = Draft202012Validator(budget)
+        record = {"planned_seconds": 15, "process_seconds": 16.2,
+                  "wall_seconds": 19.0, "outside_process_seconds": 2.8,
+                  "overrun_seconds": 1.2, "remaining_seconds": 0,
+                  "timing_status": "measured"}
+        self.assertEqual(list(validator.iter_errors(record)), [])
+        record["overrun_seconds"] = -1
+        self.assertTrue(list(validator.iter_errors(record)))
 
     def test_corpus_schema_distinguishes_initial_and_round_output(self) -> None:
         schema = json.loads(

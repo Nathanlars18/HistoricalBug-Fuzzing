@@ -1,0 +1,41 @@
+{
+  "record_format_version": "1.0",
+  "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+  "pytorch_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+  "coverage_image": "sha256:97e81068dd854e60dfc6d6fd5c215935681c6cc4d3e31b959f330a1402b803e9",
+  "source_prefix": "/root/pytorch/aten/src/ATen/",
+  "harness_binary_hash": "cfc2c9f7e22910dbef3fce42d25ccb77b8d1daa8115d4bdf51883c04f6ae6d9f",
+  "corpus_file_count": 11,
+  "source_file_count": 799,
+  "measurements": {
+    "lines": {
+      "covered": 9134,
+      "total": 172825,
+      "percent": 5.285115000723275
+    },
+    "branches": {
+      "covered": 6645,
+      "total": 56868,
+      "percent": 11.684954631778856
+    }
+  },
+  "quality_status": "partial_warning",
+  "profile_hash": "aa70469463a72c180af5b663e88a8472f77e0338ce2be1674266da6a80da984e",
+  "warnings": [
+    "warning: 7 functions have mismatched data"
+  ],
+  "replay_seconds": 10.209,
+  "resource_limits": {
+    "timeout": null,
+    "rss_limit_mb": null,
+    "max_len": null,
+    "process_memory_mb": null,
+    "candidate_sample_limit": 64
+  },
+  "thread_environment": {
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+  },
+  "cleanup_warnings": []
+}

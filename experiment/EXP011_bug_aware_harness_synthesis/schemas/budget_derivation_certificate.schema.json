@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://historicalbug-fuzzing.local/schemas/budget_derivation_certificate.schema.json",
+  "title": "Budget Derivation Certificate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record_type", "schema_version", "subject_kind", "review_id", "review_revision", "subject", "policy_file_ref", "parent_spec_file_ref", "parent_strategy_file_ref", "parent_spec_authorization_file_ref", "parent_strategy_authorization_file_ref", "feedback_request_file_ref"],
+  "properties": {
+    "record_type": {"const": "budget_derivation_certificate"},
+    "schema_version": {"const": "1.0"},
+    "subject_kind": {"enum": ["spec", "strategy"]},
+    "review_id": {"type": "string", "minLength": 1},
+    "review_revision": {"type": "integer", "minimum": 1},
+    "subject": {"oneOf": [{"type": "object", "additionalProperties": false, "required": ["spec_id", "revision_number", "content_hash", "relative_path"], "properties": {"spec_id": {"type": "string"}, "revision_number": {"type": "integer", "minimum": 1}, "content_hash": {"$ref": "#/$defs/hash"}, "relative_path": {"type": "string", "minLength": 1}}}, {"type": "object", "additionalProperties": false, "required": ["strategy_id", "revision_number", "content_hash", "relative_path"], "properties": {"strategy_id": {"type": "string"}, "revision_number": {"type": "integer", "minimum": 1}, "content_hash": {"$ref": "#/$defs/hash"}, "relative_path": {"type": "string", "minLength": 1}}}]},
+    "policy_file_ref": {"$ref": "#/$defs/file_ref"},
+    "parent_spec_file_ref": {"$ref": "#/$defs/file_ref"},
+    "parent_strategy_file_ref": {"$ref": "#/$defs/file_ref"},
+    "parent_spec_authorization_file_ref": {"$ref": "#/$defs/file_ref"},
+    "parent_strategy_authorization_file_ref": {"$ref": "#/$defs/file_ref"},
+    "feedback_request_file_ref": {"$ref": "#/$defs/file_ref"},
+    "candidate_spec_file_ref": {"$ref": "#/$defs/file_ref"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "file_ref": {"type": "object", "additionalProperties": false, "required": ["relative_path", "content_hash"], "properties": {"relative_path": {"type": "string", "minLength": 1}, "content_hash": {"$ref": "#/$defs/hash"}}}
+  }
+}

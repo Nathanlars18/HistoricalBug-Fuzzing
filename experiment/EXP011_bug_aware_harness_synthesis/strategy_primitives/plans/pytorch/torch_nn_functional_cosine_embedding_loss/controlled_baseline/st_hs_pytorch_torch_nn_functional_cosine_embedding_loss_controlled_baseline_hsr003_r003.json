@@ -1,0 +1,277 @@
+{
+  "schema_version": "1.3",
+  "identity": {
+    "strategy_id": "st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003",
+    "framework": "pytorch",
+    "target_api": "torch.nn.functional.cosine_embedding_loss",
+    "spec_mode": "controlled_baseline"
+  },
+  "revision_information": {
+    "revision_number": 3,
+    "parent_revision_ref": {
+      "strategy_id": "st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003",
+      "revision_number": 2,
+      "content_hash": "1af2ab6f9f9aecda14907432b526d8d10b672024f628d486fad2cc1c910187f8"
+    },
+    "revision_trigger": "catalog_update",
+    "change_scopes": [
+      "source_context"
+    ],
+    "change_summary": "Revalidate or repair executable domains, bindings and materialization without changing HarnessSpec semantics"
+  },
+  "source_context": {
+    "resource_policy_ref": {
+      "artifact_id": "strategy_resource_policy",
+      "artifact_version": "1.0",
+      "content_hash": "f17bb0c23d4ca64142044455c8f9d3fd57995c712dff0d226c5c5ab9892f2f70",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/strategy_resource_policy__v001.json"
+    },
+    "ordinary_recipes_ref": {
+      "artifact_id": "ordinary_input_recipes",
+      "artifact_version": "1.0",
+      "content_hash": "21777cfcd71d363c88e5f2509c70871edf6ba4165c64c0bfd4680316a05e712d",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/ordinary_input_recipes__v001.json"
+    },
+    "strategy_review_ref": null,
+    "generation_trace_ref": {
+      "artifact_id": "run_20261007t065237847784z_29ffe120b26c",
+      "artifact_version": "1.0",
+      "content_hash": "ab38c5fef84b4f7f0109881dbc414bbe46f88d2b05386ca774d76a7c580650ff",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/generation_traces/run_20261007T065237847784Z_29ffe120b26c.json"
+    },
+    "harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline",
+      "revision_number": 3,
+      "content_hash": "6cd485e7e2b1694af52401ce5ad6b37be47d656641af8670edbf096663d5d131"
+    },
+    "harness_spec_review_ref": {
+      "review_id": "hs_review:hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline:r3:rr1",
+      "review_revision": 1,
+      "content_hash": "47f98aac66bd3d01f2b37681840aa308e006159703a02bb1b822e99c742eb861",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r3__review_r1.json"
+    },
+    "strategy_catalog_ref": {
+      "catalog_id": "pytorch_cpp_strategy_primitives",
+      "catalog_version": 6,
+      "content_hash": "6fa3492fced7191b0e68ba474211aeb8a22b935d8d7b6de1c838b859bf02622f"
+    },
+    "derived_from_strategy_ref": null
+  },
+  "implementation_plan": {
+    "branch_strategies": [
+      {
+        "source_branch_id": "br_default",
+        "steps": [
+          {
+            "step_id": "step_001",
+            "primitive_id": "construct_tensor_from_fuzz",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "offset"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "max_dimension",
+                "binding_kind": "literal",
+                "binding_value": 2
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_001"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_002"
+              }
+            ]
+          },
+          {
+            "step_id": "step_002",
+            "primitive_id": "construct_tensor_from_reference",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "reference",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_002"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_policy",
+                "binding_kind": "literal",
+                "binding_value": "same_shape"
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_numeric"
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_003"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_004"
+              }
+            ]
+          },
+          {
+            "step_id": "step_003",
+            "primitive_id": "construct_tensor_from_reference",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "reference",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_004"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_policy",
+                "binding_kind": "literal",
+                "binding_value": "leading_dimension"
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "int64"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_sign"
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_005"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_006"
+              }
+            ]
+          },
+          {
+            "step_id": "step_004",
+            "primitive_id": "invoke_profiled_target_api",
+            "template_slot": "target_call",
+            "input_bindings": [
+              {
+                "port_id": "binding_param_000_input1",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "binding_param_001_input2",
+                "value_ref": "value_003"
+              },
+              {
+                "port_id": "binding_param_002_target",
+                "value_ref": "value_005"
+              }
+            ],
+            "parameter_bindings": [],
+            "output_bindings": [
+              {
+                "port_id": "return_000",
+                "value_id": "value_007"
+              }
+            ]
+          }
+        ],
+        "spec_bindings": [],
+        "failure_handlers": [
+          {
+            "failure_handler_id": "fh_step_001_insufficient_fuzz_data",
+            "trigger": {
+              "step_id": "step_001",
+              "outcome_id": "insufficient_fuzz_data"
+            },
+            "terminal_action": "reject_input"
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "script",
+    "generator_name": "strategy_plan_builder_v0.9",
+    "model_name": null,
+    "generation_run_id": "run_20261007T065237847784Z_29ffe120b26c",
+    "script_ref": {
+      "artifact_id": "build_strategy_plan_json",
+      "artifact_version": "strategy_plan_builder_v0.9",
+      "content_hash": "6964096949b48b438d3fc1ae32eccaea492ed43bdd61b48fb30ffd525149d52d"
+    },
+    "contract_ref": {
+      "artifact_id": "strategy_synthesis_contract",
+      "artifact_version": "1.8",
+      "content_hash": "a5a0cd7838d53416f8818e5108f10dd51195cc7d627d7bf3ae69de8df6d41235"
+    },
+    "rules_ref": {
+      "artifact_id": "harness_spec_to_strategy_rules",
+      "artifact_version": "1.5",
+      "content_hash": "bda0e0a4e269b6778ba0db8530ef674c0ee3138368b1e0f03e316e6c19316086"
+    },
+    "generated_at": "2026-10-07T06:52:37.875461Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

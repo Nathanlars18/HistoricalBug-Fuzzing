@@ -1,11 +1,11 @@
-# API Profile Schema v1.0
+# API Profile Schema v1.3
 
 ## 1. Purpose
 
 An API Profile is a version-pinned, evidence-backed description of one API
 target used by the Harness synthesis pipeline.
 
-It records the Python API contract, the selected C++ or ATen binding,
+It records the Python API contract, the selected execution binding,
 documented validity constraints, FlashFuzz support, and API-level validation.
 Knowledge selection, strategy planning, Harness generation, execution results,
 and feedback decisions are outside this schema.
@@ -14,11 +14,19 @@ and feedback decisions are outside this schema.
 
 ## 2. Core Invariants
 
+New records use schema_version `1.3`. Version 1.0 through 1.2 records remain readable
+unchanged. An index tensor has normalized type `tensor` and semantic role
+`index_tensor`.
+In v1.2 and later, `constraint_property` records what is constrained and
+`constraint_scope` records how many contract elements participate.
+`constraint_kind` is retained only as a compatibility/indexing field for older
+consumers; it is not a defect taxonomy.
+
 One profile represents one combination of:
 
 - framework version and commit;
 - Python API and callable variant;
-- C++ or ATen overload;
+- execution route and, where applicable, C++ or ATen overload;
 - backend scope.
 
 Changing any item above creates a new `profile_id`. Correcting or enriching the
@@ -46,6 +54,7 @@ the Harness generator.
 | `python_contract` | object | yes | Python-facing API contract |
 | `target_binding` | object | yes | Selected C++ or ATen binding |
 | `documented_constraints` | array | yes | Evidence-backed validity constraints |
+| `effects` | array | yes in v1.2+ | Evidence-backed mutation, alias, output-write, or global-state effects |
 | `flashfuzz_support` | object | yes | API-list membership in the pinned FlashFuzz revision |
 | `validation` | object | yes | Deterministic validation and readiness |
 | `evidence` | array | yes | Referenced evidence records |
@@ -113,6 +122,7 @@ IDs. Profile and evidence content hashes remain 64-character SHA-256 values.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `documentation_status` | enum | yes | `available`, `partial`, `missing`, or `conflicting` |
+| `coverage` | Coverage object | yes in v1.2 | Per-component collection coverage; prevents empty arrays from being misread as exhaustive |
 | `signature` | string or null | yes | Normalized Python signature |
 | `behavior_summary` | string or null | yes | Concise documented behavior |
 | `parameters` | array of Parameter objects | yes | Ordered Python parameters |
@@ -122,6 +132,13 @@ IDs. Profile and evidence content hashes remain 64-character SHA-256 values.
 | `evidence_refs` | array of Evidence IDs | yes | Evidence for signature and overall behavior |
 
 The summary does not introduce historical Bug triggers or fuzzing strategies.
+
+`coverage.signature`, `coverage.parameters`, and `coverage.returns` use
+`complete`, `partial`, `missing`, or `conflicting`. `coverage.domains`,
+`coverage.exceptions`, `coverage.constraints`, and `coverage.effects` use
+`not_collected`, `partial`, `reviewed_no_explicit_items`,
+`reviewed_with_items`, or `conflicting`. `not_collected` means unknown, not
+unrestricted and not known-empty.
 
 ### 6.1 Parameter Object
 
@@ -143,7 +160,7 @@ The summary does not introduce historical Bug triggers or fuzzing strategies.
 Allowed `normalized_types` values:
 
 ```text
-tensor, tensor_sequence, index_tensor, scalar, integer, floating, boolean,
+tensor, tensor_sequence, scalar, integer, floating, boolean,
 string, dtype, device, layout, memory_format, shape, dimension, generator,
 callable, object, none, unknown, other
 ```
@@ -212,6 +229,7 @@ object.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
+| `binding_kind` | enum | yes in v1.2 | `aten_operator`, `python_callable`, or `none` |
 | `status` | enum | yes | `resolved`, `partial`, `unresolved`, `conflicting`, or `not_applicable` |
 | `operator_name` | string or null | yes | Base C++ or ATen operator |
 | `operator_overload` | string or null | yes | Exact overload; use `default` for an unnamed default overload |
@@ -219,11 +237,14 @@ object.
 | `cpp_callable` | string or null | yes | C++ callable used by the Harness |
 | `binding_parameters` | array of Binding Parameter objects | yes | Structured binding parameters |
 | `argument_mapping` | array of Argument Mapping objects | yes | Python-to-binding mapping |
+| `parameter_dispositions` | array of Parameter Disposition objects | yes in v1.2 | Exhaustive accounting for every Python parameter |
 | `return_mapping` | array of Return Mapping objects | yes | Binding-to-Python return mapping |
 | `evidence_refs` | array of Evidence IDs | yes | Supporting evidence |
 
-`resolved` identifies one overload. Compilation and reachability remain
-separate validation results.
+For `aten_operator`, `resolved` identifies one overload. For `python_callable`,
+`resolved` means the Python callable and its structured contract are identified;
+it does not imply that the current C++ Harness can execute it. Compilation and
+reachability remain separate validation results.
 
 ### 7.1 Binding Parameter Object
 
@@ -240,12 +261,19 @@ separate validation results.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `python_parameter_ref` | Parameter ID or null | yes | Source Python parameter |
+| `source_parameter_refs` | array of Parameter IDs | yes in v1.3 | Every Python parameter used by the binding expression; empty only for source-free mappings |
 | `binding_parameter_ref` | Binding Parameter ID | yes | Destination binding parameter |
 | `mapping_kind` | enum | yes | `direct`, `renamed`, `default_injected`, `converted`, `packed`, `omitted`, or `unresolved` |
 | `transformation` | string or null | yes | Concise transformation when needed |
 | `evidence_refs` | array of Evidence IDs | yes | Supporting evidence |
 
 This records a semantic mapping, not C++ code or a Helper invocation.
+`renamed`, `converted`, and `packed` require wrapper-source evidence. A
+multi-parameter or conditional expression uses `source_parameter_refs` to name
+all participating Python parameters and preserves the complete expression in
+`transformation`. Positional fallback guessing is prohibited. Each Python parameter is also classified as `mapped`,
+`converted`, `consumed_by_wrapper`, `default_only`,
+`not_applicable_to_binding`, or `unresolved` in `parameter_dispositions`.
 
 ### 7.3 Return Mapping Object
 
@@ -270,7 +298,9 @@ Historical Bug risks and exploration goals are excluded.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `constraint_id` | string | yes | Profile-local stable identifier |
-| `constraint_kind` | enum | yes | `parameter`, `cross_parameter`, `dtype`, `shape`, `rank`, `device`, `layout`, `memory_format`, `value`, `output`, `environment`, or `other` |
+| `constraint_kind` | enum | yes | Legacy indexing tag retained for v1.0-v1.1 compatibility |
+| `constraint_property` | enum | yes in v1.2 | `type`, `structure`, `dtype`, `shape`, `rank`, `value`, `device`, `layout`, `memory_format`, `gradient_mode`, `output`, `environment`, or `other` |
+| `constraint_scope` | enum | yes in v1.2 | `single_parameter`, `cross_parameter`, `return_value`, or `call_environment` |
 | `applies_to` | array of local references | yes | Affected profile elements |
 | `condition` | string or null | yes | Applicability condition |
 | `requirement` | string | yes | One atomic validity requirement |
@@ -279,6 +309,15 @@ Historical Bug risks and exploration goals are excluded.
 Runtime observations remain in validation or experiment results. Machine
 predicates may be introduced only after their representation is defined in a
 later schema version.
+
+`constraint_property` and `constraint_scope` are orthogonal: for example, a
+same-shape requirement is `property = shape` and `scope = cross_parameter`.
+
+### 8.2 Effect Object
+
+An Effect records one source-backed `mutates_parameter`, `aliases_parameter`,
+`writes_output_parameter`, `global_state`, `unknown`, or `other` behavior. An
+empty array with `coverage.effects = not_collected` is not a no-effects claim.
 
 ---
 
@@ -319,7 +358,7 @@ implementable.
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `check_id` | string | yes | Profile-local identifier |
-| `check_kind` | enum | yes | `python_resolution`, `signature_resolution`, `operator_schema_resolution`, `argument_mapping`, `cpp_binding_resolution`, `cpp_compile`, `cpp_smoke_execution`, or `target_reachability` |
+| `check_kind` | enum | yes | `python_resolution`, `signature_resolution`, `operator_schema_resolution`, `argument_mapping`, `return_mapping`, `cpp_binding_resolution`, `cpp_compile`, `cpp_smoke_execution`, or `target_reachability` |
 | `backend` | enum or null | yes | Backend used by the check |
 | `status` | enum | yes | `not_run`, `passed`, `failed`, `blocked`, or `not_applicable` |
 | `summary` | string | yes | Concise result summary |
@@ -343,12 +382,15 @@ Allowed `issue_kind` values:
 ```text
 missing_documentation, documentation_conflict, signature_ambiguity,
 overload_ambiguity, binding_unresolved, argument_mapping_unresolved,
+return_mapping_unresolved,
 flashfuzz_support_gap, compile_failure, runtime_failure,
 reachability_unconfirmed, version_mismatch, other
 ```
 
 A separate deterministic policy defines the complete mapping from checks and
-issues to the two top-level validation states.
+issues to the two top-level validation states. A correct Python-only Profile may
+have `validation_status = passed` and `execution_readiness = needs_adapter`.
+It is not eligible for the current C++ Harness route.
 
 ---
 
@@ -368,8 +410,9 @@ issues to the two top-level validation states.
 Allowed `source_kind` values:
 
 ```text
-runtime_docstring, official_documentation, operator_schema, pytorch_source,
-flashfuzz_api_list, flashfuzz_source, build_log, runtime_trace
+runtime_signature, runtime_docstring, official_documentation, operator_schema,
+python_wrapper_source, pytorch_source, flashfuzz_api_list, flashfuzz_source,
+validation_case, build_log, runtime_trace
 ```
 
 Longer source content remains external and is addressed by `source_location`,
@@ -393,6 +436,13 @@ Mutable external content should be captured or hashed. If this is unavailable,
 Automatic results belong to `validation`. Human review does not replace source
 evidence or deterministic checks.
 
+Runtime promotion leaves the Profile `unreviewed`. A separate review operation
+creates a new revision. Review follows `api_profile_human_review_rules.md`;
+reviewers report evidence or mapping defects and do not directly edit generated
+JSON. `approved` means the recorded assertions faithfully match the cited
+evidence; it does not mean exhaustive documentation coverage or current-Harness
+execution readiness.
+
 ---
 
 ## 13. Common Value Semantics
@@ -400,8 +450,9 @@ evidence or deterministic checks.
 The Profile distinguishes known-empty, not-applicable, not-documented,
 not-yet-checked, unknown, and conflicting states.
 
-An empty array is a known empty collection under the meaning of its containing
-field. `null` is used only where the field permits unavailable or inapplicable
+For v1.2 collection fields, interpret an empty array together with its explicit
+coverage state. `not_collected` is unknown; `reviewed_no_explicit_items` is the
+known-empty state. `null` is used only where the field permits unavailable or inapplicable
 scalar content. An empty string is not a substitute for `null`. A factual
 non-null value normally has at least one evidence reference; an explicitly
 missing or unresolved state may temporarily have none.

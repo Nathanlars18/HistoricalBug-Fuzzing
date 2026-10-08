@@ -38,26 +38,51 @@ try:
     import requests
     import yaml
     from jsonschema import Draft202012Validator, FormatChecker
+    from referencing import Registry, Resource
 except ImportError as exc:
     raise SystemExit('Missing dependency; install environment/python-control-requirements.txt') from exc
-BUILDER_VERSION = 'strategy_plan_builder_v0.6'
-STRATEGY_SCHEMA_VERSION = '1.1'
-CONTRACT_VERSION = '1.5'
-RULES_VERSION = '1.2'
+BUILDER_VERSION = 'strategy_plan_builder_v0.9'
+STRATEGY_SCHEMA_VERSION = '1.3'
+CONTRACT_VERSION = '1.8'
+RULES_VERSION = '1.5'
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from strategy_domains import infer_domains, exploration_domain_error, ordinary_recipe_errors, meaningful_fuzz_domain, companion_relation_errors
 DEFAULT_MODEL = 'deepseek-v4-pro'
 DEFAULT_API_URL = 'https://api.deepseek.com/chat/completions'
 DEFAULT_MAX_PROMPT_CHARS = 75000
 DEFAULT_MAX_REPAIR_CHARS = 8000
 ROOT = Path('experiment/EXP011_bug_aware_harness_synthesis')
-DEFAULTS = {'config': ROOT / 'config.yaml', 'catalog': ROOT / 'strategy_primitives' / 'strategy_primitive_catalog.json', 'harness_spec_schema': ROOT / 'schemas' / 'harness_spec_record.schema.json', 'api_profile_schema': ROOT / 'schemas' / 'api_profile_record.schema.json', 'helper_profile_schema': ROOT / 'schemas' / 'helper_profile_record.schema.json', 'catalog_schema': ROOT / 'schemas' / 'strategy_catalog_record.schema.json', 'record_schema': ROOT / 'schemas' / 'strategy_plan_record.schema.json', 'contract': ROOT / 'schemas' / 'strategy_synthesis_contract.json', 'rules': ROOT / 'schemas' / 'harness_spec_to_strategy_rules.md', 'api_profiles': ROOT / 'api_profiles', 'helper_profiles': ROOT / 'helper_profiles', 'output_root': ROOT / 'strategy_primitives'}
+DEFAULTS = {'config': ROOT / 'config.yaml', 'catalog': ROOT / 'strategy_primitives' / 'strategy_primitive_catalog.json', 'harness_spec_schema': ROOT / 'schemas' / 'harness_spec_record.schema.json', 'harness_spec_schema_core': ROOT / 'schemas' / 'harness_spec_record_core__v2_2.schema.json', 'harness_spec_review_schema': ROOT / 'schemas' / 'harness_spec_review_record.schema.json', 'strategy_review_schema': ROOT / 'schemas' / 'strategy_plan_review_record.schema.json', 'api_profile_schema': ROOT / 'schemas' / 'api_profile_record.schema.json', 'helper_profile_schema': ROOT / 'schemas' / 'helper_profile_record.schema.json', 'catalog_schema': ROOT / 'schemas' / 'strategy_catalog_record.schema.json', 'record_schema': ROOT / 'schemas' / 'strategy_plan_record.schema.json', 'contract': ROOT / 'schemas' / 'strategy_synthesis_contract.json', 'rules': ROOT / 'schemas' / 'harness_spec_to_strategy_rules.md', 'api_profiles': ROOT / 'api_profiles', 'helper_profiles': ROOT / 'helper_profiles', 'output_root': ROOT / 'strategy_primitives'}
 IDENTIFIER_RE = re.compile('^[a-z][a-z0-9_]*$')
 SHA256_RE = re.compile('^[0-9a-f]{64}$')
 SLOTS = ['input_construction', 'pre_call_transform', 'pre_call_guard', 'pre_call_observation', 'target_call', 'post_call_observation', 'oracle_check', 'artifact_logging', 'cleanup']
 PRE_CALL_SLOTS = {'input_construction', 'pre_call_transform', 'pre_call_guard', 'pre_call_observation'}
 VALUE_KINDS = {'raw_bytes', 'byte_cursor', 'boolean', 'integer', 'floating', 'string', 'scalar', 'dtype', 'rank', 'shape', 'device', 'layout', 'tensor', 'tensor_list', 'optional_value', 'tuple_value', 'exception_state', 'observation_result', 'artifact'}
 PRIMITIVE_KINDS = {'input_decode', 'value_construct', 'value_transform', 'relation_enforce', 'predicate_evaluate', 'target_api_invoke', 'oracle_evaluate', 'artifact_record'}
-TRACEABLE_SPEC_TYPES = {'global_constraint', 'branch_constraint', 'branch_precondition', 'target_property', 'activation_target', 'oracle_requirement'}
-PARAMETER_SOURCE_TYPES = TRACEABLE_SPEC_TYPES - {'activation_target'}
+TRACEABLE_SPEC_TYPES = {
+    'global_constraint',
+    'branch_constraint',
+    'target_condition',
+    'behavior_observation',
+    'behavior_check',
+}
+PARAMETER_SOURCE_TYPES = {
+    'global_constraint',
+    'branch_constraint',
+    'target_condition',
+    'behavior_check',
+}
+RUNNER_EVENTS = {
+    'target_api_reached',
+    'target_api_returned',
+    'caught_exception',
+    'process_exit',
+    'process_signal',
+    'timeout',
+    'sanitizer_report',
+    'coverage_observation',
+}
 BLOCKING_REASON_CODES = {'required_capability_unavailable', 'api_input_unconstructable', 'type_flow_unresolvable', 'required_observation_unavailable', 'required_oracle_unavailable', 'semantic_conflict_unresolvable'}
 TERMINAL_ACTIONS = {'reject_input', 'record_and_return'}
 
@@ -69,6 +94,9 @@ class GlobalInputError(BuildError):
 
 class ItemInputError(BuildError):
     """One HarnessSpec or one of its exact references failed."""
+
+class CapabilityGap(ItemInputError):
+    """A valid intent has no exact local adapter; not an invalid Knowledge record."""
 
 class LLMError(BuildError):
     """The LLM request or returned representation failed."""
@@ -93,6 +121,7 @@ class ResolvedInputs:
     api: dict[str, Any]
     resolved_api_primitive: dict[str, Any]
     candidate_primitives: list[dict[str, Any]]
+    harness_spec_review_ref: dict[str, Any]
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
@@ -184,12 +213,25 @@ def safe_component(value: str) -> str:
         result = 'x_' + result
     return result
 
-def schema_validator(schema: dict[str, Any], label: str) -> Draft202012Validator:
+def schema_validator(
+    schema: dict[str, Any],
+    label: str,
+    resources: list[dict[str, Any]] | None = None,
+) -> Draft202012Validator:
     try:
         Draft202012Validator.check_schema(schema)
     except Exception as exc:
         raise GlobalInputError(f'Invalid JSON Schema for {label}: {exc}') from exc
-    return Draft202012Validator(schema, format_checker=FormatChecker())
+    registry = Registry()
+    for resource_schema in resources or []:
+        registry = registry.with_resource(
+            resource_schema['$id'], Resource.from_contents(resource_schema)
+        )
+    return Draft202012Validator(
+        schema,
+        registry=registry,
+        format_checker=FormatChecker(),
+    )
 
 def validate_against(value: Any, validator: Draft202012Validator, label: str, error_type: type[BuildError]) -> None:
     errors = sorted(validator.iter_errors(value), key=lambda item: item.json_path)
@@ -252,6 +294,76 @@ def read_profile_store(root: Path, validator: Draft202012Validator, label: str) 
         store[key] = record
     return store
 
+def read_harness_spec_review_store(
+    paths: list[Path],
+    validator: Draft202012Validator,
+) -> dict[tuple[str, int, str], tuple[dict[str, Any], Path]]:
+    store: dict[tuple[str, int, str], tuple[dict[str, Any], Path]] = {}
+    for path in paths:
+        review = load_json(path, global_input=True)
+        if review.get('record_type') == 'budget_derivation_certificate':
+            from budget_derivation import validate
+            try:
+                validate(review, path, Path(review['subject']['relative_path']), 'spec')
+            except (ValueError, KeyError) as exc:
+                raise GlobalInputError(str(exc)) from exc
+            subject = review['subject']
+            key = (subject['spec_id'], subject['revision_number'], subject['content_hash'])
+            if key in store:
+                raise GlobalInputError(f'Duplicate authorization for {key}')
+            store[key] = (review, path)
+            continue
+        validate_against(
+            review,
+            validator,
+            f'HarnessSpec review {path}',
+            GlobalInputError,
+        )
+        if review['decision'] != 'approved':
+            raise GlobalInputError(
+                f'HarnessSpec review is not approved: {path}'
+            )
+        subject = review['subject']
+        key = (
+            subject['spec_id'],
+            subject['revision_number'],
+            subject['content_hash'],
+        )
+        if key in store:
+            raise GlobalInputError(
+                f'Duplicate approved HarnessSpec review for {key}'
+            )
+        store[key] = (review, path)
+    return store
+
+def resolve_harness_spec_review(
+    spec: dict[str, Any],
+    spec_path: Path,
+    review_store: dict[tuple[str, int, str], tuple[dict[str, Any], Path]],
+) -> dict[str, Any]:
+    key = (
+        spec['identity']['spec_id'],
+        spec['revision_information']['revision_number'],
+        canonical_hash(spec),
+    )
+    stored = review_store.get(key)
+    if stored is None:
+        raise ItemInputError(
+            'An exact approved HarnessSpec review is required for Strategy synthesis'
+        )
+    review, review_path = stored
+    subject_path = Path(review['subject']['relative_path'])
+    if subject_path.resolve() != spec_path.resolve():
+        raise ItemInputError(
+            'HarnessSpec review subject path does not match --harness-spec'
+        )
+    return {
+        'review_id': review['review_id'],
+        'review_revision': review['review_revision'],
+        'content_hash': canonical_hash(review),
+        'relative_path': str(review_path),
+    }
+
 def helper_is_ready_and_approved(profile: dict[str, Any]) -> bool:
     return profile.get('validation', {}).get('execution_readiness') == 'ready' and profile.get('review', {}).get('review_status') == 'approved'
 
@@ -277,35 +389,21 @@ def validate_catalog(value: Any, validator: Draft202012Validator, harness_spec_s
     """Validate Catalog fields needed by this Builder.
 
     JSON Schema owns record shape. This function owns cross-field semantics,
-    identifier uniqueness, and compatibility with the loaded HarnessSpec
-    vocabulary.
+    identifier uniqueness, and compatibility with the HarnessSpec v2.2
+    lifecycle boundary. Predicate identifiers remain open vocabulary in the
+    HarnessSpec; the Catalog declares the exact subset each Primitive can
+    materialize.
     """
     validate_against(value, validator, 'Strategy Catalog', PlanValidationError)
     catalog = require_object(value, 'Strategy Catalog')
-    try:
-        risk_vocabulary = set(harness_spec_schema['$defs']['risk_dimension']['enum'])
-        requirement_vocabulary = set(harness_spec_schema['$defs']['semantic_requirement']['properties']['requirement_type']['enum'])
-        oracle_vocabulary = set(harness_spec_schema['$defs']['oracle_requirement']['properties']['oracle_type']['enum'])
-    except (KeyError, TypeError) as exc:
-        raise PlanValidationError('HarnessSpec Schema does not expose the Strategy semantic vocabularies') from exc
-    catalog_vocabulary_paths = {
-        'risk_dimensions': ('risk_dimension', risk_vocabulary),
-        'requirement_types': ('requirement_type', requirement_vocabulary),
-        'oracle_types': ('oracle_type', oracle_vocabulary),
-    }
-    try:
-        for label, (definition, expected) in catalog_vocabulary_paths.items():
-            actual = set(validator.schema['$defs'][definition]['enum'])
-            if actual != expected:
-                raise PlanValidationError(f'Catalog Schema {label} vocabulary differs from the loaded HarnessSpec Schema')
-    except (KeyError, TypeError) as exc:
-        raise PlanValidationError('Catalog Schema does not expose the Strategy semantic vocabularies') from exc
+    if harness_spec_schema.get('$id') != 'urn:historicalbug-fuzzing:schema:harness-spec-record:2.2':
+        raise PlanValidationError('Strategy v1.2 requires HarnessSpec Schema v2.2')
     expected_root = {'schema_version', 'catalog_id', 'catalog_version', 'target_language', 'template_interface', 'primitives', 'provenance', 'review'}
-    reject_unknown_keys(catalog, expected_root, 'Strategy Catalog')
-    if set(catalog) != expected_root:
+    reject_unknown_keys(catalog, expected_root | {'argument_relation_rules'}, 'Strategy Catalog')
+    if not expected_root <= set(catalog):
         raise PlanValidationError('Strategy Catalog is missing required root fields')
-    if catalog['schema_version'] != '1.0':
-        raise PlanValidationError('Catalog schema_version must be 1.0')
+    if catalog['schema_version'] != '1.1':
+        raise PlanValidationError('Catalog schema_version must be 1.1')
     if catalog['target_language'] != 'cpp':
         raise PlanValidationError('Catalog target_language must be cpp')
     require_identifier(catalog['catalog_id'], 'catalog_id')
@@ -354,18 +452,19 @@ def validate_catalog(value: Any, validator: Draft202012Validator, harness_spec_s
         primitive_ids.append(primitive['primitive_id'])
         if primitive['primitive_kind'] == 'target_api_invoke':
             api_primitive_ids.append(primitive['primitive_id'])
-        support = primitive['semantic_support']
-        vocabulary_checks = (('risk_dimensions', risk_vocabulary), ('requirement_types', requirement_vocabulary), ('oracle_types', oracle_vocabulary))
-        for (field, vocabulary) in vocabulary_checks:
-            unknown = sorted(set(support[field]) - vocabulary)
-            if unknown:
-                raise PlanValidationError(f"Primitive {primitive['primitive_id']} uses unknown {field}: {unknown}")
     ensure_unique(primitive_ids, 'Primitive IDs')
     if len(api_primitive_ids) != 1:
         raise PlanValidationError('Catalog must contain exactly one target_api_invoke Primitive')
     api_primitive = next((item for item in primitives if item['primitive_kind'] == 'target_api_invoke'))
     if api_primitive['allowed_template_slots'] != ['target_call']:
         raise PlanValidationError('target_api_invoke must be restricted to the target_call slot')
+    ensure_unique([r['rule_id'] for r in catalog.get('argument_relation_rules', [])], 'argument relation rule IDs')
+    for rule in catalog.get('argument_relation_rules', []):
+        evidence = rule['evidence']
+        if hashlib.sha256(evidence['excerpt'].encode()).hexdigest() != evidence['excerpt_sha256']:
+            raise PlanValidationError('Argument relation source excerpt hash mismatch')
+        if f"/blob/{rule['framework_commit']}/" not in evidence['source_url']:
+            raise PlanValidationError('Argument relation evidence must use the exact framework commit')
     return catalog
 
 def validate_catalog_primitive(value: Any, index: int, catalog_slots: list[str]) -> None:
@@ -379,13 +478,35 @@ def validate_catalog_primitive(value: Any, index: int, catalog_slots: list[str])
         raise PlanValidationError(f'primitives[{index}] has an unknown primitive_kind')
     require_string(primitive['summary'], f'primitives[{index}].summary')
     support = require_object(primitive['semantic_support'], f'primitives[{index}].semantic_support')
-    if set(support) != {'risk_dimensions', 'requirement_types', 'oracle_types'}:
+    expected_support = {
+        'predicate_ids',
+        'condition_roles',
+        'observation_phases',
+        'behavior_check_levels',
+        'subject_kinds',
+        'fuzz_dependency',
+    }
+    if set(support) != expected_support:
         raise PlanValidationError(f'primitives[{index}].semantic_support has incorrect fields')
-    for name in ('risk_dimensions', 'requirement_types', 'oracle_types'):
+    for name in (
+        'predicate_ids',
+        'condition_roles',
+        'observation_phases',
+        'behavior_check_levels',
+        'subject_kinds',
+    ):
         values = require_list(support[name], f'primitives[{index}].semantic_support.{name}')
         ensure_unique(values, f'primitives[{index}].semantic_support.{name}')
         for item in values:
             require_string(item, f'primitives[{index}].semantic_support.{name}')
+    if any(role not in {'activation_required', 'exploration_variable'} for role in support['condition_roles']):
+        raise PlanValidationError('semantic_support.condition_roles contains an unknown role')
+    if any(phase not in {'before_target_api_call', 'after_target_api_call', 'on_target_api_termination'} for phase in support['observation_phases']):
+        raise PlanValidationError('semantic_support.observation_phases contains an unknown phase')
+    if any(level not in {'required', 'preferred'} for level in support['behavior_check_levels']):
+        raise PlanValidationError('semantic_support.behavior_check_levels contains an unknown level')
+    if support['fuzz_dependency'] not in {'none', 'propagates', 'produces'}:
+        raise PlanValidationError('semantic_support.fuzz_dependency is invalid')
     allowed_slots = require_list(primitive['allowed_template_slots'], f'primitives[{index}].allowed_template_slots')
     if not allowed_slots or any((slot not in catalog_slots for slot in allowed_slots)):
         raise PlanValidationError(f'primitives[{index}] has an unavailable template slot')
@@ -533,6 +654,9 @@ def normalized_return_kind(result: dict[str, Any]) -> str:
     raise ItemInputError(f"Cannot map API return {result.get('return_id')!r} to a Strategy value kind")
 
 def resolve_api_output_ports(api: dict[str, Any]) -> list[dict[str, Any]]:
+    mappings = api['target_binding']['return_mapping']
+    if any(m['mapping_kind'] == 'omitted' for m in mappings) and any(m['mapping_kind'] != 'omitted' for m in mappings):
+        raise ItemInputError('Partial return omission needs an explicit tuple-position adapter')
     returns = {item['return_id']: item for item in api['python_contract']['returns']}
     ports: list[dict[str, Any]] = []
     seen_refs: set[str] = set()
@@ -540,8 +664,8 @@ def resolve_api_output_ports(api: dict[str, Any]) -> list[dict[str, Any]]:
         kind = mapping['mapping_kind']
         if kind == 'omitted':
             continue
-        if kind in {'unresolved', 'unpacked'}:
-            raise ItemInputError(f'Strategy v1.1 cannot resolve API return mapping kind {kind!r}')
+        if kind != 'direct':
+            raise ItemInputError(f'No deterministic adapter exists for API return mapping kind {kind!r}')
         return_ref = mapping['python_return_ref']
         if return_ref is None or return_ref not in returns:
             raise ItemInputError('API return mapping does not resolve to one documented Python return')
@@ -559,10 +683,30 @@ def resolve_api_primitive(catalog: dict[str, Any], api: dict[str, Any]) -> dict[
     binding = api['target_binding']
     input_ports: list[dict[str, Any]] = []
     for parameter in sorted(binding['binding_parameters'], key=lambda item: item['ordinal']):
-        input_ports.append({'port_id': parameter['binding_parameter_id'], 'accepted_value_kinds': api_schema_type_to_kinds(parameter['schema_type']), 'required': parameter['default'] is None})
+        accepted_kinds = api_schema_type_to_kinds(parameter['schema_type'])
+        has_api_default = parameter['default'] is not None
+        input_ports.append({
+            'port_id': parameter['binding_parameter_id'],
+            'accepted_value_kinds': accepted_kinds,
+            'required': not has_api_default,
+            'binding_policy': (
+                'api_default_when_omitted'
+                if has_api_default
+                else 'explicit_value_required'
+            ),
+            'api_default': parameter['default'] if has_api_default else None,
+            'accepts_none': 'optional_value' in accepted_kinds,
+        })
     output_ports = resolve_api_output_ports(api)
     resolved_primitive = copy.deepcopy(primitive)
-    resolved_primitive['input_contract'] = input_ports
+    resolved_primitive['input_contract'] = [
+        {
+            'port_id': item['port_id'],
+            'accepted_value_kinds': item['accepted_value_kinds'],
+            'required': item['required'],
+        }
+        for item in input_ports
+    ]
     resolved_primitive['output_contract'] = output_ports
     return {'target_api_primitive_id': primitive['primitive_id'], 'input_ports': input_ports, 'output_ports': output_ports, 'api_binding': {'api_profile_ref': {'profile_id': api['profile_id'], 'revision': api['revision'], 'content_hash': api['metadata']['content_hash']}, 'operator_name': binding['operator_name'], 'operator_overload': binding['operator_overload'], 'cpp_callable': binding['cpp_callable'], 'argument_mapping': copy.deepcopy(binding['argument_mapping']), 'return_mapping': copy.deepcopy(binding['return_mapping'])}, '_resolved_primitive': resolved_primitive}
 
@@ -573,10 +717,18 @@ def validate_spec_source(spec: dict[str, Any]) -> None:
     if lifecycle not in {'draft', 'active'}:
         raise ItemInputError('HarnessSpec lifecycle_status is not usable')
 
-def resolve_item_inputs(spec_path: Path, catalog: dict[str, Any], spec_validator: Draft202012Validator, api_store: dict[tuple[str, int, str], dict[str, Any]], helper_store: dict[tuple[str, int, str], dict[str, Any]]) -> ResolvedInputs:
+def resolve_item_inputs(
+    spec_path: Path,
+    catalog: dict[str, Any],
+    spec_validator: Draft202012Validator,
+    api_store: dict[tuple[str, int, str], dict[str, Any]],
+    helper_store: dict[tuple[str, int, str], dict[str, Any]],
+    review_store: dict[tuple[str, int, str], tuple[dict[str, Any], Path]],
+) -> ResolvedInputs:
     spec = load_json(spec_path)
     validate_against(spec, spec_validator, f'HarnessSpec {spec_path}', ItemInputError)
     validate_spec_source(spec)
+    review_ref = resolve_harness_spec_review(spec, spec_path, review_store)
     api_key = profile_key(spec['target_context']['api_profile_ref'])
     api = api_store.get(api_key)
     if api is None:
@@ -609,18 +761,36 @@ def resolve_item_inputs(spec_path: Path, catalog: dict[str, Any], spec_validator
         candidate_primitives.append(primitive)
     if not candidate_primitives:
         raise ItemInputError('No eligible Strategy Primitive remains for this HarnessSpec')
-    return ResolvedInputs(spec=spec, api=api, resolved_api_primitive=resolved_api, candidate_primitives=candidate_primitives)
+    return ResolvedInputs(
+        spec=spec,
+        api=api,
+        resolved_api_primitive=resolved_api,
+        candidate_primitives=candidate_primitives,
+        harness_spec_review_ref=review_ref,
+    )
 
 def spec_element_id(element_type: str, value: dict[str, Any]) -> str:
-    id_fields = {'global_constraint': 'constraint_id', 'branch_constraint': 'constraint_id', 'branch_precondition': 'precondition_id', 'target_property': 'target_property_id', 'activation_target': 'activation_target_id', 'oracle_requirement': 'oracle_requirement_id'}
+    id_fields = {
+        'global_constraint': 'constraint_id',
+        'branch_constraint': 'constraint_id',
+        'target_condition': 'condition_id',
+        'behavior_observation': 'observation_id',
+        'behavior_check': 'check_id',
+    }
     return require_string(value[id_fields[element_type]], f'{element_type} ID')
 
 def branch_element_entries(spec: dict[str, Any], branch: dict[str, Any]) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
-    groups = [('global_constraint', spec['validity_constraints']['global_constraints']), ('branch_constraint', branch['branch_constraints']), ('branch_precondition', branch['branch_preconditions']), ('target_property', branch['target_properties']), ('activation_target', branch['activation_targets']), ('oracle_requirement', branch['oracle_requirements'])]
+    groups = [
+        ('global_constraint', spec['validity_constraints']['global_constraints']),
+        ('branch_constraint', branch['branch_constraints']),
+        ('target_condition', branch['target_conditions']),
+        ('behavior_observation', branch['behavior_observations']),
+        ('behavior_check', branch['behavior_checks']),
+    ]
     for (element_type, values) in groups:
         for value in values:
-            required = element_type != 'oracle_requirement' or value['requirement_level'] == 'required'
+            required = element_type != 'behavior_check' or value['requirement_level'] == 'required'
             entries.append({'source_branch_id': branch['branch_id'], 'spec_element_type': element_type, 'spec_element_id': spec_element_id(element_type, value), 'required': required, 'value': value})
     return entries
 
@@ -630,10 +800,10 @@ def all_element_entries(spec: dict[str, Any]) -> list[dict[str, Any]]:
 def semantic_requirements(entry: dict[str, Any]) -> list[dict[str, Any]]:
     value = entry['value']
     element_type = entry['spec_element_type']
-    if element_type in {'global_constraint', 'branch_constraint', 'branch_precondition', 'target_property'}:
-        return [value['semantic_requirement']]
-    if element_type == 'oracle_requirement':
-        return [*value['oracle_preconditions'], value['expected_behavior']]
+    if element_type in {'global_constraint', 'branch_constraint', 'target_condition'}:
+        return [value['predicate']]
+    if element_type == 'behavior_check':
+        return [*value['preconditions'], value['expected_predicate']]
     return []
 RUNTIME_REFERENCE_PARAMETER_NAMES = {'subject_ref', 'left_subject_ref', 'right_subject_ref', 'input_ref', 'output_ref', 'source_subject_ref', 'target_subject_ref', 'operand_ref', 'result_ref', 'value_ref'}
 
@@ -666,7 +836,7 @@ def exposed_parameters(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         merged: dict[str, Any] = {}
         for requirement in semantic_requirements(entry):
-            for (name, value) in requirement.get('parameters', {}).items():
+            for (name, value) in requirement.get('arguments', {}).items():
                 if is_runtime_reference_parameter(name):
                     continue
                 if name in merged and merged[name] != value:
@@ -680,9 +850,54 @@ def build_harness_spec_view(spec: dict[str, Any]) -> dict[str, Any]:
     entries = all_element_entries(spec)
     source_branches: list[dict[str, Any]] = []
     for branch in spec['exploration_plan']['branches']:
-        source_branches.append({'source_branch_id': branch['branch_id'], 'branch_kind': branch['branch_kind'], 'input_validity_intent': branch['input_validity_intent'], 'exploration_goal': branch['exploration_goal'], 'branch_constraints': compact_semantic_value(branch['branch_constraints']), 'branch_preconditions': compact_semantic_value(branch['branch_preconditions']), 'target_properties': compact_semantic_value(branch['target_properties']), 'activation_targets': compact_semantic_value(branch['activation_targets']), 'oracle_requirements': compact_semantic_value(branch['oracle_requirements'])})
-    required_spec_elements = [{'source_branch_id': entry['source_branch_id'], 'spec_element_type': entry['spec_element_type'], 'spec_element_id': entry['spec_element_id']} for entry in entries if entry['required']]
-    return {'identity': spec['identity'], 'global_constraints': compact_semantic_value(spec['validity_constraints']['global_constraints']), 'source_branches': source_branches, 'required_spec_elements': required_spec_elements, 'exposable_spec_parameters': exposed_parameters(entries)}
+        source_branches.append({
+            'source_branch_id': branch['branch_id'],
+            'branch_kind': branch['branch_kind'],
+            'input_validity_intent': branch['input_validity_intent'],
+            'exploration_goal': branch['exploration_goal'],
+            'branch_constraints': compact_semantic_value(branch['branch_constraints']),
+            'target_conditions': compact_semantic_value(branch['target_conditions']),
+            'behavior_observations': compact_semantic_value(branch['behavior_observations']),
+            'behavior_checks': compact_semantic_value(branch['behavior_checks']),
+        })
+    runner_observations = [
+        entry for entry in entries
+        if entry['spec_element_type'] == 'behavior_observation'
+        and entry['value']['observe_at'] == 'on_target_api_termination'
+    ]
+    required_spec_elements = [
+        {
+            'source_branch_id': entry['source_branch_id'],
+            'spec_element_type': entry['spec_element_type'],
+            'spec_element_id': entry['spec_element_id'],
+        }
+        for entry in entries
+        if entry['required'] and entry not in runner_observations
+    ]
+    runner_observation_elements = [
+        {
+            'source_branch_id': entry['source_branch_id'],
+            'spec_element_type': entry['spec_element_type'],
+            'spec_element_id': entry['spec_element_id'],
+            'runner_events': [
+                'target_api_returned',
+                'caught_exception',
+                'process_exit',
+                'process_signal',
+                'timeout',
+                'sanitizer_report',
+            ],
+        }
+        for entry in runner_observations
+    ]
+    return {
+        'identity': spec['identity'],
+        'global_constraints': compact_semantic_value(spec['validity_constraints']['global_constraints']),
+        'source_branches': source_branches,
+        'required_spec_elements': required_spec_elements,
+        'runner_observation_elements': runner_observation_elements,
+        'exposable_spec_parameters': exposed_parameters(entries),
+    }
 
 def compact_semantic_value(value: Any) -> Any:
     if isinstance(value, list):
@@ -694,9 +909,156 @@ def compact_semantic_value(value: Any) -> Any:
 def primitive_view(primitive: dict[str, Any]) -> dict[str, Any]:
     return {key: copy.deepcopy(primitive[key]) for key in ('primitive_id', 'primitive_kind', 'semantic_support', 'allowed_template_slots', 'input_contract', 'output_contract', 'parameter_contract', 'outcome_contract', 'limitations')}
 
+def validated_ordinary_witnesses(api: dict[str, Any]) -> list[dict[str, Any]]:
+    witnesses: list[dict[str, Any]] = []
+    for evidence in api.get('evidence', []):
+        if evidence.get('source_kind') != 'validation_case':
+            continue
+        location = evidence.get('source_location')
+        path = Path(location) if isinstance(location, str) else None
+        if path is None or not path.is_file():
+            raise ItemInputError('Validation-case evidence must resolve to its original file, not a truncated excerpt')
+        if file_hash(path) != evidence.get('content_hash'):
+            raise ItemInputError(f'Validation-case evidence hash mismatch: {path}')
+        case = load_json(path)
+        arguments = case.get('arguments')
+        if not isinstance(arguments, list):
+            continue
+        witnesses.append({
+            'case_id': case.get('case_id'),
+            'arguments': copy.deepcopy(arguments),
+            'source_ref': artifact_ref(path, case.get('case_id', path.name), case.get('schema_version', '1.0')),
+            'interpretation': (
+                'Observed ordinary-valid smoke witness only. Generalize '
+                'documented relations and retain fuzz freedom; do not copy '
+                'its concrete shapes or fill values as test requirements.'
+            ),
+        })
+    return witnesses
+
+RESOURCE_POLICY_PATH = ROOT / 'strategy_primitives/strategy_resource_policy__v001.json'
+ORDINARY_RECIPES_PATH = ROOT / 'strategy_primitives/ordinary_input_recipes__v001.json'
+
+def ordinary_recipe(api: dict[str, Any]) -> dict[str, Any] | None:
+    recipes = load_json(ORDINARY_RECIPES_PATH)
+    for recipe in recipes['recipes']:
+        if (recipe['python_api'] == api['target']['python_api']
+                and recipe['framework_commit'] == api['target']['framework_commit']):
+            evidence = recipe['evidence']
+            if 'relative_path' in evidence and file_hash(Path(evidence['relative_path'])) != evidence['content_hash']:
+                raise ItemInputError('Ordinary recipe source hash mismatch')
+            return recipe
+    return None
+
+def argument_relation_rules(api: dict[str, Any], catalog: dict[str, Any]) -> list[dict[str, Any]]:
+    selected = [r for r in catalog.get('argument_relation_rules', [])
+                if r['python_api'] == api['target']['python_api'] and r['framework_commit'] == api['target']['framework_commit']]
+    parameters = {p['binding_parameter_id']: p for p in api['target_binding']['binding_parameters']}
+    for rule in selected:
+        if rule['reference_port'] not in parameters or rule['dependent_port'] not in parameters:
+            raise ItemInputError(f"Argument relation {rule['rule_id']} references an unavailable target port")
+        dependent = parameters[rule['dependent_port']]
+        expected_subject = f"param_{dependent['ordinal']:03d}_{dependent['name']}"
+        if rule['dependent_subject_ref'] != expected_subject:
+            raise ItemInputError(f"Argument relation {rule['rule_id']} has a mismatched dependent subject")
+    return selected
+
+def capability_preflight(resolved: ResolvedInputs, catalog: dict[str, Any]) -> None:
+    """Exact supported forms, not broad semantic_support tags."""
+    import build_harness_artifact as emitter
+    from strategy_domains import zero_numel_form, output_check_parameters, dimension_equality_form
+    template = ROOT / 'templates/libfuzzer_harness_v1.cpp.in'
+    from template_contract import verify_template
+    try:
+        verify_template(template, catalog['template_interface']['template_ref']['content_hash'])
+    except ValueError as exc:
+        raise ItemInputError(str(exc)) from exc
+    for primitive in catalog['primitives']:
+        name = primitive['implementation_binding']['emitter_id']
+        if name not in emitter.EMITTERS:
+            raise CapabilityGap(f'Catalog/emitter capability gap: {name}')
+    for entry in all_element_entries(resolved.spec):
+        kind, value = entry['spec_element_type'], entry['value']
+        if kind == 'behavior_observation':
+            if value['observe_at'] != 'on_target_api_termination':
+                raise CapabilityGap(f'Capability gap: standalone observation {entry["spec_element_id"]} has no exact emitter')
+            continue
+        if kind == 'behavior_check':
+            expected = value['expected_predicate']
+            survival = (expected['predicate_id'] == 'execution_survives' and value['subject_refs'] == ['context.execution']
+                        and expected['arguments'] in ({}, {'subject_ref': 'context.execution'}))
+            output = output_check_parameters(expected)
+            if value['preconditions'] or not (survival or output):
+                raise CapabilityGap(f'Capability gap: Behavior Check {entry["spec_element_id"]} needs an exact predicate/precondition adapter')
+            continue
+        predicate = value['predicate']
+        a, pid = predicate['arguments'], predicate['predicate_id']
+        if kind in {'global_constraint', 'branch_constraint'}:
+            if not dimension_equality_form(predicate):
+                raise CapabilityGap(f'Capability gap: constraint {entry["spec_element_id"]} requires an exact enforcement adapter; observation is insufficient')
+            continue
+        supported = zero_numel_form(predicate) or (
+            pid == 'property_relation' and a.get('operator') == 'equals'
+            and ((a.get('property_ref') == 'rank' and isinstance(a.get('value'), int))
+                 or (a.get('property_ref') == 'dtype' and a.get('value') == 'int64')))
+        supported |= (pid == 'cross_subject_relation' and a.get('left_property_ref') == a.get('right_property_ref')
+                      and a.get('left_property_ref') in {'shape', 'rank', 'numel'}
+                      and a.get('relation') in {'equals', 'not_equals'})
+        if value.get('role') == 'exploration_variable' and (
+            (pid == 'property_relation' and a.get('property_ref') == 'dtype')
+            or ((pid == 'property_relation' and a.get('property_ref') == 'rank'
+                 or pid == 'cross_subject_relation' and a.get('left_property_ref') == 'rank')
+                and not any(p['primitive_id'] == 'construct_tensor_with_rank_range' for p in catalog['primitives']))):
+            raise CapabilityGap(f'Capability gap: {entry["spec_element_id"]} needs a rank/dtype-varying constructor; current constructors fix these properties')
+        if not supported:
+            raise CapabilityGap(f'Capability gap: unsupported exact predicate form for {entry["spec_element_id"]}')
+
+def materialization_preflight(record: dict[str, Any], resolved: ResolvedInputs,
+                              catalog: dict[str, Any], helper_store: dict) -> dict[str, Any]:
+    import build_harness_artifact as emitter
+    try:
+        inputs = emitter.ResolvedInputs(strategy=record, harness_spec=resolved.spec,
+            api_profile=resolved.api, catalog=catalog, helper_profiles=helper_store)
+        ranges = emitter.allocate_selector_ranges(resolved.spec['exploration_plan']['branches'])
+        source, materialization, instrumentation = emitter.materialize_strategy(
+            inputs, ranges, ROOT / 'templates/libfuzzer_harness_v1.cpp.in')
+        source = emitter.finalize_source(source, 'preflight', '0' * 64, len(instrumentation))
+        emitter.resolve_source_spans(source, materialization, instrumentation)
+        emitter.validate_materialization_maps(record, resolved.spec, materialization, instrumentation)
+    except emitter.BuildError as exc:
+        raise PlanValidationError(f'Materialization preflight: {exc}') from exc
+    return {'status': 'passed', 'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
+            'step_count': len(materialization), 'instrumentation_sites': len(instrumentation),
+            'compile_status': 'not_run',
+            'template_contract': __import__('template_contract').verify_template(
+                ROOT / 'templates/libfuzzer_harness_v1.cpp.in',
+                catalog['template_interface']['template_ref']['content_hash'])}
+
+def source_extension_refs(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        'resource_policy_ref': file_source_ref(RESOURCE_POLICY_PATH, 'strategy_resource_policy', '1.0'),
+        'ordinary_recipes_ref': file_source_ref(ORDINARY_RECIPES_PATH, 'ordinary_input_recipes', '1.0'),
+        'strategy_review_ref': None if getattr(args, 'strategy_review', None) is None else
+            file_source_ref(args.strategy_review, safe_component(args.strategy_review.stem), '1.0'),
+        'generation_trace_ref': None,
+    }
+
+def file_source_ref(path: Path, name: str, version: str) -> dict[str, Any]:
+    return {**artifact_ref(path, name, version), 'relative_path': str(path)}
+
 def build_prompt_views(resolved: ResolvedInputs, catalog: dict[str, Any]) -> dict[str, Any]:
     api_view = copy.deepcopy(resolved.resolved_api_primitive)
     api_view.pop('_resolved_primitive', None)
+    api_view['python_signature'] = resolved.api['python_contract']['signature']
+    api_view['documented_constraints'] = copy.deepcopy(
+        resolved.api['documented_constraints']
+    )
+    api_view['ordinary_valid_witnesses'] = validated_ordinary_witnesses(
+        resolved.api
+    )
+    api_view['ordinary_input_recipe'] = ordinary_recipe(resolved.api)
+    api_view['argument_relation_rules'] = argument_relation_rules(resolved.api, catalog)
+    api_view['resource_policy'] = load_json(RESOURCE_POLICY_PATH)
     interface = catalog['template_interface']
     return {'harness_spec_view': build_harness_spec_view(resolved.spec), 'resolved_api_primitive_view': api_view, 'template_interface_view': {'available_slots': interface['available_slots'], 'slot_order': {slot: index for (index, slot) in enumerate(interface['available_slots'])}, 'built_in_values': interface['built_in_values']}, 'primitive_candidate_views': [primitive_view(item) for item in sorted(resolved.candidate_primitives, key=lambda item: item['primitive_id'])]}
 
@@ -718,9 +1080,21 @@ def compact_errors(errors: list[str], max_chars: int=DEFAULT_MAX_REPAIR_CHARS) -
         size += addition
     return result
 
-def build_prompt(contract: dict[str, Any], rules: str, views: dict[str, Any], repair_errors: list[str], max_chars: int) -> str:
+def build_prompt(
+    contract: dict[str, Any],
+    rules: str,
+    views: dict[str, Any],
+    repair_errors: list[str],
+    max_chars: int,
+    previous_candidate: dict[str, Any] | None = None,
+) -> str:
     sections = ['You are synthesizing a Strategy implementation plan. Return one JSON object only.', 'SYNTHESIS CONTRACT:\n' + json.dumps(contract, ensure_ascii=False, separators=(',', ':')), 'SYNTHESIS RULES:\n' + rules.strip(), 'INPUT VIEWS:\n' + json.dumps(views, ensure_ascii=False, separators=(',', ':'))]
     if repair_errors:
+        if previous_candidate is not None:
+            sections.append(
+                'PREVIOUS CANDIDATE TO REPAIR:\n'
+                + json.dumps(previous_candidate, ensure_ascii=False, separators=(',', ':'))
+            )
         sections.append('REPAIR THE PREVIOUS RESPONSE USING THESE VALIDATION ERRORS:\n' + json.dumps(compact_errors(repair_errors), ensure_ascii=False))
     prompt = '\n\n'.join(sections)
     if len(prompt) > max_chars:
@@ -775,40 +1149,32 @@ def build_spec_context(spec: dict[str, Any]) -> tuple[list[str], dict[tuple[str,
 
 def gap_semantic_payload(entry: dict[str, Any], spec: dict[str, Any]) -> Any:
     value = compact_semantic_value(entry['value'])
-    id_fields = {'constraint_id', 'precondition_id', 'target_property_id', 'activation_target_id', 'oracle_requirement_id'}
+    id_fields = {'constraint_id', 'condition_id', 'observation_id', 'check_id'}
     if isinstance(value, dict):
         value = {key: item for (key, item) in value.items() if key not in id_fields}
-    if entry['spec_element_type'] == 'activation_target':
-        target = target_property_for_activation(spec, entry['source_branch_id'], entry['value'])
-        value['target_property_semantics'] = gap_semantic_payload({'spec_element_type': 'target_property', 'source_branch_id': entry['source_branch_id'], 'value': target}, spec)
     return value
 
 def has_semantic_candidate(entry: dict[str, Any], resolved: ResolvedInputs) -> bool:
-    candidates = resolved.candidate_primitives
-    element_type = entry['spec_element_type']
-    if element_type == 'activation_target':
-        target = target_property_for_activation(resolved.spec, entry['source_branch_id'], entry['value'])
-        required_risks = set(target['risk_dimensions'])
-        for point in entry['value']['observation_points']:
-            slot = observation_slot(point)
-            matching = [primitive for primitive in candidates if slot in primitive['allowed_template_slots'] and directly_implements(entry, primitive, slot, resolved.spec)]
-            covered = set().union(*(set(item['semantic_support']['risk_dimensions']) for item in matching)) if matching else set()
-            if not matching or required_risks - covered:
-                return False
+    if (
+        entry['spec_element_type'] == 'behavior_observation'
+        and entry['value']['observe_at'] == 'on_target_api_termination'
+    ):
         return True
-    matching = [primitive for primitive in candidates if any((directly_implements(entry, primitive, slot, resolved.spec) for slot in primitive['allowed_template_slots']))]
-    if not matching:
-        return False
-    if element_type == 'target_property':
-        covered = set().union(*(set(item['semantic_support']['risk_dimensions']) for item in matching))
-        return not (set(entry['value']['risk_dimensions']) - covered)
-    if element_type == 'oracle_requirement':
-        required_types = {item['requirement_type'] for item in semantic_requirements(entry)}
-        covered_types = set().union(*(set(item['semantic_support']['requirement_types']) for item in candidates))
-        return not (required_types - covered_types)
-    required_types = {item['requirement_type'] for item in semantic_requirements(entry)}
-    covered_types = set().union(*(set(item['semantic_support']['requirement_types']) for item in matching))
-    return not (required_types - covered_types)
+    matching = [
+        primitive
+        for primitive in resolved.candidate_primitives
+        if any(
+            directly_implements(entry, primitive, slot, resolved.spec)
+            for slot in primitive['allowed_template_slots']
+        )
+    ]
+    required_predicates = {
+        item['predicate_id'] for item in semantic_requirements(entry)
+    }
+    covered_predicates = set().union(
+        *(set(item['semantic_support']['predicate_ids']) for item in matching)
+    ) if matching else set()
+    return bool(matching) and not (required_predicates - covered_predicates)
 
 def validate_blocked_response(response: dict[str, Any], resolved: ResolvedInputs) -> list[dict[str, Any]]:
     (branch_ids, element_map, required_elements, _) = build_spec_context(resolved.spec)
@@ -844,7 +1210,20 @@ def validate_blocked_response(response: dict[str, Any], resolved: ResolvedInputs
         if gap['reason_code'] not in BLOCKING_REASON_CODES:
             raise PlanValidationError('Blocking Gap has an unknown reason_code')
         reason_code = gap['reason_code']
-        allowed_element_types = {'required_capability_unavailable': {'global_constraint', 'branch_constraint', 'branch_precondition', 'target_property'}, 'required_observation_unavailable': {'activation_target'}, 'required_oracle_unavailable': {'oracle_requirement'}, 'api_input_unconstructable': {None, 'global_constraint', 'branch_constraint', 'branch_precondition'}, 'type_flow_unresolvable': TRACEABLE_SPEC_TYPES | {None}, 'semantic_conflict_unresolvable': TRACEABLE_SPEC_TYPES | {None}}
+        allowed_element_types = {
+            'required_capability_unavailable': {
+                'global_constraint', 'branch_constraint', 'target_condition'
+            },
+            'required_observation_unavailable': {
+                'target_condition', 'behavior_observation'
+            },
+            'required_oracle_unavailable': {'behavior_check'},
+            'api_input_unconstructable': {
+                None, 'global_constraint', 'branch_constraint', 'target_condition'
+            },
+            'type_flow_unresolvable': TRACEABLE_SPEC_TYPES | {None},
+            'semantic_conflict_unresolvable': TRACEABLE_SPEC_TYPES | {None},
+        }
         if element_type not in allowed_element_types[reason_code]:
             raise PlanValidationError(f'Blocking reason {reason_code} is incompatible with {element_type!r}')
         if reason_code in {'required_capability_unavailable', 'required_observation_unavailable', 'required_oracle_unavailable'}:
@@ -938,6 +1317,29 @@ def normalize_materialized_plan(response: dict[str, Any], resolved: ResolvedInpu
                 raise PlanValidationError(f'Branch {source_id} has a Spec Binding that references an unknown Step')
             ensure_unique(implementation_ids, 'implementation_step_ids')
             binding['implementation_step_ids'] = sorted((step_id_map[step_id] for step_id in implementation_ids), key=lambda value: int(value.split('_')[1]))
+            binding['binding_kind'] = 'in_harness_steps'
+            binding['runner_events'] = []
+        source_branch = next(
+            item for item in resolved.spec['exploration_plan']['branches']
+            if item['branch_id'] == source_id
+        )
+        for observation in source_branch['behavior_observations']:
+            if observation['observe_at'] != 'on_target_api_termination':
+                continue
+            branch['spec_bindings'].append({
+                'spec_element_type': 'behavior_observation',
+                'spec_element_id': observation['observation_id'],
+                'binding_kind': 'runner_event',
+                'implementation_step_ids': [],
+                'runner_events': [
+                    'target_api_returned',
+                    'caught_exception',
+                    'process_exit',
+                    'process_signal',
+                    'timeout',
+                    'sanitizer_report',
+                ],
+            })
         normalized_branches.append(branch)
     return {'branch_strategies': normalized_branches}
 
@@ -988,35 +1390,6 @@ def literal_matches_value_kind(value: Any, expected: str) -> bool:
         return isinstance(value, (list, dict))
     return False
 
-def target_property_for_activation(spec: dict[str, Any], source_branch_id: str, activation: dict[str, Any]) -> dict[str, Any]:
-    branch = next((branch for branch in spec['exploration_plan']['branches'] if branch['branch_id'] == source_branch_id))
-    matches = [item for item in branch['target_properties'] if item['target_property_id'] == activation['target_property_id']]
-    if len(matches) != 1:
-        raise PlanValidationError('Activation Target does not resolve to exactly one Target Property')
-    return matches[0]
-
-def bound_determinism_oracle_ids(
-    spec: dict[str, Any],
-    source_branch_id: str,
-    spec_bindings: list[dict[str, Any]],
-) -> set[str]:
-    branch = next(
-        item
-        for item in spec["exploration_plan"]["branches"]
-        if item["branch_id"] == source_branch_id
-    )
-    oracle_types = {
-        item["oracle_requirement_id"]: item["oracle_type"]
-        for item in branch["oracle_requirements"]
-    }
-    return {
-        binding["spec_element_id"]
-        for binding in spec_bindings
-        if binding["spec_element_type"] == "oracle_requirement"
-        and oracle_types.get(binding["spec_element_id"]) == "determinism"
-    }
-
-
 def transitive_ancestors(step_id: str, predecessors: dict[str, set[str]]) -> set[str]:
     result: set[str] = set()
     pending = list(predecessors.get(step_id, set()))
@@ -1028,62 +1401,283 @@ def transitive_ancestors(step_id: str, predecessors: dict[str, set[str]]) -> set
         pending.extend(predecessors.get(current, set()))
     return result
 
-def observation_slot(point: dict[str, Any]) -> str:
-    if point['observation_point'] == 'before_target_api_call':
+def observation_slot(phase: str) -> str:
+    if phase == 'before_target_api_call':
         return 'pre_call_observation'
-    return 'post_call_observation'
+    if phase == 'after_target_api_call':
+        return 'post_call_observation'
+    raise PlanValidationError(
+        f'Observation phase {phase!r} belongs to the Runner, not a Harness slot'
+    )
 
 def directly_implements(entry: dict[str, Any], primitive: dict[str, Any], slot: str, spec: dict[str, Any]) -> bool:
     support = primitive['semantic_support']
     element_type = entry['spec_element_type']
     value = entry['value']
-    if element_type == 'oracle_requirement':
-        return value['oracle_type'] in support['oracle_types']
-    if element_type == 'activation_target':
-        target = target_property_for_activation(spec, entry['source_branch_id'], value)
-        requirement = target['semantic_requirement']['requirement_type']
-        risks = set(target['risk_dimensions'])
-        allowed_slots = {observation_slot(point) for point in value['observation_points']}
-        return slot in allowed_slots and requirement in support['requirement_types'] and (not risks or bool(risks.intersection(support['risk_dimensions'])))
-    required_types = {item['requirement_type'] for item in semantic_requirements(entry)}
-    if not required_types.intersection(support['requirement_types']):
+    predicate_ids = {
+        item['predicate_id'] for item in semantic_requirements(entry)
+    }
+    if predicate_ids and not predicate_ids.intersection(support['predicate_ids']):
         return False
-    if element_type == 'target_property':
-        risks = set(value['risk_dimensions'])
-        return not risks or bool(risks.intersection(support['risk_dimensions']))
-    return True
+    if element_type == 'target_condition':
+        expected_slots = {observation_slot(phase) for phase in value['observe_at']}
+        return (
+            slot in expected_slots
+            and value['role'] in support['condition_roles']
+            and bool(set(value['observe_at']).intersection(support['observation_phases']))
+        )
+    if element_type == 'behavior_observation':
+        if value['observe_at'] == 'on_target_api_termination':
+            return False
+        return (
+            slot == observation_slot(value['observe_at'])
+            and value['observe_at'] in support['observation_phases']
+        )
+    if element_type == 'behavior_check':
+        return value['requirement_level'] in support['behavior_check_levels']
+    # Observing a condition is not enforcing a validity constraint.
+    return (element_type in {'global_constraint', 'branch_constraint'}
+            and primitive['primitive_kind'] == 'relation_enforce'
+            and slot == 'pre_call_guard')
 
 def validate_binding_semantics(entry: dict[str, Any], implementation_ids: list[str], step_map: dict[str, dict[str, Any]], primitive_map: dict[str, dict[str, Any]], predecessors: dict[str, set[str]], spec: dict[str, Any]) -> None:
+    if (
+        entry['spec_element_type'] == 'target_condition'
+        and entry['value']['role'] == 'exploration_variable'
+    ):
+        enforcing = [
+            step_id for step_id in implementation_ids
+            if primitive_map[step_map[step_id]['primitive_id']]['primitive_kind']
+            == 'relation_enforce'
+            or step_map[step_id]['template_slot'] == 'pre_call_guard'
+        ]
+        if enforcing:
+            raise PlanValidationError(
+                'exploration_variable must be varied and observed, not enforced '
+                f'as a per-execution guard: {enforcing}'
+            )
     direct_ids = [step_id for step_id in implementation_ids if directly_implements(entry, primitive_map[step_map[step_id]['primitive_id']], step_map[step_id]['template_slot'], spec)]
     if not direct_ids:
         raise PlanValidationError('Spec Binding has no directly compatible semantic Step')
     element_type = entry['spec_element_type']
     value = entry['value']
-    if element_type == 'target_property':
-        covered = set().union(*(set(primitive_map[step_map[step_id]['primitive_id']]['semantic_support']['risk_dimensions']) for step_id in direct_ids))
-        missing = set(value['risk_dimensions']) - covered
-        if missing:
-            raise PlanValidationError(f'Target Property Binding misses risk dimensions: {sorted(missing)}')
-    elif element_type == 'activation_target':
-        target = target_property_for_activation(spec, entry['source_branch_id'], value)
-        risks = set(target['risk_dimensions'])
-        for point in value['observation_points']:
-            slot = observation_slot(point)
-            phase_ids = [step_id for step_id in direct_ids if step_map[step_id]['template_slot'] == slot]
-            if not phase_ids:
-                raise PlanValidationError(f'Activation Target misses required observation slot {slot}')
-            covered = set().union(*(set(primitive_map[step_map[step_id]['primitive_id']]['semantic_support']['risk_dimensions']) for step_id in phase_ids))
-            if risks - covered:
-                raise PlanValidationError(f'Activation observation misses risk dimensions in {slot}: {sorted(risks - covered)}')
-    elif element_type == 'oracle_requirement':
-        required_types = {item['requirement_type'] for item in semantic_requirements(entry)}
-        covered_types = set().union(*(set(primitive_map[step_map[step_id]['primitive_id']]['semantic_support']['requirement_types']) for step_id in implementation_ids))
-        if required_types - covered_types:
-            raise PlanValidationError(f'Oracle Binding cannot represent all precondition/behavior types: {sorted(required_types - covered_types)}')
+    required_predicates = {
+        item['predicate_id'] for item in semantic_requirements(entry)
+    }
+    covered_predicates = set().union(*(
+        set(primitive_map[step_map[step_id]['primitive_id']]['semantic_support']['predicate_ids'])
+        for step_id in direct_ids
+    ))
+    if required_predicates - covered_predicates:
+        raise PlanValidationError(
+            'Spec Binding misses predicate support: '
+            f'{sorted(required_predicates - covered_predicates)}'
+        )
+    if element_type == 'target_condition':
+        for phase in value['observe_at']:
+            slot = observation_slot(phase)
+            if not any(step_map[step_id]['template_slot'] == slot for step_id in direct_ids):
+                raise PlanValidationError(
+                    f'Target Condition misses required observation slot {slot}'
+                )
     direct_ancestors = {step_id: transitive_ancestors(step_id, predecessors) for step_id in direct_ids}
     unrelated = [step_id for step_id in implementation_ids if step_id not in direct_ids and (not any((step_id in ancestors for ancestors in direct_ancestors.values())))]
     if unrelated:
         raise PlanValidationError(f'Spec Binding contains unrelated auxiliary Steps: {unrelated}')
+
+def step_literal_parameters(step: dict[str, Any]) -> dict[str, Any]:
+    return {
+        binding['parameter_id']: binding['binding_value']
+        for binding in step['parameter_bindings']
+        if binding['binding_kind'] == 'literal'
+    }
+
+def python_subject_target_value(
+    subject_ref: str,
+    target_step: dict[str, Any],
+    api: dict[str, Any],
+) -> str:
+    target_values = {
+        item['port_id']: item['value_ref']
+        for item in target_step['input_bindings']
+    }
+    returns = {item['port_id']: item['value_id'] for item in target_step['output_bindings']}
+    if subject_ref in returns:
+        return returns[subject_ref]
+    matches = [
+        item['binding_parameter_ref']
+        for item in api['target_binding']['argument_mapping']
+        if subject_ref in item.get('source_parameter_refs', [])
+        or item.get('python_parameter_ref') == subject_ref
+    ]
+    conversions = [item for item in api['target_binding']['argument_mapping']
+                   if (subject_ref in item.get('source_parameter_refs', []) or item.get('python_parameter_ref') == subject_ref)
+                   and item.get('mapping_kind') not in {'direct', 'renamed'}]
+    if conversions:
+        raise PlanValidationError('Predicate over a transformed Python parameter needs an explicit semantic adapter')
+    if len(matches) != 1 or matches[0] not in target_values:
+        raise PlanValidationError(
+            f'Predicate subject {subject_ref!r} does not resolve to one bound target input'
+        )
+    return target_values[matches[0]]
+
+def validate_predicate_argument_fidelity(
+    entry: dict[str, Any],
+    implementation_ids: list[str],
+    step_map: dict[str, dict[str, Any]],
+    target_step: dict[str, Any],
+    api: dict[str, Any],
+) -> None:
+    from strategy_domains import output_check_parameters, dimension_equality_form
+    kind = entry['spec_element_type']
+    if kind == 'behavior_check':
+        check = entry['value']
+        evaluators = [step_map[s] for s in implementation_ids if step_map[s]['primitive_id'] in {'evaluate_output_property', 'evaluate_execution_survival'}]
+        if len(evaluators) != 1 or check['preconditions']:
+            raise PlanValidationError('Behavior Check requires one exact evaluator and supported preconditions')
+        step = evaluators[0]
+        expected = check['expected_predicate']
+        if expected['predicate_id'] == 'execution_survives':
+            if step['primitive_id'] != 'evaluate_execution_survival' or check['subject_refs'] != ['context.execution']:
+                raise PlanValidationError('Execution-survival check subject or primitive mismatch')
+            return
+        parameters = output_check_parameters(expected)
+        if parameters is None or step['primitive_id'] != 'evaluate_output_property':
+            raise PlanValidationError('Unsupported exact output check')
+        subject = expected['arguments'].get('subject_ref')
+        if check['subject_refs'] != [subject] or subject not in {b['port_id'] for b in target_step['output_bindings']}:
+            raise PlanValidationError('Output check must refer to one actual target return')
+        bound = {b['port_id']: b['value_ref'] for b in step['input_bindings']}
+        if bound.get('result') != python_subject_target_value(subject, target_step, api):
+            raise PlanValidationError('Output evaluator observes the wrong target return')
+        actual = step_literal_parameters(step)
+        if any(actual.get(k) != v for k, v in parameters.items()):
+            raise PlanValidationError('Output check arguments do not preserve expected predicate')
+        return
+    if kind in {'global_constraint', 'branch_constraint'}:
+        predicate = entry['value']['predicate']
+        if not dimension_equality_form(predicate):
+            raise PlanValidationError('Unsupported constraint enforcement form')
+        a = predicate['arguments']
+        guards = [step_map[s] for s in implementation_ids if step_map[s]['primitive_id'] == 'enforce_dimension_relation']
+        if len(guards) != 1:
+            raise PlanValidationError('Dimension constraint needs one enforcement guard')
+        step = guards[0]
+        inputs = {b['port_id']: b['value_ref'] for b in step['input_bindings']}
+        p = step_literal_parameters(step)
+        if (inputs.get('left') != python_subject_target_value(a['left_subject_ref'], target_step, api)
+                or inputs.get('right') != python_subject_target_value(a['right_subject_ref'], target_step, api)
+                or p.get('left_axis') != a['left_axis'] or p.get('right_axis') != a['right_axis'] or p.get('relation_kind') != 'equal'):
+            raise PlanValidationError('Dimension constraint guard subjects/axes/relation mismatch')
+        return
+    if kind != 'target_condition':
+        return
+    predicate = entry['value']['predicate']
+    arguments = predicate['arguments']
+    predicate_id = predicate['predicate_id']
+    implementation_steps = [step_map[item] for item in implementation_ids]
+    if predicate_id in {'property_relation', 'range_constraint'}:
+        subject_ref = arguments.get('subject_ref')
+        expected_value = python_subject_target_value(subject_ref, target_step, api)
+        evaluators = [
+            step for step in implementation_steps
+            if step['primitive_id'] == 'evaluate_tensor_property'
+        ]
+        phases = entry['value']['observe_at']
+        if len(evaluators) != len(phases):
+            raise PlanValidationError(
+                f'{predicate_id} requires one evaluate_tensor_property Step per observation phase'
+            )
+        if len(phases) > 1:
+            for step in evaluators:
+                phase = next((p for p in phases if observation_slot(p) == step['template_slot']), None)
+                if phase is None:
+                    raise PlanValidationError('Evaluator phase is not declared')
+                single = copy.deepcopy(entry)
+                single['value']['observe_at'] = [phase]
+                validate_predicate_argument_fidelity(single, [step['step_id']], step_map, target_step, api)
+            return
+        evaluator = evaluators[0]
+        bound_subjects = {
+            item['port_id']: item['value_ref'] for item in evaluator['input_bindings']
+        }
+        if bound_subjects.get('subject') != expected_value:
+            raise PlanValidationError(
+                f'{predicate_id} evaluator observes the wrong target input'
+            )
+        params = step_literal_parameters(evaluator)
+        zero_numel = (
+            arguments.get('property_ref') == 'numel'
+            and (
+                (
+                    predicate_id == 'property_relation'
+                    and arguments.get('operator') == 'equals'
+                    and arguments.get('value') == 0
+                )
+                or (
+                    predicate_id == 'range_constraint'
+                    and arguments.get('lower_bound') == 0
+                    and arguments.get('upper_bound') == 0
+                    and arguments.get('lower_inclusive') is True
+                    and arguments.get('upper_inclusive') is True
+                )
+            )
+        )
+        scalar_equality = (
+            predicate_id == 'property_relation' and arguments.get('operator') == 'equals'
+            and ((arguments.get('property_ref') == 'rank' and params.get('property_kind') == 'rank_equals'
+                  and params.get('expected_integer') == arguments.get('value'))
+                 or (arguments.get('property_ref') == 'dtype' and arguments.get('value') == 'int64'
+                     and params.get('property_kind') == 'dtype_is_int64')))
+        if not (zero_numel and params.get('property_kind') == 'numel_equals_zero') and not scalar_equality:
+            raise PlanValidationError(
+                f'Unsupported or mismatched {predicate_id} argument form'
+            )
+        return
+    if predicate_id == 'cross_subject_relation':
+        expected_left = python_subject_target_value(
+            arguments.get('left_subject_ref'), target_step, api
+        )
+        expected_right = python_subject_target_value(
+            arguments.get('right_subject_ref'), target_step, api
+        )
+        evaluators = [
+            step for step in implementation_steps
+            if step['primitive_id'] == 'evaluate_tensor_relation'
+        ]
+        phases = entry['value']['observe_at']
+        if len(evaluators) != len(phases):
+            raise PlanValidationError(
+                'cross_subject_relation requires one evaluate_tensor_relation Step per phase'
+            )
+        if len(phases) > 1:
+            for step in evaluators:
+                phase = next((p for p in phases if observation_slot(p) == step['template_slot']), None)
+                if phase is None:
+                    raise PlanValidationError('Evaluator phase is not declared')
+                single = copy.deepcopy(entry)
+                single['value']['observe_at'] = [phase]
+                validate_predicate_argument_fidelity(single, [step['step_id']], step_map, target_step, api)
+            return
+        evaluator = evaluators[0]
+        inputs = {
+            item['port_id']: item['value_ref'] for item in evaluator['input_bindings']
+        }
+        params = step_literal_parameters(evaluator)
+        if (
+            inputs.get('left') != expected_left
+            or inputs.get('right') != expected_right
+            or arguments.get('left_property_ref') != arguments.get('right_property_ref')
+            or params.get('property_kind') != arguments.get('left_property_ref')
+            or params.get('relation_kind') != arguments.get('relation')
+        ):
+            raise PlanValidationError(
+                'cross_subject_relation Step does not preserve its subjects, properties, and relation'
+            )
+        return
+    raise PlanValidationError(
+        f'No argument-fidelity validator exists for predicate {predicate_id!r}'
+    )
 
 def derive_failure_handlers(steps: list[dict[str, Any]], primitive_map: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     handlers: list[dict[str, Any]] = []
@@ -1107,8 +1701,20 @@ def literal_parameter_value(step: dict[str, Any], parameter_id: str) -> Any:
 
 def directly_fuzz_dependent_output_ports(step: dict[str, Any]) -> set[str]:
     primitive_id = step['primitive_id']
-    if primitive_id == 'construct_tensor_from_fuzz':
+    if primitive_id in {'construct_tensor_from_fuzz', 'construct_tensor_with_rank_range'}:
         return {'tensor', 'next_cursor'}
+    if primitive_id == 'construct_tensor_from_reference':
+        return {'tensor', 'next_cursor'} if literal_parameter_value(step, 'fill_policy') in {'fuzz_numeric', 'fuzz_sign'} else set()
+    if primitive_id == 'select_optional_tensor_from_fuzz':
+        return {'optional_value', 'next_cursor'}
+    if primitive_id in {
+        'construct_floating_from_fuzz',
+        'construct_integer_from_fuzz',
+        'construct_boolean_from_fuzz',
+    }:
+        if primitive_id != 'construct_boolean_from_fuzz' and literal_parameter_value(step, 'minimum') == literal_parameter_value(step, 'maximum'):
+            return set()
+        return {'value', 'next_cursor'}
     if primitive_id != 'construct_tensor_with_constraints':
         return set()
     shape = literal_parameter_value(step, 'shape_template')
@@ -1116,7 +1722,7 @@ def directly_fuzz_dependent_output_ports(step: dict[str, Any]) -> set[str]:
     consumes_fuzz_bytes = (
         isinstance(shape, list)
         and any(item == -1 for item in shape)
-    ) or fill_policy == 'fuzz_int64'
+    ) or fill_policy in {'fuzz_numeric', 'fuzz_sign'}
     return {'tensor', 'next_cursor'} if consumes_fuzz_bytes else set()
 
 
@@ -1145,6 +1751,7 @@ def validate_default_branch_fuzz_dependence(
         tensor_ports = [
             contract['port_id']
             for contract in target_primitive['input_contract']
+            if contract['required'] and 'optional_value' not in contract['accepted_value_kinds']
             if any(
                 kind in {'tensor', 'tensor_list'}
                 for kind in contract['accepted_value_kinds']
@@ -1154,6 +1761,7 @@ def validate_default_branch_fuzz_dependence(
             missing = [
                 port_id
                 for port_id in tensor_ports
+                if input_bindings.get(port_id) not in {None, 'none'}
                 if input_bindings.get(port_id) not in fuzz_dependent_values
             ]
             if missing:
@@ -1161,7 +1769,7 @@ def validate_default_branch_fuzz_dependence(
                     f'Default Branch {source_id} target tensor inputs do not '
                     f'depend on consumed LibFuzzer bytes: {missing}'
                 )
-        elif not any(
+        if not any(
             value_ref in fuzz_dependent_values
             for value_ref in input_bindings.values()
         ):
@@ -1197,6 +1805,45 @@ def validate_knowledge_branch_fuzz_dependence(
             'at least one meaningful target-input degree of freedom must depend '
             'on consumed LibFuzzer bytes'
         )
+
+def validate_exploration_variable_fuzz_dependence(
+    spec: dict[str, Any],
+    source_id: str,
+    target_step: dict[str, Any],
+    api: dict[str, Any],
+    fuzz_dependent_values: set[str],
+    domains: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    branch = next(
+        item for item in spec['exploration_plan']['branches']
+        if item['branch_id'] == source_id
+    )
+    for condition in branch['target_conditions']:
+        if condition['role'] != 'exploration_variable':
+            continue
+        arguments = condition['predicate']['arguments']
+        subject_refs = [
+            arguments[name]
+            for name in (
+                'subject_ref', 'left_subject_ref', 'right_subject_ref'
+            )
+            if isinstance(arguments.get(name), str)
+        ]
+        relevant_values = {
+            python_subject_target_value(subject, target_step, api)
+            for subject in subject_refs
+        }
+        if not relevant_values.intersection(fuzz_dependent_values):
+            raise PlanValidationError(
+                f"Exploration variable {condition['condition_id']} loses fuzz "
+                'dependence on all referenced target inputs'
+            )
+        if domains is not None:
+            subjects = {subject: domains.get(python_subject_target_value(subject, target_step, api), {})
+                        for subject in subject_refs}
+            error = exploration_domain_error(condition['predicate'], subjects)
+            if error:
+                raise PlanValidationError(f"Exploration variable {condition['condition_id']}: {error}")
 
 
 
@@ -1244,6 +1891,13 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                 target_steps.append(step['step_id'])
                 if primitive['primitive_id'] != api_primitive_id or slot != 'target_call':
                     raise PlanValidationError('Target API Step uses the wrong Primitive or slot')
+                provided = {b['port_id'] for b in step['input_bindings']}
+                omitted = False
+                for port in primitive['input_contract']:
+                    if port['port_id'] not in provided:
+                        omitted = True
+                    elif omitted:
+                        raise PlanValidationError('Target API cannot bind a later argument after omitting a default')
             (input_contract, output_contract, parameter_contract) = primitive_contract_maps(primitive)
             input_bindings = validate_binding_set(step['input_bindings'], input_contract, 'port_id', 'required', f"Step {step['step_id']} input_bindings")
             output_bindings = validate_binding_set(step['output_bindings'], output_contract, 'port_id', 'binding_required', f"Step {step['step_id']} output_bindings")
@@ -1293,11 +1947,9 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                     if 'allowed_values' in contract and binding_value not in contract['allowed_values']:
                         raise PlanValidationError(f"Step {step['step_id']} literal is outside allowed_values")
             direct_fuzz_ports = directly_fuzz_dependent_output_ports(step)
+            support_fuzz_policy = primitive['semantic_support']['fuzz_dependency']
             propagate_fuzz_dependency = (
-                step['primitive_id'] not in {
-                    'construct_tensor_from_fuzz',
-                    'construct_tensor_with_constraints',
-                }
+                support_fuzz_policy == 'propagates'
                 and (input_has_fuzz_dependency or parameter_has_fuzz_dependency)
             )
             for (port_id, binding) in output_bindings.items():
@@ -1311,30 +1963,26 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                 consumers_by_value.setdefault(value_id, set())
                 if port_id in direct_fuzz_ports or propagate_fuzz_dependency:
                     fuzz_dependent_values.add(value_id)
-        determinism_oracle_ids = bound_determinism_oracle_ids(
-            resolved.spec, source_id, branch["spec_bindings"]
-        )
-        expected_target_steps = 2 if determinism_oracle_ids else 1
-        if len(target_steps) != expected_target_steps:
+        if len(target_steps) != 1:
             raise PlanValidationError(
-                f"Branch {source_id} requires exactly {expected_target_steps} "
-                "target API invocation Step(s)"
+                f"Branch {source_id} requires exactly one target API invocation Step"
             )
-        if determinism_oracle_ids:
-            invocation_signatures = {
-                canonical_hash(
-                    {
-                        "input_bindings": step_map[step_id]["input_bindings"],
-                        "parameter_bindings": step_map[step_id]["parameter_bindings"],
-                    }
-                )
-                for step_id in target_steps
-            }
-            if len(invocation_signatures) != 1:
-                raise PlanValidationError(
-                    f"Branch {source_id} determinism invocations must have "
-                    "identical input and parameter bindings"
-                )
+        domains = infer_domains(steps)
+        for name, domain in domains.items():
+            meaningful = meaningful_fuzz_domain(domain)
+            if meaningful is True:
+                fuzz_dependent_values.add(name)
+            elif meaningful is False:
+                fuzz_dependent_values.discard(name)
+        source_branch = next(b for b in resolved.spec['exploration_plan']['branches'] if b['branch_id'] == source_id)
+        recipe = ordinary_recipe(resolved.api) if source_branch.get('input_validity_intent') == 'expected_valid' else None
+        if recipe is not None:
+            errors = ordinary_recipe_errors(source_branch, domains, recipe, step_map[target_steps[0]])
+            if errors:
+                raise PlanValidationError('Ordinary-input recipe: ' + '; '.join(errors))
+        errors = companion_relation_errors(source_branch, domains, step_map[target_steps[0]], argument_relation_rules(resolved.api, catalog))
+        if errors:
+            raise PlanValidationError('Auxiliary argument relation: ' + '; '.join(errors))
         validate_default_branch_fuzz_dependence(
             resolved.spec,
             source_id,
@@ -1350,10 +1998,24 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
             step_map,
             fuzz_dependent_values,
         )
+        validate_exploration_variable_fuzz_dependence(
+            resolved.spec,
+            source_id,
+            step_map[target_steps[0]],
+            resolved.api,
+            fuzz_dependent_values,
+            domains,
+        )
         binding_keys: set[tuple[str, str, str]] = set()
         steps_used_by_bindings: set[str] = set()
         for binding in branch['spec_bindings']:
-            expected = {'spec_element_type', 'spec_element_id', 'implementation_step_ids'}
+            expected = {
+                'spec_element_type',
+                'spec_element_id',
+                'binding_kind',
+                'implementation_step_ids',
+                'runner_events',
+            }
             if set(binding) != expected:
                 raise PlanValidationError(f'Branch {source_id} has a malformed Spec Binding')
             key = (source_id, binding['spec_element_type'], binding['spec_element_id'])
@@ -1362,7 +2024,34 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
             if key in binding_keys:
                 raise PlanValidationError(f'Branch {source_id} binds one Spec Element more than once')
             binding_keys.add(key)
+            entry = element_map[key]
             implementation_ids = binding['implementation_step_ids']
+            runner_events = binding['runner_events']
+            if binding['binding_kind'] == 'runner_event':
+                if implementation_ids or not runner_events:
+                    raise PlanValidationError(
+                        'runner_event binding requires runner_events and forbids implementation steps'
+                    )
+                if any(event not in RUNNER_EVENTS for event in runner_events):
+                    raise PlanValidationError('runner_event binding contains an unknown Runner event')
+                if (
+                    entry['spec_element_type'] != 'behavior_observation'
+                    or entry['value']['observe_at'] != 'on_target_api_termination'
+                ):
+                    raise PlanValidationError(
+                        'Runner binding is allowed only for termination observations'
+                    )
+                required_termination_events = {
+                    'target_api_returned', 'caught_exception', 'process_exit',
+                    'process_signal', 'timeout', 'sanitizer_report'
+                }
+                if not required_termination_events.issubset(runner_events):
+                    raise PlanValidationError(
+                        'Termination observation does not cover the complete Runner event set'
+                    )
+                continue
+            if binding['binding_kind'] != 'in_harness_steps' or runner_events:
+                raise PlanValidationError('Spec Binding has an invalid binding_kind payload')
             if not implementation_ids or len(implementation_ids) != len(set(implementation_ids)) or any((step_id not in step_map for step_id in implementation_ids)):
                 raise PlanValidationError(f'Branch {source_id} has invalid implementation_step_ids')
             ordered_ids = sorted(implementation_ids, key=lambda step_id: steps.index(step_map[step_id]))
@@ -1370,57 +2059,22 @@ def validate_materialized_plan(plan: dict[str, Any], resolved: ResolvedInputs, c
                 raise PlanValidationError('implementation_step_ids are not in execution order')
             if target_steps[0] in implementation_ids:
                 raise PlanValidationError('Target API invocation cannot be used as a Spec Binding implementation Step')
-            entry = element_map[key]
             validate_binding_semantics(entry, implementation_ids, step_map, primitive_map, predecessors, resolved.spec)
+            validate_predicate_argument_fidelity(
+                entry,
+                implementation_ids,
+                step_map,
+                step_map[target_steps[0]],
+                resolved.api,
+            )
             steps_used_by_bindings.update(implementation_ids)
         branch_required = {key for key in required_elements if key[0] == source_id}
         missing_bindings = branch_required - binding_keys
         if missing_bindings:
             raise PlanValidationError(f'Branch {source_id} misses required Spec Bindings: {sorted(missing_bindings)}')
-        if determinism_oracle_ids:
-            determinism_bindings = [
-                binding
-                for binding in branch["spec_bindings"]
-                if binding["spec_element_type"] == "oracle_requirement"
-                and binding["spec_element_id"] in determinism_oracle_ids
-            ]
-            evaluator_ids = {
-                step_id
-                for binding in determinism_bindings
-                for step_id in binding["implementation_step_ids"]
-                if "determinism"
-                in primitive_map[step_map[step_id]["primitive_id"]]
-                ["semantic_support"]["oracle_types"]
-            }
-            if len(evaluator_ids) != 1:
-                raise PlanValidationError(
-                    f"Branch {source_id} must use exactly one determinism "
-                    "Oracle evaluation Step"
-                )
-            target_output_ids: list[str] = []
-            for target_step_id in target_steps:
-                outputs = step_map[target_step_id]["output_bindings"]
-                if len(outputs) != 1:
-                    raise PlanValidationError(
-                        "Determinism v1 supports exactly one target API output"
-                    )
-                target_output_ids.append(outputs[0]["value_id"])
-            evaluator = step_map[next(iter(evaluator_ids))]
-            evaluator_inputs = [
-                binding["value_ref"] for binding in evaluator["input_bindings"]
-            ]
-            if (
-                len(evaluator_inputs) != 2
-                or len(set(evaluator_inputs)) != 2
-                or set(evaluator_inputs) != set(target_output_ids)
-            ):
-                raise PlanValidationError(
-                    f"Branch {source_id} determinism evaluator must compare "
-                    "the distinct outputs of both target invocations"
-                )
         for step in steps:
             produced_values = [item['value_id'] for item in step['output_bindings']]
-            used = step['step_id'] == target_steps[0] or step['step_id'] in steps_used_by_bindings or any((consumers_by_value.get(value_id) for value_id in produced_values))
+            used = step['step_id'] in target_steps or step['step_id'] in steps_used_by_bindings or any((consumers_by_value.get(value_id) for value_id in produced_values))
             if not used:
                 raise PlanValidationError(f"Step {step['step_id']} is neither consumed nor semantically referenced")
 
@@ -1458,16 +2112,26 @@ def assemble_record(
             'change_summary': 'Initial Strategy synthesis for this HarnessSpec revision',
         }
     else:
+        scopes = ['source_context']
+        old_branches = parent_strategy['implementation_plan']['branch_strategies']
+        new_branches = plan['branch_strategies']
+        projections = {
+            'primitive_selection': lambda b: [s['primitive_id'] for s in b['steps']],
+            'dataflow': lambda b: [(s['input_bindings'], s['output_bindings']) for s in b['steps']],
+            'parameter_binding': lambda b: [s['parameter_bindings'] for s in b['steps']],
+            'template_placement': lambda b: [s['template_slot'] for s in b['steps']],
+            'failure_handling': lambda b: b['failure_handlers'],
+            'spec_binding': lambda b: b['spec_bindings'],
+        }
+        for scope, projection in projections.items():
+            if [projection(b) for b in old_branches] != [projection(b) for b in new_branches]:
+                scopes.append(scope)
         revision_information = {
             'revision_number': args.strategy_revision,
             'parent_revision_ref': parent_ref,
-            'revision_trigger': 'validation_repair',
-            'change_scopes': [
-                'primitive_selection',
-                'dataflow',
-                'parameter_binding',
-            ],
-            'change_summary': 'Repair target-input LibFuzzer-byte dependence',
+            'revision_trigger': getattr(args, 'revision_trigger', 'validation_repair'),
+            'change_scopes': scopes,
+            'change_summary': 'Revalidate or repair executable domains, bindings and materialization without changing HarnessSpec semantics',
         }
     return {
         'schema_version': STRATEGY_SCHEMA_VERSION,
@@ -1479,7 +2143,11 @@ def assemble_record(
         },
         'revision_information': revision_information,
         'source_context': {
+            **source_extension_refs(args),
             'harness_spec_ref': harness_spec_reference(spec),
+            'harness_spec_review_ref': copy.deepcopy(
+                resolved.harness_spec_review_ref
+            ),
             'strategy_catalog_ref': {
                 'catalog_id': catalog['catalog_id'],
                 'catalog_version': catalog['catalog_version'],
@@ -1532,12 +2200,48 @@ def canonical_default_strategy_branch(
         raise ItemInputError(f'{label} must contain exactly one Branch strategy')
     return branches[0]
 
+def validate_approved_strategy_review(
+    review_path: Path,
+    strategy_path: Path,
+    strategy: dict[str, Any],
+    validator: Draft202012Validator,
+) -> None:
+    review = require_object(load_json(review_path), 'Strategy review')
+    validate_against(
+        review,
+        validator,
+        f'Strategy review {review_path}',
+        ItemInputError,
+    )
+    if review['decision'] != 'approved':
+        raise ItemInputError('Canonical default Strategy review is not approved')
+    review_rules = review['rules_ref']
+    if file_hash(Path(review_rules['relative_path'])) != review_rules['content_hash']:
+        raise ItemInputError('Canonical Strategy review Rules hash mismatch')
+    expected_subject = {
+        'strategy_id': strategy['identity']['strategy_id'],
+        'revision_number': strategy['revision_information']['revision_number'],
+        'content_hash': canonical_hash(strategy),
+        'relative_path': str(strategy_path),
+    }
+    subject = review['subject']
+    if (
+        subject['strategy_id'] != expected_subject['strategy_id']
+        or subject['revision_number'] != expected_subject['revision_number']
+        or subject['content_hash'] != expected_subject['content_hash']
+        or Path(subject['relative_path']).resolve() != strategy_path.resolve()
+    ):
+        raise ItemInputError(
+            'Canonical default Strategy review subject does not match exactly'
+        )
+
 
 def resolve_canonical_default_strategy(
     args: argparse.Namespace,
     resolved: ResolvedInputs,
     catalog: dict[str, Any],
     record_validator: Draft202012Validator,
+    strategy_review_validator: Draft202012Validator,
 ) -> dict[str, Any] | None:
     mode = resolved.spec['identity']['spec_mode']
     if mode == 'controlled_baseline':
@@ -1545,11 +2249,18 @@ def resolve_canonical_default_strategy(
             raise ItemInputError(
                 'Controlled baseline cannot consume --canonical-default-strategy'
             )
+        if args.canonical_default_strategy_review is not None:
+            raise ItemInputError(
+                'Controlled baseline cannot consume --canonical-default-strategy-review'
+            )
         return None
-    if args.canonical_default_strategy is None:
+    if (
+        args.canonical_default_strategy is None
+        or args.canonical_default_strategy_review is None
+    ):
         raise ItemInputError(
             'Initial bug-aware Strategy synthesis requires '
-            '--canonical-default-strategy'
+            '--canonical-default-strategy and its approved review'
         )
     canonical = require_object(
         load_json(args.canonical_default_strategy),
@@ -1576,8 +2287,30 @@ def resolve_canonical_default_strategy(
     }
     if canonical['source_context']['strategy_catalog_ref'] != expected_catalog:
         raise ItemInputError('Canonical default Strategy uses a different Catalog')
+    if canonical['source_context'].get('resource_policy_ref') != source_extension_refs(args)['resource_policy_ref']:
+        raise ItemInputError('Canonical default Strategy uses a different resource policy')
+    if canonical['source_context'].get('ordinary_recipes_ref') != source_extension_refs(args)['ordinary_recipes_ref']:
+        raise ItemInputError('Canonical default Strategy uses different ordinary recipes')
+    source_ref = canonical['source_context']['harness_spec_ref']
+    sources = [load_json(path) for path in (ROOT / 'harness_specs').rglob(
+        f'{source_ref["spec_id"]}_r{source_ref["revision_number"]}.json') if 'legacy' not in path.parts]
+    sources = [source for source in sources if canonical_hash(source) == source_ref['content_hash']]
+    if len(sources) != 1:
+        raise ItemInputError('Canonical baseline exact HarnessSpec is unavailable')
+    baseline_context = sources[0]['target_context']
+    current_context = resolved.spec['target_context']
+    if (baseline_context['api_profile_ref'] != current_context['api_profile_ref']
+            or sorted(map(profile_key, baseline_context['available_helper_profile_refs'])) !=
+               sorted(map(profile_key, current_context['available_helper_profile_refs']))):
+        raise ItemInputError('Baseline/Static API or Helper Profile sets differ')
     if canonical['review']['validation_status'] != 'passed':
         raise ItemInputError('Canonical default Strategy is not validated')
+    validate_approved_strategy_review(
+        args.canonical_default_strategy_review,
+        args.canonical_default_strategy,
+        canonical,
+        strategy_review_validator,
+    )
     canonical_default_strategy_branch(canonical, 'canonical default Strategy')
     return canonical
 
@@ -1641,10 +2374,36 @@ def resolve_generation_parent(
         'content_hash': canonical_hash(catalog),
     }
     if parent['source_context']['strategy_catalog_ref'] != expected_catalog_ref:
-        raise ItemInputError('Parent Strategy does not use the current Catalog')
+        if getattr(args, 'revision_trigger', None) != 'catalog_update':
+            raise ItemInputError('Catalog change requires --revision-trigger catalog_update')
+        previous = parent['source_context']['strategy_catalog_ref']
+        snapshot = ROOT / 'strategy_primitives/catalog_snapshots' / f'strategy_primitive_catalog__v{previous["catalog_version"]:03d}.json'
+        if not snapshot.is_file() or canonical_hash(load_json(snapshot)) != previous['content_hash']:
+            raise ItemInputError('Parent Catalog snapshot is unavailable or mismatched')
     if parent['review']['validation_status'] != 'passed':
         raise ItemInputError('Parent Strategy validation_status is not passed')
     return parent
+
+def repair_review(args: argparse.Namespace, parent: dict[str, Any] | None,
+                  validator: Draft202012Validator) -> list[str]:
+    path = getattr(args, 'strategy_review', None)
+    if path is None:
+        if getattr(args, 'revision_trigger', None) == 'manual_review':
+            raise ItemInputError('manual_review repair requires --strategy-review')
+        return []
+    if parent is None:
+        raise ItemInputError('Repair review requires a parent Strategy')
+    review = load_json(path)
+    validate_against(review, validator, 'Strategy repair review', ItemInputError)
+    if file_hash(Path(review['rules_ref']['relative_path'])) != review['rules_ref']['content_hash']:
+        raise ItemInputError('Strategy repair review Rules hash mismatch')
+    subject = review['subject']
+    if (review['decision'] != 'needs_revision' or subject['strategy_id'] != parent['identity']['strategy_id']
+            or subject['revision_number'] != parent['revision_information']['revision_number']
+            or subject['content_hash'] != canonical_hash(parent)
+            or Path(subject['relative_path']).resolve() != args.parent_strategy.resolve()):
+        raise ItemInputError('Repair review must be an exact-hash needs_revision review of the parent Strategy')
+    return [json.dumps(finding, ensure_ascii=False) for finding in review['findings'] if finding['severity'] == 'blocking']
 
 
 def feedback_semantic_projection(spec: dict[str, Any]) -> dict[str, Any]:
@@ -1693,7 +2452,11 @@ def assemble_rebound_record(
             ),
         },
         'source_context': {
+            **source_extension_refs(args),
             'harness_spec_ref': harness_spec_reference(spec),
+            'harness_spec_review_ref': copy.deepcopy(
+                resolved.harness_spec_review_ref
+            ),
             'strategy_catalog_ref': {
                 'catalog_id': catalog['catalog_id'],
                 'catalog_version': catalog['catalog_version'],
@@ -1745,6 +2508,7 @@ def rebind_one(
     record_validator: Draft202012Validator,
     api_store: dict[tuple[str, int, str], dict[str, Any]],
     helper_store: dict[tuple[str, int, str], dict[str, Any]],
+    review_store: dict[tuple[str, int, str], tuple[dict[str, Any], Path]],
 ) -> Outcome:
     run_id = new_run_id()
     resolved = resolve_item_inputs(
@@ -1753,6 +2517,7 @@ def rebind_one(
         spec_validator,
         api_store,
         helper_store,
+        review_store,
     )
     candidate = resolved.spec
     source_spec = require_object(load_json(source_spec_path), 'source HarnessSpec')
@@ -1826,6 +2591,11 @@ def rebind_one(
             attempts=0,
             message='Deterministic feedback rebind validated',
         )
+    capability_preflight(resolved, catalog)
+    preflight = materialization_preflight(record, resolved, catalog, helper_store)
+    attach_generation_trace(record, args, run_id, load_json(args.contract), load_text(args.rules), catalog,
+                            build_prompt_views(resolved, catalog), [], preflight)
+    validate_against(record, record_validator, 'Rebound Strategy Plan with trace', PlanValidationError)
     atomic_write_json(output_path, record)
     return Outcome(
         harness_spec=str(candidate_spec_path),
@@ -1924,11 +2694,40 @@ def validate_contract_and_rules(contract: dict[str, Any], rules: str) -> None:
     if not rules.startswith(expected_header):
         raise GlobalInputError(f'Rules document must begin with {expected_header!r}')
 
-def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any], contract: dict[str, Any], rules: str, spec_validator: Draft202012Validator, record_validator: Draft202012Validator, api_store: dict[tuple[str, int, str], dict[str, Any]], helper_store: dict[tuple[str, int, str], dict[str, Any]], api_key: str | None) -> Outcome:
+def write_generation_trace(args: argparse.Namespace, run_id: str, contract: dict, rules: str,
+                           catalog: dict, views: dict, attempts: list, preflight: dict) -> Path:
+    path = args.output_root / 'generation_traces' / f'{run_id}.json'
+    stack_paths = [Path(__file__).resolve(), Path(__file__).with_name('strategy_domains.py'),
+                   Path(__file__).with_name('build_harness_artifact.py'),
+                   ROOT / 'templates/libfuzzer_harness_v1.cpp.in',
+                   ROOT / 'runtime/harness_instrumentation.h', ROOT / 'runtime/harness_instrumentation.cpp',
+                   args.record_schema, args.harness_spec_schema, args.harness_spec_schema_core]
+    atomic_write_json(path, {'schema_version': '1.0', 'generation_run_id': run_id,
+        'frozen_inputs': {'contract': contract, 'rules': rules, 'catalog': catalog,
+                         'resource_policy': load_json(RESOURCE_POLICY_PATH),
+                         'ordinary_recipes': load_json(ORDINARY_RECIPES_PATH), 'views': views},
+        'stack_snapshot': [{'name': p.name, 'sha256': file_hash(p), 'source': load_text(p)} for p in stack_paths],
+        'attempts': attempts, 'materialization_preflight': preflight})
+    return path
+
+def attach_generation_trace(record: dict, args: argparse.Namespace, run_id: str,
+                            contract: dict, rules: str, catalog: dict, views: dict,
+                            attempts: list, preflight: dict) -> None:
+    path = write_generation_trace(args, run_id, contract, rules, catalog, views, attempts, preflight)
+    record['source_context']['generation_trace_ref'] = file_source_ref(path, safe_component(run_id), '1.0')
+
+def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any], contract: dict[str, Any], rules: str, spec_validator: Draft202012Validator, record_validator: Draft202012Validator, strategy_review_validator: Draft202012Validator, api_store: dict[tuple[str, int, str], dict[str, Any]], helper_store: dict[tuple[str, int, str], dict[str, Any]], review_store: dict[tuple[str, int, str], tuple[dict[str, Any], Path]], api_key: str | None) -> Outcome:
     run_id = new_run_id()
     spec: dict[str, Any] | None = None
     try:
-        resolved = resolve_item_inputs(spec_path, catalog, spec_validator, api_store, helper_store)
+        resolved = resolve_item_inputs(
+            spec_path,
+            catalog,
+            spec_validator,
+            api_store,
+            helper_store,
+            review_store,
+        )
         spec = resolved.spec
         target_api = spec['identity']['target_api']
         mode = spec['identity']['spec_mode']
@@ -1938,11 +2737,29 @@ def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any]
             catalog,
             record_validator,
         )
+        findings = repair_review(args, parent_strategy, strategy_review_validator)
+        capability_preflight(resolved, catalog)
         canonical_default = resolve_canonical_default_strategy(
-            args, resolved, catalog, record_validator
+            args,
+            resolved,
+            catalog,
+            record_validator,
+            strategy_review_validator,
         )
         views = build_prompt_views(resolved, catalog)
-        initial_prompt = build_prompt(contract, rules, views, [], args.max_prompt_chars)
+        if canonical_default is not None:
+            canonical_view = copy.deepcopy(canonical_default_strategy_branch(canonical_default, 'canonical default Strategy'))
+            canonical_view.pop('failure_handlers', None)
+            views['canonical_default_strategy_view'] = canonical_view
+        if parent_strategy is not None:
+            views['parent_strategy_view'] = copy.deepcopy(parent_strategy['implementation_plan'])
+        initial_prompt = build_prompt(contract, rules, views, findings, args.max_prompt_chars)
+        destination_probe = {'identity': {'strategy_id': strategy_id_for(spec), **{k: spec['identity'][k] for k in ('framework', 'target_api', 'spec_mode')}},
+                             'source_context': {'harness_spec_ref': harness_spec_reference(spec)},
+                             'revision_information': {'revision_number': args.strategy_revision}}
+        destination = strategy_destination(args.output_root, destination_probe)
+        if destination.exists():
+            raise ItemInputError(f'Refusing to overwrite immutable Strategy revision: {destination}')
         if args.dry_run:
             summary = {
                 'harness_spec': str(spec_path),
@@ -1965,17 +2782,46 @@ def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any]
             }
             print(json.dumps(summary, ensure_ascii=False, indent=2))
             return Outcome(harness_spec=str(spec_path), target_api=target_api, mode=mode, status='dry_run')
+        if args.adopt_parent:
+            if parent_strategy is None:
+                raise ItemInputError('--adopt-parent requires a parent Strategy')
+            plan = copy.deepcopy(parent_strategy['implementation_plan'])
+            apply_canonical_default_strategy(plan, canonical_default)
+            materialize_failure_handlers(plan, resolved)
+            validate_materialized_plan(plan, resolved, catalog)
+            record = assemble_record(plan, resolved, catalog, args, run_id, parent_strategy)
+            record['provenance']['generation_method'] = 'script'
+            record['provenance']['model_name'] = None
+            preflight = materialization_preflight(record, resolved, catalog, helper_store)
+            attach_generation_trace(record, args, run_id, contract, rules, catalog, views, [], preflight)
+            validate_against(record, record_validator, 'Adopted Strategy Plan', PlanValidationError)
+            atomic_write_json(destination, record)
+            return Outcome(harness_spec=str(spec_path), target_api=target_api, mode=mode,
+                           status='success', attempts=0, output_path=str(destination), message='Deterministic revalidation; implementation preserved')
         if api_key is None:
             raise GlobalInputError('DEEPSEEK_API_KEY is required unless --dry-run is used')
-        repair_errors: list[str] = []
+        repair_errors: list[str] = list(findings)
+        previous_candidate: dict[str, Any] | None = None
+        attempts_trace: list[dict[str, Any]] = []
         for attempt in range(1, args.max_attempts + 1):
             try:
-                prompt = build_prompt(contract, rules, views, repair_errors, args.max_prompt_chars)
+                prompt = build_prompt(
+                    contract,
+                    rules,
+                    views,
+                    repair_errors,
+                    args.max_prompt_chars,
+                    previous_candidate,
+                )
                 raw_response = call_llm(prompt, api_key, args.model, args.api_url)
+                attempts_trace.append({'attempt': attempt, 'prompt': prompt, 'raw_response': raw_response, 'validation_error': None})
                 response = parse_llm_response(raw_response)
+                previous_candidate = copy.deepcopy(response)
                 status = validate_response_shape(response)
                 if status == 'blocked':
                     gaps = validate_blocked_response(response, resolved)
+                    write_generation_trace(args, run_id, contract, rules, catalog, views, attempts_trace,
+                                           {'status': 'blocked', 'gaps': gaps})
                     diagnostic_path = write_diagnostic(args.output_root, run_id, 'blocked', spec_path, spec, catalog, attempt, gaps=gaps)
                     return Outcome(harness_spec=str(spec_path), target_api=target_api, mode=mode, status='blocked', attempts=attempt, diagnostics_path=str(diagnostic_path), message='Strategy synthesis returned validated blocking gaps')
                 plan = normalize_materialized_plan(response, resolved, catalog)
@@ -1991,25 +2837,42 @@ def build_one(spec_path: Path, args: argparse.Namespace, catalog: dict[str, Any]
                     parent_strategy,
                 )
                 validate_against(record, record_validator, 'Strategy Plan record', PlanValidationError)
+                preflight = materialization_preflight(record, resolved, catalog, helper_store)
+                attach_generation_trace(record, args, run_id, contract, rules, catalog, views, attempts_trace, preflight)
+                validate_against(record, record_validator, 'Strategy Plan with trace', PlanValidationError)
                 output_path = strategy_destination(args.output_root, record)
                 atomic_write_json(output_path, record)
                 return Outcome(harness_spec=str(spec_path), target_api=target_api, mode=mode, status='success', attempts=attempt, output_path=str(output_path))
             except (LLMError, PlanValidationError) as exc:
                 repair_errors.append(f'{type(exc).__name__}: {exc}')
+                if attempts_trace and attempts_trace[-1]['attempt'] == attempt:
+                    attempts_trace[-1]['validation_error'] = str(exc)
+        write_generation_trace(args, run_id, contract, rules, catalog, views, attempts_trace, {'status': 'failed', 'errors': repair_errors})
         diagnostic_path = write_diagnostic(args.output_root, run_id, 'generation_failed', spec_path, spec, catalog, args.max_attempts, errors=repair_errors)
         compacted = compact_errors(repair_errors)
         return Outcome(harness_spec=str(spec_path), target_api=target_api, mode=mode, status='generation_failed', attempts=args.max_attempts, diagnostics_path=str(diagnostic_path), message=compacted[-1] if compacted else 'Generation failed')
     except GlobalInputError:
         raise
     except (ItemInputError, PlanValidationError) as exc:
-        diagnostic_path = write_diagnostic(args.output_root, run_id, 'input_error', spec_path, spec, catalog, 0, errors=[f'{type(exc).__name__}: {exc}'])
+        outcome_status = 'blocked' if isinstance(exc, CapabilityGap) else 'input_error'
+        diagnostic_path = write_diagnostic(args.output_root, run_id, outcome_status, spec_path, spec, catalog, 0, errors=[f'{type(exc).__name__}: {exc}'])
         identity = {} if spec is None else spec.get('identity', {})
-        return Outcome(harness_spec=str(spec_path), target_api=identity.get('target_api'), mode=identity.get('spec_mode'), status='input_error', diagnostics_path=str(diagnostic_path), message=str(exc))
+        return Outcome(harness_spec=str(spec_path), target_api=identity.get('target_api'), mode=identity.get('spec_mode'), status=outcome_status, diagnostics_path=str(diagnostic_path), message=str(exc))
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--harness-spec', type=Path, action='append', help='Exact HarnessSpec path; repeatable.')
     parser.add_argument('--harness-spec-list', type=Path, help='Text file with one HarnessSpec path per line.')
+    parser.add_argument(
+        '--harness-spec-review',
+        type=Path,
+        action='append',
+        default=[],
+        help=(
+            'Exact approved external HarnessSpec review; repeat once per '
+            'HarnessSpec subject.'
+        ),
+    )
     parser.add_argument(
         '--rebind-from-strategy',
         type=Path,
@@ -2028,6 +2891,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
             'implementation is reused by initial bug-aware synthesis.'
         ),
     )
+    parser.add_argument(
+        '--canonical-default-strategy-review',
+        type=Path,
+        help='Exact approved external review for --canonical-default-strategy.',
+    )
     for (name, default) in DEFAULTS.items():
         parser.add_argument('--' + name.replace('_', '-'), type=Path, default=default)
     parser.add_argument(
@@ -2042,6 +2910,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help='Exact immediately preceding Strategy record for revision > 1.',
     )
     parser.add_argument('--result-json', type=Path, help='Immutable machine-readable outcome selected by the orchestrator.')
+    parser.add_argument('--strategy-review', type=Path, help='Exact needs_revision external review of --parent-strategy.')
+    parser.add_argument('--revision-trigger', choices=['validation_repair', 'catalog_update', 'manual_review', 'regeneration'], default='validation_repair')
+    parser.add_argument('--adopt-parent', action='store_true', help='Revalidate/copy parent implementation into a new immutable revision without an LLM call.')
     parser.add_argument('--model', default=DEFAULT_MODEL)
     parser.add_argument('--api-url', default=DEFAULT_API_URL)
     parser.add_argument('--max-attempts', type=int, default=3)
@@ -2055,6 +2926,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         parser.error('--parent-strategy is forbidden for Strategy revision 1')
     if args.strategy_revision > 1 and args.parent_strategy is None:
         parser.error('--parent-strategy is required for Strategy revision > 1')
+    if args.adopt_parent and args.parent_strategy is None:
+        parser.error('--adopt-parent requires --parent-strategy')
     if args.max_attempts < 1:
         parser.error('--max-attempts must be positive')
     if args.max_prompt_chars < 1:
@@ -2063,6 +2936,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         args.strategy_revision != 1
         or args.parent_strategy is not None
         or args.canonical_default_strategy is not None
+        or args.canonical_default_strategy_review is not None
     ):
         parser.error(
             'Initial Strategy revision options cannot be combined with '
@@ -2072,6 +2946,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         parser.error(
             '--rebind-from-strategy and --rebind-source-spec must be supplied together'
         )
+    if (args.canonical_default_strategy is None) != (
+        args.canonical_default_strategy_review is None
+    ):
+        parser.error(
+            '--canonical-default-strategy and '
+            '--canonical-default-strategy-review must be supplied together'
+        )
     return args
 
 def main(argv: list[str] | None=None) -> int:
@@ -2079,11 +2960,30 @@ def main(argv: list[str] | None=None) -> int:
     try:
         apply_config_defaults(args)
         harness_spec_schema = load_json(args.harness_spec_schema, global_input=True)
+        harness_spec_schema_core = load_json(
+            args.harness_spec_schema_core, global_input=True
+        )
+        harness_spec_review_schema = load_json(
+            args.harness_spec_review_schema, global_input=True
+        )
+        strategy_review_schema = load_json(
+            args.strategy_review_schema, global_input=True
+        )
         api_profile_schema = load_json(args.api_profile_schema, global_input=True)
         helper_profile_schema = load_json(args.helper_profile_schema, global_input=True)
         catalog_schema = load_json(args.catalog_schema, global_input=True)
         record_schema = load_json(args.record_schema, global_input=True)
-        spec_validator = schema_validator(harness_spec_schema, 'HarnessSpec record')
+        spec_validator = schema_validator(
+            harness_spec_schema,
+            'HarnessSpec record',
+            [harness_spec_schema_core],
+        )
+        spec_review_validator = schema_validator(
+            harness_spec_review_schema, 'HarnessSpec review record'
+        )
+        strategy_review_validator = schema_validator(
+            strategy_review_schema, 'Strategy review record'
+        )
         api_validator = schema_validator(api_profile_schema, 'API Profile record')
         helper_validator = schema_validator(helper_profile_schema, 'Helper Profile record')
         catalog_validator = schema_validator(catalog_schema, 'Strategy Catalog record')
@@ -2116,6 +3016,10 @@ def main(argv: list[str] | None=None) -> int:
             write_machine_result(args, result)
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0
+        review_store = read_harness_spec_review_store(
+            args.harness_spec_review,
+            spec_review_validator,
+        )
         api_store = read_profile_store(args.api_profiles, api_validator, 'API Profile')
         spec_paths = read_spec_paths(args)
         if not spec_paths:
@@ -2141,6 +3045,7 @@ def main(argv: list[str] | None=None) -> int:
                     record_validator,
                     api_store,
                     helper_store,
+                    review_store,
                 )
             except (ItemInputError, PlanValidationError) as exc:
                 run_id = new_run_id()
@@ -2166,11 +3071,24 @@ def main(argv: list[str] | None=None) -> int:
             stream = sys.stdout if outcome.status in {'success', 'dry_run'} else sys.stderr
             print(json.dumps(asdict(outcome), ensure_ascii=False, indent=2), file=stream)
         else:
-            api_key = None if args.dry_run else os.environ.get('DEEPSEEK_API_KEY')
-            if not args.dry_run and (not api_key):
+            api_key = None if (args.dry_run or args.adopt_parent) else os.environ.get('DEEPSEEK_API_KEY')
+            if not args.dry_run and not args.adopt_parent and (not api_key):
                 raise GlobalInputError('DEEPSEEK_API_KEY is required unless --dry-run is used')
             for spec_path in spec_paths:
-                outcome = build_one(spec_path, args, catalog, contract, rules, spec_validator, record_validator, api_store, helper_store, api_key)
+                outcome = build_one(
+                    spec_path,
+                    args,
+                    catalog,
+                    contract,
+                    rules,
+                    spec_validator,
+                    record_validator,
+                    strategy_review_validator,
+                    api_store,
+                    helper_store,
+                    review_store,
+                    api_key,
+                )
                 outcomes.append(outcome)
                 stream = sys.stdout if outcome.status in {'success', 'dry_run'} else sys.stderr
                 print(json.dumps(asdict(outcome), ensure_ascii=False, indent=2), file=stream)

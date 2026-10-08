@@ -1,0 +1,9 @@
+{
+  "runner_version": "0.8.0",
+  "matrix_id": "pytorch_2_10_operational_smoke_v012",
+  "matrix_content_hash": "dcaafa6d6131e8bc7c82b6cdcd18ce893d11286c774472ffd251e10d8cf12db4",
+  "last_terminal_core_run_at": "2026-10-08T08:33:37.554139Z",
+  "analysis_cutoff_at": "2026-10-08T08:48:37.554139Z",
+  "finalized_at": "2026-10-08T08:33:48Z",
+  "task_count": 18
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:historicalbug-fuzzing:schema:harness-spec-record:2.1:legacy",
+  "title": "Legacy HarnessSpec Record v2.1",
+  "allOf": [
+    {"$ref": "urn:historicalbug-fuzzing:schema:harness-spec-record-core:2.2"},
+    {"properties": {"schema_version": {"const": "2.1"}}}
+  ]
+}

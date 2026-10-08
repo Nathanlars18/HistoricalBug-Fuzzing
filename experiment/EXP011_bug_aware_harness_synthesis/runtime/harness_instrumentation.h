@@ -2,6 +2,8 @@
 #define HBFG_HARNESS_INSTRUMENTATION_H_
 
 #include <cstdint>
+#include <cstddef>
+#include <array>
 #include <memory>
 
 namespace hbfg {
@@ -29,15 +31,25 @@ class IterationContext final {
 
   void record(RuntimeSiteId site_id) noexcept;
   void record_if(RuntimeSiteId site_id, bool condition) noexcept;
+  // Keep counters complete while bounding expensive per-input diagnostic text.
+  void log_target_api_exception(const char* message) noexcept;
+  void capture_anomaly(const char* kind, const char* message) noexcept;
 
  private:
   friend class InstrumentationRegistry;
 
   explicit IterationContext(
-      InstrumentationRegistry* registry) noexcept;
+      InstrumentationRegistry* registry, const std::uint8_t* data = nullptr,
+      std::size_t size = 0, std::uint64_t iteration = 0) noexcept;
 
   InstrumentationRegistry* registry_{nullptr};
   int uncaught_exceptions_on_entry_{0};
+  const std::uint8_t* data_{nullptr};
+  std::size_t size_{0};
+  std::uint64_t iteration_{0};
+  std::array<RuntimeSiteId, 128> sites_{};
+  std::size_t sites_used_{0};
+  friend class InstrumentationRegistry;
 };
 
 class InstrumentationRegistry final {
@@ -59,7 +71,8 @@ class InstrumentationRegistry final {
       InstrumentationRegistry&&) = delete;
 
   [[nodiscard]]
-  IterationContext begin_iteration() noexcept;
+  IterationContext begin_iteration(const std::uint8_t* data = nullptr,
+                                   std::size_t size = 0) noexcept;
 
  private:
   friend class IterationContext;
@@ -67,7 +80,10 @@ class InstrumentationRegistry final {
   struct State;
 
   void record(RuntimeSiteId site_id) noexcept;
+  void log_target_api_exception(const char* message) noexcept;
   void finish_iteration(bool unwinding) noexcept;
+  void capture(const IterationContext& context, const char* kind, const char* message) noexcept;
+  void trace(const IterationContext& context) noexcept;
 
   std::unique_ptr<State> state_;
 };

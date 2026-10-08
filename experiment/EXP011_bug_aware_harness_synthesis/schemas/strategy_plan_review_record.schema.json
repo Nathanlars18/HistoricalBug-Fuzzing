@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:historicalbug-fuzzing:schema:strategy-plan-review-record:1.0",
+  "title": "Strategy Plan Human Review Record v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "review_id",
+    "review_revision",
+    "parent_review_ref",
+    "subject",
+    "rules_ref",
+    "decision",
+    "findings",
+    "reviewer_id",
+    "reviewed_at",
+    "review_notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "review_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "review_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "parent_review_ref": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/review_reference"
+        }
+      ]
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy_id",
+        "revision_number",
+        "content_hash",
+        "relative_path"
+      ],
+      "properties": {
+        "strategy_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "relative_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rules_ref": {
+      "$ref": "#/$defs/artifact_reference"
+    },
+    "decision": {
+      "enum": [
+        "approved",
+        "needs_revision"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "criterion_id",
+          "severity",
+          "field_path",
+          "evidence_ref",
+          "mismatch_summary"
+        ],
+        "properties": {
+          "criterion_id": {
+            "enum": [
+              "SR-01",
+              "SR-02",
+              "SR-03",
+              "SR-04",
+              "SR-05",
+              "SR-06",
+              "SR-07",
+              "SR-08",
+              "SR-09"
+            ]
+          },
+          "severity": {
+            "enum": [
+              "blocking",
+              "advisory"
+            ]
+          },
+          "field_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "mismatch_summary": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "reviewer_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_notes": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "review_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_id",
+        "review_revision",
+        "content_hash",
+        "relative_path"
+      ],
+      "properties": {
+        "review_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "review_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "relative_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "artifact_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_version",
+        "content_hash",
+        "relative_path"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_version": {
+          "enum": [
+            "1.0",
+            "1.1",
+            "1.2"
+          ]
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "relative_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "approved"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "findings": {
+            "not": {
+              "contains": {
+                "properties": {
+                  "severity": {
+                    "const": "blocking"
+                  }
+                },
+                "required": [
+                  "severity"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "needs_revision"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "findings": {
+            "contains": {
+              "properties": {
+                "severity": {
+                  "const": "blocking"
+                }
+              },
+              "required": [
+                "severity"
+              ]
+            },
+            "minContains": 1
+          }
+        }
+      }
+    }
+  ]
+}

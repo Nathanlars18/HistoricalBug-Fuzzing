@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:historicalbug-fuzzing:schema:harness-spec-record:2.0:legacy",
+  "title": "Legacy HarnessSpec Record v2.0",
+  "allOf": [
+    {"$ref": "urn:historicalbug-fuzzing:schema:harness-spec-record-core:2.2"},
+    {
+      "properties": {
+        "schema_version": {"const": "2.0"},
+        "knowledge_plan": {
+          "properties": {
+            "knowledge_decisions": {"items": {"not": {"required": ["component_mappings"]}}}
+          }
+        },
+        "exploration_plan": {
+          "properties": {
+            "branches": {
+              "items": {
+                "properties": {
+                  "input_validity_intent": {"enum": ["expected_valid", "intentionally_invalid"]}
+                },
+                "not": {
+                  "anyOf": [
+                    {"required": ["input_validity_basis"]},
+                    {"required": ["exploration_goal_source_refs"]}
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

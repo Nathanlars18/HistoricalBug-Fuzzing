@@ -1,0 +1,354 @@
+{
+  "schema_version": "1.3",
+  "identity": {
+    "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004",
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats",
+    "spec_mode": "controlled_baseline"
+  },
+  "revision_information": {
+    "revision_number": 3,
+    "parent_revision_ref": {
+      "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004",
+      "revision_number": 2,
+      "content_hash": "375beac488e91ac3e8c085fe64a8e2717b02a01cd9b8a673ad1f6f5a1c9fbd51"
+    },
+    "revision_trigger": "catalog_update",
+    "change_scopes": [
+      "source_context"
+    ],
+    "change_summary": "Revalidate or repair executable domains, bindings and materialization without changing HarnessSpec semantics"
+  },
+  "source_context": {
+    "resource_policy_ref": {
+      "artifact_id": "strategy_resource_policy",
+      "artifact_version": "1.0",
+      "content_hash": "f17bb0c23d4ca64142044455c8f9d3fd57995c712dff0d226c5c5ab9892f2f70",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/strategy_resource_policy__v001.json"
+    },
+    "ordinary_recipes_ref": {
+      "artifact_id": "ordinary_input_recipes",
+      "artifact_version": "1.0",
+      "content_hash": "21777cfcd71d363c88e5f2509c70871edf6ba4165c64c0bfd4680316a05e712d",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/ordinary_input_recipes__v001.json"
+    },
+    "strategy_review_ref": null,
+    "generation_trace_ref": {
+      "artifact_id": "run_20261007t065236665881z_cb3a68e6979c",
+      "artifact_version": "1.0",
+      "content_hash": "fdef4db12438a83964fe01660909f44b593ee7fa73bc5aed38ec97e62a4693eb",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/generation_traces/run_20261007T065236665881Z_cb3a68e6979c.json"
+    },
+    "harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.batch_norm_update_stats_controlled_baseline",
+      "revision_number": 4,
+      "content_hash": "50284eba0588decc639eef9db69ba031bf8e61f315b57b6c89997e93ce07699c"
+    },
+    "harness_spec_review_ref": {
+      "review_id": "hs_review:hs_pytorch_torch.batch_norm_update_stats_controlled_baseline:r4:rr1",
+      "review_revision": 1,
+      "content_hash": "6392446cd10edcb1082d1d3d8e06dafff7e0ad509f5597a8e0049f4b098bb605",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r4__review_r1.json"
+    },
+    "strategy_catalog_ref": {
+      "catalog_id": "pytorch_cpp_strategy_primitives",
+      "catalog_version": 6,
+      "content_hash": "6fa3492fced7191b0e68ba474211aeb8a22b935d8d7b6de1c838b859bf02622f"
+    },
+    "derived_from_strategy_ref": null
+  },
+  "implementation_plan": {
+    "branch_strategies": [
+      {
+        "source_branch_id": "br_default",
+        "steps": [
+          {
+            "step_id": "step_001",
+            "primitive_id": "construct_tensor_with_constraints",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "offset"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_template",
+                "binding_kind": "literal",
+                "binding_value": [
+                  -1,
+                  -1
+                ]
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_numeric"
+              },
+              {
+                "parameter_id": "max_dimension",
+                "binding_kind": "literal",
+                "binding_value": 16
+              },
+              {
+                "parameter_id": "minimum_dimension",
+                "binding_kind": "literal",
+                "binding_value": 1
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_001"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_002"
+              }
+            ]
+          },
+          {
+            "step_id": "step_002",
+            "primitive_id": "construct_tensor_from_reference",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "reference",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_002"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_policy",
+                "binding_kind": "literal",
+                "binding_value": "selected_dimension"
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_numeric"
+              },
+              {
+                "parameter_id": "reference_axis",
+                "binding_kind": "literal",
+                "binding_value": 1
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_003"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_004"
+              }
+            ]
+          },
+          {
+            "step_id": "step_003",
+            "primitive_id": "construct_tensor_from_reference",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "reference",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_004"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_policy",
+                "binding_kind": "literal",
+                "binding_value": "selected_dimension"
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_numeric"
+              },
+              {
+                "parameter_id": "reference_axis",
+                "binding_kind": "literal",
+                "binding_value": 1
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_005"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_006"
+              }
+            ]
+          },
+          {
+            "step_id": "step_004",
+            "primitive_id": "construct_floating_from_fuzz",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_006"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "minimum",
+                "binding_kind": "literal",
+                "binding_value": 0.0
+              },
+              {
+                "parameter_id": "maximum",
+                "binding_kind": "literal",
+                "binding_value": 1.0
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "value",
+                "value_id": "value_007"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_008"
+              }
+            ]
+          },
+          {
+            "step_id": "step_005",
+            "primitive_id": "invoke_profiled_target_api",
+            "template_slot": "target_call",
+            "input_bindings": [
+              {
+                "port_id": "binding_param_000_input",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "binding_param_001_running_mean",
+                "value_ref": "value_003"
+              },
+              {
+                "port_id": "binding_param_002_running_var",
+                "value_ref": "value_005"
+              },
+              {
+                "port_id": "binding_param_003_momentum",
+                "value_ref": "value_007"
+              }
+            ],
+            "parameter_bindings": [],
+            "output_bindings": [
+              {
+                "port_id": "return_000",
+                "value_id": "value_009"
+              },
+              {
+                "port_id": "return_001",
+                "value_id": "value_010"
+              }
+            ]
+          }
+        ],
+        "spec_bindings": [],
+        "failure_handlers": [
+          {
+            "failure_handler_id": "fh_step_004_insufficient_fuzz_data",
+            "trigger": {
+              "step_id": "step_004",
+              "outcome_id": "insufficient_fuzz_data"
+            },
+            "terminal_action": "reject_input"
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "script",
+    "generator_name": "strategy_plan_builder_v0.9",
+    "model_name": null,
+    "generation_run_id": "run_20261007T065236665881Z_cb3a68e6979c",
+    "script_ref": {
+      "artifact_id": "build_strategy_plan_json",
+      "artifact_version": "strategy_plan_builder_v0.9",
+      "content_hash": "6964096949b48b438d3fc1ae32eccaea492ed43bdd61b48fb30ffd525149d52d"
+    },
+    "contract_ref": {
+      "artifact_id": "strategy_synthesis_contract",
+      "artifact_version": "1.8",
+      "content_hash": "a5a0cd7838d53416f8818e5108f10dd51195cc7d627d7bf3ae69de8df6d41235"
+    },
+    "rules_ref": {
+      "artifact_id": "harness_spec_to_strategy_rules",
+      "artifact_version": "1.5",
+      "content_hash": "bda0e0a4e269b6778ba0db8530ef674c0ee3138368b1e0f03e316e6c19316086"
+    },
+    "generated_at": "2026-10-07T06:52:36.692498Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+  "profile_hash": "c185f1a9ccebd098d771cd3250f3845a4b1b22692dc2141fc730920ca10e01d3",
+  "pytorch_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+  "quality_status": "partial_warning",
+  "measurements": {
+    "lines": {
+      "covered": 7935,
+      "total": 172825,
+      "percent": 4.591349631129756
+    },
+    "branches": {
+      "covered": 6182,
+      "total": 56868,
+      "percent": 10.870788492649645
+    }
+  },
+  "source_file_count": 799,
+  "warnings": [
+    "warning: 7 functions have mismatched data"
+  ],
+  "inputs": {
+    "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+    "profiles": [
+      {
+        "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/coverage/coverage.profdata",
+        "hash": "01a6f7b855340b885ea2c01b2d58a89693022c7ed358a88b3b20fca1fcafb30d",
+        "summary_hash": "7746a3c2fd68e7bfadc9ebb1eb82b3edf7746c56d5fa8c41d4629e81fd5eb374",
+        "quality_status": "partial_warning",
+        "warnings": [
+          "warning: 7 functions have mismatched data"
+        ]
+      },
+      {
+        "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/coverage/coverage.profdata",
+        "hash": "810592c00103b33c749fee42f9a5638d4791c9db64c8ef15a5d80877d958ffc9",
+        "summary_hash": "1dd195d60a3a31b02055862afb23f8a1976ca7cb2fef4fc34462be51f5f0be36",
+        "quality_status": "partial_warning",
+        "warnings": [
+          "warning: 7 functions have mismatched data"
+        ]
+      },
+      {
+        "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/coverage/coverage.profdata",
+        "hash": "5a7ab5a68283d503409d5ce01db2a9aa2cd80e61308daa3ba4002500db7c5d94",
+        "summary_hash": "94acaff4398c491e5b822dbed2e6d62b57dfd5dcffe608eff287c49f7634d1c5",
+        "quality_status": "partial_warning",
+        "warnings": [
+          "warning: 7 functions have mismatched data"
+        ]
+      }
+    ],
+    "worker_hash": "b8dd41bfc81f1948f190a97ce3b5f4b58769e1af435f905d44fe6a82b986401f",
+    "exporter_hash": "3711a5759f78016fe3a942c5586d5e824bfbac65866af13b964a22f4ab28c10f"
+  },
+  "cleanup_warnings": [],
+  "measurement_scope": "frozen_round_end_corpus_replay_union"
+}

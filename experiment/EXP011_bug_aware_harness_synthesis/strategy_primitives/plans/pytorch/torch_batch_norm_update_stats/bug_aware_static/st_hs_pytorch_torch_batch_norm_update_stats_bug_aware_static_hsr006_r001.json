@@ -1,0 +1,576 @@
+{
+  "schema_version": "1.3",
+  "identity": {
+    "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006",
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats",
+    "spec_mode": "bug_aware_static"
+  },
+  "revision_information": {
+    "revision_number": 1,
+    "parent_revision_ref": null,
+    "revision_trigger": "initial_creation",
+    "change_scopes": [
+      "initial_definition"
+    ],
+    "change_summary": "Initial Strategy synthesis for this HarnessSpec revision"
+  },
+  "source_context": {
+    "resource_policy_ref": {
+      "artifact_id": "strategy_resource_policy",
+      "artifact_version": "1.0",
+      "content_hash": "f17bb0c23d4ca64142044455c8f9d3fd57995c712dff0d226c5c5ab9892f2f70",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/strategy_resource_policy__v001.json"
+    },
+    "ordinary_recipes_ref": {
+      "artifact_id": "ordinary_input_recipes",
+      "artifact_version": "1.0",
+      "content_hash": "21777cfcd71d363c88e5f2509c70871edf6ba4165c64c0bfd4680316a05e712d",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/ordinary_input_recipes__v001.json"
+    },
+    "strategy_review_ref": null,
+    "generation_trace_ref": {
+      "artifact_id": "run_20261007t021338465694z_81b50d5574b5",
+      "artifact_version": "1.0",
+      "content_hash": "ad9aac496e977d462bcaaafb8bf838fb366ad2c66c7e919d751c4f6fe0b01453",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/generation_traces/run_20261007T021338465694Z_81b50d5574b5.json"
+    },
+    "harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.batch_norm_update_stats_bug_aware_static",
+      "revision_number": 6,
+      "content_hash": "80580516215a947526ed15dd31a562cb7d857d1ffd61c5ce60067a590c082223"
+    },
+    "harness_spec_review_ref": {
+      "review_id": "hs_review:hs_pytorch_torch.batch_norm_update_stats_bug_aware_static:r6:rr1",
+      "review_revision": 1,
+      "content_hash": "f272b2b558df2e7014cb9c8b18373483986f4ddd17165f0f51bbaa103b4224a5",
+      "relative_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6__review_r1.json"
+    },
+    "strategy_catalog_ref": {
+      "catalog_id": "pytorch_cpp_strategy_primitives",
+      "catalog_version": 5,
+      "content_hash": "25312b4a2162d17e73c0938e18842487d434ba6b07ebea429888d8bb2fb7c8c5"
+    },
+    "derived_from_strategy_ref": null
+  },
+  "implementation_plan": {
+    "branch_strategies": [
+      {
+        "source_branch_id": "br_default",
+        "steps": [
+          {
+            "step_id": "step_001",
+            "primitive_id": "construct_tensor_with_constraints",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "offset"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_template",
+                "binding_kind": "literal",
+                "binding_value": [
+                  -1,
+                  -1
+                ]
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_numeric"
+              },
+              {
+                "parameter_id": "max_dimension",
+                "binding_kind": "literal",
+                "binding_value": 16
+              },
+              {
+                "parameter_id": "minimum_dimension",
+                "binding_kind": "literal",
+                "binding_value": 1
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_001"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_002"
+              }
+            ]
+          },
+          {
+            "step_id": "step_002",
+            "primitive_id": "construct_tensor_from_reference",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "reference",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_002"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_policy",
+                "binding_kind": "literal",
+                "binding_value": "selected_dimension"
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_numeric"
+              },
+              {
+                "parameter_id": "reference_axis",
+                "binding_kind": "literal",
+                "binding_value": 1
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_003"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_004"
+              }
+            ]
+          },
+          {
+            "step_id": "step_003",
+            "primitive_id": "construct_tensor_from_reference",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "reference",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_004"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_policy",
+                "binding_kind": "literal",
+                "binding_value": "selected_dimension"
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_numeric"
+              },
+              {
+                "parameter_id": "reference_axis",
+                "binding_kind": "literal",
+                "binding_value": 1
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_005"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_006"
+              }
+            ]
+          },
+          {
+            "step_id": "step_004",
+            "primitive_id": "construct_floating_from_fuzz",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_006"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "minimum",
+                "binding_kind": "literal",
+                "binding_value": 0.0
+              },
+              {
+                "parameter_id": "maximum",
+                "binding_kind": "literal",
+                "binding_value": 1.0
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "value",
+                "value_id": "value_007"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_008"
+              }
+            ]
+          },
+          {
+            "step_id": "step_005",
+            "primitive_id": "invoke_profiled_target_api",
+            "template_slot": "target_call",
+            "input_bindings": [
+              {
+                "port_id": "binding_param_000_input",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "binding_param_001_running_mean",
+                "value_ref": "value_003"
+              },
+              {
+                "port_id": "binding_param_002_running_var",
+                "value_ref": "value_005"
+              },
+              {
+                "port_id": "binding_param_003_momentum",
+                "value_ref": "value_007"
+              }
+            ],
+            "parameter_bindings": [],
+            "output_bindings": [
+              {
+                "port_id": "return_000",
+                "value_id": "value_009"
+              },
+              {
+                "port_id": "return_001",
+                "value_id": "value_010"
+              }
+            ]
+          }
+        ],
+        "spec_bindings": [],
+        "failure_handlers": [
+          {
+            "failure_handler_id": "fh_step_004_insufficient_fuzz_data",
+            "trigger": {
+              "step_id": "step_004",
+              "outcome_id": "insufficient_fuzz_data"
+            },
+            "terminal_action": "reject_input"
+          }
+        ]
+      },
+      {
+        "source_branch_id": "br_knowledge_001",
+        "steps": [
+          {
+            "step_id": "step_001",
+            "primitive_id": "construct_tensor_with_constraints",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "offset"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "shape_template",
+                "binding_kind": "literal",
+                "binding_value": [
+                  -1,
+                  -1
+                ]
+              },
+              {
+                "parameter_id": "dtype_policy",
+                "binding_kind": "literal",
+                "binding_value": "float32"
+              },
+              {
+                "parameter_id": "fill_policy",
+                "binding_kind": "literal",
+                "binding_value": "fuzz_numeric"
+              },
+              {
+                "parameter_id": "max_dimension",
+                "binding_kind": "literal",
+                "binding_value": 16
+              },
+              {
+                "parameter_id": "minimum_dimension",
+                "binding_kind": "literal",
+                "binding_value": 0
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "tensor",
+                "value_id": "value_001"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_002"
+              }
+            ]
+          },
+          {
+            "step_id": "step_002",
+            "primitive_id": "construct_floating_from_fuzz",
+            "template_slot": "input_construction",
+            "input_bindings": [
+              {
+                "port_id": "data",
+                "value_ref": "data"
+              },
+              {
+                "port_id": "size",
+                "value_ref": "size"
+              },
+              {
+                "port_id": "cursor",
+                "value_ref": "value_002"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "minimum",
+                "binding_kind": "literal",
+                "binding_value": 0.0
+              },
+              {
+                "parameter_id": "maximum",
+                "binding_kind": "literal",
+                "binding_value": 1.0
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "value",
+                "value_id": "value_003"
+              },
+              {
+                "port_id": "next_cursor",
+                "value_id": "value_004"
+              }
+            ]
+          },
+          {
+            "step_id": "step_003",
+            "primitive_id": "evaluate_tensor_property",
+            "template_slot": "pre_call_observation",
+            "input_bindings": [
+              {
+                "port_id": "subject",
+                "value_ref": "value_001"
+              }
+            ],
+            "parameter_bindings": [
+              {
+                "parameter_id": "property_kind",
+                "binding_kind": "literal",
+                "binding_value": "numel_equals_zero"
+              },
+              {
+                "parameter_id": "axis",
+                "binding_kind": "literal",
+                "binding_value": 0
+              },
+              {
+                "parameter_id": "expected_integer",
+                "binding_kind": "spec_parameter",
+                "binding_value": {
+                  "spec_element_type": "target_condition",
+                  "spec_element_id": "tc_br_knowledge_001_001",
+                  "parameter_name": "value"
+                }
+              }
+            ],
+            "output_bindings": [
+              {
+                "port_id": "property_holds",
+                "value_id": "value_005"
+              }
+            ]
+          },
+          {
+            "step_id": "step_004",
+            "primitive_id": "invoke_profiled_target_api",
+            "template_slot": "target_call",
+            "input_bindings": [
+              {
+                "port_id": "binding_param_000_input",
+                "value_ref": "value_001"
+              },
+              {
+                "port_id": "binding_param_001_running_mean",
+                "value_ref": "none"
+              },
+              {
+                "port_id": "binding_param_002_running_var",
+                "value_ref": "none"
+              },
+              {
+                "port_id": "binding_param_003_momentum",
+                "value_ref": "value_003"
+              }
+            ],
+            "parameter_bindings": [],
+            "output_bindings": [
+              {
+                "port_id": "return_000",
+                "value_id": "value_006"
+              },
+              {
+                "port_id": "return_001",
+                "value_id": "value_007"
+              }
+            ]
+          }
+        ],
+        "spec_bindings": [
+          {
+            "spec_element_type": "target_condition",
+            "spec_element_id": "tc_br_knowledge_001_001",
+            "implementation_step_ids": [
+              "step_003"
+            ],
+            "binding_kind": "in_harness_steps",
+            "runner_events": []
+          },
+          {
+            "spec_element_type": "behavior_observation",
+            "spec_element_id": "obs_br_knowledge_001_001",
+            "binding_kind": "runner_event",
+            "implementation_step_ids": [],
+            "runner_events": [
+              "target_api_returned",
+              "caught_exception",
+              "process_exit",
+              "process_signal",
+              "timeout",
+              "sanitizer_report"
+            ]
+          },
+          {
+            "spec_element_type": "behavior_observation",
+            "spec_element_id": "obs_br_knowledge_001_002",
+            "binding_kind": "runner_event",
+            "implementation_step_ids": [],
+            "runner_events": [
+              "target_api_returned",
+              "caught_exception",
+              "process_exit",
+              "process_signal",
+              "timeout",
+              "sanitizer_report"
+            ]
+          }
+        ],
+        "failure_handlers": [
+          {
+            "failure_handler_id": "fh_step_002_insufficient_fuzz_data",
+            "trigger": {
+              "step_id": "step_002",
+              "outcome_id": "insufficient_fuzz_data"
+            },
+            "terminal_action": "reject_input"
+          }
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "hybrid",
+    "generator_name": "strategy_plan_builder_v0.8",
+    "model_name": "deepseek-v4-pro",
+    "generation_run_id": "run_20261007T021338465694Z_81b50d5574b5",
+    "script_ref": {
+      "artifact_id": "build_strategy_plan_json",
+      "artifact_version": "strategy_plan_builder_v0.8",
+      "content_hash": "bca5dc522183c4b900165159bf4f02f4e280ec09533e36e3e2c21f8bb7f81dbe"
+    },
+    "contract_ref": {
+      "artifact_id": "strategy_synthesis_contract",
+      "artifact_version": "1.7",
+      "content_hash": "b0158bf8c877f460c0c3dd19ae6fbdb606a9fd257b30705eba9e6b08b93e3abf"
+    },
+    "rules_ref": {
+      "artifact_id": "harness_spec_to_strategy_rules",
+      "artifact_version": "1.4",
+      "content_hash": "c5c1a8ef188d66a6c5757404280d88162b44b0bbb21dcebecbcaa44ffee6f69a"
+    },
+    "generated_at": "2026-10-07T02:15:29.717036Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

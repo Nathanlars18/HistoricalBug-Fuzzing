@@ -1,0 +1,18 @@
+{
+  "fixture_only": true,
+  "not_effectiveness_evidence": true,
+  "synthetic_trigger_only": true,
+  "status": "passed",
+  "results": {
+    "accepted": {
+      "outcome": "accepted",
+      "next_round_artifact": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/feedback_interface_smoke_v007/accepted/feedback/torch_batch_norm_update_stats/repeat_001/round_001/materialization/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_adaptive/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_adaptive_repeat_001_hsr001_r1_24c35677ce0a/harness_artifact.json",
+      "parent_retained": false
+    },
+    "rejected": {
+      "outcome": "rejected",
+      "next_round_artifact": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v005/prepare/torch_batch_norm_update_stats/bug_aware_static/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_static/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_f3de0c9858f7/harness_artifact.json",
+      "parent_retained": true
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "interpretation": "Versioned ordinary-generator recipes, not exhaustive API contracts or bug triggers. Apply only to expected_valid branches; never import into boundary exploration. Use bounded generic constructors; fixed/free dimensions are generator choices, not historical trigger requirements. Paired baseline/static resource policy and shared default implementation must match exactly.",
+  "recipes": [
+    {
+      "python_api": "torch.batch_norm_update_stats",
+      "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "evidence": {
+        "source_kind": "pinned_pytorch_source",
+        "source_location": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/Normalization.cpp",
+        "content_hash": "c18ba0b5211910c905210908e8b23fa4ded91637d92264aaf2d45e3a47f241cc",
+        "locator": "batch_norm_cpu_update_stats_template, lines 200-240",
+        "excerpt": "int64_t n_input = input.size(1);\nTORCH_CHECK(input.numel() != 0, \"input tensor must have at least one element, but got input_sizes = \", input.sizes());\nauto running_mean_a = conditional_accessor_1d<param_t>(running_mean);\nauto running_var_a = conditional_accessor_1d<param_t>(running_var);",
+        "interpretation": "Use a bounded contiguous float32 rank-2 subset, nonempty dimensions; present stats are rank-1 channel-sized, or None. No finite-output oracle and no claim this subset is the complete API domain."
+      },
+      "rules": [
+        {
+          "port_id": "binding_param_000_input",
+          "rank": 2,
+          "dtype": "float32",
+          "nonempty": true
+        },
+        {
+          "port_id": "binding_param_001_running_mean",
+          "allow_none": true,
+          "rank": 1,
+          "dtype": "float32",
+          "shape_from": "binding_param_000_input",
+          "axis": 1
+        },
+        {
+          "port_id": "binding_param_002_running_var",
+          "allow_none": true,
+          "rank": 1,
+          "dtype": "float32",
+          "shape_from": "binding_param_000_input",
+          "axis": 1
+        }
+      ]
+    },
+    {
+      "python_api": "torch.nn.functional.cosine_embedding_loss",
+      "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "evidence": {
+        "source_kind": "validation_case",
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/validation_cases/pytorch/v2.10.0/cpu/torch.nn.functional.cosine_embedding_loss/ordinary_valid_smoke__v001.json",
+        "content_hash": "93fa3ac2c82bf4ad095965363cf567a1d827b1effb17cc01f768261faa4c8966",
+        "locator": "/evidence/0",
+        "interpretation": "Documented (N,D), same-shaped input2 and (N) labels. Fuzz-sign ±1 comes from CosineEmbeddingLoss target-label semantics; no nonempty/finite-output requirement."
+      },
+      "rules": [
+        {
+          "port_id": "binding_param_000_input1",
+          "rank": 2,
+          "dtype": "float32"
+        },
+        {
+          "port_id": "binding_param_001_input2",
+          "rank": 2,
+          "dtype": "float32",
+          "shape_from": "binding_param_000_input1"
+        },
+        {
+          "port_id": "binding_param_002_target",
+          "rank": 1,
+          "shape_from": "binding_param_000_input1",
+          "axis": 0,
+          "fill": "fuzz_sign"
+        }
+      ],
+      "additional_evidence": [
+        {
+          "source_kind": "pinned_pytorch_source",
+          "source_location": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/nn/modules/loss.py",
+          "content_hash": "7a8aa9bbcbc0b9f0c2bedc7ff4d0f74c4d68d221ed39867c799dca704abf635a",
+          "locator": "CosineEmbeddingLoss docstring, lines 1420-1470",
+          "excerpt": "and a `Tensor` label :math:`y` with values 1 or -1.",
+          "interpretation": "The label domain is +/-1. Rank-2 same-shape inputs and a rank-1 target are one documented form, not a completeness claim."
+        }
+      ]
+    }
+  ]
+}

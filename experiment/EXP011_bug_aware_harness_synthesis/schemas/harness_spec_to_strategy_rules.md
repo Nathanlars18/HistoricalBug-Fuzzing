@@ -1,466 +1,221 @@
-# HarnessSpec-to-Strategy Synthesis Rules v1.2
-
-## 1. Purpose and Boundary
-
-These rules guide the LLM in converting one validated HarnessSpec revision into
-a semantic Strategy implementation plan under one exact Strategy Catalog
-version.
-
-The HarnessSpec fixes what must be tested. The Strategy Catalog fixes what may
-be used to implement it. The Synthesis Contract fixes the input and response
-format.
-
-The LLM selects and connects supplied Strategy Primitives. It does not define
-record metadata, implementation code, Failure Handlers, or validation results.
-
-Builder and Validator own deterministic normalization and validation.
-
----
-
-## 2. Input Preconditions and Output Choice
-
-The LLM may reason only from the supplied:
-
-- HarnessSpec View;
-- Resolved API Primitive View;
-- Template Interface View;
-- Primitive Candidate Views.
-
-Missing, malformed, unresolved, or unapproved required views are Builder
-preflight failures. They are not valid reasons for an LLM `blocked` response.
-
-The response must use exactly one mode:
-
-- `materialized`: every source Branch has a complete candidate implementation;
-- `blocked`: at least one required Branch has a genuine implementation gap.
-
-A partial Strategy Plan is prohibited.
-
-If any required Branch cannot be implemented, return only `blocked`. Continue
-examining the supplied views sufficiently to report all directly supported,
-independent blocking gaps. Do not speculate about unavailable evidence.
-
----
-
-## 3. Fixed HarnessSpec Semantics
-
-The Strategy must preserve the exact HarnessSpec revision.
-
-It must not:
-
-- add, remove, merge, or split Branches;
-- change Branch budgets or exploration goals;
-- change Constraints, Preconditions, Target Properties, Activation Targets, or
-  Oracle Requirements;
-- change the target API;
-- introduce alternative semantic behavior.
-
-Each source Branch contains one target-API invocation Step by default. A Branch
-that implements a `determinism` Oracle contains exactly two target-API
-invocation Steps with identical input and parameter bindings, so that the two
-independently produced results can be compared. No other repetition is allowed.
-
-For `expected_valid` and `boundary_valid` Branches, the Strategy must preserve
-the intended API-call validity.
-
-For an `intentionally_invalid` Branch:
-
-- preserve the explicitly intended invalid state;
-- do not silently normalize, reject, or repair that state before the API call;
-- continue to satisfy unrelated required validity and safety constraints.
-
-Historical Knowledge confidence, evidence strength, and Bug frequency are
-already handled before Strategy synthesis and must not be used to rerank
-Strategy Primitives.
-
----
-
-## 4. Branch Synthesis Procedure
-
-Process each source Branch through the following stages.
-
-### 4.1 Build the Requirement Inventory
-
-Use `required_spec_elements` as the authoritative required-element inventory.
-
-For the current Branch, identify:
-
-- applicable Global Constraints;
-- Branch-local Constraints and Preconditions;
-- Target Properties;
-- Activation Targets and their observation points;
-- required Oracle Requirements;
-- preferred Oracle Requirements;
-- target-API input and output ports;
-- exposable HarnessSpec parameters.
-
-Do not independently promote optional elements into required elements.
-
-### 4.2 Match Semantic Candidates
-
-Match each required element against the supplied Primitive Candidate Views.
-
-For a Constraint, Precondition, or Target Property:
-
-- match its `semantic_requirement.requirement_type` against
-  `semantic_support.requirement_types`;
-- for a Target Property, also check its `risk_dimensions` against the
-  Primitive's supported risk dimensions.
-
-A single Primitive need not cover every risk dimension of a compound Target
-Property. Multiple compatible Primitives may jointly implement it.
-
-The union of the directly implementing Steps must cover every risk dimension of
-the Target Property. An overlap with only one dimension is insufficient.
-
-For an Activation Target:
-
-- use the referenced Target Property's requirement type and risk dimensions;
-- require a Primitive capable of evaluating the property;
-- require compatibility with each specified observation phase.
-
-For an Oracle Requirement:
-
-- match `oracle_type` against `semantic_support.oracle_types`;
-- verify that the Primitive ports, parameters, and limitations can represent
-  the observation subjects, Oracle Preconditions, and expected behavior.
-
-`semantic_support` establishes candidate compatibility only. It does not by
-itself prove complete implementation.
-
-A Primitive with empty Semantic Support may be used as a dataflow dependency,
-such as decoding or intermediate-value construction. It cannot independently
-satisfy a Spec Element.
-
-### 4.3 Construct a Candidate Path
-
-Construct an ordered candidate path using only:
-
-- built-in values supplied by the Template Interface;
-- outputs produced by earlier Steps in the same Branch;
-- the supplied target API Primitive;
-- eligible Primitive Candidate Views.
-
-Each `value_ref` is either an exact built-in value ID or the `value_id` of an
-Output Binding produced by an earlier Step in the same Branch. Do not emit
-synthetic `step:<step_id>.<output_port_id>` references.
-
-Use the exact slot order supplied by the Template Interface. Do not invent or
-hard-code unavailable slots.
-
-The candidate path must provide:
-
-1. sources for every required target-API input;
-2. construction or transformation Steps for required target states;
-3. required Guards and Preconditions;
-4. required pre-call and post-call observations;
-5. one target API invocation, or two identically bound invocations when a
-   selected `determinism` Oracle requires repeated execution;
-6. required Oracle evaluation;
-7. bindings for every required Spec Element.
-
-Every selected Step must contribute to dataflow, implement a Spec Element, or
-be one of the permitted target API invocations.
-
-### 4.4 Preserve Fuzzer-Input Influence
-
-Binding the built-in `data`, `size`, or `offset` values to a Primitive does not
-by itself prove that the resulting API argument depends on LibFuzzer input.
-The selected Primitive and its parameters must actually consume bytes that can
-change the constructed value.
-
-For every `default` Branch:
-
-- each tensor-valued target-API input must transitively depend on bytes after
-  the Branch selector;
-- fixed Shape plus `fill_policy = zero` is not a fuzz-dependent tensor source;
-- `construct_tensor_from_fuzz` is fuzz-dependent;
-- `construct_tensor_with_constraints` is fuzz-dependent only when its Shape
-  contains a dynamic `-1` dimension or its `fill_policy` is `fuzz_int64`;
-- expected-valid multi-input calls must use compatible construction or an
-  explicit relation Guard so that fuzz dependence does not turn the intended
-  valid call into an unrelated invalid-input test.
-
-The selector byte only chooses a Branch. It does not count as target-input
-fuzz dependence.
-
-A `controlled_baseline` Branch must not fix an input merely to simplify
-materialization. For the same API Profile and Catalog, the default Branch in a
-Bug-aware plan is replaced by the Builder with the exact validated
-controlled-baseline default-branch implementation. Historical Knowledge may
-affect only additional Knowledge-directed Branches. This preserves the shared
-generic implementation while permitting different branch-budget allocation.
-
-For a Knowledge-directed Branch, fix only the properties required to realize
-its HarnessSpec conditions. Keep remaining supported dimensions or values
-fuzz-derived when doing so preserves validity and the required activation. At
-least one target-API input must retain a transitive Fuzzer-byte dependency; the
-Branch selector alone is insufficient.
-
-### 4.5 Resolve Candidate Failure
-
-If a candidate combination produces an incompatible dataflow, impossible slot
-order, unsupported parameter binding, or semantic conflict, try the next
-eligible candidate combination.
-
-Do not return `blocked` merely because the first-ranked combination fails.
-
-A Branch is provisionally materializable only when at least one coherent
-candidate path remains. Passing this provisional process does not imply final
-Validator acceptance.
-
-If no eligible combination can implement a required element or complete the
-path, record a Blocking Gap.
-
----
-
-## 5. Primitive Selection and Step Reuse
-
-### 5.1 Eligibility
-
-A Primitive is eligible only when:
-
-- it appears in the supplied Primitive Candidate Views;
-- its Semantic Support is compatible with the intended use;
-- its ports and parameters can be bound from available values or exposed
-  HarnessSpec parameters;
-- its permitted slots include the required execution phase;
-- its limitations do not conflict with fixed HarnessSpec semantics;
-- its use does not invalidate required Preconditions, observations, or Oracles.
-
-### 5.2 Tie-Breaking
-
-When multiple complete candidate paths remain valid, use this order:
-
-1. reuse an existing Step whose binding signature is identical;
-2. minimize newly introduced Steps;
-3. minimize additional intermediate values and conversion dependencies;
-4. use lexical `primitive_id` order as the final tie-breaker.
-
-Do not prefer a Primitive merely because its Semantic Support lists more
-categories.
-
-### 5.3 Binding Signature
-
-Two Step uses have the same binding signature only when they have:
-
-- the same source Branch;
-- the same `primitive_id`;
-- the same template slot and execution phase;
-- identical canonical input origins;
-- identical parameter bindings;
-- one execution effect that genuinely satisfies all referenced Spec Elements.
-
-Input origins are identical only when corresponding ports reference:
-
-- the same built-in value; or
-- the same earlier Output Binding `value_id`.
-
-Do not infer equivalence between independently constructed runtime values.
-
-Parameter bindings are identical only when corresponding parameters have the
-same binding kind and:
-
-- equal normalized JSON values for `literal`;
-- the same canonical value origin for `value_ref`;
-- the same element type, element ID, and parameter name for `spec_parameter`.
-
-Different inputs, parameters, phases, or execution effects require separate
-Steps, even when the same Primitive is selected.
-
-One produced output may be consumed by multiple later Steps.
-
-A Step may be reused by multiple Spec Bindings only when one execution
-genuinely implements all of them.
-
----
-
-## 6. Spec Binding, Activation, and Oracle Rules
-
-### 6.1 Spec Binding
-
-For each applicable pair of source Branch and required Spec Element, emit one
-Spec Binding.
-
-One Spec Binding may reference multiple Steps when those Steps jointly implement
-the element.
-
-Every listed Step must either directly implement the element or be a dataflow
-ancestor of a directly implementing Step in that same Binding. Do not add an
-unrelated Step merely because its Semantic Support happens to overlap.
-
-One Step may be referenced by multiple Spec Bindings only when the Step-reuse
-rules are satisfied.
-
-Within each Spec Binding, list `implementation_step_ids` once each in the same
-order as the Branch's main-path `steps`. The Builder rejects unknown or
-duplicate IDs and canonicalizes otherwise valid IDs to that execution order.
-
-Use these semantic boundaries:
-
-- Constraints and Preconditions bind to Steps that directly construct, enforce,
-  transform, or guard the required condition.
-- Target Properties bind to Steps that directly construct or transform the
-  intended target state.
-- Activation Targets bind to Steps that evaluate the target state at the
-  required observation point.
-- Oracle Requirements bind to Steps that directly perform the required
-  comparison, check, or exception assessment.
-
-Do not bind unrelated parsing, cleanup, logging, or infrastructure Steps merely
-to increase apparent coverage.
-
-Global Constraints receive one applicable Binding in each source Branch.
-Branch-local elements receive Bindings only in their own Branch.
-
-The target API invocation is fixed execution infrastructure and must not appear
-as a Spec Binding.
-
-An Activation Target remains a bindable and attributable Spec Element, but it
-is not a `spec_parameter` source. Observation phase determines Primitive
-selection and template placement; predicate parameters come from the referenced
-Target Property.
-
-### 6.2 Activation Targets
-
-A non-transition Activation Target uses exactly one evaluation Step at its
-specified observation point.
-
-A state-transition Activation Target requires distinct `before` and `after`
-observation Steps at their respective phases.
-
-Each declared observation point must be covered independently. For each phase,
-the directly observing Steps must jointly support the referenced Target
-Property's requirement type and all of its risk dimensions.
-
-A pre-call and a post-call observation cannot be merged into one Step.
-
-An Activation Target verifies that the intended property occurred at runtime. It
-does not replace the Step that constructs the Target Property.
-
-### 6.3 Oracle Requirements
-
-Every required Oracle must be implemented.
-
-An Oracle is meaningful only when its Oracle Preconditions are satisfied by the
-current Branch and candidate path.
-
-If a required Oracle or its required Preconditions cannot be implemented,
-synthesis is `blocked`.
-
-A preferred Oracle is included only when it:
-
-- reuses existing main-path values or Steps; or
-- requires at most one compatible direct checking Primitive;
-- preserves the Branch validity intent and execution order;
-- introduces no unresolved dependency.
-
-A preferred Oracle may be omitted when these conditions are not met. Its
-omission does not block synthesis.
-
-A preferred Oracle that is included receives one applicable Spec Binding.
-
-Expected target-API exceptions are Oracle outcomes, not pre-call failure
-outcomes.
-
----
-
-## 7. Blocking-Gap Decisions
-
-A Blocking Gap represents a genuine implementation or semantic gap established
-from the supplied views.
-
-Use the most specific applicable reason:
-
-| Reason code | Decision condition |
-| --- | --- |
-| `api_input_unconstructable` | A required target-API input has no constructible source path. |
-| `required_capability_unavailable` | A required non-input semantic operation has no supporting Primitive. |
-| `type_flow_unresolvable` | Required capabilities exist individually but cannot form a compatible dataflow. |
-| `required_observation_unavailable` | A required Activation Target cannot be observed at its specified phase. |
-| `required_oracle_unavailable` | A required Oracle or its Preconditions cannot be implemented. |
-| `semantic_conflict_unresolvable` | All otherwise eligible implementations conflict with fixed HarnessSpec semantics. |
-
-Use `semantic_conflict_unresolvable` only after eligible alternatives have been
-considered.
-
-### 7.1 Gap Grouping
-
-One Blocking Gap may cover multiple Branches only when they share:
-
-- the same root cause;
-- the same reason code;
-- the same missing capability or conflicting condition;
-- the same affected semantic scope.
-
-List every affected Branch exactly once in `affected_branch_ids`.
-
-The Builder normalizes and sorts `affected_branch_ids`. The LLM does not decide
-their canonical order.
-
-If different Branches are blocked by different Spec Elements or different
-causes, create separate Blocking Gaps.
-
-### 7.2 Spec Element Attribution
-
-When a gap can be attributed to one exact Spec Element, provide both:
-
-- `spec_element_type`;
-- `spec_element_id`.
-
-The referenced element must be required in every affected Branch. A preferred
-Oracle cannot justify a blocked response.
-
-When no exact element applies, set both fields to JSON `null`.
-
-This includes API-level or global gaps that cannot be attributed to one exact
-Spec Element.
-
-Do not use empty strings, `"null"`, or `"unknown"` as substitutes for JSON
-`null`.
-
-If affected Branches require different element references, split the gap rather
-than attaching an inaccurate shared reference.
-
-For a multi-Branch gap with exact element references, the referenced elements
-must have canonically equivalent semantics after local IDs and evidence
-provenance are removed.
-
-### 7.3 Non-Blocking Errors
-
-The following are response-repair errors, not Blocking Gaps:
-
-- invalid JSON;
-- omitted required response fields;
-- misspelled or invented identifiers;
-- invalid local references;
-- use of unavailable enum values;
-- other format errors that can be corrected without changing semantics.
-
----
-
-## 8. Failure and Output Boundary
-
-The LLM does not output Failure Handlers and does not choose or override
-`terminal_action`.
-
-For each selected pre-call Primitive, the Builder derives Failure Handlers from
-its declared failure outcomes.
-
-A Primitive with externally handled failure outcomes is ineligible when placed
-after `target_call`. This is a plan-validity condition; Failure Handler
-derivation only copies outcomes from already-valid pre-call Steps.
-
-Version 1.0 does not support LLM-designed fallback Step sequences.
-
-A handled pre-call failure is not a successful Branch activation and does not
-count as an executed or passed Oracle.
-
-For `materialized`, output only the semantic implementation plan required by the
-Synthesis Contract.
-
-For `blocked`, output only the structured Blocking Gaps required by the
-Synthesis Contract.
-
-Do not output Builder-owned metadata, implementation code, raw Helper calls,
-template markers, or unsupported implementation claims.
+# HarnessSpec-to-Strategy Synthesis Rules v1.5
+
+For source-backed auxiliary-argument relations, reject a branch only when its
+generated domain is proved wholly incompatible and the same relation is not an
+explicit HarnessSpec target. A mixed valid/invalid domain remains admissible.
+Do not transfer ordinary-valid recipes to contract-boundary exploration. Rank
+selection and reference-derived shapes must retain their fuzz/dataflow origin;
+they must not encode a single historical trigger.
+
+## Executable domains and preflight
+
+The supplied resource policy is an experimental bound, not an API fact. Use the
+same exact policy for controlled baseline and Static. Uniform scalar Tensor fill
+does not cover elementwise values. For `expected_valid` only, use the supplied
+ordinary recipe: it is a documented/source-backed bounded constructor subset,
+not a universal validity theorem. Do not import it into a contract-boundary or
+invalid-input branch. No recipe means no invented ordinary-valid guarantee.
+
+An exploration variable must vary its named property: `numel == 0` requires
+zero and nonzero possibilities, and shape mismatch requires equal and unequal
+possibilities. Varying only fill values cannot vary shape or numel. Reference
+derived same-shape inputs have an invariant equality relation. Observe these
+variables; never turn them into unconditional rejection guards.
+
+Use `minimum_dimension=1` for a nonempty bounded ordinary Tensor domain, not a
+literal historical shape. `construct_tensor_from_reference` supports same_shape,
+leading_dimension or selected_dimension with reference_axis. Optional Tensor
+arguments may be None, present, or selected with select_optional_tensor_from_fuzz.
+Optional buffers and legitimate omitted trailing defaults need not each consume
+bytes, but there must be a meaningful fuzz-derived target input. Defaults cannot
+be omitted before an explicitly bound later positional argument.
+
+Semantic-support labels are not proof: subjects, operators, predicate arguments,
+phases and roles must match actual code. For before-and-after observations use
+one evaluator per phase. An observation is not validity enforcement. Unsupported
+predicate forms, return conversions or emitter capabilities are reported before
+LLM generation; they must not be silently approximated. Materialization preflight
+must pass before accepting a candidate; compilation is a separate evidence level.
+
+The current exact dimension guard adapter supports cross_subject_relation with
+left_property_ref=right_property_ref=dimension_size, relation=equals and explicit
+left_axis/right_axis. It checks the named target input dimensions at pre_call_guard.
+Output checks without preconditions support property_relation equality over a
+target return's rank, numel, shape, int64 dtype or all_zero. Preferred checks only
+record outcomes; only required checks can terminate on violation. Other argument
+forms/preconditions require an explicit adapter, not a nearby semantic label.
+
+## 1. Purpose and layer boundary
+
+The HarnessSpec fixes **what** to explore, observe, and check. A Strategy Plan
+fixes **how** those semantics are materialized as ordered, typed Primitive
+steps and Runner-owned event bindings. Strategy synthesis must not select new
+Knowledge, add or remove branches, change branch budgets, reinterpret API
+facts, or invent historical concrete inputs.
+
+The Primitive classification is a project-defined engineering taxonomy derived
+from the API-test lifecycle: value construction, constraint/relation handling,
+target invocation, in-process observation, and behavior checking. It is not
+claimed as a standard taxonomy. Primitive implementations may use official
+LLVM/libFuzzer, PyTorch C++/ATen, SanitizerCoverage, and Runner capabilities;
+the Catalog is the auditable adapter between HarnessSpec semantics and those
+capabilities.
+
+## 2. Required approved inputs
+
+Synthesis requires:
+
+1. one schema-valid HarnessSpec v2.2;
+2. one exact external HarnessSpec review whose subject ID, revision, canonical
+   content hash, and path match the HarnessSpec and whose decision is
+   `approved`;
+3. the exact ready and approved API Profile referenced by the HarnessSpec;
+4. the exact ready and approved Helper Profiles referenced by the HarnessSpec;
+5. one schema-valid, approved Strategy Primitive Catalog v4; and
+6. for Bug-aware Static/Adaptive, the exact validated controlled-baseline
+   Strategy used as the canonical default branch.
+
+An embedded `review.validation_status=passed` is machine validation, not a
+substitute for external human approval.
+
+## 3. HarnessSpec v2.2 mapping
+
+Only these structured elements create implementation obligations:
+
+- `global_constraint`: enforce in every applicable branch;
+- `branch_constraint`: enforce in its branch;
+- `target_condition`: vary/enable and observe according to `role`;
+- `behavior_observation`: capture at its declared observation phase; and
+- `behavior_check`: evaluate when required, or materialize/defer explicitly
+  when preferred.
+
+`exploration_goal`, `grouping_summary`, descriptions, source references, and
+input-validity rationale are synthesis context. They cannot independently add
+a guard, exact input, Oracle, or target-call repetition.
+
+Each required in-Harness element has exactly one `spec_binding`. A binding may
+contain multiple ordered steps when all are necessary and connected by dataflow.
+An auxiliary step in a binding must be a transitive dataflow ancestor of a
+direct semantic step; unrelated padding is forbidden.
+
+## 4. Target-condition roles
+
+### 4.1 `activation_required`
+
+The Strategy must make the condition reachable and record it at every declared
+phase. It may use construction, transformation, or a guard only when the
+HarnessSpec actually requires the condition to hold for branch execution.
+
+### 4.2 `exploration_variable`
+
+The Strategy must keep a fuzz-dependent degree of freedom capable of reaching
+both the condition and nearby alternatives, and must observe the condition at
+every declared phase. It must not turn the condition into an unconditional
+pre-call rejection guard. The condition need not hold on every execution.
+
+Exact historical shapes, values, seeds, exception messages, and complete
+reproduction inputs are forbidden unless the approved HarnessSpec contains an
+explicit structured constraint requiring them. Resource bounds used to keep
+generation safe are experiment policy, not API or Knowledge facts.
+
+## 5. Behavior observations and Runner ownership
+
+`before_target_api_call` and `after_target_api_call` observations are implemented
+by in-Harness observation steps. `on_target_api_termination` is Builder-owned
+and is bound to the Runner event set:
+
+- `target_api_returned`;
+- `caught_exception`;
+- `process_exit`;
+- `process_signal`;
+- `timeout`; and
+- `sanitizer_report`.
+
+The LLM must not create steps for Builder-owned Runner observations. An
+observation records what happened; it is not automatically a pass/fail Oracle.
+No behavior check may be synthesized from prose when `behavior_checks` is empty.
+
+## 6. API call, defaults, optional values, and returns
+
+The Builder resolves the unique target-call Primitive from the API Profile.
+Each branch contains exactly one target-call step. The call may bind Tensor,
+floating, integer, boolean, optional, and prior-step values according to the
+resolved port types.
+
+For a parameter with an API default, omission means `api_default`; the Strategy
+may omit it or vary it within a declared ordinary fuzz domain, provided no
+HarnessSpec rule is contradicted and the shared default branch is identical.
+Do not invent a Knowledge requirement to justify a generic configuration choice. Explicit
+`None` is represented by the Catalog built-in `none` and is valid only for a
+port accepting `optional_value`. A required parameter without an API default
+must be bound. Zero, one, and multiple directly mapped returns are supported;
+each declared return port is bound exactly once when required.
+
+## 7. Primitive selection and dataflow
+
+The LLM may select only supplied candidate Primitive IDs, slots, ports, and
+parameters. It does not emit C++, Helper names, emitter IDs, template markers,
+metadata, hashes, failure handlers, or Runner bindings.
+
+Input references must name a Catalog built-in or an earlier output in the same
+branch. Output IDs are branch-local. Slot order must follow the template
+interface. Types must be compatible. A selected step must be consumed by a
+later step, directly implement a Spec binding, or be the unique target call.
+
+Primitive semantic support is necessary but not sufficient: predicate ID,
+condition role, observation phase, argument binding, type flow, fuzz-dependency
+policy, and template slot must all agree. Root-cause or symptom labels are not
+Primitive selection keys.
+
+## 8. Baseline/Static comparability
+
+The controlled-baseline default branch must remain fuzz-dependent and use the
+same Catalog, API Profile, Helper set, template, and experiment resource policy
+as the Knowledge-aware treatment.
+
+For initial Bug-aware Static/Adaptive synthesis, the Builder replaces
+`br_default` with the exact branch from the approved canonical controlled-
+baseline Strategy. No LLM rewrite, equivalent reconstruction, or metadata-only
+approximation is allowed. Knowledge-directed branches may differ only because
+their approved HarnessSpec semantics differ.
+
+## 9. Blocking gaps
+
+Return `blocked` only for a factual capability or semantic conflict that cannot
+be repaired by changing identifiers, bindings, ordering, or formatting. A gap
+may reference only a required element. Preferred behavior checks may be
+deferred with a factual reason and cannot alone block synthesis.
+
+Allowed reasons are:
+
+- `required_capability_unavailable`;
+- `api_input_unconstructable`;
+- `type_flow_unresolvable`;
+- `required_observation_unavailable`;
+- `required_oracle_unavailable`; and
+- `semantic_conflict_unresolvable`.
+
+## 10. Deterministic Builder validation
+
+The Builder, not the LLM, owns exact source references, review references,
+hashes, target-call port resolution, API-default omission, Runner bindings,
+failure handlers, identifier normalization, final schema validation, and
+generation diagnostics.
+
+Hard failures include unknown or unsupported predicates/phases, invalid types
+or dataflow, missing required arguments, required elements without bindings,
+exploration variables converted to unconditional guards, loss of target-input
+fuzz dependence, review/hash/path mismatch, and Static default-branch drift.
+
+The following are not failures by themselves: one execution missing an
+exploration condition, a preferred check deferred with reason, an equivalent
+typed step composition, or absence of exact historical concrete values.
+
+## 11. Human review boundary
+
+Machine-valid Strategy Plans remain `not_reviewed`. Human review is recorded in
+an immutable external Strategy Review Record; generated Plan JSON is never
+edited in place. Review checks provenance, complete structured mapping,
+exploration freedom, semantic fidelity, observation ownership, Catalog/emitter
+consistency, and exact default-branch reuse. `needs_revision` creates a new
+Strategy revision; `approved` authorizes Harness Artifact materialization.

@@ -1,0 +1,32 @@
+{
+  "record_format_version": "1.0",
+  "runtime_version": "1.1",
+  "artifact_id": "ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r3_2a90c4c4502e",
+  "generation_key": "2a90c4c4502e0e8e3d2e701d90db8a7180b6160dab7e1c0f8a97f1d55afb6ab7",
+  "snapshot_kind": "final",
+  "snapshot_interval": 65536,
+  "site_count": 16,
+  "started_iterations": 16085,
+  "finished_iterations": 16085,
+  "unwound_iterations": 0,
+  "invalid_site_records": 0,
+  "export_failures": 0,
+  "site_counts": [
+    16084,
+    2043,
+    14041,
+    14041,
+    14041,
+    14041,
+    0,
+    0,
+    0,
+    14041,
+    8063,
+    0,
+    0,
+    14041,
+    0,
+    14041
+  ]
+}

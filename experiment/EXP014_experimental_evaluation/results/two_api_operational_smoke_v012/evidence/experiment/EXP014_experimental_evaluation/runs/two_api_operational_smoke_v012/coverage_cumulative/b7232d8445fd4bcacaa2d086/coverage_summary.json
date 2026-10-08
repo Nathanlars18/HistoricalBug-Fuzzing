@@ -1,0 +1,58 @@
+{
+  "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+  "profile_hash": "33a86ab3b86743aa7de6b2d1d73d8590e159cc9dd6e802cc95da18cb8a6e760e",
+  "pytorch_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+  "quality_status": "partial_warning",
+  "measurements": {
+    "lines": {
+      "covered": 9134,
+      "total": 172825,
+      "percent": 5.285115000723275
+    },
+    "branches": {
+      "covered": 6645,
+      "total": 56868,
+      "percent": 11.684954631778856
+    }
+  },
+  "source_file_count": 799,
+  "warnings": [
+    "warning: 7 functions have mismatched data"
+  ],
+  "inputs": {
+    "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+    "profiles": [
+      {
+        "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/coverage/coverage.profdata",
+        "hash": "aa70469463a72c180af5b663e88a8472f77e0338ce2be1674266da6a80da984e",
+        "summary_hash": "872efaa0b36ee227d998313a4f8efe4989a2451557ed4045444e459f94364816",
+        "quality_status": "partial_warning",
+        "warnings": [
+          "warning: 7 functions have mismatched data"
+        ]
+      },
+      {
+        "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/coverage/coverage.profdata",
+        "hash": "cf3c8e1462c1df46231f366d3fa6b6b92c058fdc4a113b97b73515be506fe244",
+        "summary_hash": "9a6ce1e20a0dcc4fa1c1287338fd5d91819c9cb4b93448dcddfe6548a0c74cfb",
+        "quality_status": "partial_warning",
+        "warnings": [
+          "warning: 7 functions have mismatched data"
+        ]
+      },
+      {
+        "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/coverage/coverage.profdata",
+        "hash": "c3dd80cb06b99f192a3d76650d7e83cdaeb59c96d5a8429f2e20206e1cedf56f",
+        "summary_hash": "44aa0c66c6d106f669a7bc5c60afd30a1daf79d8246e05117b6d4de2a57cd3ee",
+        "quality_status": "partial_warning",
+        "warnings": [
+          "warning: 7 functions have mismatched data"
+        ]
+      }
+    ],
+    "worker_hash": "b8dd41bfc81f1948f190a97ce3b5f4b58769e1af435f905d44fe6a82b986401f",
+    "exporter_hash": "3711a5759f78016fe3a942c5586d5e824bfbac65866af13b964a22f4ab28c10f"
+  },
+  "cleanup_warnings": [],
+  "measurement_scope": "frozen_round_end_corpus_replay_union"
+}

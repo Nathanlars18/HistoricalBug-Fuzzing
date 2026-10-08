@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.1",
+  "review_id": "hs_review:hs_pytorch_torch.batch_norm_update_stats_bug_aware_static:r4:rr1",
+  "review_revision": 1,
+  "parent_review_ref": null,
+  "subject": {
+    "spec_id": "hs_pytorch_torch.batch_norm_update_stats_bug_aware_static",
+    "revision_number": 4,
+    "content_hash": "11048cef4e6c75c1fb679b8cae7bd5adbe32a84e4a38311cf5d8bebd568db9ca",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r4.json"
+  },
+  "rules_ref": {
+    "artifact_id": "harness_spec_human_review_rules__v1.2__sha256_619069bbe8db61fb11369ade37b6ab4af5eb7c89be971234b092b2225d72ffaf.md",
+    "artifact_version": "1.2",
+    "content_hash": "619069bbe8db61fb11369ade37b6ab4af5eb7c89be971234b092b2225d72ffaf",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_review_artifacts/harness_spec_human_review_rules__v1.2__sha256_619069bbe8db61fb11369ade37b6ab4af5eb7c89be971234b092b2225d72ffaf.md"
+  },
+  "decision": "needs_revision",
+  "findings": [
+    {
+      "criterion_id": "HR-06",
+      "severity": "blocking",
+      "field_path": "$.exploration_plan.branches[1].target_conditions[0].predicate.arguments",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.batch_norm_update_stats/kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002.json#/exploration_guidance/variation_opportunities/0",
+      "mismatch_summary": "The target condition narrows a qualitative zero/non-zero normalized-dimension variation with a numeric upper bound that is not supplied by the cited Knowledge or current API Profile."
+    },
+    {
+      "criterion_id": "HR-02",
+      "severity": "blocking",
+      "field_path": "$.exploration_plan.branches[1].exploration_goal_source_refs",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.batch_norm_update_stats/kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002.json#/exploration_guidance/variation_opportunities/0",
+      "mismatch_summary": "The exploration goal materially states zero/non-zero normalized-dimension variation but cites only the learned hypothesis rather than the exact variation component that supplies that scope."
+    },
+    {
+      "criterion_id": "HR-04",
+      "severity": "blocking",
+      "field_path": "$.knowledge_plan.knowledge_decisions[0].component_mappings[5]",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.batch_norm_update_stats/kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002.json#/learned_hypothesis/limitations/0",
+      "mismatch_summary": "The deferred-scope text says zero-element uncertainty was not converted into a branch constraint, while the same record contains a numel-equals-zero branch constraint; it fails to distinguish branch scoping from an unsupported necessity claim."
+    },
+    {
+      "criterion_id": "HR-04",
+      "severity": "blocking",
+      "field_path": "$.knowledge_plan.knowledge_decisions[0].component_mappings[3]",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.batch_norm_update_stats/kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002.json#/exploration_guidance/observation_candidates/0",
+      "mismatch_summary": "The mapping claims complete representation, but the cited observation asks about floating-point-style termination or a controlled error response whereas the mapped description contrasts normal returns with a non-controlled termination and omits the controlled-error alternative."
+    },
+    {
+      "criterion_id": "HR-07",
+      "severity": "blocking",
+      "field_path": "$.exploration_plan.branches[1].behavior_observations[0].subject_refs",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.batch_norm_update_stats/kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002.json#/exploration_guidance/observation_candidates/0",
+      "mismatch_summary": "The observation describes execution termination but names only input and return subjects; return subjects are unavailable on abnormal termination and no execution subject is present to record the cited outcome."
+    },
+    {
+      "criterion_id": "HR-07",
+      "severity": "blocking",
+      "field_path": "$.exploration_plan.branches[1].behavior_observations[1].subject_refs",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.batch_norm_update_stats/kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002.json#/exploration_guidance/observation_candidates/1",
+      "mismatch_summary": "The observation asks whether a controlled RuntimeError occurs but names only the input subject, which cannot record the exception or target execution outcome."
+    }
+  ],
+  "reviewer_id": "nathan",
+  "reviewed_at": "2026-10-05T07:20:03.252834Z",
+  "review_notes": "Evidence-bounded review under HarnessSpec Human Review Rules v1.2; findings diagnose source and observation mismatches without prescribing replacement semantics."
+}

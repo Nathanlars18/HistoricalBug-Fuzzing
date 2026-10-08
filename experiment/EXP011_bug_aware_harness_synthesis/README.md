@@ -1,5 +1,9 @@
 # EXP011: Bug-Aware Harness Synthesis
 
+Strategy v1.3 / Catalog v6: the current pilot regeneration, preflight and human
+review sequence is in [strategy regeneration guide](strategy_primitives/regenerate_pilot_v1_3.md).
+Do not overwrite existing Plan revisions or reuse approvals for new hashes.
+
 ## Purpose
 
 EXP011 develops and validates the static synthesis pipeline that converts one or more API-specific Knowledge records into a structured HarnessSpec, then lowers the HarnessSpec into Strategy Primitives and an executable fuzzing harness.
@@ -31,7 +35,10 @@ API-specific Knowledge
 | `schemas/` | Human-readable schemas and machine-validatable record schemas for EXP011 artifacts |
 | `api_profiles/` | Structured target-API capability and constraint profiles |
 | `helper_profiles/` | Structured descriptions of available helper capabilities |
-| `harness_specs/` | Generated and reviewed HarnessSpec instances |
+| `harness_specs/` | Immutable generated HarnessSpec revisions |
+| `harness_spec_reviews/` | Immutable human decisions bound to exact HarnessSpec hashes |
+| `generation_artifacts/` | Hash-qualified snapshots of the Builder, active Schema pair, Contract, and Rules used for generation |
+| `generation_traces/` | Immutable exact prompt/response records for every completed LLM attempt |
 | `strategy_primitives/` | Lowered executable strategy descriptions |
 | `scripts/` | Validation, conversion, and generation scripts |
 | `harnesses/` | Generated harness source and build metadata |
@@ -39,7 +46,22 @@ API-specific Knowledge
 
 ## Current Status
 
-Planning and schema design. No main experiment has started.
+HarnessSpec v2.2 design and small-scale synthesis validation. No formal comparative experiment has started.
+
+HarnessSpec v2.2 records explicit validity evidence, complete Knowledge
+component-mapping decisions, frozen Schema provenance, and per-attempt
+generation traces. Controlled Baselines migrate from v2.0/v2.1
+deterministically without an LLM; Knowledge-bearing revisions are regenerated.
+Human review is stored separately so that review never mutates the exact object
+being reviewed, and repeated decisions form explicit review revisions.
+An exact `needs_revision` review may drive a `manual_review` child through
+`build_harness_spec_json.py --review-record`; the Builder validates its subject
+hash and exposes only criterion-scoped mismatch fields to synthesis.
+Contract/Rules v2.5 keep bug-aware default-branch construction entirely in the
+Builder and validate the model response with a Contract-owned Schema before
+cross-reference checks. Candidate errors are aggregated into one repair report;
+semantic values such as property paths, observation phases, Predicates, and
+Knowledge mappings are never guessed merely to make validation pass.
 
 ## Helper Selection Invariants
 

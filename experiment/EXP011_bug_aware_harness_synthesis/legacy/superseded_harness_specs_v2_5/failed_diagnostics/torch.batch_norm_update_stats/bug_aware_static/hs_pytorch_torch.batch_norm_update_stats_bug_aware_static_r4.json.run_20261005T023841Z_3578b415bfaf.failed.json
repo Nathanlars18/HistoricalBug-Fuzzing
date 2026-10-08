@@ -1,0 +1,30 @@
+{
+  "builder_version": "harness_spec_builder_v0.19",
+  "generation_run_id": "run_20261005T023841Z_3578b415bfaf",
+  "generated_at": "2026-10-05T02:45:46.967966Z",
+  "generation_trace_refs": [
+    {
+      "artifact_id": "attempt_001.json",
+      "artifact_version": "1.1",
+      "content_hash": "17b33a557edef736fd123d0b865b3759e2cebca21f9522a6d18092cbf2ca0093",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_traces/run_20261005t023841z_3578b415bfaf/attempt_001.json"
+    },
+    {
+      "artifact_id": "attempt_002.json",
+      "artifact_version": "1.1",
+      "content_hash": "f70c492396700bc32d6db655e2e153ea88d76c81180041d4850d3a854dc09ba9",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_traces/run_20261005t023841z_3578b415bfaf/attempt_002.json"
+    },
+    {
+      "artifact_id": "attempt_003.json",
+      "artifact_version": "1.1",
+      "content_hash": "643f8d62d076beb74548122711113c572a276d769134976263d12a692db64e27",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_traces/run_20261005t023841z_3578b415bfaf/attempt_003.json"
+    }
+  ],
+  "errors": [
+    "ValidationError: br_default.exploration_goal must be a non-empty string",
+    "ValidationError: br_knowledge_001.target_conditions[0].predicate.property_ref is not a normalized property path",
+    "ValidationError: Non-transition target condition requires one observation point"
+  ]
+}

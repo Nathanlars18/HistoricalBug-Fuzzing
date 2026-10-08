@@ -51,3 +51,10 @@ results/smoke_test/
 **/*_runs/**
 **/diagnostics/**
 ~$*
+
+# Local execution evidence is retained on disk, not bundled into source commits.
+experiment/EXP014_experimental_evaluation/runs/
+experiment/EXP012_adaptive_feedback/pilot_outputs/
+experiment/EXP011_bug_aware_harness_synthesis/harnesses/**/harness_binary
+experiment/EXP011_bug_aware_harness_synthesis/harnesses/**/working_tree_state.txt
+experiment/EXP011_bug_aware_harness_synthesis/harnesses/**/smoke_corpus/

@@ -508,3 +508,72 @@ The evaluation must preserve:
 - metric-level results with explicit denominators;
 - API-level paired tables and aggregate summaries;
 - configuration, environment, and Artifact hashes sufficient for audit and reproduction.
+
+## Classification and input version boundary
+
+New `prepare` runs require `api_entries[].knowledge_bindings`, a non-empty array
+of `{knowledge_id, schema_version, file_ref}` using the Target Manifest reference
+shape. `file_ref` pins repository-relative path and raw-byte SHA-256. Before any
+LLM call, the Runner checks identities, hashes, API scope, duplicates, extraction
+version consistency, and exact agreement with the Target Manifest's source and
+excluded Knowledge references. The Builder checks these inputs again when read.
+Baseline receives no Knowledge; Static receives exactly the frozen set; Adaptive
+reuses Static H0. No recursive fallback is permitted in matrix preparation.
+
+Standalone discovery defaults to `knowledge_base/pattern_v3`; explicitly selecting
+an older root is for deliberate legacy reproduction. Completed legacy preparations
+remain historical evidence. Incomplete old preparations need a separately revised
+matrix and matching Target Manifest; never patch frozen hashes or silently migrate
+an experiment. Fill new references only after those Knowledge files actually exist.
+
+KTAC measures activation of frozen operational predicates, not coverage of Chen's
+root-cause categories or a count of reproduced/new bugs. Root causes, symptoms,
+trigger tags, implementation locations, and runtime events are distinct axes.
+Multiple hypotheses/labels do not multiply bug yield: use existing case/cluster
+deduplication. Report capability exclusions; do not infer root causes from activation.
+
+## Execution evidence addendum (2026-10-08)
+
+The execution adapter records fuzzer-process duration separately from
+container/Runner wall time. A missing process completion journal reserves the
+scheduled budget against automatic retry but is reported as unknown timing and
+an incomplete task; it is not evidence that the full budget was measured. A
+nonzero process exit is not, by itself, a PyTorch failure. Docker launch codes,
+container OOM state, timeout, signal, and candidate artifacts are recorded as
+separate evidence; an unexplained exit remains unclassified pending Crash
+analysis.
+
+Coverage replay consumes only the exact files enumerated in the frozen Corpus
+Manifest. A partial replay retains its successfully merged profile and reports
+completed/planned batches and the failed batch; partial replay is not a complete
+coverage measurement. The Analyzer reports replay measurements for each
+round-end Corpus and an independent cumulative diagnostic for each
+API/group/repeat prefix. Verified complete profiles are merged with the pinned
+LLVM tools and exported against the same framework objects, Build IDs and
+source scope. Different Harness revisions are allowed; no cross-group or
+cross-repeat union is computed. Missing/failed rounds make the prefix partial;
+partial replay profiles are retained but excluded from complete unions.
+Per-round percentages are never summed. LLVM warnings remain visible in both
+round and cumulative outputs. Coverage is replay coverage of saved corpus
+inputs, not a record of all inputs executed by the fuzzer, and does not change
+adaptive budgets.
+
+Candidate capture is a configurable first-N-per-kind-per-process diagnostic
+policy. The default 64 is an engineering resource setting, not a completeness
+claim. Target exceptions and Oracle failures have separate allowances; native
+libFuzzer crash artifacts use the existing separate intake path. All attempted
+captures continue to be counted after the allowance is exhausted. Analysis
+reports attempted/saved/failed/suppressed counts and saturated processes.
+First-N capture may miss later distinct events even with equal group limits;
+confirmed yield among preserved candidates is not exhaustive bug discovery.
+
+Analysis before the frozen cutoff is explicitly provisional with a generated
+time and as-of bound. After the cutoff the temporal window is final, but
+unmaterialized or unresolved candidates still make the affected anomaly yield
+unavailable. "Final window" is not human approval or complete fault attribution.
+
+Candidate Sanitizer logs may be classified when observed, but the pinned fuzz
+compile profile must be checked before claiming that ASan, UBSan, or another
+sanitizer was enabled. Log recognition alone does not establish instrumentation
+coverage. Likewise, a periodic snapshot with unknown staleness retains unknown
+staleness; it is not promoted to a final or complete counter set.

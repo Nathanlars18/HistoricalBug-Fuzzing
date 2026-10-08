@@ -398,3 +398,9 @@ HarnessSpec records why a capability is required and may bind it to an exact
 Profile revision. Strategy Primitives record invocation order, parameter
 mapping, guards, and instrumentation. Harness generation renders those
 decisions into C++.
+
+## Classification and input version boundary
+
+`capability_kind` groups implemented Helpers for selection, not bug causes. It
+makes no claim of exhaustive framework coverage. Source, review, dependency, and
+execution evidence determine availability; adding a category does not implement it.

@@ -1,0 +1,10 @@
+{
+  "builder_version": "harness_spec_builder_v0.17",
+  "generation_run_id": "run_20261005T010107Z_ccb51c24e622",
+  "generated_at": "2026-10-05T01:09:32.282678Z",
+  "errors": [
+    "ValidationError: exploration_goal component references require element_id null",
+    "ValidationError: represented mapping requires refs and represented_scope only",
+    "ValidationError: component_mapping.decision_summary must be a non-empty string"
+  ]
+}

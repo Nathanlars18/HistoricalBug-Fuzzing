@@ -1,0 +1,40 @@
+{
+  "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+  "profile_hash": "aef1f50d6f7fa4db59f7514d5a5376b9e7320d55d21a228f4d803ef02fb53467",
+  "pytorch_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+  "quality_status": "partial_warning",
+  "measurements": {
+    "lines": {
+      "covered": 9186,
+      "total": 172825,
+      "percent": 5.315203240271951
+    },
+    "branches": {
+      "covered": 6683,
+      "total": 56868,
+      "percent": 11.751776042765703
+    }
+  },
+  "source_file_count": 799,
+  "warnings": [
+    "warning: 7 functions have mismatched data"
+  ],
+  "inputs": {
+    "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+    "profiles": [
+      {
+        "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/coverage/coverage.profdata",
+        "hash": "aef1f50d6f7fa4db59f7514d5a5376b9e7320d55d21a228f4d803ef02fb53467",
+        "summary_hash": "148ab6d306a266b66b3f449ced935bc0067ac2290d042fa5fdd9346441c2192e",
+        "quality_status": "partial_warning",
+        "warnings": [
+          "warning: 7 functions have mismatched data"
+        ]
+      }
+    ],
+    "worker_hash": "b8dd41bfc81f1948f190a97ce3b5f4b58769e1af435f905d44fe6a82b986401f",
+    "exporter_hash": "3711a5759f78016fe3a942c5586d5e824bfbac65866af13b964a22f4ab28c10f"
+  },
+  "cleanup_warnings": [],
+  "measurement_scope": "frozen_round_end_corpus_replay_union"
+}

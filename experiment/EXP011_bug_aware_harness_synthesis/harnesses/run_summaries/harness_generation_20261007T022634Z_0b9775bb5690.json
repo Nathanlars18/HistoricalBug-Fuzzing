@@ -1,0 +1,27 @@
+{
+  "run_id": "harness_generation_20261007T022634Z_0b9775bb5690",
+  "generator_id": "build_harness_artifact",
+  "generator_version": "0.10.0",
+  "started_at": "2026-10-07T02:26:34.105201Z",
+  "finished_at": "2026-10-07T02:26:34.772787Z",
+  "results": [
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r001.json",
+      "status": "preflight_passed",
+      "source_sha256": "4315887afc1447a73d7b3a78dc024452232b3c79610f97e53a9c802f6c92cbb3",
+      "materialized_steps": 9,
+      "instrumentation_sites": 21,
+      "compile_status": "not_run",
+      "artifact_path": null
+    },
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r001.json",
+      "status": "preflight_passed",
+      "source_sha256": "5daffbef02c7483de958aae63b25586f22840575b0968e61b2ace38146b54dbd",
+      "materialized_steps": 11,
+      "instrumentation_sites": 30,
+      "compile_status": "not_run",
+      "artifact_path": null
+    }
+  ]
+}

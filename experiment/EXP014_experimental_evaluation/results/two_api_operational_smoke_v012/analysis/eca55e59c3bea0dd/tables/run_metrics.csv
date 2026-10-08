@@ -1,0 +1,7 @@
+api_id,group_id,repeat_id,completed,completion_status,completed_round_count,target_count,activated_target_count,target_activation_coverage,reproducible_anomaly_yield,post_feedback_anomaly_yield
+torch.batch_norm_update_stats,structured_baseline,repeat_001,True,complete,3,1,0,0.0,0,0
+torch.batch_norm_update_stats,bug_aware_static,repeat_001,True,complete,3,1,1,1.0,,
+torch.batch_norm_update_stats,bug_aware_adaptive,repeat_001,True,complete,3,1,1,1.0,,
+torch.nn.functional.cosine_embedding_loss,structured_baseline,repeat_001,True,complete,3,2,1,0.5,0,0
+torch.nn.functional.cosine_embedding_loss,bug_aware_static,repeat_001,True,complete,3,2,2,1.0,,
+torch.nn.functional.cosine_embedding_loss,bug_aware_adaptive,repeat_001,True,complete,3,2,2,1.0,,

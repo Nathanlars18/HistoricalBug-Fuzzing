@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import signal
+import sys
 import subprocess
 import time
 import uuid
@@ -20,6 +21,13 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from jsonschema import Draft202012Validator, FormatChecker
+from referencing import Registry, Resource
+
+if str(Path(__file__).resolve().parents[3]) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from experiment.EXP014_experimental_evaluation.scripts.execution_semantics import (
+    FORMAT_VERSION, RUNTIME_VERSION, snapshot_issues, validate_limits, text_output,
+)
 
 try:
     from coverage_replay import CoverageError, load_scope, replay as replay_coverage
@@ -34,7 +42,7 @@ except ModuleNotFoundError as exc:
 
 
 ADAPTER_ID = "run_fuzzing_round"
-ADAPTER_VERSION = "0.2.0"
+ADAPTER_VERSION = "0.5.0"
 DEFAULT_IMAGE = (
     "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8"
 )
@@ -166,7 +174,11 @@ def schema_validator(path: Path, label: str) -> Draft202012Validator:
         Draft202012Validator.check_schema(schema)
     except Exception as exc:
         raise InputError(f"Invalid {label} Schema: {exc}") from exc
-    return Draft202012Validator(schema, format_checker=FormatChecker())
+    registry = Registry()
+    core_path = REPOSITORY_ROOT / "experiment/EXP011_bug_aware_harness_synthesis/schemas/harness_spec_record_core__v2_2.schema.json"
+    core = load_json(core_path)
+    registry = registry.with_resource(core["$id"], Resource.from_contents(core))
+    return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
 
 
 def validate_record(
@@ -174,7 +186,10 @@ def validate_record(
     validator: Draft202012Validator,
     label: str,
 ) -> None:
-    errors = sorted(validator.iter_errors(value), key=lambda item: item.json_path)
+    try:
+        errors = sorted(validator.iter_errors(value), key=lambda item: item.json_path)
+    except Exception as exc:
+        raise InputError(f"Cannot validate {label}: {exc}") from exc
     if errors:
         details = "; ".join(
             f"{item.json_path}: {item.message}" for item in errors[:12]
@@ -286,7 +301,7 @@ def instrumentation_reference(header: Path, source: Path) -> dict[str, Any]:
         "header": file_reference(header),
         "source": file_reference(source),
     }
-    return artifact_reference("harness_instrumentation_runtime", "1.0", canonical_hash(payload))
+    return artifact_reference("harness_instrumentation_runtime", RUNTIME_VERSION, canonical_hash(payload))
 
 
 def corpus_artifact_reference(record: Mapping[str, Any]) -> dict[str, Any]:
@@ -383,10 +398,13 @@ def validate_runtime_snapshot(
         raise InputError("Runtime Snapshot site_counts length differs from site_count")
     if snapshot["finished_iterations"] > snapshot["started_iterations"]:
         raise InputError("Runtime Snapshot finished count exceeds started count")
-    if snapshot["unwound_iterations"] > snapshot["finished_iterations"]:
-        raise InputError("Runtime Snapshot unwound count exceeds finished count")
+    if snapshot["finished_iterations"] + snapshot["unwound_iterations"] > snapshot["started_iterations"]:
+        raise InputError("Runtime Snapshot completed and unwound counts exceed started invocations")
     if snapshot["invalid_site_records"] or snapshot["export_failures"]:
         raise InputError("Runtime instrumentation reported invalid records or export failures")
+    issues = snapshot_issues(snapshot, artifact)
+    if issues:
+        raise InputError("Runtime Snapshot: " + ", ".join(issues))
     return snapshot
 
 
@@ -398,6 +416,22 @@ def signal_name(return_code: int) -> str | None:
         return signal.Signals(signal_number).name
     except ValueError:
         return None
+
+
+def classify_nonzero_exit(return_code: int, container_state: Mapping[str, Any] | None,
+                          timed_out: bool, candidate_observed: bool) -> str:
+    """Describe evidence without inferring a PyTorch defect from an exit code."""
+    if container_state and container_state.get("OOMKilled") is True:
+        return "container_oom_killed"
+    if timed_out:
+        return "adapter_timeout"
+    if candidate_observed:
+        return "candidate_artifact_observed"
+    if return_code in {125, 126, 127}:
+        return "container_or_command_launch_failure"
+    if signal_name(return_code):
+        return "signal_termination_unclassified"
+    return "nonzero_exit_unclassified"
 
 
 def log_reference(path: Path, execution_id: str) -> dict[str, Any]:
@@ -421,6 +455,8 @@ def classify_candidate(path: Path, diagnostic_text: str) -> tuple[str, str]:
     name = path.name.lower()
     if name.startswith(("timeout-", "oom-", "slow-unit-", "leak-")):
         return "resource_anomaly", name.split("-", 1)[0]
+    if "HBFG_ORACLE_FAILURE=" in diagnostic_text:
+        return "oracle_failure", "behavior_check_failure"
     markers = (
         "addresssanitizer",
         "undefinedbehaviorsanitizer",
@@ -438,6 +474,24 @@ def iteration_from_log(text: str) -> int | None:
     return int(matches[-1]) if matches else None
 
 
+def validate_capture_counts(counts: Mapping[str, Any] | None, limit: int) -> None:
+    if counts is None:
+        return
+    required = {"attempts", "saved", "failures", "exception_attempts", "oracle_attempts", "limit_per_kind", "complete"}
+    if set(counts) != required or counts["complete"] is not True:
+        raise InputError("Runtime capture summary is incomplete or has an unknown shape")
+    numeric = ("attempts", "saved", "failures", "exception_attempts", "oracle_attempts", "limit_per_kind")
+    if any(isinstance(counts[name], bool) or not isinstance(counts[name], int) or counts[name] < 0 for name in numeric):
+        raise InputError("Runtime capture summary contains an invalid count")
+    if (counts["limit_per_kind"] != limit
+            or counts["attempts"] != counts["exception_attempts"] + counts["oracle_attempts"]
+            or counts["saved"] > counts["attempts"]
+            or counts["failures"] > counts["attempts"]
+            or counts["saved"] > 2 * limit
+            or counts["saved"] + counts["failures"] > counts["attempts"]):
+        raise InputError("Runtime capture summary counts contradict the configured per-kind sample limit")
+
+
 def build_candidate_bundle(
     *,
     args: argparse.Namespace,
@@ -446,22 +500,60 @@ def build_candidate_bundle(
     candidates_dir: Path,
     run_log_path: Path,
     validator: Draft202012Validator,
+    artifact: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None, list[dict[str, Any]]]:
     paths = sorted(path for path in candidates_dir.rglob("*") if path.is_file())
-    if not paths:
+    observation_dir = args.attempt_dir.resolve() / "observations"
+    event_paths = sorted(observation_dir.glob("event_*.json"))
+    if not paths and not event_paths:
         return None, None, []
     diagnostic_text = run_log_path.read_text(encoding="utf-8", errors="replace")
     diagnostic = evidence_location(run_log_path, "diagnostic")
-    iteration = iteration_from_log(diagnostic_text)
+    # libFuzzer progress lines identify statistics, not the failing invocation.
+    iteration = None
     candidates: list[dict[str, Any]] = []
     observations: list[dict[str, Any]] = []
-    for path in paths:
+    sources = [(path, None) for path in paths]
+    for event_path in event_paths:
+        event = load_json(event_path)
+        input_path = event_path.with_suffix(".input")
+        if not input_path.is_file() or event.get("kind") not in {"target_exception", "oracle_failure"}:
+            raise InputError(f"Incomplete structured anomaly capture: {event_path}")
+        if artifact is None or event.get("artifact_id") != artifact["identity"]["harness_artifact_id"]:
+            raise InputError("Structured capture identifies another Harness Artifact")
+        sources.append((input_path, (event_path, event)))
+    for path, captured in sources:
         input_location = evidence_location(path, "input")
         kind, subtype = classify_candidate(path, diagnostic_text)
+        branch_ids, site_ids, invocation = [], [], None
+        event_context = None
+        current_diagnostic = diagnostic
+        if captured:
+            event_path, event = captured
+            kind, subtype = event["kind"], "captured_target_exception" if event["kind"] == "target_exception" else "behavior_check_failure"
+            event_context = evidence_location(event_path, "event_context")
+            iteration = event["iteration_index"]
+            table = {b["runtime_site_id"]: b for b in artifact["instrumentation_map"]}
+            bindings = [table[i] for i in event["runtime_sites"] if i in table]
+            if len(bindings) != len(event["runtime_sites"]):
+                raise InputError("Structured capture has unknown runtime sites")
+            site_ids = sorted({b["instrumentation_binding_id"] for b in bindings})
+            branch_ids = sorted({b["branch_id"] for b in bindings})
+            reached = [b for b in bindings if b["event_kind"] == "target_api_reached"]
+            if reached and not event["sites_truncated"]:
+                invocation = f"{execution_id}:i{iteration}:{reached[-1]['instrumentation_binding_id']}:n{len(reached)}"
+            detail = event_path.with_suffix(".diagnostic.txt")
+            marker = "HBFG_TARGET_API_EXCEPTION=" if kind == "target_exception" else "HBFG_ORACLE_FAILURE="
+            detail.write_text(marker + event["message"] + "\n", encoding="utf-8")
+            current_diagnostic = evidence_location(detail, "diagnostic")
+        else:
+            iteration = None
         candidate_key = canonical_hash({
             "task_key": args.task_key,
             "attempt_index": args.attempt_index,
             "input_hash": input_location["file_ref"]["content_hash"],
+            "observation_kind": kind,
+            "source_name": path.name,
         })
         candidate_id = f"cand_{candidate_key[:20]}"
         candidates.append({
@@ -471,27 +563,35 @@ def build_candidate_bundle(
             "observation_subtype": subtype,
             "observed_at": observed_at,
             "triggering_input": input_location,
-            "primary_diagnostic": diagnostic,
-            "branch_ids": [],
-            "site_ids": [],
+            "primary_diagnostic": current_diagnostic,
+            "branch_ids": branch_ids,
+            "site_ids": site_ids,
             "iteration_index": iteration,
-            "target_invocation_id": None,
-            "oracle_evidence_tier": None,
+            "target_invocation_id": invocation,
+            "oracle_evidence_tier": "unevaluable" if kind == "oracle_failure" else None,
+            "source_execution_id": execution_id,
+            "event_context": event_context,
+            "harness_artifact_file_ref": file_reference(args.harness_record) if captured else None,
+            "source_config_file_ref": file_reference(args.attempt_dir.resolve() / "round_config.json") if (args.attempt_dir.resolve() / "round_config.json").is_file() else None,
         })
         observations.append({
             "candidate_id": candidate_id,
             "observation_kind": kind,
-            "branch_ids": [],
-            "site_ids": [],
-            "evidence_refs": [input_location["artifact_ref"], diagnostic["artifact_ref"]],
+            "branch_ids": branch_ids,
+            "site_ids": site_ids,
+            "evidence_refs": [input_location["artifact_ref"], current_diagnostic["artifact_ref"]] + ([] if event_context is None else [event_context["artifact_ref"]]),
         })
     bundle_id = "cb_" + canonical_hash({
         "task_key": args.task_key,
         "attempt_index": args.attempt_index,
         "candidates": candidates,
     })[:20]
+    capture_summary_path = observation_dir / "capture_summary.json"
+    capture_counts = load_json(capture_summary_path) if capture_summary_path.is_file() else None
+    capture_limit = getattr(args, "candidate_sample_limit", 64)
+    validate_capture_counts(capture_counts, capture_limit)
     bundle = {
-        "record_format_version": "1.0",
+        "record_format_version": "1.1",
         "record_type": "candidate_bundle",
         "identity": {"bundle_id": bundle_id, "artifact_version": 1},
         "round_context": {
@@ -506,6 +606,12 @@ def build_candidate_bundle(
         },
         "candidates": candidates,
         "provenance": {"producer_ref": adapter_reference(), "generated_at": utc_now()},
+        "capture_summary": {
+            "sampling": "first_n_per_kind_per_process",
+            "limit_per_kind": capture_limit,
+            "counts": capture_counts,
+            "state": "complete" if capture_counts is not None else "unavailable_after_exit",
+        },
     }
     validate_record(bundle, validator, "Candidate Bundle")
     bundle_path = args.attempt_dir.resolve() / "candidate_bundle.json"
@@ -524,26 +630,31 @@ def docker_command(
     active_seconds: int,
     seed: int,
     container_name: str,
+    limits: Mapping[str, Any] | None = None,
 ) -> list[str]:
-    shell = (
-        "set -uo pipefail; status=0; "
-        "/artifact/harness_binary /output/corpus "
-        f"-max_total_time={active_seconds} -seed={seed} "
-        "-artifact_prefix=/output/candidates/ "
-        ">/output/fuzzer_stdout.log 2>/output/fuzzer_stderr.log || status=$?; "
-        "chown -R \"$HOST_UID:$HOST_GID\" /output; exit $status"
-    )
+    limits = dict(limits or {})
+    flags = " ".join(f"-{key}={limits[key]}" for key in ("timeout", "rss_limit_mb", "max_len") if limits.get(key) is not None)
+    fuzzer_argv = ["/artifact/harness_binary", "/output/corpus",
+                  f"-max_total_time={active_seconds}", f"-seed={seed}",
+                  "-artifact_prefix=/output/candidates/"]
+    fuzzer_argv.extend(flags.split())
     return [
-        "docker", "run", "--rm", "--name", container_name,
+        "docker", "run", "--network", "none", "--name", container_name,
         "-e", f"HOST_UID={os.getuid()}",
         "-e", f"HOST_GID={os.getgid()}",
         "-e", "HBFG_METRICS_PATH=/output/runtime_snapshot.json",
         "-e", "HBFG_METRICS_SNAPSHOT_INTERVAL=65536",
+        "-e", "HBFG_CANDIDATE_DIR=/output/observations",
+        "-e", f"HBFG_CANDIDATE_SAMPLE_LIMIT={limits.get('candidate_sample_limit', 64)}",
+        *[part for key in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")
+          if os.environ.get(key) is not None for part in ("-e", f"{key}={os.environ[key]}")],
+        *(["--memory", f"{limits['process_memory_mb']}m"] if limits.get("process_memory_mb") else []),
         "-v", f"{artifact_dir.resolve()}:/artifact:ro",
         "-v", f"{attempt_dir.resolve()}:/output",
+        "-v", f"{Path(__file__).with_name('execution_worker.py').resolve()}:/execution_worker.py:ro",
         "-w", "/output",
         image,
-        "bash", "-lc", shell,
+        "python3", "/execution_worker.py", *fuzzer_argv,
     ]
 
 
@@ -598,6 +709,13 @@ def build_round_record(
         "file_ref": file_reference(output_manifest_path),
     }
     log_ref = log_reference(run_log_path, execution_id)
+    capture_path = args.attempt_dir.resolve() / "observations" / "capture_summary.json"
+    capture_counts = load_json(capture_path) if capture_path.is_file() else None
+    capture_limit = getattr(args, "candidate_sample_limit", 64)
+    validate_capture_counts(capture_counts, capture_limit)
+    capture_summary = {"sampling": "first_n_per_kind_per_process", "limit_per_kind": capture_limit,
+                       "counts": capture_counts,
+                       "state": "complete" if capture_counts is not None else "unavailable_after_exit"}
     record = {
         "record_format_version": "1.0",
         "record_type": "fuzzing_round",
@@ -612,7 +730,7 @@ def build_round_record(
         },
         "schedule": {
             "planned_final_round_index": args.planned_final_round_index,
-            "planned_duration_seconds": args.active_seconds,
+            "planned_duration_seconds": int(math.ceil(args.active_seconds)),
         },
         "source_context": {
             "harness_spec_ref": spec_reference(resolved.harness_spec),
@@ -626,7 +744,7 @@ def build_round_record(
             "instrumentation_runtime_ref": instrumentation_reference(
                 args.instrumentation_header, args.instrumentation_source
             ),
-            "instrumentation_contract_version": "1.0",
+            "instrumentation_contract_version": FORMAT_VERSION,
         },
         "attempt_selection": {
             "status": "selected_as_round_result",
@@ -638,7 +756,7 @@ def build_round_record(
             "ended_at": ended_at,
             "actual_duration_seconds": round(elapsed, 6),
             "termination": {
-                "reason": "time_budget_reached" if process.returncode == 0 else "candidate_detected",
+                "reason": ("time_budget_reached" if elapsed >= args.active_seconds else "completed_early") if process.returncode == 0 else ("candidate_detected" if candidate_binding else "unknown"),
                 "exit_code": process.returncode,
                 "signal_name": signal_name(process.returncode),
                 "diagnostic_refs": [] if process.returncode == 0 else [log_ref],
@@ -649,7 +767,7 @@ def build_round_record(
                 "status": "present" if snapshot is not None else "missing",
                 "location": snapshot_location,
                 "snapshot_kind": None if snapshot is None else snapshot["snapshot_kind"],
-                "staleness_iterations": None if snapshot is None else (0 if snapshot["snapshot_kind"] == "final" else 1),
+                "staleness_iterations": None if snapshot is None or snapshot["snapshot_kind"] != "final" else 0,
             },
             "coverage_summary": dict(coverage_evidence),
             "output_corpus": {
@@ -661,6 +779,9 @@ def build_round_record(
                 "status": "present" if candidate_binding else "absent",
                 "bundle_ref": None if not candidate_binding else dict(candidate_binding["artifact_ref"]),
                 "bundle_file_ref": None if not candidate_binding else dict(candidate_binding["record_file_ref"]),
+                "capture_summary": capture_summary,
+                "capture_summary_file_ref": file_reference(capture_path) if capture_path.is_file() else None,
+                "process_capture_summaries": [],
                 "observations": [dict(item) for item in candidate_observations],
             },
             "run_log_refs": [log_ref],
@@ -674,6 +795,10 @@ def build_round_record(
             "generated_at": utc_now(),
         },
     }
+    budget_path = args.attempt_dir / "budget_evidence.json"
+    if budget_path.is_file():
+        record["record_format_version"] = "1.1"
+        record["execution"]["budget"] = load_json(budget_path)
     validate_record(record, round_validator, "Fuzzing Round Record")
     return record
 
@@ -715,7 +840,27 @@ def command_preflight(args: argparse.Namespace) -> int:
         )
         if completed.returncode != 0:
             raise InfrastructureError(completed.stderr.strip() or "Docker image inspect failed")
-        result = {"status": "passed", "terminal_at": terminal}
+        resolved = resolve_harness(args.harness_record, args.strategy_plan, args.harness_spec,
+                                   validators['artifact'], validators['strategy'], validators['spec'])
+        limits = {"timeout": args.per_call_timeout_seconds, "rss_limit_mb": args.rss_limit_mb,
+                  "max_len": args.max_input_bytes, "process_memory_mb": args.process_memory_mb,
+                  "candidate_sample_limit": args.candidate_sample_limit}
+        try:
+            validate_limits(limits)
+        except ValueError as exc:
+            raise InputError(str(exc)) from exc
+        flags = [f"-{name}={limits[key]}" for key, name in (("timeout", "timeout"), ("rss_limit_mb", "rss_limit_mb"), ("max_len", "max_len")) if limits[key] is not None]
+        argv = ["docker", "run", "--rm", "--network", "none",
+                "-e", f"HBFG_CANDIDATE_SAMPLE_LIMIT={limits['candidate_sample_limit']}",
+                *( ["--memory", f"{limits['process_memory_mb']}m"] if limits["process_memory_mb"] is not None else []),
+                "-v", f"{resolved.binary_path.parent}:/artifact:ro", args.runtime_image,
+                "/artifact/harness_binary", "-help=1", *flags]
+        probe = subprocess.run(argv,
+                               capture_output=True, text=True, timeout=60, check=False)
+        if probe.returncode != 0:
+            raise InfrastructureError('Binary load probe failed: ' + probe.stderr[-1000:])
+        result = {"status": "passed", "terminal_at": utc_now(), 'probe_kind': 'binary_load_help_probe',
+                  'resource_limits': limits, 'argv': argv}
         code = 0
     except (AdapterError, OSError, subprocess.TimeoutExpired) as exc:
         result = {"status": "failed", "terminal_at": terminal, "message": str(exc)}
@@ -748,8 +893,9 @@ def command_run(args: argparse.Namespace) -> int:
     active_started_monotonic: float | None = None
     process: subprocess.CompletedProcess[str] | None = None
     container_name = f"hbfg-{uuid.uuid4().hex[:16]}"
+    command_evidence_path: Path | None = None
     try:
-        if args.active_seconds < 1:
+        if args.active_seconds <= 0:
             raise InputError("active_seconds must be positive")
         if args.seed < 0:
             raise InputError("seed must be non-negative")
@@ -780,6 +926,18 @@ def command_run(args: argparse.Namespace) -> int:
         candidates_dir = attempt_dir / "candidates"
         corpus_dir.mkdir(exist_ok=True)
         candidates_dir.mkdir(exist_ok=True)
+        (attempt_dir / "observations").mkdir(exist_ok=True)
+        limits = {
+            "timeout": args.per_call_timeout_seconds,
+            "rss_limit_mb": args.rss_limit_mb,
+            "max_len": args.max_input_bytes,
+            "process_memory_mb": args.process_memory_mb,
+            "candidate_sample_limit": args.candidate_sample_limit,
+        }
+        try:
+            validate_limits(limits)
+        except ValueError as exc:
+            raise InputError(str(exc)) from exc
 
         validators = common_validators(args)
         resolved = resolve_harness(
@@ -822,6 +980,10 @@ def command_run(args: argparse.Namespace) -> int:
             "seed": args.seed,
             "active_seconds": active_seconds,
             "harness_binary_ref": file_reference(resolved.binary_path),
+            "limits": limits,
+            "initialization_included_in_process_budget": True,
+            "budget_resolution_seconds": 1,
+            "thread_environment": {k: os.environ.get(k) for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")},
         }
         round_config_path = attempt_dir / "round_config.json"
         write_json_atomic(round_config_path, round_config)
@@ -834,17 +996,92 @@ def command_run(args: argparse.Namespace) -> int:
             active_seconds=active_seconds,
             seed=args.seed,
             container_name=container_name,
+            limits=limits,
         )
-        process = subprocess.run(
-            argv,
-            capture_output=True,
-            text=True,
-            timeout=active_seconds + args.timeout_grace_seconds,
-            check=False,
-        )
+        command_evidence_path = attempt_dir / "execution_command.json"
+        write_json_atomic(command_evidence_path, {
+            "argv": argv,
+            "requested_resource_limits": limits,
+            "network_mode_requested": "none",
+            "runtime_image_requested": args.runtime_image,
+        })
+        timed_out = False
+        try:
+            process = subprocess.run(argv, capture_output=True, text=True,
+                                     timeout=active_seconds + args.timeout_grace_seconds, check=False)
+        except subprocess.TimeoutExpired as exc:
+            timed_out = True
+            process = subprocess.CompletedProcess(argv, 124, text_output(exc.stdout), text_output(exc.stderr))
+            try:
+                subprocess.run(["docker", "kill", container_name], capture_output=True, text=True, timeout=30, check=False)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+        container_state = None
+        container_facts = None
+        try:
+            state_check = subprocess.run(["docker", "inspect", "--format", "{{json .}}", container_name],
+                                         capture_output=True, text=True, timeout=30, check=False)
+            inspection = {
+                "status": "available" if state_check.returncode == 0 else "unavailable",
+                "return_code": state_check.returncode,
+                "stderr_tail": (state_check.stderr or "")[-2000:],
+            }
+        except subprocess.TimeoutExpired as exc:
+            state_check = None
+            inspection = {"status": "timeout", "error": str(exc)}
+        except OSError as exc:
+            state_check = None
+            inspection = {"status": "unavailable", "error": f"{type(exc).__name__}: {exc}"}
+        if state_check is not None and state_check.returncode == 0:
+            try:
+                inspected = json.loads(state_check.stdout)
+                container_state = inspected.get("State")
+                host_config = inspected.get("HostConfig", {})
+                container_config = inspected.get("Config", {})
+                container_facts = {
+                    "image_id": inspected.get("Image"),
+                    "configured_image": container_config.get("Image"),
+                    "environment": sorted(container_config.get("Env", [])),
+                    "network_mode": host_config.get("NetworkMode"),
+                    "memory_bytes": host_config.get("Memory"),
+                    "nano_cpus": host_config.get("NanoCpus"),
+                    "state": container_state,
+                }
+            except ValueError:
+                pass
+        try:
+            cleanup_process = subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, text=True, timeout=30, check=False)
+            cleanup = {"status": "removed" if cleanup_process.returncode == 0 else "unconfirmed",
+                       "return_code": cleanup_process.returncode, "stderr_tail": (cleanup_process.stderr or "")[-2000:]}
+        except subprocess.TimeoutExpired as exc:
+            cleanup = {"status": "timeout", "error": str(exc)}
+        except OSError as exc:
+            cleanup = {"status": "unavailable", "error": f"{type(exc).__name__}: {exc}"}
+        write_json_atomic(attempt_dir / "container_state.json", {
+            "facts": container_facts, "state": container_state,
+            "inspection": inspection,
+            "cleanup": cleanup,
+            "adapter_timed_out": timed_out,
+        })
         ended_at = utc_now()
-        elapsed = time.monotonic() - active_started_monotonic
+        wall_elapsed = time.monotonic() - active_started_monotonic
+        journal_path = attempt_dir / "fuzzer_process.json"
+        journal = load_json(journal_path) if journal_path.is_file() else {}
+        measured = journal.get("elapsed_seconds") if journal.get("state") == "finished" else None
+        if measured is not None and (not isinstance(measured, (int, float)) or isinstance(measured, bool) or measured < 0):
+            raise InputError("Invalid fuzzer-process timing journal")
+        elapsed = float(measured) if measured is not None else 0.0
         run_log = save_run_log(attempt_dir, process)
+
+        if process.returncode in {125, 126, 127} or journal.get("state") == "launch_failed":
+            write_adapter_result(result_path, {
+                "status": "infrastructure_failure", "terminal_at": ended_at,
+                "active_seconds_consumed": 0.0, "remaining_active_seconds": float(args.active_seconds),
+                "failure_category": "container_start_failure", "message": "Fuzzer process did not start",
+                "diagnostic_log_file_ref": file_reference(run_log),
+                "execution_command_file_ref": file_reference(command_evidence_path),
+            })
+            return 2
 
         corpus_id = "corpus_" + hashlib.sha256(
             args.task_key.encode("utf-8")
@@ -860,7 +1097,8 @@ def command_run(args: argparse.Namespace) -> int:
         )
 
         coverage_evidence: dict[str, Any] = {
-            "status": "not_collected", "location": None, "diagnostic_refs": []
+            "status": "not_collected", "location": None, "diagnostic_refs": [],
+            "diagnostic_file_refs": [],
         }
         if args.coverage_scope is not None:
             try:
@@ -870,18 +1108,24 @@ def command_run(args: argparse.Namespace) -> int:
                     corpus_dir=corpus_dir,
                     harness_binary=resolved.binary_path,
                     output_dir=attempt_dir / "coverage",
+                    resource_limits=limits,
+                    thread_environment={k: os.environ.get(k) for k in
+                                        ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")},
                 )
                 coverage_evidence = {
                     "status": "present",
                     "location": evidence_location(coverage_path, "coverage_summary"),
                     "diagnostic_refs": [],
+                    "diagnostic_file_refs": [],
                 }
             except (CoverageError, OSError, ValueError) as exc:
                 diagnostic_path = attempt_dir / "coverage_failure.log"
                 diagnostic_path.write_text(str(exc) + "\n", encoding="utf-8")
+                diagnostic_location = evidence_location(diagnostic_path, "coverage_failure")
                 coverage_evidence = {
                     "status": "collection_failed", "location": None,
-                    "diagnostic_refs": [evidence_location(diagnostic_path, "coverage_failure")["artifact_ref"]],
+                    "diagnostic_refs": [diagnostic_location["artifact_ref"]],
+                    "diagnostic_file_refs": [diagnostic_location],
                 }
 
         _, candidate_binding, candidate_observations = build_candidate_bundle(
@@ -891,6 +1135,7 @@ def command_run(args: argparse.Namespace) -> int:
             candidates_dir=candidates_dir,
             run_log_path=run_log,
             validator=validators["candidate"],
+            artifact=resolved.artifact,
         )
         snapshot_path = attempt_dir / "runtime_snapshot.json"
         snapshot = None
@@ -899,10 +1144,25 @@ def command_run(args: argparse.Namespace) -> int:
                 snapshot_path, validators["runtime"], resolved.artifact
             )
 
+        consumed = min(float(args.active_seconds), elapsed) if measured is not None else float(args.active_seconds)
+        budget_evidence = {
+            "planned_seconds": float(args.active_seconds), "process_seconds": measured,
+            "wall_seconds": wall_elapsed, "outside_process_seconds": None if measured is None else max(0.0, wall_elapsed - elapsed),
+            "remaining_seconds": None if measured is None else max(0.0, float(args.active_seconds) - consumed),
+            "timing_status": "measured" if measured is not None else "unknown_budget_reserved_no_retry",
+            "overrun_seconds": None if measured is None else max(0.0, elapsed - float(args.active_seconds)),
+        }
+        write_json_atomic(attempt_dir / "budget_evidence.json", budget_evidence)
         if process.returncode != 0:
-            consumed = min(float(args.active_seconds), elapsed)
             result = {
                 "status": "target_or_framework_exit",
+                "exit_classification": classify_nonzero_exit(
+                    process.returncode, container_state, timed_out, candidate_binding is not None
+                ),
+                "container_oom_killed": bool(container_state and container_state.get("OOMKilled")),
+                "adapter_timed_out": timed_out,
+                "container_facts_file_ref": file_reference(attempt_dir / "container_state.json"),
+                "execution_command_file_ref": file_reference(command_evidence_path),
                 "terminal_at": ended_at,
                 "active_seconds_consumed": consumed,
                 "remaining_active_seconds": max(0.0, float(args.active_seconds) - consumed),
@@ -910,6 +1170,7 @@ def command_run(args: argparse.Namespace) -> int:
                 "signal_name": signal_name(process.returncode),
                 "resume_corpus_binding": output_binding,
                 "diagnostic_log_file_ref": file_reference(run_log),
+                "budget_evidence_file_ref": file_reference(attempt_dir / "budget_evidence.json"),
             }
             round_record = build_round_record(
                 args=args,
@@ -935,6 +1196,8 @@ def command_run(args: argparse.Namespace) -> int:
             write_json_atomic(round_record_path, round_record)
             result["round_record_file_ref"] = file_reference(round_record_path)
             result["candidate_bundle_binding"] = candidate_binding
+            result["budget_complete"] = measured is not None and consumed >= float(args.active_seconds)
+            result["budget_timing_status"] = budget_evidence["timing_status"]
             if snapshot is not None:
                 result["runtime_snapshot_file_ref"] = file_reference(snapshot_path)
             write_adapter_result(result_path, result)
@@ -965,55 +1228,106 @@ def command_run(args: argparse.Namespace) -> int:
         round_record_path = attempt_dir / "fuzzing_round_record.json"
         write_json_atomic(round_record_path, round_record)
         result = {
-            "status": "completed",
+            "status": "completed" if measured is not None and consumed >= float(args.active_seconds) else "budget_incomplete",
             "terminal_at": ended_at,
-            "active_seconds_consumed": float(args.active_seconds),
-            "remaining_active_seconds": 0.0,
+            "active_seconds_consumed": consumed,
+            "remaining_active_seconds": (budget_evidence["remaining_seconds"]
+                                         if budget_evidence["remaining_seconds"] is not None else 0.0),
+            "budget_complete": measured is not None and consumed >= float(args.active_seconds),
+            "budget_evidence_file_ref": file_reference(attempt_dir / "budget_evidence.json"),
+            "container_facts_file_ref": file_reference(attempt_dir / "container_state.json"),
+            "execution_command_file_ref": file_reference(command_evidence_path),
+            "budget_timing_status": budget_evidence["timing_status"],
             "round_end_corpus_binding": output_binding,
             "round_record_file_ref": file_reference(round_record_path),
             "runtime_snapshot_file_ref": file_reference(snapshot_path),
             "candidate_bundle_binding": candidate_binding,
         }
         write_adapter_result(result_path, result)
-        return 0
+        return 0 if result["status"] == "completed" else 3
 
     except InputError as exc:
-        consumed = float(args.active_seconds) if process is not None else 0.0
+        journal_path = locals().get("attempt_dir")
+        journal = {}
+        if isinstance(journal_path, Path) and (journal_path / "fuzzer_process.json").is_file():
+            try:
+                journal = load_json(journal_path / "fuzzer_process.json")
+            except InputError:
+                pass
+        measured = journal.get("elapsed_seconds") if journal.get("state") == "finished" else None
+        measured = float(measured) if isinstance(measured, (int, float)) and not isinstance(measured, bool) and math.isfinite(measured) and measured >= 0 else None
+        consumed = min(float(args.active_seconds), measured) if measured is not None else (float(args.active_seconds) if process is not None else 0.0)
         result = {
             "status": "method_failure",
             "terminal_at": utc_now(),
             "active_seconds_consumed": consumed,
             "remaining_active_seconds": max(0.0, float(args.active_seconds) - consumed),
+            "budget_timing_status": "measured" if measured is not None else ("unknown_budget_reserved_no_retry" if process is not None else "not_started"),
             "message": str(exc),
         }
+        if command_evidence_path is not None and command_evidence_path.is_file():
+            result["execution_command_file_ref"] = file_reference(command_evidence_path)
         write_adapter_result(result_path, result)
         return 4
     except subprocess.TimeoutExpired as exc:
-        subprocess.run(
-            ["docker", "rm", "-f", container_name],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-        message = f"Docker round exceeded adapter timeout: {exc}"
+        message = f"Subprocess exceeded its configured timeout: {exc}"
     except (InfrastructureError, OSError) as exc:
         message = str(exc)
+    finally:
+        try:
+            subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, text=True, timeout=30, check=False)
+        except (OSError, subprocess.TimeoutExpired):
+            pass
 
-    elapsed = (
-        time.monotonic() - active_started_monotonic
-        if active_started_monotonic is not None
-        else time.monotonic() - operation_started_monotonic
-    )
-    consumed = min(float(args.active_seconds), elapsed) if process is not None else 0.0
+    attempt_path = locals().get("attempt_dir")
+    journal = {}
+    if isinstance(attempt_path, Path) and (attempt_path / "fuzzer_process.json").is_file():
+        try:
+            journal = load_json(attempt_path / "fuzzer_process.json")
+        except InputError:
+            pass
+    measured = journal.get("elapsed_seconds") if journal.get("state") == "finished" else None
+    measured = float(measured) if isinstance(measured, (int, float)) and not isinstance(measured, bool) and math.isfinite(measured) and measured >= 0 else None
+    timing_status = "measured" if measured is not None else ("unknown_budget_reserved_no_retry" if process is not None else "not_started")
+    consumed = min(float(args.active_seconds), measured) if measured is not None else (float(args.active_seconds) if process is not None else 0.0)
+    budget_ref = None
+    if isinstance(attempt_path, Path) and attempt_path.is_dir():
+        wall_elapsed = max(0.0, time.monotonic() - active_started_monotonic) if active_started_monotonic is not None else 0.0
+        budget_path = attempt_path / "budget_evidence.json"
+        if not budget_path.is_file():
+            write_json_atomic(budget_path, {
+                "planned_seconds": float(args.active_seconds),
+                "process_seconds": measured,
+                "wall_seconds": wall_elapsed,
+                "outside_process_seconds": None if measured is None else max(0.0, wall_elapsed - measured),
+                "remaining_seconds": None if measured is None else max(0.0, float(args.active_seconds) - min(float(args.active_seconds), measured)),
+                "timing_status": timing_status,
+                "overrun_seconds": None if measured is None else max(0.0, measured - float(args.active_seconds)),
+            })
+        budget_ref = file_reference(budget_path)
+    run_log_ref = None
+    if process is not None and isinstance(attempt_path, Path) and attempt_path.is_dir():
+        log_path = attempt_path / "run.log"
+        if not log_path.is_file():
+            log_path = save_run_log(attempt_path, process)
+        run_log_ref = file_reference(log_path)
     result = {
         "status": "infrastructure_failure",
         "terminal_at": utc_now(),
         "active_seconds_consumed": consumed,
         "remaining_active_seconds": max(0.0, float(args.active_seconds) - consumed),
-        "failure_category": "container_start_failure",
+        "budget_timing_status": timing_status,
+        "failure_category": "container_start_failure" if process is None else "post_start_adapter_failure",
         "message": message,
     }
+    if budget_ref is not None:
+        result["budget_evidence_file_ref"] = budget_ref
+    if run_log_ref is not None:
+        result["diagnostic_log_file_ref"] = run_log_ref
+    if isinstance(attempt_path, Path) and (attempt_path / "container_state.json").is_file():
+        result["container_facts_file_ref"] = file_reference(attempt_path / "container_state.json")
+    if command_evidence_path is not None and command_evidence_path.is_file():
+        result["execution_command_file_ref"] = file_reference(command_evidence_path)
     write_adapter_result(result_path, result)
     return 2
 
@@ -1054,6 +1368,11 @@ def parse_arguments() -> argparse.Namespace:
     add_harness_arguments(preflight_parser)
     add_schema_arguments(preflight_parser)
     preflight_parser.add_argument("--runtime-image", default=DEFAULT_IMAGE)
+    preflight_parser.add_argument("--per-call-timeout-seconds", type=int)
+    preflight_parser.add_argument("--rss-limit-mb", type=int)
+    preflight_parser.add_argument("--max-input-bytes", type=int)
+    preflight_parser.add_argument("--process-memory-mb", type=int)
+    preflight_parser.add_argument("--candidate-sample-limit", type=int, default=64)
     preflight_parser.add_argument("--result-json", type=Path, required=True)
     preflight_parser.set_defaults(handler=command_preflight)
 
@@ -1090,6 +1409,11 @@ def parse_arguments() -> argparse.Namespace:
     run_parser.add_argument("--runtime-image", default=DEFAULT_IMAGE)
     run_parser.add_argument("--coverage-scope", type=Path)
     run_parser.add_argument("--timeout-grace-seconds", type=int, default=60)
+    run_parser.add_argument("--per-call-timeout-seconds", type=int)
+    run_parser.add_argument("--rss-limit-mb", type=int)
+    run_parser.add_argument("--max-input-bytes", type=int)
+    run_parser.add_argument("--process-memory-mb", type=int)
+    run_parser.add_argument("--candidate-sample-limit", type=int, default=64)
     run_parser.add_argument("--runtime-config", type=Path, default=DEFAULTS["runtime_config"])
     run_parser.add_argument(
         "--instrumentation-header", type=Path, default=DEFAULTS["instrumentation_header"]

@@ -1,6 +1,6 @@
 {
   "policy_id": "adaptive_branch_budget_pilot",
-  "policy_version": "0.4",
+  "policy_version": "0.6",
   "policy_kind": "adaptive_branch_budget",
   "calibration": {
     "status": "pilot_initial",
@@ -9,8 +9,9 @@
   },
   "protocol": {
     "protocol_id": "adaptive_feedback_loop_protocol",
-    "protocol_version": "0.5",
-    "path": "experiment/EXP012_adaptive_feedback/feedback_loop_protocol.md"
+    "protocol_version": "0.8",
+    "path": "experiment/EXP012_adaptive_feedback/feedback_loop_protocol.md",
+    "content_hash": "1364b3ad4dec961af7a0d75708b2c7e1d9083f5278d980e876af5a7fe501aa01"
   },
   "scope": {
     "applicable_spec_modes": [
@@ -27,7 +28,7 @@
       "independent_repeat"
     ],
     "cross_scope_state_sharing": false,
-    "initial_allocation_policy_ref": "experiment/EXP011_bug_aware_harness_synthesis/schemas/initial_branch_budget_policy.json"
+    "initial_allocation_policy_ref": "experiment/EXP011_bug_aware_harness_synthesis/schemas/initial_branch_budget_policy__v002.json"
   },
   "selector_space": {
     "total_slots": 256,
@@ -99,13 +100,13 @@
         "priority": 1,
         "branch_status": "branch_activation_absent",
         "maximum_prior_accepted_boosts": 0,
-        "requires_activation_targets": true
+        "requires_target_conditions": true
       },
       {
         "priority": 2,
         "branch_status": "branch_activation_rare",
         "maximum_prior_accepted_boosts": 0,
-        "requires_activation_targets": true
+        "requires_target_conditions": true
       },
       {
         "priority": 3,
@@ -129,7 +130,8 @@
       "must_remain_at_or_above_floor": true,
       "exclude_selected_recipient": true,
       "excluded_branch_statuses": [
-        "branch_activation_unevaluable"
+        "branch_activation_unevaluable",
+        "branch_under_sampled"
       ],
       "selection_order": [
         "persistent_ineffective_first",
@@ -151,7 +153,7 @@
     "round_gate_rules": [
       {
         "priority": 1,
-        "round_gate_result": "crash_or_sanitizer_candidate",
+        "round_gate_result": "abnormal_candidate_observed",
         "budget_action": "retain_current",
         "run_disposition": "handoff_crash_analysis"
       },
@@ -217,7 +219,8 @@
     "branch_identity_order_kind_and_count_are_unchanged",
     "transfer_does_not_exceed_transition_limit",
     "recipient_and_donor_sets_are_disjoint",
-    "unevaluable_branches_are_not_budget_recipients_or_donors",
+      "unevaluable_branches_are_not_budget_recipients_or_donors",
+      "under_sampled_branches_are_not_budget_donors",
     "branch_activation_checker_errors_do_not_exceed_policy_limit",
     "accepted_candidate_selector_ranges_differ_from_parent",
     "same_inputs_history_and_policy_produce_identical_output"

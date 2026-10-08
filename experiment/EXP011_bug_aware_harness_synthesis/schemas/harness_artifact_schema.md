@@ -1,4 +1,4 @@
-# Harness Artifact Schema v1.2
+# Harness Artifact Schema v1.3
 
 ## 1. Purpose
 
@@ -137,7 +137,7 @@ A Harness Artifact record contains:
 
 ```json
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "record_type": "harness_artifact",
   "identity": {},
   "source_context": {},
@@ -162,7 +162,8 @@ Unknown top-level fields are prohibited.
 | Field | Type | Required | Description |
 | --- | --- | ---: | --- |
 | `harness_artifact_id` | identifier | yes | Stable Artifact identifier |
-| `generation_key` | SHA-256 string | yes | Deterministic generation identity |
+| `generation_key` | SHA-256 string | yes | Deterministic immutable build Artifact identity |
+| `source_generation_key` | SHA-256 string | v1.3 | Stable identity of Strategy and source-generation components, independent of compile-profile selection |
 
 Recommended Artifact ID format:
 
@@ -174,17 +175,23 @@ The prefix is the first 12 characters of `generation_key`.
 
 The complete `generation_key` is authoritative.
 
-The Generator calculates `generation_key` from:
+The Generator calculates a `source_generation_key` from:
 
 - the exact Strategy Revision Reference;
 - Generator ID and version;
 - Generator entrypoint content hash;
 - Generator component paths and content hashes, ordered by `relative_path`.
 
-The original order of `component_refs` does not affect `generation_key`.
+The original order of `component_refs` does not affect `source_generation_key`.
 
-Timestamps, output paths, process IDs, and logging options do not participate in
-`generation_key`.
+The v1.3 `generation_key` additionally binds the exact compile-profile
+reference, declared repository dependency-file hashes, and environment
+identity. A changed build request therefore cannot reuse a binary built under
+another request. The exact approved Strategy review is recorded as provenance
+but does not change the generated-code identity. Schema v1.2 records remain
+readable for historical Artifacts.
+
+Timestamps, output paths, and process IDs do not participate in either key.
 
 Framework, target API, experiment mode, HarnessSpec, Catalog, Template, API
 Profile, and Helper Profiles are resolved through the referenced Strategy Plan
@@ -382,6 +389,10 @@ Each Trace Reference contains:
 | `ref_type` | enum | yes | Referenced element category |
 | `ref_id` | non-empty string | yes | Exact upstream identifier |
 
+Schema v1.3 emits the current reference types below. The schema also accepts
+the legacy v1.2 names so historical Artifacts remain readable; the current
+Builder does not emit legacy names.
+
 Allowed `ref_type` values are:
 
 ```text
@@ -394,6 +405,18 @@ activation_target
 oracle_requirement
 failure_handler
 ```
+
+The current Builder counts each Target Condition and observation phase
+individually. These counters do not prove that multiple conditions held in the
+same input or that a particular native-code path executed. Runtime snapshots
+can be periodic or written at normal process exit; a missing or
+crash-truncated snapshot is unknown evidence, not a zero count.
+
+`c10::Error` caught at the target invocation is recorded as
+`target_api_exception`. It is not classified automatically as invalid input,
+an expected exception, or a detected bug. Exception counters remain complete;
+diagnostic text is limited to the first 16 target exceptions per process and
+1024 bytes per message.
 
 `observation_point` is not a reference type because an Observation Point is a
 nested HarnessSpec object without an independent ID.
@@ -746,6 +769,11 @@ Otherwise, `working_tree_diff_ref = null`.
 
 `generation_run_id` and `generated_at` do not participate in `generation_key`.
 
+In v1.3, `provenance.build_request` records the exact compile profile,
+declared repository dependency hashes, environment identity, and review
+reference used for the immutable Artifact. `source_context.observability`
+records the measurement limits described above.
+
 Output-affecting free-form options are prohibited. Such behavior must be
 represented by a versioned Strategy Plan, Catalog, Template, Generator, or
 Generator component.
@@ -775,6 +803,9 @@ A valid Harness Artifact record satisfies:
     skip reason, and binary fields.
 15. Runtime counts, coverage, crashes, and feedback results are absent.
 16. No unrecognized top-level field is present.
+17. For v1.3, cache reuse follows only after fresh Strategy validation,
+    materialization, and source/map comparison; a requested compilation is
+    satisfied only by a matching successful compile record.
 
 Structural constraints are enforced by the corresponding JSON Schema.
 

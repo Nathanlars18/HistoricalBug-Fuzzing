@@ -1,0 +1,16 @@
+{
+  "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+  "profiles": [
+    {
+      "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/coverage/coverage.profdata",
+      "hash": "3017b9145493fbe11e12f3728ae71b4ab99bacbd925eb19bd54ad7aa934a405d",
+      "summary_hash": "cbc7bcf70f436238e1bdc402d3dc401c973c37d909309bcff887166ff4bc928d",
+      "quality_status": "partial_warning",
+      "warnings": [
+        "warning: 7 functions have mismatched data"
+      ]
+    }
+  ],
+  "worker_hash": "b8dd41bfc81f1948f190a97ce3b5f4b58769e1af435f905d44fe6a82b986401f",
+  "exporter_hash": "3711a5759f78016fe3a942c5586d5e824bfbac65866af13b964a22f4ab28c10f"
+}

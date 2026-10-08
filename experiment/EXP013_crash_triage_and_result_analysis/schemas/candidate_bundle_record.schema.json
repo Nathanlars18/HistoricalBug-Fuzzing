@@ -6,7 +6,9 @@
   "additionalProperties": false,
   "required": ["record_format_version", "record_type", "identity", "round_context", "candidates", "provenance"],
   "properties": {
-    "record_format_version": { "const": "1.0" },
+    "record_format_version": { "enum": ["1.0", "1.1"] },
+    "capture_summary": { "type": "object", "required": ["sampling", "limit_per_kind", "counts", "state"], "properties": { "sampling": {"const": "first_n_per_kind_per_process"}, "limit_per_kind": {"type": "integer", "minimum": 0}, "counts": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/capture_counts"}]}, "state": {"enum": ["complete", "unavailable_after_exit", "merged"]}}, "additionalProperties": false },
+    "process_capture_summaries": {"type": "array", "items": {"type": "object", "required": ["bundle_file_ref", "capture_summary"], "properties": {"bundle_file_ref": {"$ref": "#/$defs/file_reference"}, "capture_summary": {"type": ["object", "null"]}}, "additionalProperties": false}},
     "record_type": { "const": "candidate_bundle" },
     "identity": {
       "type": "object",
@@ -43,7 +45,14 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {"properties": {"record_format_version": {"const": "1.1"}}, "required": ["record_format_version"]},
+      "then": {"required": ["capture_summary"]}
+    }
+  ],
   "$defs": {
+    "capture_counts": {"type": "object", "additionalProperties": false, "required": ["attempts", "saved", "failures", "exception_attempts", "oracle_attempts", "limit_per_kind", "complete"], "properties": {"attempts": {"type": "integer", "minimum": 0}, "saved": {"type": "integer", "minimum": 0}, "failures": {"type": "integer", "minimum": 0}, "exception_attempts": {"type": "integer", "minimum": 0}, "oracle_attempts": {"type": "integer", "minimum": 0}, "limit_per_kind": {"type": "integer", "minimum": 0}, "complete": {"type": "boolean"}}},
     "identifier": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$" },
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
@@ -77,6 +86,10 @@
       "required": ["candidate_id", "source_attempt_index", "observation_kind", "observation_subtype", "observed_at", "triggering_input", "primary_diagnostic", "branch_ids", "site_ids", "iteration_index", "target_invocation_id", "oracle_evidence_tier"],
       "properties": {
         "candidate_id": { "$ref": "#/$defs/identifier" },
+        "source_execution_id": { "$ref": "#/$defs/identifier" },
+        "event_context": { "oneOf": [{ "$ref": "#/$defs/evidence_location" }, {"type": "null"}] },
+        "harness_artifact_file_ref": { "oneOf": [{ "$ref": "#/$defs/file_reference" }, {"type": "null"}] },
+        "source_config_file_ref": { "oneOf": [{ "$ref": "#/$defs/file_reference" }, {"type": "null"}] },
         "source_attempt_index": { "type": "integer", "minimum": 1 },
         "observation_kind": { "enum": ["crash", "sanitizer", "target_exception", "oracle_failure", "resource_anomaly"] },
         "observation_subtype": { "type": "string", "minLength": 1 },

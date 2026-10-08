@@ -1,0 +1,9 @@
+{
+  "planned_seconds": 15.0,
+  "process_seconds": 18.275196003996825,
+  "wall_seconds": 18.611103139999614,
+  "outside_process_seconds": 0.3359071360027883,
+  "remaining_seconds": 0.0,
+  "timing_status": "measured",
+  "overrun_seconds": 3.2751960039968253
+}

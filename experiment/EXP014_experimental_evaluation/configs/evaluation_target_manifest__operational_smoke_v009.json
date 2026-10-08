@@ -1,0 +1,93 @@
+{
+  "format_version": "1.0",
+  "manifest_id": "etm_pytorch_2_10_operational_smoke_v009",
+  "revision": 1,
+  "status": "frozen",
+  "detector_contract_version": "1.0",
+  "api_target_sets": [
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "targets": [
+        {
+          "evaluation_target_id": "et_pytorch_batch_norm_update_stats_empty_input",
+          "detector_id": "tensor_empty_v1",
+          "authoritative_observation_point": "before_target_api_call",
+          "parameter_bindings": [
+            {
+              "parameter_role": "subject",
+              "binding_parameter_id": "binding_param_000_input"
+            }
+          ],
+          "source_knowledge_refs": [
+            {
+              "knowledge_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+              "schema_version": "3.0",
+              "file_ref": {
+                "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.batch_norm_update_stats/kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002.json",
+                "content_hash": "31946c254c88838ce9dc71585f0b417a9a7f8fa9185b06c97782218eacf1a19e"
+              }
+            }
+          ]
+        }
+      ],
+      "excluded_knowledge": []
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "targets": [
+        {
+          "evaluation_target_id": "et_pytorch_cosine_embedding_loss_shape_mismatch",
+          "detector_id": "tensor_shape_mismatch_v1",
+          "authoritative_observation_point": "before_target_api_call",
+          "parameter_bindings": [
+            {
+              "parameter_role": "left",
+              "binding_parameter_id": "binding_param_000_input1"
+            },
+            {
+              "parameter_role": "right",
+              "binding_parameter_id": "binding_param_001_input2"
+            }
+          ],
+          "source_knowledge_refs": [
+            {
+              "knowledge_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+              "schema_version": "3.0",
+              "file_ref": {
+                "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.nn.functional.cosine_embedding_loss/kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001.json",
+                "content_hash": "589ec890a0605b3d9daf309acd97b8d368f1a07eb6a17107b7e49ef5492161e2"
+              }
+            }
+          ]
+        },
+        {
+          "evaluation_target_id": "et_pytorch_cosine_embedding_loss_any_input_empty",
+          "detector_id": "tensor_pair_empty_v1",
+          "authoritative_observation_point": "before_target_api_call",
+          "parameter_bindings": [
+            {
+              "parameter_role": "left",
+              "binding_parameter_id": "binding_param_000_input1"
+            },
+            {
+              "parameter_role": "right",
+              "binding_parameter_id": "binding_param_001_input2"
+            }
+          ],
+          "source_knowledge_refs": [
+            {
+              "knowledge_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+              "schema_version": "3.0",
+              "file_ref": {
+                "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.nn.functional.cosine_embedding_loss/kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001.json",
+                "content_hash": "589ec890a0605b3d9daf309acd97b8d368f1a07eb6a17107b7e49ef5492161e2"
+              }
+            }
+          ]
+        }
+      ],
+      "excluded_knowledge": []
+    }
+  ],
+  "unresolved_bindings": []
+}

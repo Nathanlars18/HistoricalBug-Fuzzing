@@ -1,0 +1,10 @@
+{
+  "builder_version": "harness_spec_builder_v0.6",
+  "generation_run_id": "run_20260914T085342Z_c0a6e2811e6f",
+  "generated_at": "2026-09-14T09:04:17.359100Z",
+  "errors": [
+    "ValidationError: Knowledge-directed branch must include at least one Target Property",
+    "ValidationError: branches[1].target_properties[0].property_ref is not a normalized dotted property path",
+    "ValidationError: Assembled record violates HarnessSpec Schema: $.exploration_plan.branches[0].oracle_requirements[0].observation_subjects: [] should be non-empty"
+  ]
+}

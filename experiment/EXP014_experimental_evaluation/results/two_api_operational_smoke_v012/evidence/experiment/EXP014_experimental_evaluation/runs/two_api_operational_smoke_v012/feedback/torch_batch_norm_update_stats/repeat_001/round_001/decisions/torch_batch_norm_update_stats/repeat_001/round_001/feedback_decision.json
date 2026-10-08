@@ -1,0 +1,225 @@
+{
+  "record_format_version": "1.5",
+  "canonicalization_version": "1.0",
+  "decision_id": "fd:torch.batch_norm_update_stats:repeat_001:round1",
+  "decision_key": "31e8eafd4fc083d0f3a859f9910561959392ba2af3a36766e63720e3d84750f0",
+  "scope": {
+    "target_api_id": "torch.batch_norm_update_stats",
+    "experimental_group": "bug_aware_adaptive",
+    "independent_repeat_id": "repeat_001",
+    "observed_round_index": 1,
+    "effective_from_round_index": 2
+  },
+  "input_references": {
+    "current_harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.batch_norm_update_stats_bug_aware_static",
+      "revision_number": 6,
+      "content_hash": "80580516215a947526ed15dd31a562cb7d857d1ffd61c5ce60067a590c082223"
+    },
+    "current_strategy_ref": {
+      "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006",
+      "revision_number": 2,
+      "content_hash": "950e8c5406d41ccba78d20228055a2c57ec390f12b7007e97c0a77f207733a76"
+    },
+    "current_harness_artifact_ref": {
+      "artifact_id": "ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_0def3d5da005",
+      "artifact_version": "1.3",
+      "content_hash": "8deb5380ab1694ea76ff21a524ce9bc1af3e8446ebc67230138d204ce8e6cf46"
+    },
+    "fuzzing_round_ref": {
+      "artifact_id": "torch.batch_norm_update_stats:bug_aware_adaptive:repeat_001:round_001",
+      "artifact_version": "1.1",
+      "content_hash": "62c173c472817d1e760d6148b18ac510aacb9ea9e54f367cf784937cfbbd5e75"
+    },
+    "runtime_snapshot_ref": {
+      "artifact_id": "runtime_snapshot_ex_60ba1c64d3c74dd7b7b99e2eb9134252",
+      "artifact_version": "1.0",
+      "content_hash": "afae34e577577968f6fee78338dd7a474322193886ef4db066adf0585be680e5"
+    },
+    "coverage_summary_ref": {
+      "artifact_id": "coverage_summary",
+      "artifact_version": "1.0",
+      "content_hash": "4af82fbe82c7514cc97e235ff3567174e37f35341871385d9ae2209e1adcf98d"
+    },
+    "output_corpus_ref": {
+      "artifact_id": "corpus_131f1dd22e96dca3",
+      "artifact_version": 1,
+      "content_hash": "6434c3345b8d6afeb3a8ed716382c69a11ff6ec208d6a7f9c1b0e44e16a5059e"
+    },
+    "feedback_policy_ref": {
+      "artifact_id": "adaptive_branch_budget_pilot",
+      "artifact_version": "0.6",
+      "content_hash": "a4dd99405a852f281d3ac00305cef9693c8d904fbfb61806a22cd4a973b3c3ae"
+    },
+    "feedback_protocol_ref": {
+      "artifact_id": "adaptive_feedback_loop_protocol",
+      "artifact_version": "0.8",
+      "content_hash": "1364b3ad4dec961af7a0d75708b2c7e1d9083f5278d980e876af5a7fe501aa01"
+    },
+    "controller_ref": {
+      "artifact_id": "run_feedback_controller",
+      "artifact_version": "0.9.0",
+      "content_hash": "0f65383877aeda8aeac30e1bfb9caab42a8f8b9c90e289c47bdcbaaa9053bca8"
+    },
+    "prior_feedback_decision_refs": []
+  },
+  "round_assessment": {
+    "round_gate": {
+      "result": "eligible",
+      "issue_codes": []
+    },
+    "branch_diagnoses": [
+      {
+        "branch_id": "br_default",
+        "primary_status": "branch_no_detected_bottleneck",
+        "supporting_statuses": [],
+        "measurements": {
+          "branch_selected_count": 18788,
+          "target_reached_count": 9828,
+          "input_rejected_count": 8960,
+          "target_exception_count": 0,
+          "target_exception_observation_state": "available",
+          "activation_required": false,
+          "activation_checked_count": null,
+          "activation_true_count": null,
+          "activation_unevaluable_count": null,
+          "activation_check_error_count": null,
+          "oracle_required": false,
+          "oracle_opportunity_count": null,
+          "oracle_evaluated_count": null,
+          "condition_measurements": [],
+          "behavior_check_measurements": []
+        },
+        "instrumentation_binding_refs": [
+          "ins_0001",
+          "ins_0005",
+          "ins_0011",
+          "ins_0012",
+          "ins_0013"
+        ],
+        "trigger_condition": null,
+        "budget_evidence_usable": true,
+        "budget_recipient_evidence_usable": true,
+        "budget_donor_evidence_usable": true
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "primary_status": "branch_no_detected_bottleneck",
+        "supporting_statuses": [],
+        "measurements": {
+          "branch_selected_count": 18170,
+          "target_reached_count": 14843,
+          "input_rejected_count": 3327,
+          "target_exception_count": 5067,
+          "target_exception_observation_state": "available",
+          "activation_required": true,
+          "activation_checked_count": 14843,
+          "activation_true_count": 5067,
+          "activation_unevaluable_count": 0,
+          "activation_check_error_count": 0,
+          "oracle_required": false,
+          "oracle_opportunity_count": null,
+          "oracle_evaluated_count": null,
+          "condition_measurements": [
+            {
+              "condition_id": "tc_br_knowledge_001_001",
+              "role": "exploration_variable",
+              "observe_at": "before_target_api_call",
+              "state": "available",
+              "checked": 14843,
+              "true": 5067,
+              "unevaluable": 0,
+              "error": 0,
+              "rate": 0.34137303779559386,
+              "binding_refs": [
+                "ins_0019",
+                "ins_0020",
+                "ins_0021",
+                "ins_0022"
+              ]
+            }
+          ],
+          "behavior_check_measurements": []
+        },
+        "instrumentation_binding_refs": [
+          "ins_0014",
+          "ins_0016",
+          "ins_0019",
+          "ins_0020",
+          "ins_0021",
+          "ins_0022",
+          "ins_0027",
+          "ins_0028",
+          "ins_0029"
+        ],
+        "trigger_condition": {
+          "branch_id": "br_knowledge_001",
+          "condition_id": "tc_br_knowledge_001_001",
+          "role": "exploration_variable",
+          "observe_at": "before_target_api_call"
+        },
+        "budget_evidence_usable": true,
+        "budget_recipient_evidence_usable": true,
+        "budget_donor_evidence_usable": true
+      }
+    ],
+    "coverage_assessment": {
+      "trend": "coverage_not_assessed",
+      "coverage_summary_ref": {
+        "artifact_id": "coverage_summary",
+        "artifact_version": "1.0",
+        "content_hash": "4af82fbe82c7514cc97e235ff3567174e37f35341871385d9ae2209e1adcf98d"
+      },
+      "collection_state": "collected",
+      "measurements": {
+        "lines": {
+          "covered": 7935,
+          "total": 172825,
+          "percent": 4.591349631129756
+        },
+        "branches": {
+          "covered": 6182,
+          "total": 56868,
+          "percent": 10.870788492649645
+        }
+      },
+      "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+      "pytorch_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "coverage_image": "sha256:97e81068dd854e60dfc6d6fd5c215935681c6cc4d3e31b959f330a1402b803e9",
+      "harness_binary_hash": "64edbbe18b9d2295984d626280d7730de0d4ebf82b8f4d0af3844ca952caaed1",
+      "quality_status": "partial_warning"
+    }
+  },
+  "budget_decision": {
+    "budget_action": "retain_current",
+    "transition_kind": "none",
+    "no_change_reason": "no_eligible_recipient",
+    "current_allocation": [
+      {
+        "branch_id": "br_default",
+        "selector_slots": 128
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "selector_slots": 128
+      }
+    ],
+    "proposed_allocation": null,
+    "transfers": [],
+    "pre_boost_decision_ref": null
+  },
+  "materialization": {
+    "outcome": "not_attempted",
+    "candidate_harness_spec_ref": null,
+    "candidate_strategy_ref": null,
+    "candidate_harness_artifact_ref": null,
+    "failed_stage": null,
+    "warning_refs": [],
+    "failure_diagnostic_refs": []
+  },
+  "run_disposition": {
+    "value": "continue",
+    "disposition_reason": null,
+    "handoff_ref": null
+  }
+}

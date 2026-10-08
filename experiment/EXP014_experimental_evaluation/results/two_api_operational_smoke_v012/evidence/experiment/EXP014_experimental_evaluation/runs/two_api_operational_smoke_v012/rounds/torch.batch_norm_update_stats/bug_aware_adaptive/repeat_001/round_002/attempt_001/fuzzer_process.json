@@ -1,0 +1,1 @@
+{"state": "finished", "started_epoch": 1791448095.5089185, "initialization_included": true, "argv": ["/artifact/harness_binary", "/output/corpus", "-max_total_time=15", "-seed=1838236848", "-artifact_prefix=/output/candidates/"], "ended_epoch": 1791448113.8051407, "elapsed_seconds": 18.264141318002657, "returncode": 0}

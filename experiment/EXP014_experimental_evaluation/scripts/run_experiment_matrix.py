@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -22,6 +23,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from execution_semantics import text_output, validate_limits
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
@@ -40,7 +43,7 @@ ARTIFACT_BUILDER = REPOSITORY_ROOT / (
     "experiment/EXP011_bug_aware_harness_synthesis/scripts/"
     "build_harness_artifact.py"
 )
-RUNNER_VERSION = "0.6.0"
+RUNNER_VERSION = "0.8.0"
 FEEDBACK_CONTROLLER = REPOSITORY_ROOT / (
     "experiment/EXP012_adaptive_feedback/scripts/"
     "run_feedback_controller.py"
@@ -56,6 +59,9 @@ TERMINAL_TASK_STATUSES = {
     "completed_with_abnormal_events",
     "method_failed",
     "aborted_by_feedback",
+    "budget_incomplete",
+    "blocked_by_prior_failure",
+    "infrastructure_failed",
 }
 
 
@@ -390,6 +396,22 @@ def validate_matrix(matrix: Mapping[str, Any]) -> list[str]:
         value = execution.get(field)
         if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
             raise ConfigurationError(f"execution.{field} must be positive")
+    limits = require_object(execution.get("resource_limits", {"candidate_sample_limit": 64}), "execution.resource_limits")
+    threads = require_object(execution.get("thread_environment", {}), "execution.thread_environment")
+    if set(threads) - {"OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"} or any(
+        not isinstance(v, str) or not v.isdigit() or int(v) < 1 for v in threads.values()
+    ):
+        raise ConfigurationError("Explicit thread environment must contain positive thread counts")
+    unknown_limits = set(limits) - {"timeout", "rss_limit_mb", "max_len", "process_memory_mb", "candidate_sample_limit"}
+    if unknown_limits:
+        raise ConfigurationError(f"Unsupported execution resource limits: {sorted(unknown_limits)}")
+    normalized_limits = {"timeout": limits.get("timeout"), "rss_limit_mb": limits.get("rss_limit_mb"),
+                         "max_len": limits.get("max_len"), "process_memory_mb": limits.get("process_memory_mb"),
+                         "candidate_sample_limit": limits.get("candidate_sample_limit", 64)}
+    try:
+        validate_limits(normalized_limits)
+    except ValueError as exc:
+        raise ConfigurationError(str(exc)) from exc
 
     order_rows = execution.get("group_order_by_repeat")
     if not isinstance(order_rows, list):
@@ -529,7 +551,8 @@ def require_execution_ready(matrix: Mapping[str, Any]) -> None:
         environment.get("resource_profile_file_ref"),
         "resource profile",
     )
-    model_arguments(matrix)
+    if matrix.get('preparation', {}).get('mode', 'synthesize') != 'reuse_approved':
+        model_arguments(matrix)
     for entry in matrix["api_entries"]:
         api_profile(entry)
         verify_file_reference(
@@ -608,6 +631,55 @@ def evaluation_target_manifest(matrix: Mapping[str, Any]) -> Path:
     return path
 
 
+def frozen_knowledge_arguments(entry: Mapping[str, Any], matrix: Mapping[str, Any] | None = None) -> list[str]:
+    """Reuse the Builder's exact-input validator; never select Knowledge here."""
+    bindings = entry.get("knowledge_bindings")
+    if not isinstance(bindings, list) or not bindings:
+        raise ConfigurationError(
+            f"{entry['api_id']}: new preparation requires non-empty knowledge_bindings "
+            "(knowledge_id, schema_version, file_ref); legacy directory discovery is disabled"
+        )
+    name = "_matrix_harness_spec_input_validation"
+    if name not in sys.modules:
+        spec = importlib.util.spec_from_file_location(name, SPEC_BUILDER)
+        if spec is None or spec.loader is None:
+            raise ConfigurationError("Cannot load HarnessSpec input validator")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+    module = sys.modules[name]
+    profile, _ = api_profile(entry)
+    try:
+        ledger = repository_path(str(module.DEFAULTS["knowledge_review_ledger"]))
+        pinned = (matrix or {}).get("inputs", {}).get("shared_artifact_refs", {}).get("knowledge_review_ledger")
+        if pinned is not None:
+            ledger = repository_path(pinned["relative_path"])
+            if file_hash(ledger) != pinned["content_hash"]:
+                raise ConfigurationError("Frozen Knowledge review ledger hash mismatch")
+        reviews = module.load_approved_knowledge_reviews(ledger)
+        module.select_bound_knowledge(bindings, profile["target"]["framework"],
+                                      profile["target"]["python_api"], reviews)
+    except module.InputError as exc:
+        raise ConfigurationError(str(exc)) from exc
+    return ["--knowledge-review-ledger", str(ledger), *[argument for binding in bindings
+            for argument in ("--knowledge-binding", json.dumps(binding, sort_keys=True))]]
+
+
+def validate_target_knowledge_bindings(matrix: Mapping[str, Any], entry: Mapping[str, Any]) -> None:
+    manifest = load_json(evaluation_target_manifest(matrix))
+    matches = [item for item in manifest["api_target_sets"] if item["api_id"] == entry["api_id"]]
+    if len(matches) != 1:
+        raise ConfigurationError(f"Expected one target set for {entry['api_id']}")
+    target_set = matches[0]
+    refs = [ref for target in target_set["targets"] for ref in target["source_knowledge_refs"]]
+    refs += [item["knowledge_ref"] for item in target_set["excluded_knowledge"]]
+    pinned = {item["knowledge_id"]: item for item in entry["knowledge_bindings"]}
+    if {ref["knowledge_id"] for ref in refs} != set(pinned) or any(
+        ref != pinned.get(ref["knowledge_id"]) for ref in refs
+    ):
+        raise ConfigurationError("Target Manifest Knowledge references differ from frozen API knowledge_bindings")
+
+
 def helper_profile_set(matrix: Mapping[str, Any]) -> Path:
     """Resolve the exact Helper Profile set shared by all synthesis groups."""
     shared = require_object(
@@ -682,7 +754,24 @@ def round_adapter_argv(matrix: Mapping[str, Any], values: Mapping[str, Any]) -> 
     if matrix["coverage"]["enabled"]:
         scope_path = verify_file_reference(matrix["coverage"]["scope_file_ref"], "coverage scope")
         argv.extend(("--coverage-scope", str(scope_path)))
+    argv.extend(resource_limit_arguments(matrix))
     return argv
+
+
+def resource_limit_arguments(matrix: Mapping[str, Any]) -> list[str]:
+    execution = require_object(matrix.get("execution", {}), "execution")
+    if "resource_limits" not in execution:
+        return []
+    limits = require_object(execution["resource_limits"], "execution.resource_limits")
+    args: list[str] = []
+    for field, option in (("timeout", "--per-call-timeout-seconds"), ("rss_limit_mb", "--rss-limit-mb"),
+                          ("max_len", "--max-input-bytes"), ("process_memory_mb", "--process-memory-mb")):
+        value = limits.get(field)
+        if value is not None:
+            args.extend((option, str(value)))
+    if "candidate_sample_limit" in limits and limits["candidate_sample_limit"] is not None:
+        args.extend(("--candidate-sample-limit", str(limits["candidate_sample_limit"])))
+    return args
 
 
 def run_command(
@@ -690,6 +779,7 @@ def run_command(
     attempt_dir: Path,
     *,
     timeout_seconds: int | None = None,
+    environment: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     if not argv or not all(isinstance(item, str) and item for item in argv):
         raise ConfigurationError("Command argv must be a non-empty string array")
@@ -707,6 +797,7 @@ def run_command(
             capture_output=True,
             timeout=timeout_seconds,
             check=False,
+            env=None if environment is None else {**os.environ, **environment},
         )
         outcome = {
             "started_at": started_at,
@@ -736,11 +827,11 @@ def run_command(
             "launch_error": None,
         }
         (attempt_dir / "stdout.log").write_text(
-            exc.stdout or "",
+            text_output(exc.stdout),
             encoding="utf-8",
         )
         (attempt_dir / "stderr.log").write_text(
-            exc.stderr or "",
+            text_output(exc.stderr),
             encoding="utf-8",
         )
     except OSError as exc:
@@ -881,19 +972,23 @@ def run_builder_step(
                 f"Saved Builder output hash mismatch: {actual_hash} != {declared_hash}"
             )
         return path
+    if any(key.startswith(f'{step_name}_failed_') for key in step_state):
+        raise RunnerError(f'{step_name} has a terminal failed attempt; resume cannot replenish its method budget')
 
     attempt_number = 1 + sum(
         1 for key in step_state if key.startswith(f"{step_name}_failed_")
     )
     attempt_dir = log_root / step_name / f"attempt_{attempt_number:03d}"
-    while attempt_dir.exists():
-        attempt_number += 1
-        attempt_dir = log_root / step_name / f"attempt_{attempt_number:03d}"
     result_path = attempt_dir / "builder_result.json"
-    process = run_command(
-        [*argv, "--result-json", str(result_path)],
-        attempt_dir,
-    )
+    command = [*argv, '--result-json', str(result_path)]
+    if attempt_dir.exists():
+        if not result_path.is_file() or not (attempt_dir / 'process_result.json').is_file():
+            raise RunnerError(f'Interrupted {step_name} attempt cannot be retried with an unknown response budget')
+        if load_json(attempt_dir / 'command.json')['argv'] != command:
+            raise ImmutableConflict('Saved Builder command differs')
+        process = load_json(attempt_dir / 'process_result.json')
+    else:
+        process = run_command(command, attempt_dir)
     try:
         result = load_builder_result(result_path, step_name)
         if process["returncode"] != 0:
@@ -923,7 +1018,7 @@ def preflight(
     matrix: Mapping[str, Any],
     values: Mapping[str, Any],
     attempt_dir: Path,
-) -> None:
+) -> Path:
     template = matrix["execution"]["runner_adapters"]["preflight_argv_template"]
     result_path = attempt_dir / "adapter_result.json"
     process_path = attempt_dir / "process_result.json"
@@ -932,12 +1027,27 @@ def preflight(
         process = require_object(load_json(process_path), "saved preflight process")
         if process.get("returncode") != 0 or result.get("status") != "passed":
             raise RunnerError(f"Saved preflight failed: {result}")
-        return
+        return result_path
     argv = expand_argv(template, {**values, "result_json": result_path})
+    argv.extend(resource_limit_arguments(matrix))
     process = run_command(argv, attempt_dir)
+    if not result_path.is_file():
+        raise RunnerError(f"Preflight adapter produced no result (exit {process['returncode']}); see {attempt_dir / 'stderr.log'}")
     result = require_object(load_json(result_path), "preflight result")
     if process["returncode"] != 0 or result.get("status") != "passed":
         raise RunnerError(f"Preflight failed: {result}")
+    return result_path
+
+
+def repository_file_reference(path: Path) -> dict[str, str]:
+    resolved = path.resolve()
+    try:
+        relative = resolved.relative_to(REPOSITORY_ROOT.resolve())
+    except ValueError as exc:
+        raise RunnerError(f"Evidence file is outside the repository: {path}") from exc
+    if not resolved.is_file():
+        raise RunnerError(f"Evidence file does not exist: {path}")
+    return {"relative_path": relative.as_posix(), "content_hash": file_hash(resolved)}
 
 
 def default_branch_spec_hash(path: Path) -> str:
@@ -983,6 +1093,64 @@ def default_branch_strategy_hash(spec_path: Path, strategy_path: Path) -> str:
     return content_hash(defaults[0])
 
 
+def prepare_approved_group(matrix, entry, group_id, state_path, state, run_root, python):
+    sys.path.insert(0, str(SPEC_BUILDER.parent))
+    from budget_derivation import authorize
+    binding = entry.get('approved_inputs', {}).get(group_id)
+    if not isinstance(binding, dict):
+        raise ConfigurationError(f'Missing approved inputs for {entry["api_id"]}/{group_id}')
+    paths = {key: verify_file_reference(binding[key], key) for key in ('spec_file_ref', 'spec_review_file_ref', 'strategy_file_ref', 'strategy_review_file_ref')}
+    try:
+        authorize(paths['spec_review_file_ref'], paths['spec_file_ref'], 'spec')
+        authorize(paths['strategy_review_file_ref'], paths['strategy_file_ref'], 'strategy')
+    except ValueError as exc:
+        raise ConfigurationError(str(exc)) from exc
+    step = state['preparation'][entry['api_id']][group_id]
+    spec, plan = paths['spec_file_ref'], paths['strategy_file_ref']
+    expected = 'controlled_baseline' if group_id == 'structured_baseline' else 'bug_aware_static'
+    if load_json(spec)['identity']['spec_mode'] != expected or load_json(spec)['identity']['target_api'] != entry['api_id']:
+        raise ConfigurationError('Approved inputs are outside the frozen group/API scope')
+    spec_hash, plan_hash = default_branch_spec_hash(spec), default_branch_strategy_hash(spec, plan)
+    if group_id == 'bug_aware_static':
+        baseline = state['preparation'][entry['api_id']].get('structured_baseline', {})
+        if baseline.get('status') != 'success':
+            raise ConfigurationError('Approved static preparation requires successful baseline preparation')
+        if (spec_hash, plan_hash) != (baseline.get('default_branch_spec_hash'), baseline.get('default_branch_strategy_hash')):
+            raise ConfigurationError('Approved static default branch differs from approved baseline')
+    root = run_root / 'prepare' / safe_component(entry['api_id']) / group_id
+    artifact = run_builder_step(state_path=state_path, state=state, step_state=step, step_name='harness_artifact',
+        argv=[python, str(ARTIFACT_BUILDER), '--strategy-plan', str(plan), '--strategy-review', str(paths['strategy_review_file_ref']),
+              '--harness-spec-root', str(spec.parent), '--evaluation-target-manifest', str(evaluation_target_manifest(matrix)),
+              '--compile-config', str(verify_file_reference(entry['compile_profile_file_ref'], 'compile profile')),
+              '--output-root', str(root / 'harnesses')], log_root=root / 'attempts', output_reader=artifact_output_path)
+    preflight(matrix, {'harness_record': artifact, 'strategy_plan': plan, 'harness_spec': spec,
+                      'api_id': entry['api_id'], 'target_api': entry['api_id'], 'group_id': group_id}, root / 'attempts/preflight/attempt_001')
+    step.update(status='success', preparation_method='reuse_approved_not_new_synthesis', spec_path=str(spec), strategy_path=str(plan),
+                artifact_path=str(artifact), default_branch_spec_hash=spec_hash, default_branch_strategy_hash=plan_hash,
+                spec_authorization_path=str(paths['spec_review_file_ref']), strategy_authorization_path=str(paths['strategy_review_file_ref']),
+                preflight={'status': 'passed'})
+    persist_state(state_path, state)
+    return step
+
+
+def find_authorization(state, subject_path, kind):
+    sys.path.insert(0, str(SPEC_BUILDER.parent))
+    from budget_derivation import authorize, canonical
+    subject_record = load_json(subject_path)
+    matches = []
+    for ref in state.get('authorization_records', []):
+        path = verify_file_reference(ref, 'authorization')
+        record = load_json(path)
+        if record.get('subject', {}).get('content_hash') == canonical(subject_record):
+            try:
+                authorize(path, subject_path, kind)
+            except ValueError as exc:
+                raise ConfigurationError(str(exc)) from exc
+            matches.append(path)
+    if len(matches) > 1: raise ConfigurationError('Ambiguous exact authorization')
+    return matches[0] if matches else None
+
+
 def prepare_group(
     matrix: Mapping[str, Any],
     entry: Mapping[str, Any],
@@ -1013,6 +1181,8 @@ def prepare_group(
                 "default_branch_strategy_hash",
             )
         }
+        for key in ('spec_authorization_path', 'strategy_authorization_path'):
+            if key in static: triplet[key] = static[key]
         step_state.update(
             {
                 **triplet,
@@ -1023,6 +1193,9 @@ def prepare_group(
         )
         persist_state(state_path, state)
         return step_state
+
+    if matrix.get('preparation', {}).get('mode') == 'reuse_approved':
+        return prepare_approved_group(matrix, entry, group_id, state_path, state, run_root, python)
 
     mode = require_string(
         group.get("harness_spec_builder_mode"),
@@ -1049,6 +1222,7 @@ def prepare_group(
         canonical_strategy_args = [
             "--canonical-default-strategy",
             require_string(baseline.get("strategy_path"), "baseline strategy_path"),
+            '--canonical-default-strategy-review', require_string(baseline.get('strategy_authorization_path'), 'baseline Strategy authorization'),
         ]
 
     spec_path = run_builder_step(
@@ -1070,6 +1244,7 @@ def prepare_group(
             "--max-attempts",
             str(max_attempts),
             *canonical_spec_args,
+            *(frozen_knowledge_arguments(entry, matrix) if group_id == "bug_aware_static" else []),
             *model_args,
             "--output-root",
             str(operation_root / "harness_specs"),
@@ -1077,6 +1252,12 @@ def prepare_group(
         log_root=operation_root / "attempts",
         output_reader=lambda result: builder_output_path(result, "HarnessSpec Builder"),
     )
+
+    spec_authorization = find_authorization(state, spec_path, 'spec')
+    if spec_authorization is None:
+        step_state.update(status='awaiting_review', pending_subject=str(spec_path))
+        persist_state(state_path, state)
+        return step_state
 
     strategy_attempts = matrix["synthesis"]["strategy"][
         "maximum_completed_responses"
@@ -1091,6 +1272,7 @@ def prepare_group(
             str(STRATEGY_BUILDER),
             "--harness-spec",
             str(spec_path),
+            '--harness-spec-review', str(spec_authorization),
             "--max-attempts",
             str(strategy_attempts),
             *canonical_strategy_args,
@@ -1101,6 +1283,11 @@ def prepare_group(
         log_root=operation_root / "attempts",
         output_reader=strategy_output_path,
     )
+    strategy_authorization = find_authorization(state, strategy_path, 'strategy')
+    if strategy_authorization is None:
+        step_state.update(status='awaiting_review', pending_subject=str(strategy_path))
+        persist_state(state_path, state)
+        return step_state
 
     default_spec_hash = default_branch_spec_hash(spec_path)
     default_strategy_hash = default_branch_strategy_hash(spec_path, strategy_path)
@@ -1129,6 +1316,7 @@ def prepare_group(
             str(ARTIFACT_BUILDER),
             "--strategy-plan",
             str(strategy_path),
+            '--strategy-review', str(strategy_authorization),
             "--harness-spec-root",
             str(operation_root / "harness_specs"),
             "--evaluation-target-manifest",
@@ -1179,6 +1367,8 @@ def prepare_group(
             ),
             "default_branch_spec_hash": default_spec_hash,
             "default_branch_strategy_hash": default_strategy_hash,
+            'spec_authorization_path': str(spec_authorization),
+            'strategy_authorization_path': str(strategy_authorization),
         }
     )
     persist_state(state_path, state)
@@ -1193,34 +1383,18 @@ def prepare_all(
     run_root: Path,
     python: str,
 ) -> None:
+    # Check every API before the first paid generation. Historical execute/finalize
+    # paths do not enter this preparation-only gate.
     for entry in entries:
-        prepare_group(
-            matrix,
-            entry,
-            "structured_baseline",
-            state_path,
-            state,
-            run_root,
-            python,
-        )
-        prepare_group(
-            matrix,
-            entry,
-            "bug_aware_static",
-            state_path,
-            state,
-            run_root,
-            python,
-        )
-        prepare_group(
-            matrix,
-            entry,
-            "bug_aware_adaptive",
-            state_path,
-            state,
-            run_root,
-            python,
-        )
+        frozen_knowledge_arguments(entry, matrix)
+        validate_target_knowledge_bindings(matrix, entry)
+    for entry in entries:
+        for group_id in GROUP_IDS:
+            try:
+                prepare_group(matrix, entry, group_id, state_path, state, run_root, python)
+            except RunnerError as exc:
+                state['preparation'].setdefault(entry['api_id'], {}).setdefault(group_id, {}).update(status='failed', message=str(exc))
+                persist_state(state_path, state)
 
 
 def initial_corpus_record(entry: Mapping[str, Any]) -> Path:
@@ -1270,6 +1444,7 @@ def structured_round_result(path: Path) -> dict[str, Any]:
     status = result.get("status")
     if status not in {
         "completed",
+        "budget_incomplete",
         "target_or_framework_exit",
         "infrastructure_failure",
         "method_failure",
@@ -1302,6 +1477,8 @@ def active_triplet(state: dict[str, Any], task: Task) -> dict[str, Any]:
             key: prepared[key]
             for key in ("spec_path", "strategy_path", "artifact_path")
         }
+        for key in ('spec_authorization_path', 'strategy_authorization_path'):
+            if key in prepared: current[key] = prepared[key]
         current["status"] = "success"
         by_api[repeat_key] = current
     return require_object(current, "adaptive current triplet")
@@ -1335,7 +1512,11 @@ def materialize_selected_round(
     bundles: list[dict[str, Any]] = []
     direct_round_path: Path | None = None
     direct_bundle_path: Path | None = None
+    round_paths = []
+    bundle_paths = []
     for fragment in fragments:
+        if fragment.get('excluded_from_primary'):
+            continue
         result = require_object(fragment.get("adapter_result"), "fragment adapter_result")
         round_ref = result.get("round_record_file_ref")
         if round_ref is None:
@@ -1344,6 +1525,7 @@ def materialize_selected_round(
         direct_round_path = round_path
         record = require_object(load_json(round_path), "fragment round record")
         records.append(record)
+        round_paths.append(round_path)
         binding = result.get("candidate_bundle_binding")
         if binding is not None:
             bundle, bundle_path = resolve_artifact_binding(binding, "candidate_bundle_binding")
@@ -1351,12 +1533,35 @@ def materialize_selected_round(
             if bundle.get("record_type") != "candidate_bundle":
                 raise ConfigurationError("Candidate binding does not identify a Candidate Bundle")
             bundles.append(bundle)
+            bundle_paths.append(bundle_path)
     if not records or direct_round_path is None:
         raise ConfigurationError(f"No Fuzzing Round record is available for {task.key}")
     if len(records) == 1:
         return direct_round_path, direct_bundle_path
 
     selected = json.loads(json.dumps(records[-1]))
+    capture_rows = []
+    for record in records:
+        item = record["evidence"]["candidate_evidence"]
+        ref = item.get("capture_summary_file_ref")
+        summary = item.get("capture_summary")
+        if ref is not None and summary is not None:
+            capture_rows.append({"file_ref": ref, "capture_summary": summary})
+    if capture_rows:
+        counts = [r["capture_summary"]["counts"] for r in capture_rows]
+        complete_capture = all(c is not None for c in counts)
+        capture_limit = capture_rows[0]["capture_summary"]["limit_per_kind"]
+        if any(r["capture_summary"]["limit_per_kind"] != capture_limit for r in capture_rows):
+            raise ConfigurationError("Candidate capture limits differ across restarted attempts")
+        merged_counts = None
+        if complete_capture:
+            merged_counts = {key: sum(c[key] for c in counts) for key in
+                ("attempts", "saved", "failures", "exception_attempts", "oracle_attempts")}
+            merged_counts.update(limit_per_kind=capture_limit, complete=all(c["complete"] for c in counts))
+        selected["evidence"]["candidate_evidence"].update(
+            capture_summary={"sampling": "first_n_per_kind_per_process", "limit_per_kind": capture_limit,
+                             "counts": merged_counts, "state": "merged" if complete_capture else "unavailable_after_exit"},
+            capture_summary_file_ref=None, process_capture_summaries=capture_rows)
     selected["execution"]["started_at"] = records[0]["execution"]["started_at"]
     selected["execution"]["actual_duration_seconds"] = round(
         sum(float(item["execution"]["actual_duration_seconds"]) for item in records), 6
@@ -1371,6 +1576,38 @@ def materialize_selected_round(
         for ref in record["evidence"]["run_log_refs"]
     }
     selected["evidence"]["run_log_refs"] = [logs[key] for key in sorted(logs)]
+    selected['evidence']['process_fragment_refs'] = [file_reference(path) for path in round_paths]
+    snapshots = []
+    for record in records:
+        evidence = record['evidence'].get('runtime_snapshot')
+        if evidence and evidence['status'] == 'present':
+            path = verify_file_reference(evidence['location']['file_ref'], 'fragment snapshot')
+            snapshots.append(load_json(path))
+    if snapshots:
+        merged = json.loads(json.dumps(snapshots[-1]))
+        for snapshot in snapshots:
+            if any(snapshot[k] != merged[k] for k in ('artifact_id', 'generation_key', 'site_count', 'runtime_version', 'record_format_version')):
+                raise ConfigurationError('Cannot merge different instrumentation layouts')
+        for field in ('started_iterations', 'finished_iterations', 'unwound_iterations', 'invalid_site_records', 'export_failures'):
+            merged[field] = sum(s[field] for s in snapshots)
+        merged['site_counts'] = [sum(s['site_counts'][i] for s in snapshots) for i in range(merged['site_count'])]
+        complete = len(snapshots) == len(records) and all(s['snapshot_kind'] == 'final' for s in snapshots)
+        merged['snapshot_kind'] = 'final' if complete else 'periodic'
+        snapshot_path = operation_root / 'runtime_snapshot.json'
+        write_or_verify_immutable_json(snapshot_path, merged)
+        selected['evidence']['runtime_snapshot'] = {'status': 'present', 'snapshot_kind': merged['snapshot_kind'],
+            'staleness_iterations': 0 if complete else None,
+            'location': {'file_ref': file_reference(snapshot_path), 'artifact_ref': {'artifact_id': 'merged_snapshot_' + content_hash(merged)[:20], 'artifact_version': merged['record_format_version'], 'content_hash': content_hash(merged)}}}
+    budgets = [r['execution'].get('budget') for r in records]
+    if all(budgets):
+        measured = all(b['process_seconds'] is not None for b in budgets)
+        seconds = sum(b['process_seconds'] for b in budgets) if measured else None
+        planned = budgets[0]['planned_seconds']
+        selected['record_format_version'] = '1.1'
+        selected['schedule']['planned_duration_seconds'] = records[0]['schedule']['planned_duration_seconds']
+        selected['execution']['budget'] = {'planned_seconds': planned, 'process_seconds': seconds,
+            'remaining_seconds': max(0.0, planned - seconds) if measured else None,
+            'timing_status': 'merged', 'all_process_durations_measured': measured}
 
     bundle_path = None
     if bundles:
@@ -1389,7 +1626,7 @@ def materialize_selected_round(
         observations.sort(key=lambda item: item["candidate_id"])
         bundle_id = "cb_" + content_hash({"task_key": task.key, "candidates": candidates})[:20]
         bundle = {
-            "record_format_version": "1.0",
+            "record_format_version": "1.1",
             "record_type": "candidate_bundle",
             "identity": {"bundle_id": bundle_id, "artifact_version": 1},
             "round_context": {
@@ -1407,10 +1644,12 @@ def materialize_selected_round(
                 "producer_ref": runner_reference(),
                 "generated_at": selected["execution"]["ended_at"],
             },
+            'capture_summary': {'sampling': 'first_n_per_kind_per_process', 'limit_per_kind': bundles[-1].get('capture_summary', {}).get('limit_per_kind', 64), 'counts': None, 'state': 'merged'},
+            'process_capture_summaries': [{'bundle_file_ref': file_reference(path), 'capture_summary': b.get('capture_summary')} for path, b in zip(bundle_paths, bundles)],
         }
         bundle_path = operation_root / "candidate_bundle.json"
         write_or_verify_immutable_json(bundle_path, bundle)
-        selected["evidence"]["candidate_evidence"] = {
+        selected["evidence"]["candidate_evidence"].update({
             "status": "present",
             "bundle_ref": {
                 "artifact_id": bundle_id,
@@ -1419,7 +1658,7 @@ def materialize_selected_round(
             },
             "bundle_file_ref": file_reference(bundle_path),
             "observations": observations,
-        }
+        })
     selected["provenance"] = {
         "runner_artifact_ref": runner_reference(),
         "generated_at": selected["execution"]["ended_at"],
@@ -1427,6 +1666,31 @@ def materialize_selected_round(
     selected_path = operation_root / "fuzzing_round_record.json"
     write_or_verify_immutable_json(selected_path, selected)
     return selected_path, bundle_path
+
+def isolate_terminating_input(result, operation_root, corpus_path):
+    binding = result.get('candidate_bundle_binding')
+    if not binding:
+        return corpus_path
+    bundle, bundle_path = resolve_artifact_binding(binding, 'isolation candidate bundle')
+    candidates = [c for c in bundle['candidates'] if c['observation_kind'] in {'crash', 'sanitizer', 'resource_anomaly'}
+                  and Path(c['triggering_input']['file_ref']['relative_path']).parent.name == 'candidates']
+    hashes = {c['triggering_input']['file_ref']['content_hash'] for c in candidates}
+    if not hashes:
+        return corpus_path
+    corpus = load_json(corpus_path)
+    filtered = [f for f in corpus['files'] if f['file_ref']['content_hash'] not in hashes]
+    key = content_hash({'bundle': binding, 'corpus': file_reference(corpus_path)})[:20]
+    output = operation_root / ('isolated_corpus_' + key + '.json')
+    corpus['files'] = filtered
+    corpus['source']['parent_manifest_file_ref'] = file_reference(corpus_path)
+    corpus['provenance']['generator_ref'] = runner_reference()
+    write_or_verify_immutable_json(output, corpus)
+    write_or_verify_immutable_json(operation_root / ('isolation_' + key + '.json'), {
+        'candidate_bundle_file_ref': file_reference(bundle_path), 'parent_corpus_file_ref': file_reference(corpus_path),
+        'derived_corpus_file_ref': file_reference(output), 'excluded_input_hashes': sorted(hashes),
+        'reason': 'terminating_libfuzzer_artifact_only', 'original_evidence_deleted': False})
+    return output
+
 
 def execute_task(
     matrix: Mapping[str, Any],
@@ -1442,7 +1706,9 @@ def execute_task(
 
     prepared = active_triplet(state, task)
     if prepared.get("status") != "success":
-        raise RunnerError(f"Preparation is incomplete for {task.key}")
+        state['tasks'][task.key] = {'status': 'method_failed', 'seed': task.seed, 'terminal_at': utc_now(), 'message': 'Preparation failed or is awaiting review'}
+        persist_state(state_path, state)
+        return
 
     total_budget = matrix["execution"]["active_fuzzing_seconds_per_round"]
     original_corpus = prior_round_corpus(
@@ -1462,30 +1728,31 @@ def execute_task(
         if isinstance(existing, dict)
         else []
     )
-    infra_attempt = sum(
+    infra_attempt = (existing or {}).get('infrastructure_retry_count', sum(
         item.get("adapter_result", {}).get("status") == "infrastructure_failure"
         for item in fragments
-    )
-    process_restart = sum(
+    ))
+    process_restart = (existing or {}).get('restart_count', sum(
         item.get("adapter_result", {}).get("status") == "target_or_framework_exit"
         for item in fragments
-    )
+    ))
     if fragments and fragments[-1]["adapter_result"]["status"] == "target_or_framework_exit":
         last = fragments[-1]["adapter_result"]
         remaining = float(last["remaining_active_seconds"])
         _, current_corpus = resolve_artifact_binding(last.get("resume_corpus_binding"), "resume_corpus_binding")
     operation_root = run_root / "rounds" / task.key.replace(":", "/")
+    pending = existing.get('pending_attempt') if isinstance(existing, dict) else None
+    if pending:
+        remaining = float(pending['reserved_seconds'])
+        current_corpus = verify_file_reference(pending['corpus_file_ref'], 'pending start corpus')
 
     while True:
-        attempt_number = len(fragments) + 1
+        attempt_number = pending['attempt_number'] if pending else len(fragments) + 1
         attempt_dir, process_dir = round_attempt_paths(
             operation_root, attempt_number
         )
-        while attempt_dir.exists() or process_dir.exists():
-            attempt_number += 1
-            attempt_dir, process_dir = round_attempt_paths(
-                operation_root, attempt_number
-            )
+        if not pending and (attempt_dir.exists() or process_dir.exists()):
+            raise ImmutableConflict('Unregistered attempt exists; reconcile its operation identity instead of rerunning')
         result_path = attempt_dir / "adapter_result.json"
         values = {
             "api_id": task.api_id,
@@ -1508,12 +1775,30 @@ def execute_task(
             "attempt_dir": attempt_dir,
         }
         argv = round_adapter_argv(matrix, values)
+        operation_key = content_hash({'argv': argv, 'matrix': content_hash(matrix), 'corpus': file_reference(current_corpus)})
+        if pending and pending['operation_key'] != operation_key:
+            raise ImmutableConflict('Pending operation inputs changed')
+        if not pending:
+            pending = {'attempt_number': attempt_number, 'reserved_seconds': remaining,
+                       'corpus_file_ref': file_reference(current_corpus), 'operation_key': operation_key}
+            state['tasks'][task.key] = {'status': 'in_progress', 'seed': task.seed, 'fragments': fragments,
+                                       'pending_attempt': pending, 'restart_count': process_restart,
+                                       'infrastructure_retry_count': infra_attempt}
+            persist_state(state_path, state)
         coverage_enabled = matrix["coverage"]["enabled"]
-        process = run_command(
-            argv,
-            process_dir,
-            timeout_seconds=max(int(remaining) + (3600 if coverage_enabled else 120), 180),
-        )
+        process_path = process_dir / 'process_result.json'
+        if result_path.is_file() and process_path.is_file():
+            if load_json(process_dir / 'command.json')['argv'] != argv:
+                raise ImmutableConflict('Saved process command changed')
+            process = load_json(process_path)
+        elif process_dir.exists():
+            state['tasks'][task.key].update(status='infrastructure_failed', terminal_at=utc_now(), message='Interrupted operation lacks a complete result; budget is reserved, no automatic rerun')
+            persist_state(state_path, state)
+            return
+        else:
+            process = run_command(argv, process_dir,
+                timeout_seconds=max(int(remaining) + (3600 if coverage_enabled else 120), 180),
+                environment=matrix["execution"].get("thread_environment"))
         if not result_path.is_file():
             raise RunnerError(
                 f"Round adapter failed without structured result: {task.key}"
@@ -1524,17 +1809,20 @@ def execute_task(
             "process": process,
             "adapter_result": result,
         }
-        fragments.append(fragment)
+        if not fragments or fragments[-1]['attempt_number'] != attempt_number:
+            fragments.append(fragment)
         state["tasks"][task.key] = {
             "status": "in_progress",
             "seed": task.seed,
             "fragments": fragments,
             "updated_at": result["terminal_at"],
+            'pending_attempt': pending, 'restart_count': process_restart,
+            'infrastructure_retry_count': infra_attempt,
         }
         persist_state(state_path, state)
 
         status = result["status"]
-        if status == "completed":
+        if status in {"completed", "budget_incomplete"}:
             end_binding = result.get("round_end_corpus_binding")
             _, end_path = resolve_artifact_binding(
                 end_binding,
@@ -1547,13 +1835,16 @@ def execute_task(
             round_record_path, candidate_bundle_path = materialize_selected_round(
                 fragments, operation_root, task
             )
-            runtime_snapshot_ref = result.get("runtime_snapshot_file_ref")
+            selected_record = load_json(round_record_path)
+            runtime_snapshot_ref = selected_record.get('evidence', {}).get('runtime_snapshot', {}).get('location')
+            runtime_snapshot_ref = None if runtime_snapshot_ref is None else runtime_snapshot_ref['file_ref']
             runtime_snapshot_path = (
                 None if runtime_snapshot_ref is None
                 else verify_file_reference(runtime_snapshot_ref, "runtime snapshot")
             )
             state["tasks"][task.key] = {
                 "status": (
+                    'budget_incomplete' if status == 'budget_incomplete' else
                     "completed_with_abnormal_events"
                     if process_restart
                     else "completed"
@@ -1583,30 +1874,34 @@ def execute_task(
         if status == "infrastructure_failure":
             category = result.get("failure_category")
             if category not in retryable or infra_attempt >= maximum_infra:
-                raise RunnerError(
-                    f"Non-retryable or exhausted infrastructure failure "
-                    f"for {task.key}: {category!r}"
-                )
+                state['tasks'][task.key].update(status='infrastructure_failed', terminal_at=result['terminal_at'])
+                persist_state(state_path, state)
+                return
             infra_attempt += 1
+            for fragment in fragments:
+                fragment['excluded_from_primary'] = True
             current_corpus = original_corpus
             remaining = float(total_budget)
+            pending = None
             continue
 
         exhausted = process_restart >= maximum_restarts
         remaining = float(result["remaining_active_seconds"])
-        if exhausted or remaining <= 0:
+        if exhausted or remaining <= 0 or result.get('budget_timing_status') == 'unknown_budget_reserved_no_retry':
             end_binding = result.get("resume_corpus_binding")
             _, end_path = resolve_artifact_binding(end_binding, "resume_corpus_binding")
             round_record_path, candidate_bundle_path = materialize_selected_round(
                 fragments, operation_root, task
             )
-            runtime_snapshot_ref = result.get("runtime_snapshot_file_ref")
+            selected_record = load_json(round_record_path)
+            runtime_snapshot_ref = selected_record.get('evidence', {}).get('runtime_snapshot', {}).get('location')
+            runtime_snapshot_ref = None if runtime_snapshot_ref is None else runtime_snapshot_ref['file_ref']
             runtime_snapshot_path = (
                 None if runtime_snapshot_ref is None
                 else verify_file_reference(runtime_snapshot_ref, "runtime snapshot")
             )
             state["tasks"][task.key] = {
-                "status": "completed_with_abnormal_events",
+                "status": "completed_with_abnormal_events" if remaining <= 0 and result.get('budget_timing_status') == 'measured' else 'budget_incomplete',
                 "seed": task.seed,
                 "fragments": fragments,
                 "round_end_corpus_record": end_path.relative_to(REPOSITORY_ROOT).as_posix(),
@@ -1623,6 +1918,8 @@ def execute_task(
             resume_binding,
             "resume_corpus_binding",
         )
+        current_corpus = isolate_terminating_input(result, operation_root, current_corpus)
+        pending = None
 def harness_spec_reference(record: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "spec_id": record["identity"]["spec_id"],
@@ -1684,15 +1981,8 @@ def call_feedback_controller(
     arguments: Sequence[str],
     attempt_dir: Path,
     materialization_result: Path | None = None,
+    maximum_retries: int = 0,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    result_path = attempt_dir / "controller_result.json"
-    process_path = attempt_dir / "process_result.json"
-    if result_path.is_file() and process_path.is_file():
-        result = require_object(load_json(result_path), "saved Feedback result")
-        process = require_object(load_json(process_path), "saved Feedback process")
-        if process.get("returncode") not in {0, 3}:
-            raise RunnerError(f"Saved Feedback Controller call failed: {result}")
-        return result, process
     argv = [
         python,
         str(FEEDBACK_CONTROLLER),
@@ -1700,11 +1990,46 @@ def call_feedback_controller(
     ]
     if materialization_result is not None:
         argv.extend(["--materialization-result", str(materialization_result)])
+    maximum_attempts = maximum_retries + 1
+    attempts_root = attempt_dir / "attempts"
+    attempts_root.mkdir(parents=True, exist_ok=True)
+    prior = sorted(attempts_root.glob("attempt_[0-9][0-9][0-9]"))
+    legacy_result = attempt_dir / "controller_result.json"
+    legacy_process = attempt_dir / "process_result.json"
+    if legacy_result.exists() or legacy_process.exists():
+        prior = [attempt_dir, *prior]
+    for previous in prior:
+        result_path = previous / "controller_result.json"
+        process_path = previous / "process_result.json"
+        process = require_object(load_json(process_path), "saved Feedback process") if process_path.is_file() else None
+        result = require_object(load_json(result_path), "saved Feedback result") if result_path.is_file() else None
+        if process is not None and process.get("returncode") in {0, 3}:
+            if result is None:
+                raise RunnerError(f"Feedback Controller exited successfully without a result JSON; inspect {previous}")
+            if result.get("status") == "error":
+                raise RunnerError(f"Feedback Controller failed ({result.get('error_type')}): {result.get('message')}; logs: {previous}")
+            return result, process
+        if process is not None and result is not None:
+            raise RunnerError(f"Feedback Controller failed ({result.get('error_type', 'process_error')}): {result.get('message', result)}; logs: {previous}")
+        retryable = process is None or process.get("timed_out") is True or process.get("launch_error") is not None
+        if not retryable:
+            stderr = (previous / "stderr.log").read_text(encoding="utf-8", errors="replace") if (previous / "stderr.log").is_file() else ""
+            raise RunnerError(f"Feedback Controller failed with exit {process.get('returncode')}; {stderr[-2000:]}; logs: {previous}")
+    if len(prior) >= maximum_attempts:
+        raise RunnerError(f"Feedback Controller exhausted {maximum_attempts} bounded attempt(s); inspect {attempts_root}")
+    number = len(prior) + 1
+    current = attempts_root / f"attempt_{number:03d}"
+    result_path = current / "controller_result.json"
     argv.extend(["--result-json", str(result_path)])
-    process = run_command(argv, attempt_dir)
-    result = load_builder_result(result_path, "Feedback Controller")
+    process = run_command(argv, current)
+    if not result_path.is_file():
+        stderr = (current / "stderr.log").read_text(encoding="utf-8", errors="replace") if (current / "stderr.log").is_file() else ""
+        raise RunnerError(f"Feedback Controller returned {process.get('returncode')} without a result JSON: {stderr[-2000:]}; logs: {current}")
+    result = require_object(load_json(result_path), "Feedback Controller result")
+    if result.get("status") == "error":
+        raise RunnerError(f"Feedback Controller failed ({result.get('error_type')}): {result.get('message')}; logs: {current}")
     if process["returncode"] not in {0, 3}:
-        raise RunnerError(f"Feedback Controller failed: {result}")
+        raise RunnerError(f"Feedback Controller failed with exit {process['returncode']}: {result}; logs: {current}")
     return result, process
 
 
@@ -1788,10 +2113,12 @@ def apply_feedback_after_round(
         decision_paths,
         feedback_root,
     )
+    feedback_retries = matrix["failure_handling"]["infrastructure_retry"]["maximum_retries_per_operation"]
     initial, _ = call_feedback_controller(
         python=python,
         arguments=common,
         attempt_dir=feedback_root / "controller_initial",
+        maximum_retries=feedback_retries,
     )
 
     if initial.get("status") == "decision_recorded":
@@ -1817,6 +2144,7 @@ def apply_feedback_after_round(
     candidate_strategy: Path | None = None
     candidate_artifact: Path | None = None
     failed_stage = "harness_spec_validation"
+    preflight_result_path: Path | None = None
     try:
         candidate_spec = run_builder_step(
             state_path=state_path,
@@ -1836,6 +2164,13 @@ def apply_feedback_after_round(
             log_root=materialization_root / "attempts",
             output_reader=lambda result: builder_output_path(result, "HarnessSpec Builder"),
         )
+        sys.path.insert(0, str(SPEC_BUILDER.parent))
+        from budget_derivation import create as create_certificate, validate as validate_certificate
+        spec_certificate_path = materialization_root / 'spec_derivation_certificate.json'
+        spec_certificate = create_certificate('spec', candidate_spec, triplet['spec_path'], triplet['strategy_path'],
+            triplet['spec_authorization_path'], triplet['strategy_authorization_path'], request_path)
+        write_or_verify_immutable_json(spec_certificate_path, spec_certificate)
+        validate_certificate(spec_certificate, spec_certificate_path, candidate_spec, 'spec')
         failed_stage = "strategy_rebinding"
         candidate_strategy = run_builder_step(
             state_path=state_path,
@@ -1847,6 +2182,7 @@ def apply_feedback_after_round(
                 str(STRATEGY_BUILDER),
                 "--harness-spec",
                 str(candidate_spec),
+                '--harness-spec-review', str(spec_certificate_path),
                 "--rebind-source-spec",
                 triplet["spec_path"],
                 "--rebind-from-strategy",
@@ -1857,6 +2193,11 @@ def apply_feedback_after_round(
             log_root=materialization_root / "attempts",
             output_reader=strategy_output_path,
         )
+        strategy_certificate_path = materialization_root / 'strategy_derivation_certificate.json'
+        strategy_certificate = create_certificate('strategy', candidate_strategy, triplet['spec_path'], triplet['strategy_path'],
+            triplet['spec_authorization_path'], triplet['strategy_authorization_path'], request_path, candidate_spec)
+        write_or_verify_immutable_json(strategy_certificate_path, strategy_certificate)
+        validate_certificate(strategy_certificate, strategy_certificate_path, candidate_strategy, 'strategy')
         compile_path = verify_file_reference(
             entry.get("compile_profile_file_ref"),
             f"api_entries[{entry['api_id']}].compile_profile_file_ref",
@@ -1873,6 +2214,7 @@ def apply_feedback_after_round(
                 str(ARTIFACT_BUILDER),
                 "--strategy-plan",
                 str(candidate_strategy),
+                '--strategy-review', str(strategy_certificate_path),
                 "--harness-spec-root",
                 str(materialization_root / "harness_specs"),
                 "--evaluation-target-manifest",
@@ -1886,7 +2228,7 @@ def apply_feedback_after_round(
             output_reader=artifact_output_path,
         )
         failed_stage = "preflight_execution"
-        preflight(
+        preflight_result_path = preflight(
             matrix,
             {
                 "api_id": task.api_id,
@@ -1898,7 +2240,7 @@ def apply_feedback_after_round(
             },
             materialization_root / "attempts" / "preflight" / "attempt_001",
         )
-    except RunnerError as exc:
+    except (RunnerError, ValueError, KeyError) as exc:
         diagnostic_path = materialization_root / "failure_diagnostic.json"
         diagnostic = {
             "diagnostic_format_version": "1.0",
@@ -1949,6 +2291,13 @@ def apply_feedback_after_round(
             "failed_stage": None,
             "warning_refs": [],
             "failure_diagnostic_refs": [],
+            "validation_evidence": {
+                "feedback_request_file_ref": repository_file_reference(request_path),
+                "harness_spec_file_ref": repository_file_reference(candidate_spec),
+                "strategy_plan_file_ref": repository_file_reference(candidate_strategy),
+                "harness_artifact_file_ref": repository_file_reference(candidate_artifact),
+                "preflight_result_file_ref": repository_file_reference(preflight_result_path),
+            },
         }
 
     materialization_result = {
@@ -1964,6 +2313,7 @@ def apply_feedback_after_round(
         arguments=common,
         attempt_dir=feedback_root / "controller_final",
         materialization_result=materialization_result_path,
+        maximum_retries=feedback_retries,
     )
     if final.get("status") != "decision_recorded":
         raise RunnerError(f"Feedback decision was not recorded: {final}")
@@ -1976,6 +2326,8 @@ def apply_feedback_after_round(
             "spec_path": str(candidate_spec),
             "strategy_path": str(candidate_strategy),
             "artifact_path": str(candidate_artifact),
+            'spec_authorization_path': str(spec_certificate_path),
+            'strategy_authorization_path': str(strategy_certificate_path),
         }
     disposition = final.get("run_disposition")
     step_state.update(
@@ -2003,6 +2355,12 @@ def execute_all(
 ) -> None:
     entry_by_id = {entry["api_id"]: entry for entry in entries}
     for task in build_tasks(matrix, entries):
+        if task.round_index > 1:
+            previous_key = ':'.join((task.api_id, task.group_id, task.canonical_repeat_id, f'round_{task.round_index - 1:03d}'))
+            if state['tasks'].get(previous_key, {}).get('status') not in {'completed', 'completed_with_abnormal_events'}:
+                state['tasks'][task.key] = {'status': 'blocked_by_prior_failure', 'seed': task.seed, 'terminal_at': utc_now(), 'blocked_by': previous_key}
+                persist_state(state_path, state)
+                continue
         if task.group_id == "bug_aware_adaptive":
             repeat_state = (
                 state.get("feedback", {})
@@ -2028,6 +2386,8 @@ def execute_all(
             state,
             run_root,
         )
+        if state['tasks'][task.key]['status'] not in {'completed', 'completed_with_abnormal_events'}:
+            continue
         apply_feedback_after_round(
             matrix,
             entry_by_id[task.api_id],
@@ -2143,6 +2503,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--api", action="append", default=[])
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument('--approval-record', type=Path, action='append', default=[], help='Exact external approval for a previously generated subject; never a repair opportunity.')
     args = parser.parse_args(argv)
 
     try:
@@ -2188,6 +2549,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             matrix_path,
             args.resume,
         )
+        selection = [entry['api_id'] for entry in entries]
+        if 'selected_api_ids' in state and state['selected_api_ids'] != selection:
+            raise ImmutableConflict('Resume cannot change the selected task set')
+        state['selected_api_ids'] = selection
+        for path in args.approval_record:
+            ref = repository_file_reference(path)
+            if ref not in state.setdefault('authorization_records', []):
+                state['authorization_records'].append(ref)
+        persist_state(state_path, state)
 
         if args.phase == "prepare":
             prepare_all(

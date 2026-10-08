@@ -19,6 +19,15 @@ SCOPE = ROOT / "experiment/EXP014_experimental_evaluation/configs/coverage_scope
 
 
 class CoverageReplayTests(unittest.TestCase):
+    def test_render_summary_supports_approved_artifact_reuse(self) -> None:
+        record = {"matrix_id": "pilot", "analysis_id": "analysis:test", "analysis_cutoff_at": "2026-10-08T00:00:00Z",
+            "counts": {"api_count": 0, "round_record_count": 0, "attrited_task_count": 0,
+                       "unresolved_case_or_cluster_count": 0, "coverage_present_round_count": 0,
+                       "coverage_warning_round_count": 0, "coverage_partial_failure_round_count": 0},
+            "rq_summary": {"rq1": {"RQ1_M1_E2E_HARNESS_RATE": {"applicable": False, "rate": None,
+                "success_count": None, "selected_api_count": 0}, "RQ1_M2_OBSERVATION_REACH_RATE": {"computable_api_count": 0, "per_api": {}}}}}
+        self.assertIn("not applicable (approved artifact reuse)", analyze_experiment_results.render_summary(record, []))
+
     def test_scope_requires_pinned_image(self) -> None:
         valid = coverage_replay.load_scope(SCOPE)
         self.assertTrue(valid["coverage_image"].startswith("sha256:"))
@@ -80,13 +89,14 @@ class CoverageReplayTests(unittest.TestCase):
             }
             summary_path.write_text(json.dumps(summary), encoding="utf-8")
             record_path = root / "round.json"
-            record_path.write_text(json.dumps({"evidence": {"coverage_summary": {
+            record = {"evidence": {"coverage_summary": {
                 "status": "present",
                 "location": {
                     "file_ref": {"relative_path": "coverage_summary.json", "content_hash": analyzer.file_hash(summary_path)},
                     "artifact_ref": {"content_hash": analyzer.file_hash(summary_path)},
                 },
-            }}}), encoding="utf-8")
+            }}}
+            record_path.write_text(json.dumps(record), encoding="utf-8")
             round_result = analyzer.RoundResult(
                 "round1", "torch.matmul", "structured_baseline", "repeat_001", 1,
                 {}, {}, "artifact", str(record_path), None,
@@ -101,6 +111,15 @@ class CoverageReplayTests(unittest.TestCase):
                 profile.write_bytes(b"tampered")
                 with self.assertRaises(analyzer.InputError):
                     analyzer.coverage_diagnostics([round_result], matrix)
+                profile.write_bytes(b"profile fixture")
+                summary.update(quality_status="partial_failure", profile_hash=None, measurements=None)
+                summary_path.write_text(json.dumps(summary), encoding="utf-8")
+                record["evidence"]["coverage_summary"]["location"]["file_ref"]["content_hash"] = analyzer.file_hash(summary_path)
+                record["evidence"]["coverage_summary"]["location"]["artifact_ref"]["content_hash"] = analyzer.file_hash(summary_path)
+                record_path.write_text(json.dumps(record), encoding="utf-8")
+                partial = analyzer.coverage_diagnostics([round_result], matrix)[0]
+                self.assertEqual(partial["status"], "partial_failure")
+                self.assertIsNone(partial["lines_covered"])
 
 
 if __name__ == "__main__":

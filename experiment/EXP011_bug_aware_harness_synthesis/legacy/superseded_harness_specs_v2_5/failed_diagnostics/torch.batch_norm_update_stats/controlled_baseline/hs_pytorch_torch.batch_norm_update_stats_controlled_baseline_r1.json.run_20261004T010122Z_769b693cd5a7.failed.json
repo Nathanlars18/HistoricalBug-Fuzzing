@@ -1,0 +1,8 @@
+{
+  "builder_version": "harness_spec_builder_v0.13",
+  "generation_run_id": "run_20261004T010122Z_769b693cd5a7",
+  "generated_at": "2026-10-04T01:02:20.964802Z",
+  "errors": [
+    "ValidationError: Default branch cannot cite or summarize Knowledge"
+  ]
+}

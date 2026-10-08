@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Harness Artifact Record Schema v1.2",
+  "title": "Harness Artifact Record Schema v1.3",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -16,7 +16,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "1.2"
+      "enum": ["1.2", "1.3"]
     },
     "record_type": {
       "const": "harness_artifact"
@@ -54,6 +54,19 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {"schema_version": {"const": "1.3"}},
+        "required": ["schema_version"]
+      },
+      "then": {
+        "properties": {
+          "identity": {"required": ["source_generation_key"]},
+          "source_context": {"required": ["observability"]},
+          "provenance": {"required": ["build_request"]}
+        }
+      }
+    },
     {
       "if": {
         "properties": {
@@ -285,6 +298,9 @@
         },
         "generation_key": {
           "$ref": "#/$defs/sha256"
+        },
+        "source_generation_key": {
+          "$ref": "#/$defs/sha256"
         }
       }
     },
@@ -297,6 +313,67 @@
       "properties": {
         "strategy_revision_ref": {
           "$ref": "#/$defs/strategy_revision_reference"
+        },
+        "strategy_review_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/external_review_reference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "runner_observation_bindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "source_branch_id",
+              "spec_element_id",
+              "runner_events",
+              "capability_scope",
+              "subject_refs",
+              "observe_at"
+            ],
+            "properties": {
+              "source_branch_id": {
+                "type": "string"
+              },
+              "spec_element_id": {
+                "type": "string"
+              },
+              "runner_events": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "capability_scope": {
+                "type": "string"
+              },
+              "subject_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "observe_at": {
+                "const": "on_target_api_termination"
+              }
+            }
+          }
+        },
+        "observability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["condition_scope", "snapshot_scope", "exception_scope", "exception_text_policy"],
+          "properties": {
+            "condition_scope": {"$ref": "#/$defs/non_empty_string"},
+            "snapshot_scope": {"$ref": "#/$defs/non_empty_string"},
+            "exception_scope": {"$ref": "#/$defs/non_empty_string"},
+            "exception_text_policy": {"$ref": "#/$defs/non_empty_string"}
+          }
         }
       }
     },
@@ -403,6 +480,9 @@
             "target_property",
             "activation_target",
             "oracle_requirement",
+            "target_condition",
+            "behavior_observation",
+            "behavior_check",
             "failure_handler"
           ]
         },
@@ -1041,6 +1121,22 @@
         },
         "working_tree_diff_ref": {
           "$ref": "#/$defs/nullable_file_reference"
+        },
+        "build_request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["compile_profile_ref", "dependency_refs", "environment_identity", "strategy_review_ref"],
+          "properties": {
+            "compile_profile_ref": {"$ref": "#/$defs/nullable_artifact_reference"},
+            "dependency_refs": {"type": "array", "items": {"$ref": "#/$defs/file_reference"}},
+            "environment_identity": {"$ref": "#/$defs/nullable_non_empty_string"},
+            "strategy_review_ref": {
+              "anyOf": [
+                {"$ref": "#/$defs/external_review_reference"},
+                {"type": "null"}
+              ]
+            }
+          }
         }
       },
       "allOf": [
@@ -1071,6 +1167,38 @@
           }
         }
       ]
+    },
+    "external_review_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_version",
+        "content_hash",
+        "relative_path"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "artifact_version": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/positive_integer"
+            },
+            {
+              "$ref": "#/$defs/non_empty_string"
+            }
+          ]
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "relative_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }

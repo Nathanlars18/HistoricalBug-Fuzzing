@@ -1,0 +1,9 @@
+{
+  "policy_id": "reviewed_budget_only_derivation",
+  "policy_version": "1.0",
+  "allowed_change_scopes": ["budget_allocation"],
+  "authorization_kind": "machine_verified_derivation_not_human_approval",
+  "requires_exact_reviewed_parent": true,
+  "requires_unchanged_implementation": true,
+  "requires_feedback_request": true
+}

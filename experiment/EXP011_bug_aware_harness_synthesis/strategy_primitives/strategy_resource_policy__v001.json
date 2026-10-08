@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "bounded_cpu_tensor_scalar_v001",
+  "tensor": {
+    "ranks": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "maximum_fixed_dimension": 16,
+    "maximum_fuzz_dimension_choices": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "minimum_fuzz_dimension_choices": [
+      0,
+      1
+    ],
+    "dtypes": [
+      "float32",
+      "int64",
+      "bool"
+    ],
+    "fill_modes": [
+      "zero",
+      "fuzz_numeric",
+      "fuzz_sign"
+    ],
+    "fill_granularity": "one uniform scalar per tensor; not elementwise data coverage",
+    "numeric_fill_range": [
+      -8,
+      8
+    ]
+  },
+  "scalar": {
+    "floating": "256 byte-derived points in finite specified interval; degenerate interval is fixed",
+    "integer": "multi-byte modulo into specified signed int64 interval; not distribution-uniform",
+    "boolean": "one byte bit"
+  },
+  "interpretation": "Resource bounds, not API facts. Exact same policy must be referenced by paired baseline/static plans. This policy does not promise exhaustive input coverage."
+}

@@ -1,0 +1,27 @@
+{
+  "run_id": "harness_generation_20261007T065246Z_9b053167c33a",
+  "generator_id": "build_harness_artifact",
+  "generator_version": "0.11.0",
+  "started_at": "2026-10-07T06:52:46.675700Z",
+  "finished_at": "2026-10-07T06:52:47.867681Z",
+  "results": [
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r003.json",
+      "status": "preflight_passed",
+      "source_sha256": "1fb76d6cc5e18859b0f2c6962ae031398afd53871415a3593ab5952e741f60c3",
+      "materialized_steps": 5,
+      "instrumentation_sites": 9,
+      "compile_status": "not_run",
+      "artifact_path": null
+    },
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r003.json",
+      "status": "preflight_passed",
+      "source_sha256": "bacd7c80498b7259f20171cbaa1cde73efc987309c62a6034923b3610d8c9bc3",
+      "materialized_steps": 4,
+      "instrumentation_sites": 8,
+      "compile_status": "not_run",
+      "artifact_path": null
+    }
+  ]
+}

@@ -1,0 +1,1427 @@
+{
+  "runner_version": "0.8.0",
+  "matrix_id": "pytorch_2_10_operational_smoke_v012",
+  "matrix_content_hash": "dcaafa6d6131e8bc7c82b6cdcd18ce893d11286c774472ffd251e10d8cf12db4",
+  "matrix_file_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v012.json",
+    "content_hash": "15350e377102aada1894f019fc70daebbd15a553dc0375ac422607db1ad1641c"
+  },
+  "created_at": "2026-10-08T08:23:34Z",
+  "updated_at": "2026-10-08T08:33:48Z",
+  "preparation": {
+    "torch.batch_norm_update_stats": {
+      "structured_baseline": {
+        "harness_artifact": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/structured_baseline/harnesses/pytorch/torch_batch_norm_update_stats/controlled_baseline/ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3/harness_artifact.json",
+          "output_file_hash": "a2e28a1f663afe4026ea7a5adba1717802e7278f65a795b394cdbc970a7fb608",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/structured_baseline/attempts/harness_artifact/attempt_001",
+          "finished_at": "2026-10-08T08:23:46Z"
+        },
+        "status": "success",
+        "preparation_method": "reuse_approved_not_new_synthesis",
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r4.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r003.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/structured_baseline/harnesses/pytorch/torch_batch_norm_update_stats/controlled_baseline/ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3/harness_artifact.json",
+        "default_branch_spec_hash": "f9d3700974c0d5314a9ecd439ced6d20400f1036e983dd94a5bf0026fa478b91",
+        "default_branch_strategy_hash": "f205331c25119411e5f0b52f0955b0fe53d67424ac226d637e0a03f056056890",
+        "spec_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r4__review_r1.json",
+        "strategy_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3__review_r1.json",
+        "preflight": {
+          "status": "passed"
+        }
+      },
+      "bug_aware_static": {
+        "harness_artifact": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/bug_aware_static/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_static/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_0def3d5da005/harness_artifact.json",
+          "output_file_hash": "aab5eaf2dd4d120c782f7804c42d70803439ac19c76a13d517125fc809673f20",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/bug_aware_static/attempts/harness_artifact/attempt_001",
+          "finished_at": "2026-10-08T08:24:00Z"
+        },
+        "status": "success",
+        "preparation_method": "reuse_approved_not_new_synthesis",
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r002.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/bug_aware_static/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_static/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_0def3d5da005/harness_artifact.json",
+        "default_branch_spec_hash": "f9d3700974c0d5314a9ecd439ced6d20400f1036e983dd94a5bf0026fa478b91",
+        "default_branch_strategy_hash": "f205331c25119411e5f0b52f0955b0fe53d67424ac226d637e0a03f056056890",
+        "spec_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6__review_r1.json",
+        "strategy_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2__review_r1.json",
+        "preflight": {
+          "status": "passed"
+        }
+      },
+      "bug_aware_adaptive": {
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r002.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/bug_aware_static/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_static/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_0def3d5da005/harness_artifact.json",
+        "default_branch_spec_hash": "f9d3700974c0d5314a9ecd439ced6d20400f1036e983dd94a5bf0026fa478b91",
+        "default_branch_strategy_hash": "f205331c25119411e5f0b52f0955b0fe53d67424ac226d637e0a03f056056890",
+        "spec_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6__review_r1.json",
+        "strategy_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2__review_r1.json",
+        "status": "success",
+        "reuse_source_group": "bug_aware_static",
+        "reused_exact_triplet_hash": "326df6443df94dcc0a278d924e9bd12bf8ce66effcce3c6dc9a03d02263f03a9"
+      }
+    },
+    "torch.nn.functional.cosine_embedding_loss": {
+      "structured_baseline": {
+        "harness_artifact": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/structured_baseline/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r3_2a90c4c4502e/harness_artifact.json",
+          "output_file_hash": "698cb1310170bead2a7b3d3ddbeafd69068a507dbdb854d52512a748294cbc3a",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/structured_baseline/attempts/harness_artifact/attempt_001",
+          "finished_at": "2026-10-08T08:24:13Z"
+        },
+        "status": "success",
+        "preparation_method": "reuse_approved_not_new_synthesis",
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r3.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r003.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/structured_baseline/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r3_2a90c4c4502e/harness_artifact.json",
+        "default_branch_spec_hash": "7b1d398ff6dd0724fe3e0845ce28c5089132653ac3fbf208b44227e952fc8a4d",
+        "default_branch_strategy_hash": "1e07b6154eb6216500dae8aed616b8a50fe043f7098f120f13a08bc2dfb3a540",
+        "spec_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r3__review_r1.json",
+        "strategy_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r3__review_r1.json",
+        "preflight": {
+          "status": "passed"
+        }
+      },
+      "bug_aware_static": {
+        "harness_artifact": {
+          "status": "success",
+          "output_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/bug_aware_static/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2_1db0a08e49f6/harness_artifact.json",
+          "output_file_hash": "ecc5c22f91ce853cc5b0e17a775b962a577527ad3826b31e7a11a6439bd43721",
+          "attempt_dir": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/bug_aware_static/attempts/harness_artifact/attempt_001",
+          "finished_at": "2026-10-08T08:24:26Z"
+        },
+        "status": "success",
+        "preparation_method": "reuse_approved_not_new_synthesis",
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r002.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/bug_aware_static/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2_1db0a08e49f6/harness_artifact.json",
+        "default_branch_spec_hash": "7b1d398ff6dd0724fe3e0845ce28c5089132653ac3fbf208b44227e952fc8a4d",
+        "default_branch_strategy_hash": "1e07b6154eb6216500dae8aed616b8a50fe043f7098f120f13a08bc2dfb3a540",
+        "spec_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4__review_r1.json",
+        "strategy_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2__review_r1.json",
+        "preflight": {
+          "status": "passed"
+        }
+      },
+      "bug_aware_adaptive": {
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r002.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/bug_aware_static/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2_1db0a08e49f6/harness_artifact.json",
+        "default_branch_spec_hash": "7b1d398ff6dd0724fe3e0845ce28c5089132653ac3fbf208b44227e952fc8a4d",
+        "default_branch_strategy_hash": "1e07b6154eb6216500dae8aed616b8a50fe043f7098f120f13a08bc2dfb3a540",
+        "spec_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4__review_r1.json",
+        "strategy_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2__review_r1.json",
+        "status": "success",
+        "reuse_source_group": "bug_aware_static",
+        "reused_exact_triplet_hash": "17c78855bad747a25074fc960f1865edcc0544d8810ce66ee3ba9cd6dc0c2507"
+      }
+    }
+  },
+  "tasks": {
+    "torch.batch_norm_update_stats:structured_baseline:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 1575786059,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:24:29Z",
+            "finished_at": "2026-10-08T08:24:58Z",
+            "elapsed_seconds": 29.224840132999816,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:24:47.963087Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/budget_evidence.json",
+              "content_hash": "b24643f7a0f7ffc20c2b2da2504bdbcdac83e2332e1595e7d17334651be3d33d"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/container_state.json",
+              "content_hash": "5788abbeb31ff465aaa3e8fafed61c1cbda334260ad761eeddf2e4eeb7799817"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/execution_command.json",
+              "content_hash": "111deb0d266aef1f7d4e548512b87ef3da77a7962ebdbf3c331378ac262ee9ff"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_6250992d03d565e1",
+                "artifact_version": 1,
+                "content_hash": "aba6d4216eda8e704bd1950b14e9ee0d867c6b445872f35fd5c97ea6e6ec4df1"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "da569b87d0794ea9ed98fca71c14fe62c02e1c1ae0e0fb59b5f798af92fa4495"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "803ce82ef2ff2a3c871544c9055354fee1f08d2fa4283172f45e2a6a2b9e0a21"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "32401cefd260faa4fd267cd49a0ca2b816340b21bf9a0f8d5dceb02b2fff2a67"
+            },
+            "candidate_bundle_binding": null
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:24:47.963087Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": null
+    },
+    "torch.batch_norm_update_stats:structured_baseline:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1838236848,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:24:58Z",
+            "finished_at": "2026-10-08T08:25:27Z",
+            "elapsed_seconds": 29.231077525997534,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:25:17.459019Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/budget_evidence.json",
+              "content_hash": "121d068dcad1967cdb0104ff903e3ab197de19a5ff1fb17a7eae3f34ebeebe86"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/container_state.json",
+              "content_hash": "1f7464dd8b96d688e9f159bc2c9a4fec99cc71c5e2f4875f1bc26969c07f1158"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/execution_command.json",
+              "content_hash": "8c6cff9834b0ee49cd9a96e6dfe83b95c8e442f355b1803645372cc41ec8c302"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_f6a3bbcb2b3e2b2e",
+                "artifact_version": 1,
+                "content_hash": "b91f95390865e3472af2478542252ed990ad1e4647b8ed214b685da4ac3db41b"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "13a2e4e9924913e0f53686ee7d2098743e8e75956a61206e6b010e2073c8c492"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "1ba8a194e3bd0e52da78828277ce3f5d5b1dd6615a6c5e008fd6d7deabc2541d"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "e8b6aa9538aa24ef57c3fa73855515e658557cb0c8810e70e1f3e7d7c190fb2f"
+            },
+            "candidate_bundle_binding": null
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:25:17.459019Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": null
+    },
+    "torch.batch_norm_update_stats:structured_baseline:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 482265301,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:25:27Z",
+            "finished_at": "2026-10-08T08:25:56Z",
+            "elapsed_seconds": 29.095044142995903,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:25:46.718723Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/budget_evidence.json",
+              "content_hash": "57775e14eb4a4fd495c3fe56e745fa54c5830929a7ec166a93b86456c9588246"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/container_state.json",
+              "content_hash": "b981e2767bb6165b63138d3492c83a33d8584fdff2f4e656960da7fe6da710fa"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/execution_command.json",
+              "content_hash": "ff9ad2d01c1eaa9598bfdea61fa86e011842616093428af255cdc2771e05bc6f"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_363057499e1f7601",
+                "artifact_version": 1,
+                "content_hash": "6b39b39975e886d2f3d77c1e65924ad62d0f0985fa211f1f3f21cad7fdfc763f"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "11de97022c20e8e4750f83cc9ad09a52002368b34bce86a427623d52c0b3f326"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "dbc3f4e40cdf479e63cef5df4a1803f51026b06611d7b9a9430764b4d1e6e51d"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "2abd28f9c91a545949073e7d0be4e33a91203765b4ae4db569b3ef6870e925c0"
+            },
+            "candidate_bundle_binding": null
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:25:46.718723Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": null
+    },
+    "torch.batch_norm_update_stats:bug_aware_static:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 1575786059,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:25:56Z",
+            "finished_at": "2026-10-08T08:26:30Z",
+            "elapsed_seconds": 33.93545545500092,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:26:15.935646Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/budget_evidence.json",
+              "content_hash": "479455a18366b7512ee1fe0855c8f3e2b5d22d8b1e21d6d5a0e61a3e4bec9f83"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/container_state.json",
+              "content_hash": "10aa3995dcb1a6cf425243bb283ebf2c6e752e6d533fe22b0a139ca7da17ab1f"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/execution_command.json",
+              "content_hash": "e29632a9749d70b828764e12207b7d2c76926cc50542de4d0b9b9db1ada811f4"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_98a96c60fe34b572",
+                "artifact_version": 1,
+                "content_hash": "9c704d8df9705cee6817c594a9837099e4ec1cb94e930835b6a19f7482b079b5"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "ba2ba796e3234e04de0f765ea29c1bb01629ec4853bda48f64f39e5805ea0020"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "ad47c337fdf9cd4ced8667049ee5513e201cbcef8a518cf32778d4369e470e98"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "100b2d8267d3496e0d8f0bc937cc8744372f0a827fc839d47bee6dc7debeb811"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_b0a9c3256b436834409f",
+                "artifact_version": 1,
+                "content_hash": "6cc9cb122fbe414341bb2194ecf3693df99d6d2dc96b7579cce197a341371fce"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/candidate_bundle.json",
+                "content_hash": "7e264897c26a53d3a81bc439b9849f3b474c3a949916223f66df4ecb4b5e3c5f"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:26:15.935646Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_001/attempt_001/candidate_bundle.json"
+    },
+    "torch.batch_norm_update_stats:bug_aware_static:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1838236848,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:26:30Z",
+            "finished_at": "2026-10-08T08:27:05Z",
+            "elapsed_seconds": 34.895272660003684,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:26:50.013965Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/budget_evidence.json",
+              "content_hash": "5ab21366cab93ad35efb17a2fde7bac0947f8759803dbf095cb02a2082e7f46a"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/container_state.json",
+              "content_hash": "6bfea3b09ca49d3eea013446d78840b6c98a661acb1d4ca7e0eb8d967b3502ff"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/execution_command.json",
+              "content_hash": "2a50770693b91ff12690022e7eb3ad9874049cd80a8450714df51fee68786bc7"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_017038a45c6cc438",
+                "artifact_version": 1,
+                "content_hash": "00a92c08992191b241c4801897668b97e29ac0c412b3ede1f3129d2a068693ea"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "1cf17af5b86920676911d57941adc967794a9101add9b9dc3b43b9f7cc210850"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "f10ab6697a61ac80f1f3bc8d4b47a912cb9635a9d238efccc65c03e471b67257"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "5c504bf732fe5ac14a668bb3b8453301a467d956381af725fc1d3013cb9dae1d"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_621412e6e5685a03f995",
+                "artifact_version": 1,
+                "content_hash": "1bf60b2ad8f8c586ac6615c735cd9c7eeb4da6ce79944b69ba084868b7c47ac2"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/candidate_bundle.json",
+                "content_hash": "218b5dbf09ebe480259479cf84e69c9724137f532e1874874a9fbb6bc2cfe610"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:26:50.013965Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_002/attempt_001/candidate_bundle.json"
+    },
+    "torch.batch_norm_update_stats:bug_aware_static:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 482265301,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:27:05Z",
+            "finished_at": "2026-10-08T08:27:40Z",
+            "elapsed_seconds": 34.60045807399729,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:27:24.894558Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/budget_evidence.json",
+              "content_hash": "0ba8f6a6d495abaa16cb2776b36beaaa00342a006bb8832d0e9b1fa0e0aeee2f"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/container_state.json",
+              "content_hash": "eceb6c1203d9374108ea536c5a48ee5c1ed7276febf17b75854bd99570b32479"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/execution_command.json",
+              "content_hash": "8b5d736bc62dc7136b45a025b53ab083df26ff204ee39b5f24f45fcd867d1e75"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_6dbc6e7b70228d36",
+                "artifact_version": 1,
+                "content_hash": "912a62d1967ef811a8f3017b675f4a152589b6c7d999e3812f3d9bd70da4e427"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "6f0d729e43a937e4e3fb69d946fca0d649c32800932e4e2eb974d2e5d9a9ca1e"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "aeb8c27ed25c161ce98922dca7a0dd0d3142cb0cdfa02f333a469093645f96ee"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "f83bcbcfc3541bc688e025f2a0fe6089e44b44a0946d9980cc6f12dae082c085"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_31224335d9fb14012b64",
+                "artifact_version": 1,
+                "content_hash": "99ac2a3ab586d689721caf4483c6788a2f89385d2bd088fb2ea4941b8d9dd913"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/candidate_bundle.json",
+                "content_hash": "530d5d61dfbb5e8926ce838f4afe384f9363b725bbd69438c78f3731042da7cb"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:27:24.894558Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_static/repeat_001/round_003/attempt_001/candidate_bundle.json"
+    },
+    "torch.batch_norm_update_stats:bug_aware_adaptive:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 1575786059,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:27:40Z",
+            "finished_at": "2026-10-08T08:28:14Z",
+            "elapsed_seconds": 33.95912501199928,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:27:59.383207Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/budget_evidence.json",
+              "content_hash": "ba9ae7ac7ca9d4e0d1eaf9e7444f1c37e3c14b37ee85c9adf8deb851740a30c8"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/container_state.json",
+              "content_hash": "d06fa595c5e2f00c39e91d646013667d9c088607358c023766ab447792f2e649"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/execution_command.json",
+              "content_hash": "c7d735862f88f65d4f812685097e69423eac197fdc907c158940612e4187d5dc"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_131f1dd22e96dca3",
+                "artifact_version": 1,
+                "content_hash": "6434c3345b8d6afeb3a8ed716382c69a11ff6ec208d6a7f9c1b0e44e16a5059e"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "8b5302500a3ae8623e43a7e8e0d05c15fa8013519c54410414ab08a1ea813e53"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "62c173c472817d1e760d6148b18ac510aacb9ea9e54f367cf784937cfbbd5e75"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "08af25458ec170ead9108236c871123075555f19125ad8c8eddb2f67320d3e01"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_e36a53307fb9d1cd572d",
+                "artifact_version": 1,
+                "content_hash": "abdb047343c504da683e85f8b15906efe41b3d32860ccd705cea4217d2597ce1"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/candidate_bundle.json",
+                "content_hash": "87bda9ba18b538cba36c5e64a95c95611417f95c8741afed4513107db25ac85c"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:27:59.383207Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/candidate_bundle.json"
+    },
+    "torch.batch_norm_update_stats:bug_aware_adaptive:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1838236848,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:28:14Z",
+            "finished_at": "2026-10-08T08:28:48Z",
+            "elapsed_seconds": 33.26698835600109,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:28:33.913862Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/budget_evidence.json",
+              "content_hash": "a57b345d2a9c34a5a4e17077bacad31b22689780612ccc37cd8b515a45e40436"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/container_state.json",
+              "content_hash": "069e4dd540c5ab2a6c7e3b32130ab5de62a1f99077cc473f2eb0079be4a683de"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/execution_command.json",
+              "content_hash": "599ffb9230f27024c11f23e4658e3238805036a3dfce3c03df4456605381d91c"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_274e6e76c4583e76",
+                "artifact_version": 1,
+                "content_hash": "82a6fefdd4e93c71f7027c41f0c6c9442be6d04f7c8bb6fa43e250c92746d925"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "73a6b97601227a17b4a82583b6ddab05f6f8952ba5fb4b885fac1dad5ae5ff11"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "a7cb4d58bbf1b30c25981ad7b0fc97491635f7e33438f7aa18d7245bc180e95b"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "d42abaf6962a8fbc54982ade6db9228065b70740d8e62f8897044389692f8b88"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_d211b49d682418494e5d",
+                "artifact_version": 1,
+                "content_hash": "fb5a9cf0bc1f3f5febb59cfea7d09dabbf39989801103aad83188faa37378a2b"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/candidate_bundle.json",
+                "content_hash": "1d90e0ee9919629c69657c91430b0d7ec366707b8767009a0407238e4591b699"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:28:33.913862Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_002/attempt_001/candidate_bundle.json"
+    },
+    "torch.batch_norm_update_stats:bug_aware_adaptive:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 482265301,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:28:48Z",
+            "finished_at": "2026-10-08T08:29:22Z",
+            "elapsed_seconds": 33.732927024000674,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:29:07.899128Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/budget_evidence.json",
+              "content_hash": "ecbbd82d4d6ae5607f9187a92f99cbbae371039d01e44c309cf87f132c60a663"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/container_state.json",
+              "content_hash": "7f00273fca2f120f2757c0c9cb85e331bff29056199d9ddb0aa2a99d7ccf0d2e"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/execution_command.json",
+              "content_hash": "0e8bf971626091304182111929903a6f35c484d9df8fddfb05c99dcbb62a36f1"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_9079f5b5f88d5cc5",
+                "artifact_version": 1,
+                "content_hash": "1c90c69cb256ebf324a8e780c32eaecceb67107bcef17d3434ebf173916963ce"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "1d7da9ba751736e238627345d4fbac66d73e7427d565f23e42b90bfe6911bb6b"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "a96a535151ca95f562be1772505201ae54a6b131e37fa94b6ebff81f866c352f"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "fbe2558e7971ae1dac3c37602ee02792eb9c23590be51c4469370360d9b9e84f"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_dbb500da7bd8aa75387c",
+                "artifact_version": 1,
+                "content_hash": "c5bde2f25383511df049edd2cd72711f7c32e6665d6ed415274a5138c07088c0"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/candidate_bundle.json",
+                "content_hash": "c03557ba74fab47d83ba0d33535142d5d4605b536c152d44285fe76be64e114c"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:29:07.899128Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_003/attempt_001/candidate_bundle.json"
+    },
+    "torch.nn.functional.cosine_embedding_loss:structured_baseline:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 740371646,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:29:22Z",
+            "finished_at": "2026-10-08T08:29:52Z",
+            "elapsed_seconds": 29.53305110600195,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:29:41.488347Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/budget_evidence.json",
+              "content_hash": "5f0af0fa95ae3989f4e205b93dc98a89d3c31477e83fd74bb88d1eb003db5c3b"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/container_state.json",
+              "content_hash": "d4ef93c6e4a7c69cabf8119b6433604afa9b43b23fe8d639fd35bc2c22506910"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/execution_command.json",
+              "content_hash": "79873d3e9b0d3cd36cf3451ae5b8017d22cbf69f54598540af0c9e39d9bffada"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_7b745ebeb50cc2b5",
+                "artifact_version": 1,
+                "content_hash": "82288e750889f56992ce5084f8fb4be05de5651bf959b2d628acc6b988744102"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "0b635349c03cf0d03a020cf3b52b5ea900dd0d3895bde878deb31709df489f72"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "4278087a9f1f6692875de0a56eec8ab574a9fe17e99e20b1b52b1521c417ccca"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "c226782f3c33a05658fc7ed4640ec4ddcb17b3be8a9dc1d72adfe6e961db157a"
+            },
+            "candidate_bundle_binding": null
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:29:41.488347Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": null
+    },
+    "torch.nn.functional.cosine_embedding_loss:structured_baseline:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1821605038,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:29:52Z",
+            "finished_at": "2026-10-08T08:30:21Z",
+            "elapsed_seconds": 28.914580431002832,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:30:11.261419Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/budget_evidence.json",
+              "content_hash": "81efbc4c03cbce9edc3281b69cfd0308c872f075da65f5750415f2eb943ecd70"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/container_state.json",
+              "content_hash": "9c6abaed1b759a47949277a9055d5985eaa3b1aeeca01673ee956fede9a71ea1"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/execution_command.json",
+              "content_hash": "a421d013de4240873ea2f3d15b5e5094687b0894504e2de15a70fd0fd7a5d4c7"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_222efb1fa13fdaea",
+                "artifact_version": 1,
+                "content_hash": "23398493fd0214211d25a8798c261964125bc32f9e7ef2485e611ab58f840bc2"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "1a6a2a8c25df09e53e4faad322c69c874c5939ec0001bac1025c28b697d10d31"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "bea8116ab07e8a4c1f29969130c690394fa8570eeca4360b60e47c6a3e878feb"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "b189edab536dcf82b07b76b3c9fa3c7b4e188130d6f923e7cc97009a9b5cf35f"
+            },
+            "candidate_bundle_binding": null
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:30:11.261419Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": null
+    },
+    "torch.nn.functional.cosine_embedding_loss:structured_baseline:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 358214077,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:30:21Z",
+            "finished_at": "2026-10-08T08:30:49Z",
+            "elapsed_seconds": 28.623802242997044,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:30:40.052690Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/budget_evidence.json",
+              "content_hash": "7d9f2673b5e13716ff77a7c1c188e5fd26a8510738e9f6358108c02ee666e104"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/container_state.json",
+              "content_hash": "131cb51c44d28d1eef26384fbd492035d94d9163e8c5eba3a5f5a41189d72bc7"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/execution_command.json",
+              "content_hash": "0dc5c8ab62b677e816268841cc8b158abecd457ca063685f8c1686fca81b3762"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_835bb41b4ec8a694",
+                "artifact_version": 1,
+                "content_hash": "93db61c60ddf59aca07cd281b1f949cdfe03c1a352b4fdade0e812a10790a50a"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "15b68a765eb1520f072979295ed7bb26c3fe889d24fff1a9beb5458d8ae50d68"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "77e062858d3b0f14fc34f09c583479adb7a544c05d5eca478c713027cd4a46f0"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "1ae7af6b93d6ef423c0448f8f2ad5a271226dcb9e4478ee2e515f51b601ec1a9"
+            },
+            "candidate_bundle_binding": null
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:30:40.052690Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": null
+    },
+    "torch.nn.functional.cosine_embedding_loss:bug_aware_static:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 740371646,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:30:49Z",
+            "finished_at": "2026-10-08T08:31:19Z",
+            "elapsed_seconds": 29.863526617002208,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:31:08.639416Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/budget_evidence.json",
+              "content_hash": "35c53790fa91191f898cd2820e17fa8c590d42eb651988726c816ed9fda1166c"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/container_state.json",
+              "content_hash": "58ea6a0040b81bf3c2e372296f0e96842939f7d661a6198ff3650884a0beecbb"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/execution_command.json",
+              "content_hash": "4d660bda5a08ca8cb33fd84fe9e288cf6cab0f425b51e32025810a0e5a2ad357"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_61a8fdab154a07bd",
+                "artifact_version": 1,
+                "content_hash": "9f7a1ca492659147b6d2bc7901b5d3c6915b6289f73d6107fde7920bff022f66"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "775663994f6be2dbc1cbd276a26f49d1120c868855bf96105e0f21a2a08c618f"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "ea528f0db4687733b698284be94ade2497a9830dee92dd0124c418e532e70a70"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "717086b4444ae676595766844d85d879c729c3dd1b24bcaf3d24604eb10c97c2"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_ce95f26b0fdbe3096dd9",
+                "artifact_version": 1,
+                "content_hash": "53d14174ad967e88db9419f244417109f3312cfbb5ffe662f7ea403f06a90a5b"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/candidate_bundle.json",
+                "content_hash": "7fd32f281fcf2731216eae8a1c3961025239a3612925852e088eb29ae9aa899a"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:31:08.639416Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_001/attempt_001/candidate_bundle.json"
+    },
+    "torch.nn.functional.cosine_embedding_loss:bug_aware_static:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1821605038,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:31:19Z",
+            "finished_at": "2026-10-08T08:31:48Z",
+            "elapsed_seconds": 29.171648355004436,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:31:38.743703Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/budget_evidence.json",
+              "content_hash": "46692c1df96f069315897307e6188c135080bcaec59cd471d1e517a2d9c22284"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/container_state.json",
+              "content_hash": "de16f5b65183c1f5915cad008cefa1af85835fa6015472b7656095acf296c608"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/execution_command.json",
+              "content_hash": "da5bbe95a68a3adb06db847b8ae50d319fc7640973839f29237c38a18a4cf63c"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_97f525a2746fd12e",
+                "artifact_version": 1,
+                "content_hash": "03c04dab287ef1c7486b736630b66a078f5811e62d7fe2f50778cc5acacd354c"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "8d19a3e7cb09546dc83dce85e571302de1171cb4f1c79a84a8c8144875b22f98"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "68c3d5c460d6c9906573d39168b4a22b462069388fb307b0eaca036b1a09354a"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "edd4ee415bd27a7de2b694f7606dfa2da7ac5832898151810a2ac729cf7dc7b0"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_23bac3e3b3be311f707e",
+                "artifact_version": 1,
+                "content_hash": "22ea70c393039609c624aca36ac5ce0c57c0f0378d0d54ec933529485a5fac7b"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/candidate_bundle.json",
+                "content_hash": "5a59b40da5ed70c397d84c9e2cdf419e7517a99631efab3e724b4421ed87760c"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:31:38.743703Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_002/attempt_001/candidate_bundle.json"
+    },
+    "torch.nn.functional.cosine_embedding_loss:bug_aware_static:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 358214077,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:31:48Z",
+            "finished_at": "2026-10-08T08:32:18Z",
+            "elapsed_seconds": 29.80585437699483,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:32:07.849924Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/budget_evidence.json",
+              "content_hash": "e38da2724d304f8465c2555974a7cb0a29da0f3807de753adf9ab7c83efa7246"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/container_state.json",
+              "content_hash": "fff6f990d488308764b5ecaedb7c77088971e604ca62bb8c62c803052005087f"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/execution_command.json",
+              "content_hash": "f9467c1fab15273e1c7b5e9be942478197ba2fba957327b30585ee0d75948a3a"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_086977c9a9efb36e",
+                "artifact_version": 1,
+                "content_hash": "e32dc58e1f6df5aaa6e38c5156dce4e262c260ae9aeaf5663d7eead001135faf"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "bf5c60c0519b1203640f34f1055784aaa239e58432bb794e4e8b2aad9c8db7fc"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "7a6f9fc8c2973b6007a568f511d8ee4b2d295412fac7b0f89285778bec137fb1"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "0e9d5f37f13208084af65d8c3713d1d6c121b2694ad26ed4d57e1db68cf37f5f"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_fc32eb2eed84413822b7",
+                "artifact_version": 1,
+                "content_hash": "61b453d21cd75af0617f90731960d982c11cfdc2d44a7620b31a1f03a6be3332"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/candidate_bundle.json",
+                "content_hash": "bc3b95566e83ff17c1e482436b00c09ff8021e3620d275ad6e3c22cad7422449"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:32:07.849924Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_static/repeat_001/round_003/attempt_001/candidate_bundle.json"
+    },
+    "torch.nn.functional.cosine_embedding_loss:bug_aware_adaptive:repeat_001:round_001": {
+      "status": "completed",
+      "seed": 740371646,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:32:18Z",
+            "finished_at": "2026-10-08T08:32:48Z",
+            "elapsed_seconds": 29.439052904002892,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:32:37.675769Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/budget_evidence.json",
+              "content_hash": "e9e2239c38c2af05657662fe14c1844448a3f0c6adf9c3fd4926c2e68a5371e2"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/container_state.json",
+              "content_hash": "3acf2a3baf49544306c86e27efb51ef94d31a38f5c20a85496a358bfca07a08d"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/execution_command.json",
+              "content_hash": "73a6692296f0653e40217640090d91f18c44351611864a69949262812bb6d341"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_5111a5af8d50d2a6",
+                "artifact_version": 1,
+                "content_hash": "e50fb3df9d14e1544a62ef5ac0277597ede984c8a9b177da1108b3e3e176e49a"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/corpus_manifest.json",
+                "content_hash": "cdf5885521b83c7af8fa93095482937f93eb9a8f41088c749300e35f333a9c3a"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+              "content_hash": "0ccd77f2fd63a5de966453e8b23429cf30889ee0032eba9dca6c60d7d40f959e"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+              "content_hash": "b372cddd84018852067837a54e15f20e15d2bd3cd147a4a601bb70dff71711e3"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_88cda40f0a292179a626",
+                "artifact_version": 1,
+                "content_hash": "7e979af441cbab2dd19ba9e2392efa5ce5595940f0a9abe4b061d697cc151406"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/candidate_bundle.json",
+                "content_hash": "a223eb749d20b5b0b6f4b7044aa7bf1170b89d4981d2cc21e3ac36718efdbe9e"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:32:37.675769Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_001/attempt_001/candidate_bundle.json"
+    },
+    "torch.nn.functional.cosine_embedding_loss:bug_aware_adaptive:repeat_001:round_002": {
+      "status": "completed",
+      "seed": 1821605038,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:32:48Z",
+            "finished_at": "2026-10-08T08:33:18Z",
+            "elapsed_seconds": 29.33983911100222,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:33:07.585632Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/budget_evidence.json",
+              "content_hash": "0a9e89d021996215fd6b5c53d81689d88e212fa641f3549dfae2a5d6b57c722d"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/container_state.json",
+              "content_hash": "14eee51ee317c2c484af558abcd06d4bd68b4a95fbfc887feb769a60fb7d673a"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/execution_command.json",
+              "content_hash": "dd4b0f9bc2559483ae1917f26d82f83fe0e8e6e72f77699385c296db5d3a2281"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_3d28fce3045d761a",
+                "artifact_version": 1,
+                "content_hash": "b393fd769ef165a437ae4b1259832be2bcbbccda68498bb38a03edf3abd6becb"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus_manifest.json",
+                "content_hash": "c1f215187b174138161a7d56aea033736ab8fd2f9a3804564365dfddcd1aa83d"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+              "content_hash": "8c02c943cd0ed6ce3439874cfdec43f22edcf4774cf3d24f40bdb4ab12ddddb8"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+              "content_hash": "889cd366e5d37be7c50513a945a80079f65141ba4d6090753c6a5656331752a3"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_855d80bf12e13ca62293",
+                "artifact_version": 1,
+                "content_hash": "671a443070035da1f04a0a4656e96b08468af65066a69aa872b30004fcc120a3"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/candidate_bundle.json",
+                "content_hash": "133a8f7561954902df1dd79f6a4927d7f30d340daa05fa6e23f30b2034aa9fac"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:33:07.585632Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/candidate_bundle.json"
+    },
+    "torch.nn.functional.cosine_embedding_loss:bug_aware_adaptive:repeat_001:round_003": {
+      "status": "completed",
+      "seed": 358214077,
+      "fragments": [
+        {
+          "attempt_number": 1,
+          "process": {
+            "started_at": "2026-10-08T08:33:18Z",
+            "finished_at": "2026-10-08T08:33:48Z",
+            "elapsed_seconds": 29.787611585998093,
+            "returncode": 0,
+            "timed_out": false,
+            "launch_error": null
+          },
+          "adapter_result": {
+            "status": "completed",
+            "terminal_at": "2026-10-08T08:33:37.554139Z",
+            "active_seconds_consumed": 15.0,
+            "remaining_active_seconds": 0.0,
+            "budget_complete": true,
+            "budget_evidence_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/budget_evidence.json",
+              "content_hash": "9bb383a829ffaa9c0378ed1c99965127ace2f97b805708f7fe4ba9b5be51b21b"
+            },
+            "container_facts_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/container_state.json",
+              "content_hash": "5f3686a31a7d8a27e24199149ed82e2096a2cc65ec28c26528422f2d0814e3f5"
+            },
+            "execution_command_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/execution_command.json",
+              "content_hash": "ef50032fd3b7e362aeb172023712b57ea71087568c60036846a62b602367757c"
+            },
+            "budget_timing_status": "measured",
+            "round_end_corpus_binding": {
+              "artifact_ref": {
+                "artifact_id": "corpus_8ad30b95905310ab",
+                "artifact_version": 1,
+                "content_hash": "45dd95910331ca0c13ae99a52342b1c97ae7b8ae3439b9ca1f37d9fe326595b2"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/corpus_manifest.json",
+                "content_hash": "16d9766ed72e55efbc5d4efac5b50ec73d3779c4ac8a816591dea8dbf56f4a33"
+              }
+            },
+            "round_record_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+              "content_hash": "b306ef8c8b47e433831ed5f2f75b1ae2eafe8ebc0dc823802550e95abbeacef6"
+            },
+            "runtime_snapshot_file_ref": {
+              "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+              "content_hash": "44f9b8f02b65d09825e159ad83a692af98a14ccc8f8ff7c24ee273d85d13111a"
+            },
+            "candidate_bundle_binding": {
+              "artifact_ref": {
+                "artifact_id": "cb_684fc417d2adcb503872",
+                "artifact_version": 1,
+                "content_hash": "c22fc5772c7ab6fe2a04c3056e3edf0c5625c369f693309190e1445446ffcfba"
+              },
+              "record_file_ref": {
+                "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/candidate_bundle.json",
+                "content_hash": "9c18d9887791094960c750ef4dbc633d0ef9f99554ee436ba2dffa1efe297430"
+              }
+            }
+          }
+        }
+      ],
+      "round_end_corpus_record": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/corpus_manifest.json",
+      "terminal_at": "2026-10-08T08:33:37.554139Z",
+      "round_record_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/fuzzing_round_record.json",
+      "runtime_snapshot_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/runtime_snapshot.json",
+      "candidate_bundle_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_003/attempt_001/candidate_bundle.json"
+    }
+  },
+  "result_provenance_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/result_provenance.json",
+    "content_hash": "08c2f407d8ff84bed5021d2af0930cda67ea40b7199c8e0a9a1dd807b7ade172"
+  },
+  "selected_api_ids": [
+    "torch.batch_norm_update_stats",
+    "torch.nn.functional.cosine_embedding_loss"
+  ],
+  "adaptive_current": {
+    "torch.batch_norm_update_stats": {
+      "repeat_001": {
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r002.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/bug_aware_static/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_static/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_0def3d5da005/harness_artifact.json",
+        "spec_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6__review_r1.json",
+        "strategy_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2__review_r1.json",
+        "status": "success"
+      }
+    },
+    "torch.nn.functional.cosine_embedding_loss": {
+      "repeat_001": {
+        "spec_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4.json",
+        "strategy_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r002.json",
+        "artifact_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_nn_functional_cosine_embedding_loss/bug_aware_static/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2_1db0a08e49f6/harness_artifact.json",
+        "spec_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4__review_r1.json",
+        "strategy_authorization_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2__review_r1.json",
+        "status": "success"
+      }
+    }
+  },
+  "feedback": {
+    "torch.batch_norm_update_stats": {
+      "repeat_001": {
+        "round_001": {
+          "status": "decision_recorded",
+          "decision_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/feedback/torch_batch_norm_update_stats/repeat_001/round_001/decisions/torch_batch_norm_update_stats/repeat_001/round_001/feedback_decision.json",
+          "materialization_outcome": "not_attempted",
+          "run_disposition": "continue"
+        },
+        "round_002": {
+          "status": "decision_recorded",
+          "decision_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/feedback/torch_batch_norm_update_stats/repeat_001/round_002/decisions/torch_batch_norm_update_stats/repeat_001/round_002/feedback_decision.json",
+          "materialization_outcome": "not_attempted",
+          "run_disposition": "continue"
+        }
+      }
+    },
+    "torch.nn.functional.cosine_embedding_loss": {
+      "repeat_001": {
+        "round_001": {
+          "status": "decision_recorded",
+          "decision_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/feedback/torch_nn_functional_cosine_embedding_loss/repeat_001/round_001/decisions/torch_nn_functional_cosine_embedding_loss/repeat_001/round_001/feedback_decision.json",
+          "materialization_outcome": "not_attempted",
+          "run_disposition": "continue"
+        },
+        "round_002": {
+          "status": "decision_recorded",
+          "decision_path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/feedback/torch_nn_functional_cosine_embedding_loss/repeat_001/round_002/decisions/torch_nn_functional_cosine_embedding_loss/repeat_001/round_002/feedback_decision.json",
+          "materialization_outcome": "not_attempted",
+          "run_disposition": "continue"
+        }
+      }
+    }
+  }
+}

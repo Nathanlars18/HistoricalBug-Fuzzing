@@ -26,6 +26,13 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 try:
+    from case_semantics import analysis_complete, consistency_errors, diagnostic_signature, reportable, reproduction_status, analysis_subject_hash, cluster_errors
+    import replay_executor
+except ModuleNotFoundError:
+    from experiment.EXP013_crash_triage_and_result_analysis.scripts.case_semantics import analysis_complete, consistency_errors, diagnostic_signature, reportable, reproduction_status, analysis_subject_hash, cluster_errors
+    from experiment.EXP013_crash_triage_and_result_analysis.scripts import replay_executor
+
+try:
     import fcntl
 except ImportError:  # pragma: no cover
     fcntl = None
@@ -36,7 +43,7 @@ except ImportError as exc:  # pragma: no cover
     raise SystemExit("Install the repository control-plane requirements.") from exc
 
 ANALYZER_ID = "analyze_crash_cases"
-ANALYZER_VERSION = "0.3.0"
+ANALYZER_VERSION = "0.5.0"
 EXP_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = EXP_ROOT.parents[1]
 DEFAULT_CASE_SCHEMA = EXP_ROOT / "schemas/crash_case_record.schema.json"
@@ -202,9 +209,9 @@ def policy(path: Path) -> dict[str, Any]:
         raise InputError("Crash Analysis Policy is missing required fields")
     if value["policy_format_version"] != "1.0":
         raise InputError("unsupported Crash Analysis Policy format")
-    if value["compatibility"].get("crash_case_record_version") != "1.1":
+    if value["compatibility"].get("crash_case_record_version") not in {"1.1", "1.2"}:
         raise InputError("Policy is incompatible with Crash Case Record 1.1")
-    if value["compatibility"].get("candidate_bundle_record_version") != "1.0":
+    if value["compatibility"].get("candidate_bundle_record_version") not in {"1.0", "1.1"}:
         raise InputError("Policy is incompatible with Candidate Bundle Record 1.0")
     if value["policy_status"] not in {"draft", "frozen"}:
         raise InputError("unsupported policy_status")
@@ -239,7 +246,7 @@ def analyzer_ref() -> dict[str, Any]:
 
 
 def policy_reference(context: Context) -> dict[str, Any]:
-    return artifact_ref(context.policy["policy_id"], context.policy["policy_version"], hash_file(context.policy_path))
+    return artifact_ref(context.policy["policy_id"], context.policy["policy_version"], canonical_hash(context.policy))
 
 
 def normalize_diagnostic(text: str) -> str:
@@ -251,14 +258,12 @@ def normalize_diagnostic(text: str) -> str:
 
 def signature(kind: str, subtype: str, diagnostic: Path | None, context: Context) -> dict[str, str]:
     text = diagnostic.read_text(encoding="utf-8", errors="replace")[:1024 * 1024] if diagnostic else ""
-    frames = [normalize_diagnostic(line) for line in text.splitlines() if re.search(r"at::|c10::|torch::|aten::|libtorch", line)][:5]
-    payload = {"observation_kind": kind, "observation_subtype": subtype, "normalized_primary_diagnostic": normalize_diagnostic(text), "normalized_framework_frames": frames}
-    return {"algorithm_version": context.policy["algorithms"]["observation_signature"]["algorithm_version"], "signature_hash": canonical_hash(payload)}
+    return diagnostic_signature(kind, subtype, text, context.policy["algorithms"]["observation_signature"]["algorithm_version"])
 
 
 def set_validation(record: dict[str, Any], context: Context, warnings: list[dict[str, Any]] | None = None) -> None:
     record["validation"] = {"status": "not_run", "validator_version": None, "validated_at": None, "issues": []}
-    errors = schema_errors(record, context.case_validator) + semantic_errors(record)
+    errors = schema_errors(record, context.case_validator) + semantic_errors(record, context.policy)
     issues = [{"issue_id": f"vi_{index + 1:03d}_record_invalid", "severity": "error", "issue_code": "record_invalid", "instance_path": "", "message": message} for index, message in enumerate(errors)]
     issues += warnings or []
     record["validation"] = {"status": "failed" if errors else "passed", "validator_version": ANALYZER_VERSION, "validated_at": now(), "issues": issues}
@@ -269,7 +274,7 @@ def set_validation(record: dict[str, Any], context: Context, warnings: list[dict
         raise InputError(f"generated record is inconsistent: {errors[0]}")
 
 
-def semantic_errors(record: Mapping[str, Any]) -> list[str]:
+def semantic_errors(record: Mapping[str, Any], policy_value: Mapping[str, Any] | None = None) -> list[str]:
     result: list[str] = []
     if not all(key in record for key in ("identity", "origin", "evidence", "candidate_event")):
         return result
@@ -293,22 +298,69 @@ def semantic_errors(record: Mapping[str, Any]) -> list[str]:
         result.append("Known rediscovery lacks a confirmed historical match")
     if novelty == "potentially_novel" and match != "no_match":
         result.append("Potential novelty lacks a completed no-match result")
+    result.extend(consistency_errors(record, policy_value))
+    if record.get("record_format_version") == "1.2":
+        for attempt in record["reproduction"]["attempts"]:
+            try:
+                ref = attempt["execution_file_ref"]
+                execution_path = replay_executor.resolve(ref, REPO_ROOT)
+                execution = load_json(execution_path)
+                artifact_path = replay_executor.resolve(execution["artifact_file_ref"], REPO_ROOT)
+                config_path = replay_executor.resolve(execution["config_file_ref"], REPO_ROOT)
+                verified = replay_executor.verified_attempt(execution, record, REPO_ROOT, load_json(artifact_path), load_json(config_path))
+                if any(attempt[k] != verified[k] for k in verified):
+                    result.append("Replay attempt disagrees with verified execution evidence")
+                if hash_file(execution_path) != attempt["execution_ref"]["content_hash"]:
+                    result.append("Replay execution reference hash mismatch")
+            except (KeyError, ValueError, OSError, InputError) as exc:
+                result.append(f"Replay execution evidence is unavailable or inconsistent: {exc}")
     return result
+
+
+def verify_capture_file_refs(record: Mapping[str, Any]) -> None:
+    """Verify file-backed evidence preserved in the immutable capture snapshot."""
+    capture = record.get("capture_record")
+    if not isinstance(capture, Mapping):
+        raise InputError("Crash Case has no immutable capture snapshot")
+    candidate = capture.get("candidate", {})
+    refs = []
+    for name in ("triggering_input", "primary_diagnostic", "event_context"):
+        location_value = candidate.get(name)
+        if isinstance(location_value, Mapping):
+            file_value = location_value.get("file_ref")
+            if isinstance(file_value, Mapping): refs.append(file_value)
+    for name in ("harness_artifact_file_ref", "source_config_file_ref"):
+        value = candidate.get(name)
+        if isinstance(value, Mapping): refs.append(value)
+    if not refs:
+        raise InputError("Crash Case capture snapshot contains no verifiable source file references")
+    for ref in refs:
+        try:
+            replay_executor.resolve(ref, REPO_ROOT)
+        except (ValueError, OSError, KeyError) as exc:
+            raise InputError(f"Crash Case capture file reference is missing or stale: {exc}") from exc
 
 
 def admission(kind: str, tier: str | None, invocation: str | None, refs: list[dict[str, Any]], context: Context) -> dict[str, Any]:
     if kind == "oracle_violation":
         action = context.policy["candidate_admission"]["oracle_tier_actions"].get(tier)
         if action not in {"direct", "conditional"}:
-            raise InputError("Oracle Case requires tier_1_exact or tier_2_validated evidence")
-        basis = "tier_1_oracle_violation" if tier == "tier_1_exact" else "tier_2_oracle_violation"
+            action = "conditional"
+        basis = "tier_1_oracle_violation" if tier == "tier_1_exact" else ("tier_2_oracle_violation" if tier == "tier_2_validated" else "oracle_observation")
     else:
         action = context.policy["candidate_admission"]["observation_actions"].get(kind)
         basis = {"process_termination": "native_process_termination", "sanitizer_finding": "sanitizer_finding", "target_exception": "unexpected_target_exception", "resource_anomaly": "abnormal_resource_growth"}.get(kind)
     if action not in {"direct", "conditional"} or basis is None:
         raise InputError(f"unsupported Candidate type: {kind}")
     reached = invocation is not None
-    return {"status": "admitted" if action == "direct" and reached else "pending", "kind": action, "basis_code": basis, "condition_assessments": [{"condition_kind": "target_api_reached", "status": "satisfied" if reached else "unresolved", "evidence_refs": refs if reached else []}, {"condition_kind": "evidence_sufficient", "status": "satisfied", "evidence_refs": refs}], "rejection_reason_codes": [], "evidence_refs": refs}
+    conditions = [{"condition_kind": "target_api_reached", "status": "satisfied" if reached else "unresolved", "evidence_refs": refs if reached else []}, {"condition_kind": "evidence_sufficient", "status": "satisfied" if refs else "unresolved", "evidence_refs": refs}]
+    if kind == "oracle_violation":
+        conditions += [{"condition_kind": c, "status": "unresolved", "evidence_refs": []} for c in ("oracle_preconditions_satisfied", "oracle_applicable")]
+    if kind in {"target_exception", "resource_anomaly"}:
+        conditions += [{"condition_kind": "controlled_rejection_excluded", "status": "unresolved", "evidence_refs": []}]
+    if kind == "resource_anomaly":
+        conditions += [{"condition_kind": c, "status": "unresolved", "evidence_refs": []} for c in ("resource_threshold_reached", "external_pressure_excluded")]
+    return {"status": "admitted" if action == "direct" and reached and kind != "oracle_violation" else "pending", "kind": action, "basis_code": basis, "condition_assessments": conditions, "rejection_reason_codes": [], "evidence_refs": refs}
 
 
 def verified_location(value: Mapping[str, Any], label: str) -> tuple[dict[str, Any], Path]:
@@ -343,7 +395,26 @@ def initial_record(
     if kind is None or candidate["observation_kind"] != source["observation_kind"]:
         raise InputError("Candidate Bundle and Round observation kinds disagree")
     subtype = candidate["observation_subtype"]
-    invocation = candidate["target_invocation_id"]
+    invocation = None
+    if candidate.get("event_context") is not None:
+        _, event_path = verified_location(candidate["event_context"], "event context")
+        capture = load_json(event_path)
+        artifact_file = candidate.get("harness_artifact_file_ref")
+        if not isinstance(artifact_file, dict):
+            raise InputError("Structured candidate requires its exact Harness Artifact file")
+        artifact_path = repo_file(artifact_file["relative_path"], "candidate Harness Artifact")
+        artifact = load_json(artifact_path)
+        if hash_file(artifact_path) != artifact_file["content_hash"] or canonical_hash(artifact) != round_record["source_context"]["harness_artifact_ref"]["content_hash"]:
+            raise InputError("Structured candidate Harness Artifact mismatch")
+        table = {b["runtime_site_id"]: b for b in artifact["instrumentation_map"]}
+        sites = [table[i] for i in capture["runtime_sites"] if i in table]
+        reached = [b for b in sites if b["event_kind"] == "target_api_reached"]
+        if reached and not capture["sites_truncated"]:
+            invocation = f"{candidate['source_execution_id']}:i{capture['iteration_index']}:{reached[-1]['instrumentation_binding_id']}:n{len(reached)}"
+        if invocation != candidate["target_invocation_id"] or capture["artifact_id"] != artifact["identity"]["harness_artifact_id"]:
+            raise InputError("Candidate invocation disagrees with directly recorded sites")
+    elif candidate["target_invocation_id"] is not None:
+        raise InputError("A non-null invocation requires directly verifiable event context")
     iteration = candidate["iteration_index"]
     tier = candidate["oracle_evidence_tier"]
     input_ref, input_path = verified_location(candidate["triggering_input"], "triggering input")
@@ -369,7 +440,8 @@ def initial_record(
     runtime = round_record["evidence"]["runtime_snapshot"]
     supporting = unique_refs(refs + round_record["evidence"]["run_log_refs"] + round_record["execution"]["termination"]["diagnostic_refs"] + [round_record["source_context"]["harness_artifact_ref"]])
     record = {
-        "record_format_version": "1.1", "record_type": "crash_case",
+        "record_format_version": "1.2", "record_type": "crash_case",
+        "capture_record": {"candidate": copy.deepcopy(dict(candidate)), "round_context": copy.deepcopy(bundle.get("round_context", {})), "round_source_context": copy.deepcopy(round_record["source_context"]), "policy_snapshot": copy.deepcopy(context.policy)},
         "identity": {"case_id": case_id, "case_key": case_key, "target_api_id": api_id},
         "revision": {"revision_number": 1, "created_at": now(), "parent_revision_ref": None, "revision_reason": "initial_capture"},
         "workflow_status": "captured",
@@ -387,6 +459,7 @@ def initial_record(
         "unresolved_questions": [], "validation": {"status": "not_run", "validator_version": None, "validated_at": None, "issues": []},
         "provenance": {"builder_artifact_ref": analyzer_ref(), "canonicalization_version": "1.0", "generated_at": now()},
     }
+    verify_capture_file_refs(record)
     set_validation(record, context)
     return record
 
@@ -460,6 +533,12 @@ def history(context: Context, case_id: str) -> list[tuple[Path, dict[str, Any]]]
         for immutable in context.policy["revision_control"]["immutable_paths"]:
             if json_pointer(record, immutable) != json_pointer(previous, immutable):
                 raise InputError(f"immutable field changed at {immutable}: {path}")
+        if previous.get("capture_record") != record.get("capture_record"):
+            raise InputError(f"raw capture changed: {path}")
+    if records[0][1]["revision"]["parent_revision_ref"] is not None:
+        raise InputError("Revision one parent must be null")
+    if any(semantic_errors(record, context.policy) for _, record in records):
+        raise InputError(f"Inconsistent Case history: {case_id}")
     return records
 
 
@@ -534,6 +613,10 @@ def cmd_ingest(args: argparse.Namespace, context: Context, run: Run) -> None:
             bundle_errors = schema_errors(bundle, context.bundle_validator)
             if bundle_errors:
                 raise InputError(f"invalid Candidate Bundle: {bundle_errors[0]}")
+            bc, ri = bundle["round_context"], round_record["identity"]
+            expected = {"task_key": ri["round_id"], "target_api_id": ri["target_api_id"], "experimental_group": ri["experimental_group"], "repeat_id": ri["independent_repeat_id"], "round_index": ri["round_index"]}
+            if task_key != ri["round_id"] or any(bc[k] != v for k, v in expected.items()):
+                raise InputError("Bundle, selected Round and execution-index contexts disagree")
             bundle_ref = evidence["bundle_ref"]
             identity = bundle["identity"]
             if bundle_ref != artifact_ref(identity["bundle_id"], identity["artifact_version"], canonical_hash(bundle)):
@@ -570,17 +653,21 @@ def cmd_ingest(args: argparse.Namespace, context: Context, run: Run) -> None:
 
 
 def cmd_validate(args: argparse.Namespace, context: Context, run: Run) -> None:
+    latest = []
     for case_id in selected_case_ids(context, args.case_id):
         try:
             for path, record in history(context, case_id):
                 errors = schema_errors(record, context.case_validator) + semantic_errors(record)
                 if errors: raise InputError(f"{path}: {errors[0]}")
+                if record.get("record_format_version") == "1.2": verify_capture_file_refs(record)
                 ref = record["evidence"]["triggering_input_ref"]["file_ref"]; source = REPO_ROOT / ref["relative_path"]
                 if not source.is_file() or hash_file(source) != ref["content_hash"]: raise InputError(f"stale triggering input: {path}")
             run.skipped.append(case_id)
+            latest.append(history(context,case_id)[-1][1])
         except AnalyzerError as exc:
             run.fail(case_id, exc)
             if args.fail_fast: raise
+    for message in cluster_errors(latest, context.output / "cases"): run.fail("clusters", InputError(message))
 
 
 def cmd_deduplicate(args: argparse.Namespace, context: Context, run: Run) -> None:
@@ -592,22 +679,27 @@ def cmd_deduplicate(args: argparse.Namespace, context: Context, run: Run) -> Non
 def _cmd_deduplicate_locked(args: argparse.Namespace, context: Context, run: Run) -> None:
     rounds = RoundIndex(args.round_root, context.round_validator)
     entries = []
+    protected_clusters = {history(context,case_id)[-1][1]["deduplication"]["cluster_id"] for case_id in selected_case_ids(context,[]) if history(context,case_id)[-1][1]["deduplication"]["assignment_kind"] == "semantic_duplicate"}
     for case_id in selected_case_ids(context, args.case_id):
         try:
             path, record = history(context, case_id)[-1]
+            if record["deduplication"]["cluster_id"] in protected_clusters:
+                run.skipped.append(case_id)
+                continue
             if semantic_errors(record):
                 raise InputError("invalid latest Case")
             primary = next(
                 item for item in record["candidate_event"]["observations"]
                 if item["observation_id"] == record["candidate_event"]["primary_observation_id"]
             )
-            if record["admission"]["status"] != "admitted":
+            if record["admission"]["status"] == "rejected":
                 run.skipped.append(case_id)
                 continue
+            # Incomplete diagnostics produce a singleton representative, never a merge.
+            fingerprint = exact_fingerprint(record, rounds.resolve(record["origin"]["fuzzing_round_ref"]), context)
             if primary["subtype"] == "unclassified" or record["evidence"]["primary_diagnostic_ref"] is None:
-                run.skipped.append(case_id)
-                continue
-            entries.append((case_id, path, record, exact_fingerprint(record, rounds.resolve(record["origin"]["fuzzing_round_ref"]), context)))
+                fingerprint["fingerprint_hash"] = canonical_hash({"case": case_id, "incomplete": True})
+            entries.append((case_id, path, record, fingerprint))
         except AnalyzerError as exc:
             run.fail(case_id, exc)
             if args.fail_fast: raise
@@ -622,7 +714,9 @@ def _cmd_deduplicate_locked(args: argparse.Namespace, context: Context, run: Run
                 run.skipped.append(case_id)
                 if index == 0: representative_ref = artifact_ref(case_id, record["revision"]["revision_number"], hash_file(path))
                 continue
-            updated = new_revision(path, record, "analysis_updated"); updated["deduplication"] = desired; updated["workflow_status"] = "under_analysis"; set_validation(updated, context)
+            updated = new_revision(path, record, "analysis_updated"); updated["deduplication"] = desired; updated["workflow_status"] = "under_analysis"
+            updated["human_review"] = {"status": "not_reviewed", "reviewed_at": None, "reviewed_aspects": [], "conclusion": "not_assessed", "summary": None}
+            set_validation(updated, context)
             target = case_path(context, case_id, updated["revision"]["revision_number"])
             if index == 0: representative_ref = artifact_ref(case_id, updated["revision"]["revision_number"], hashlib.sha256(encoded(updated)).hexdigest())
             if not args.dry_run:
@@ -663,6 +757,17 @@ def _cmd_replay_locked(
             raise InputError(f"invalid target_api_reach_status at attempt {ordinal}")
         execution = repo_file(raw["execution_path"], "execution_path")
         evidence = [repo_file(item, "evidence_path") for item in raw["evidence_paths"]]
+        if record.get("record_format_version") == "1.2":
+            executed = load_json(execution)
+            artifact = load_json(replay_executor.resolve(executed["artifact_file_ref"], REPO_ROOT))
+            config = load_json(replay_executor.resolve(executed["config_file_ref"], REPO_ROOT))
+            try:
+                checked = replay_executor.verified_attempt(executed, record, REPO_ROOT, artifact, config)
+            except (ValueError, OSError, KeyError) as exc:
+                raise InputError(f"Replay execution is not verified: {exc}") from exc
+            if any(raw.get(k) != v for k, v in checked.items() if k != "invalid_reason"):
+                raise InputError("Replay manifest contradicts execution evidence")
+            raw = {**raw, **checked}
         valid = raw["valid_attempt"]
         observed_hash, observed_kind = raw.get("observed_signature_hash"), raw.get("observed_event_kind")
         if observed_hash is not None and not SHA_RE.fullmatch(observed_hash): raise InputError("invalid observed_signature_hash")
@@ -679,15 +784,16 @@ def _cmd_replay_locked(
         execution_ref = artifact_ref(f"replay_execution_{safe(case_id)}_{ordinal:03d}", "1.0", hash_file(execution))
         evidence_refs = [artifact_ref(f"replay_evidence_{hash_file(item)[:16]}", "1.0", hash_file(item)) for item in evidence] or [execution_ref]
         attempts.append({"attempt_id": f"ra_{safe(case_id)}_{ordinal:03d}", "ordinal": ordinal, "replaces_attempt_id": raw.get("replaces_attempt_id"), "valid_attempt": valid, "invalid_reason": None if valid else raw.get("invalid_reason", "unspecified_infrastructure_failure"), "execution_ref": execution_ref, "target_api_reach_status": raw["target_api_reach_status"], "observed_event_kind": observed_kind, "observed_signature_hash": observed_hash, "equivalence_status": "exact_match" if exact else ("different" if valid else "not_evaluable"), "evidence_refs": evidence_refs})
-    replay_policy = context.policy["replay"]; valid = [item for item in attempts if item["valid_attempt"]]
+        attempts[-1]["execution_file_ref"] = {"relative_path": relative(execution), "content_hash": hash_file(execution)}
+    replay_policy = record.get("capture_record", {}).get("policy_snapshot", context.policy)["replay"]; valid = [item for item in attempts if item["valid_attempt"]]
     invalid_count = len(attempts) - len(valid)
     required_count = replay_policy["required_valid_attempts"]
-    if invalid_count > replay_policy["maximum_replacement_attempts"] or len(valid) > required_count:
+    if len(attempts) > required_count + replay_policy["maximum_replacement_attempts"] or len(valid) > required_count:
         raise InputError("replay counts violate Policy")
     if manifest["collection_status"] == "completed" and len(valid) != required_count:
         raise InputError("completed replay manifest lacks the required valid attempts")
     if manifest["collection_status"] == "exhausted" and (
-        len(valid) >= required_count or invalid_count != replay_policy["maximum_replacement_attempts"]
+        len(valid) >= required_count or len(attempts) != required_count + replay_policy["maximum_replacement_attempts"]
     ):
         raise InputError("exhausted replay manifest has not exhausted replacements")
     status = "inconclusive"
@@ -697,11 +803,84 @@ def _cmd_replay_locked(
             for item in valid
         )
         status = replay_policy["completed_status_by_success_count"][str(successful)]
-    updated = new_revision(path, record, "new_evidence_received"); updated["reproduction"]["attempts"] = attempts; updated["reproduction"]["status"] = status; updated["workflow_status"] = "under_analysis"; set_validation(updated, context)
+    updated = new_revision(path, record, "new_evidence_received"); updated["reproduction"]["attempts"] = attempts; updated["reproduction"]["status"] = status; updated["workflow_status"] = "under_analysis"
+    updated["human_review"] = {"status": "not_reviewed", "reviewed_at": None, "reviewed_aspects": [], "conclusion": "not_assessed", "summary": None}
+    set_validation(updated, context)
     target = case_path(context, case_id, updated["revision"]["revision_number"])
     if not args.dry_run:
         write_atomic(target, updated)
     run.created.append(str(target))
+
+
+def cmd_execute_replay(args: argparse.Namespace, context: Context, run: Run) -> None:
+    path, record = history(context, args.case_id)[-1]
+    if record["deduplication"]["status"] != "completed" or record["deduplication"]["case_role"] != "representative":
+        raise InputError("Investigative replay requires a singleton or deduplicated representative")
+    if record.get("capture_record", {}).get("policy_snapshot") != context.policy:
+        raise InputError("Replay must use the policy captured by this Case; supply its exact policy snapshot")
+    artifact_path = repo_file(str(args.harness_artifact), "Harness Artifact")
+    artifact = load_json(artifact_path)
+    round_record = RoundIndex(args.round_root, context.round_validator).resolve(record["origin"]["fuzzing_round_ref"])
+    if canonical_hash(artifact) != round_record["source_context"]["harness_artifact_ref"]["content_hash"]:
+        raise InputError("Replay Harness Artifact differs from the originating Round")
+    raw_candidate = record.get("capture_record", {}).get("candidate", {})
+    config_ref = raw_candidate.get("source_config_file_ref")
+    config_path = (replay_executor.resolve(config_ref, REPO_ROOT) if config_ref is not None
+                   else repo_file(str(args.round_config), "source Round config"))
+    config = load_json(config_path)
+    if config_ref is None and canonical_hash(config) != round_record["source_context"]["fuzzing_config_ref"]["content_hash"]:
+        raise InputError("Replay config differs from source Round config")
+    if config["task_key"] != round_record["identity"]["round_id"]:
+        raise InputError("Replay config belongs to another logical Round")
+    binary = replay_executor.resolve(artifact["validation"]["compile_check"]["binary_artifact"], REPO_ROOT)
+    if config["harness_binary_ref"] != artifact["validation"]["compile_check"]["binary_artifact"]:
+        raise InputError("Source config and Harness binary differ")
+    input_path = replay_executor.resolve(record["evidence"]["triggering_input_ref"]["file_ref"], REPO_ROOT)
+    if args.dry_run:
+        run.skipped.append(f"verified replay inputs for {args.case_id}")
+        return
+    root = case_dir(context, args.case_id) / "replay" / uuid.uuid4().hex
+    manifest = {"manifest_version": "1.0", "case_id": args.case_id, "collection_status": "completed", "source_limits_verified": True, "attempts": []}
+    required = context.policy["replay"]["required_valid_attempts"]
+    valid, invalid = 0, 0
+    while valid < required and len(manifest["attempts"]) < required + context.policy["replay"]["maximum_replacement_attempts"]:
+        attempt_dir = root / f"attempt_{len(manifest['attempts']) + 1:03d}"
+        execution = replay_executor.execute(record, artifact, config, input_path, binary, attempt_dir, REPO_ROOT)
+        execution["artifact_file_ref"] = {"relative_path": relative(artifact_path), "content_hash": hash_file(artifact_path)}
+        execution["config_file_ref"] = {"relative_path": relative(config_path), "content_hash": hash_file(config_path)}
+        execution_path = attempt_dir / "execution.json"
+        write_atomic(execution_path, execution)
+        checked = replay_executor.verified_attempt(execution, record, REPO_ROOT, artifact, config)
+        manifest["attempts"].append({**checked, "execution_path": relative(execution_path), "evidence_paths": [relative(attempt_dir / "diagnostic.txt")]})
+        valid += int(checked["valid_attempt"])
+        invalid += int(not checked["valid_attempt"])
+    if valid < required: manifest["collection_status"] = "exhausted"
+    manifest_path = root / "replay_manifest.json"
+    write_atomic(manifest_path, manifest)
+    cmd_replay(argparse.Namespace(replay_manifest=manifest_path, dry_run=False), context, run)
+
+
+def cmd_review(args: argparse.Namespace, context: Context, run: Run) -> None:
+    with (nullcontext() if args.dry_run else locked(case_dir(context, args.case_id))):
+        path, current = history(context, args.case_id)[-1]
+        review = load_json(args.review_json)
+        required = {"reviewer_id", "reviewed_subject_hash", "reviewed_aspects", "conclusion", "summary", "evidence_paths"}
+        if set(review) != required or review["reviewed_subject_hash"] != analysis_subject_hash(current):
+            raise InputError("Review must name the exact current analyzed subject")
+        evidence = [repo_file(p, "review evidence") for p in review["evidence_paths"]]
+        if not evidence: raise InputError("Human review requires evidence")
+        updated = new_revision(path, current, "human_review_updated")
+        policy = updated.get("capture_record", {}).get("policy_snapshot", context.policy)
+        updated["human_review"] = {"status": "completed", "reviewed_at": now(), "reviewer_id": review["reviewer_id"], "reviewed_subject_hash": review["reviewed_subject_hash"], "reviewed_aspects": review["reviewed_aspects"], "conclusion": review["conclusion"], "summary": review["summary"], "evidence_refs": [location(p, "review_evidence")["artifact_ref"] for p in evidence]}
+        updated["reproduction"]["status"] = reproduction_status(
+            updated["reproduction"]["attempts"], policy,
+            "reproduction_equivalence" in review["reviewed_aspects"],
+        )
+        updated["workflow_status"] = "closed" if review["conclusion"] == "accepted" else "awaiting_review"
+        set_validation(updated, context)
+        target = case_path(context, args.case_id, updated["revision"]["revision_number"])
+        if not args.dry_run: write_atomic(target, updated)
+        run.created.append(str(target))
 
 
 def json_pointer(record: Mapping[str, Any], pointer: str) -> Any:
@@ -722,6 +901,13 @@ def _cmd_revise_locked(args: argparse.Namespace, context: Context, run: Run) -> 
     if not isinstance(draft, dict): raise InputError("draft must be an object")
     for pointer in context.policy["revision_control"]["immutable_paths"]:
         if json_pointer(draft, pointer) != json_pointer(current, pointer): raise InputError(f"draft changes immutable field {pointer}")
+    if draft.get("capture_record") != current.get("capture_record"):
+        raise InputError("draft changes the immutable raw capture")
+    if draft["human_review"] != current["human_review"]:
+        raise InputError("Use the structured review command to record human review")
+    if analysis_subject_hash(draft) != analysis_subject_hash(current):
+        draft["human_review"] = {"status": "not_reviewed", "reviewed_at": None, "reviewed_aspects": [], "conclusion": "not_assessed", "summary": None}
+        draft["workflow_status"] = "under_analysis"
     generated = new_revision(path, current, args.revision_reason); draft["revision"] = generated["revision"]; draft["provenance"] = generated["provenance"]; set_validation(draft, context)
     target = case_path(context, args.case_id, draft["revision"]["revision_number"])
     if not args.dry_run:
@@ -731,18 +917,31 @@ def _cmd_revise_locked(args: argparse.Namespace, context: Context, run: Run) -> 
 
 def cmd_summarize(args: argparse.Namespace, context: Context, run: Run) -> None:
     rows = []
+    records = []
     for case_id in selected_case_ids(context, args.case_id):
         try:
             path, record = history(context, case_id)[-1]
             if schema_errors(record, context.case_validator) or semantic_errors(record): raise InputError("invalid latest Case")
+            if record.get("record_format_version") == "1.2": verify_capture_file_refs(record)
+            records.append(record)
             primary = next(item for item in record["candidate_event"]["observations"] if item["observation_id"] == record["candidate_event"]["primary_observation_id"])
-            rows.append({"case_id": case_id, "target_api_id": record["identity"]["target_api_id"], "event_kind": primary["kind"], "admission_status": record["admission"]["status"], "case_role": record["deduplication"]["case_role"], "reproduction_status": record["reproduction"]["status"], "fault_attribution": record["fault_attribution"]["status"], "historical_match": record["historical_matching"]["match_status"], "novelty_status": record["novelty_assessment"]["status"], "latest_record": relative(path)})
+            rows.append({"case_id": case_id, "record_format_version": record["record_format_version"], "target_api_id": record["identity"]["target_api_id"], "fuzzing_round_id": record["origin"]["fuzzing_round_ref"]["artifact_id"], "event_kind": primary["kind"], "admission_status": record["admission"]["status"], "case_role": record["deduplication"]["case_role"], "cluster_id": record["deduplication"]["cluster_id"], "reproduction_status": record["reproduction"]["status"], "valid_replay_attempts": sum(a["valid_attempt"] for a in record["reproduction"]["attempts"]), "fault_attribution": record["fault_attribution"]["status"], "review_status": record["human_review"]["status"], "review_conclusion": record["human_review"]["conclusion"], "analysis_complete": analysis_complete(record), "historical_match": record["historical_matching"]["match_status"], "novelty_status": record["novelty_assessment"]["status"], "latest_record": relative(path)})
         except AnalyzerError as exc:
             run.fail(case_id, exc)
             if args.fail_fast: raise
+    for message in cluster_errors(records, context.output / "cases"): run.fail("clusters", InputError(message))
     representatives = [row for row in rows if row["case_role"] == "representative"]
-    reproducible = [row for row in representatives if row["reproduction_status"] == "stable" and row["fault_attribution"] == "framework"]
-    summary = {"record_format_version": "1.0", "generated_at": now(), "counts": {"raw_native_crash_events": sum(row["event_kind"] == "process_termination" for row in rows), "admitted_candidate_events": sum(row["admission_status"] == "admitted" for row in rows), "unique_candidate_clusters": len(representatives), "unique_reproducible_framework_anomalies": len(reproducible), "historical_bug_rediscoveries": sum(row["historical_match"] == "confirmed_match" for row in reproducible), "potentially_novel_bugs": sum(row["novelty_status"] == "potentially_novel" for row in reproducible), "externally_confirmed_novel_bugs": sum(row["novelty_status"] == "externally_confirmed_novel_bug" for row in reproducible)}}
+    qualified_ids = {r["identity"]["case_id"] for r in records if reportable(r)}
+    reproducible = [row for row in representatives if row["case_id"] in qualified_ids]
+    summary = {"record_format_version": "1.1", "generated_at": now(), "counts": {"candidate_case_records": len(rows), "native_process_termination_candidate_cases": sum(row["event_kind"] == "process_termination" for row in rows), "admitted_candidate_cases": sum(row["admission_status"] == "admitted" for row in rows), "unique_candidate_clusters": len(representatives), "unique_reproducible_framework_anomalies": len(reproducible), "historical_bug_rediscoveries": sum(row["historical_match"] == "confirmed_match" for row in reproducible), "potentially_novel_bugs": sum(row["novelty_status"] == "potentially_novel" for row in reproducible), "externally_confirmed_novel_bugs": sum(row["novelty_status"] == "externally_confirmed_novel_bug" for row in reproducible)}}
+    summary["analysis_status"] = "complete" if records and not run.errors and all(analysis_complete(r) for r in records) else "incomplete"
+    summary["counts"]["pending_analysis_cases"] = sum(not analysis_complete(r) for r in records)
+    summary["counts"]["reportable_framework_anomaly_representatives_confirmed_so_far"] = len(reproducible)
+    summary["counts"]["legacy_cases_outside_current_evidence_contract"] = sum(r.get("record_format_version") != "1.2" for r in records)
+    if summary["analysis_status"] != "complete":
+        for name in ("unique_reproducible_framework_anomalies", "historical_bug_rediscoveries", "potentially_novel_bugs", "externally_confirmed_novel_bugs"):
+            summary["counts"][name] = None
+    summary["selected_case_refs"] = [artifact_ref(r["identity"]["case_id"],r["revision"]["revision_number"],hash_file(case_path(context,r["identity"]["case_id"],r["revision"]["revision_number"]))) for r in records]
     output = confined(args.summary_root, context.output, "summary root")
     if not args.dry_run:
         output.mkdir(parents=True, exist_ok=True); write_atomic(output / "summary.json", summary, overwrite=True)
@@ -772,6 +971,8 @@ def build_parser() -> argparse.ArgumentParser:
     command = commands.add_parser("validate"); command.add_argument("--case-id", action="append", default=[])
     command = commands.add_parser("deduplicate"); command.add_argument("--case-id", action="append", default=[]); command.add_argument("--round-root", type=Path, action="append", required=True)
     command = commands.add_parser("replay"); command.add_argument("--replay-manifest", type=Path, required=True)
+    command = commands.add_parser("execute-replay"); command.add_argument("--case-id", required=True); command.add_argument("--harness-artifact", type=Path, required=True); command.add_argument("--round-root", type=Path, action="append", required=True); command.add_argument("--round-config", type=Path)
+    command = commands.add_parser("review"); command.add_argument("--case-id", required=True); command.add_argument("--review-json", type=Path, required=True)
     command = commands.add_parser("revise"); command.add_argument("--case-id", required=True); command.add_argument("--draft", type=Path, required=True); command.add_argument("--revision-reason", choices=["evidence_updated", "analysis_updated", "human_review_updated", "new_evidence_received", "correction"], required=True)
     command = commands.add_parser("summarize"); command.add_argument("--case-id", action="append", default=[]); command.add_argument("--summary-root", type=Path, default=DEFAULT_OUTPUT / "summaries/latest")
     return parser
@@ -783,7 +984,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         output = confined(args.output_root, REPO_ROOT, "output root")
         context = Context(output, args.policy.resolve(), policy(args.policy), validator(args.case_schema), validator(args.round_schema), validator(args.candidate_bundle_schema))
         run = Run(args.command)
-        {"ingest": cmd_ingest, "validate": cmd_validate, "deduplicate": cmd_deduplicate, "replay": cmd_replay, "revise": cmd_revise, "summarize": cmd_summarize}[args.command](args, context, run)
+        {"ingest": cmd_ingest, "validate": cmd_validate, "deduplicate": cmd_deduplicate, "replay": cmd_replay, "execute-replay": cmd_execute_replay, "review": cmd_review, "revise": cmd_revise, "summarize": cmd_summarize}[args.command](args, context, run)
         if not args.dry_run: save_run(run, context)
         print(json.dumps({"command": args.command, "created": len(run.created), "skipped": len(run.skipped), "failed": len(run.errors), "dry_run": args.dry_run}, ensure_ascii=False))
         return 1 if run.errors else 0

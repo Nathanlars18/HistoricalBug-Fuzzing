@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0",
+  "transformation_id": "begin_iteration_input_binding_v1",
+  "parent_sha256": "a2fc89fc6804d456b777a23f8e58dd30b9f5ab60a3c697bfde3e2e79331240d8",
+  "result_sha256": "ca8da0f415d50105d1ae1cc28e3f99c550855c3d57846c12d3b7a13bbbfb1ab6",
+  "scope": "runtime_input_trace_only",
+  "note": "Bind iteration trace to raw input before the empty-input guard. Empty callbacks now contribute to iteration accounting; planned branch steps, API calls and input domains are unchanged."
+}

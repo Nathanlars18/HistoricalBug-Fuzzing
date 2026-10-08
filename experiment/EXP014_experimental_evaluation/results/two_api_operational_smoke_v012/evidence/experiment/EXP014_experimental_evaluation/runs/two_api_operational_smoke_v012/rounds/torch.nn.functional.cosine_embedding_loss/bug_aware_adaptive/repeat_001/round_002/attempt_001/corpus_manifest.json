@@ -1,0 +1,382 @@
+{
+  "record_format_version": "1.0",
+  "record_type": "corpus_manifest",
+  "identity": {
+    "corpus_id": "corpus_3d28fce3045d761a",
+    "artifact_version": 1
+  },
+  "source": {
+    "kind": "round_output",
+    "source_round_id": "torch.nn.functional.cosine_embedding_loss:bug_aware_adaptive:repeat_001:round_002"
+  },
+  "files": [
+    {
+      "corpus_relative_path": "079108f07d404b215ce6ceea00d6b5d6f0a6e747",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/079108f07d404b215ce6ceea00d6b5d6f0a6e747",
+        "content_hash": "d5230314ec05400b4f924f2e5d415100fb67ffee273ea5ff6a951091c45abbf0"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "0a7c5e4fda81d1b113b429feceeb0d8481b95acd",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/0a7c5e4fda81d1b113b429feceeb0d8481b95acd",
+        "content_hash": "83ca06cd6d2a08e93827b91e78e524514fde29484735f675a4606c5da2adc650"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "0aa9f3158d0219272106f0e98f49093ded3e2a2c",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/0aa9f3158d0219272106f0e98f49093ded3e2a2c",
+        "content_hash": "f452b373676d4be428103657d0a07a66d2fc3dd43e240d912cb3526b5d2d42f5"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "0cd26755180184d4a82cc70775c0cb7701c419d7",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/0cd26755180184d4a82cc70775c0cb7701c419d7",
+        "content_hash": "93e11f7e0021500d9cabc72cd5d771158fba5f2d1df03dc318442b9583415443"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "0d91015c438b99b30d52ec21f593ac065a56aec4",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/0d91015c438b99b30d52ec21f593ac065a56aec4",
+        "content_hash": "44285258912ebaeb33dbf8705a1b8b15a596209fdf47d72f09ec3e9b97917059"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "0f40b5423de9dd2196d0839b43caf526a04fc41f",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/0f40b5423de9dd2196d0839b43caf526a04fc41f",
+        "content_hash": "0cd29c3ec150843ef1b58e2c586820774a0035323265c7bdf40c08e1c14e23ef"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "0f886593948eef6d17d70b2429d895d5cedf37b1",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/0f886593948eef6d17d70b2429d895d5cedf37b1",
+        "content_hash": "91e8f7dcbfc43f5ec99296c9bd60a16a5f9e8c3c9bfa6bcef32cbe25d8dbf243"
+      },
+      "size_bytes": 5
+    },
+    {
+      "corpus_relative_path": "1a90657aca931b4fdd30e34b79b5e753f7aa81a4",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/1a90657aca931b4fdd30e34b79b5e753f7aa81a4",
+        "content_hash": "8d3c30b79888a1ddea346b73488721c79f6b0c711d24e5b83ef283fff9a3cd34"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "32e01e39e04318a9c1d6757f0a7b98b71220c4c7",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/32e01e39e04318a9c1d6757f0a7b98b71220c4c7",
+        "content_hash": "b194f5744cf2ccb4ff498a0f69d70724d10155623c4f87aab8d2d857c2962101"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "387021cf635cdc575dfcd8bd9b8b95ddcd85bf9b",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/387021cf635cdc575dfcd8bd9b8b95ddcd85bf9b",
+        "content_hash": "c9e20a53d0ae50e463171bdae74feb09099ecce9866fcc0d6925f316cee3f6f0"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "3c5382b6e4b4bafab971500cff610ab6ed7bb1ef",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/3c5382b6e4b4bafab971500cff610ab6ed7bb1ef",
+        "content_hash": "b6c279a08f788e65db7d32d0df79704c3a65519708ac74807f409edf5edecb64"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "3f3e9d703681b77a8d4c2268c6026e1f1d83b656",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/3f3e9d703681b77a8d4c2268c6026e1f1d83b656",
+        "content_hash": "321a890542f737d079d73fa68be908e602399720a40bc60f774a24b831d20d20"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "3f48c426fff312f94372e2b2f124d83a568f9e6b",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/3f48c426fff312f94372e2b2f124d83a568f9e6b",
+        "content_hash": "a762f43e4a670c9b76c691cc01d6463c2698ef2e13531383198c4b3d997bf3c0"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "461093a54522a8698a21bff22c7371c97c856132",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/461093a54522a8698a21bff22c7371c97c856132",
+        "content_hash": "412ff114c9100c4445529cf291d6e64c6b22121e0b09193954c74c54f911bcf7"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "4d17f7075227a32c92eeccb7312f0fe0629fec76",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/4d17f7075227a32c92eeccb7312f0fe0629fec76",
+        "content_hash": "a7430bdfa3bfd4b374ddedeec962bbe8a94b363de308c9b17e786f16d5f30255"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "4dd3b637222d5fbd80285c5ca6d13b3866a6510f",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/4dd3b637222d5fbd80285c5ca6d13b3866a6510f",
+        "content_hash": "46c8ada76601712f282d22fdc2c0bb57ddeedb16c13438eb7f6d98af7a6b1e87"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "57fc079dc13a31f05893162229247af5c2c289a1",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/57fc079dc13a31f05893162229247af5c2c289a1",
+        "content_hash": "26d1f85a6fa196a2eaaa8235cf31ed8b7ae1f7d739aa59535c6363581d159cfb"
+      },
+      "size_bytes": 5
+    },
+    {
+      "corpus_relative_path": "59a9e6938c9b0e094ed4f3dba65ccc2a3a535538",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/59a9e6938c9b0e094ed4f3dba65ccc2a3a535538",
+        "content_hash": "289a0cb83fb7571ba7b5ec2761de6abda7a35179492367dffdfb887c5876a582"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "6c09504cae20aabb1c29f9c2c95e3f8c83af3e6e",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/6c09504cae20aabb1c29f9c2c95e3f8c83af3e6e",
+        "content_hash": "d2ba5fadc40d41da74d799b75816c4b0aa17a27136a84f80461e1b5fd8de82e5"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "7caefb8ae34ff9186b7a0752f45b59e1e343ba61",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/7caefb8ae34ff9186b7a0752f45b59e1e343ba61",
+        "content_hash": "4a5caae8cd376ebdd76a90cbd2619912687b9dc03f488442e7a0478142e1f820"
+      },
+      "size_bytes": 8
+    },
+    {
+      "corpus_relative_path": "7f4aa76d79781a033ac0f5451d071cb33f91cb9a",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/7f4aa76d79781a033ac0f5451d071cb33f91cb9a",
+        "content_hash": "86c953fed728c39c5767c619c41899a6071310e3de613d13b57a9fb72974b8a3"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "930bda6da3d15422378574b2255c30e5491cd14d",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/930bda6da3d15422378574b2255c30e5491cd14d",
+        "content_hash": "c9966b2905816d7c29604175ad93eca069e744f5eb8fbbe69e4bc922cfc33c51"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "999a0a8cad102eb519ca788d6e0cd48ee9e6ca3e",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/999a0a8cad102eb519ca788d6e0cd48ee9e6ca3e",
+        "content_hash": "aaa8e61e7faf37dd77cc5f907b38146741994b27d5b1978679af68b43f55e7c5"
+      },
+      "size_bytes": 1
+    },
+    {
+      "corpus_relative_path": "9c60b850720c78c8e0d5b8eb9fd042b31a27467f",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/9c60b850720c78c8e0d5b8eb9fd042b31a27467f",
+        "content_hash": "8ea571b1dbccbf7db3618e7a473814cc45977e808a2c0af1cbae1a5e7c001aeb"
+      },
+      "size_bytes": 8
+    },
+    {
+      "corpus_relative_path": "9f6ba1408910ea49c719eeb890e78aa3c3f6ad70",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/9f6ba1408910ea49c719eeb890e78aa3c3f6ad70",
+        "content_hash": "930b6c525af87b95bb2237f672c5ca4487a0cd5da483cbe4b7bd38598f81ef23"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "a2b95e0ccf9e717cc5794a8eeaca65aee600ff2d",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/a2b95e0ccf9e717cc5794a8eeaca65aee600ff2d",
+        "content_hash": "650e5210e094aae74d6bf8fdf3d366446d7055c85a64a5ea648586bb2c582c12"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "a4c7da6fafb48cfbe9069707e302da8200199c9f",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/a4c7da6fafb48cfbe9069707e302da8200199c9f",
+        "content_hash": "17d187545ff338db164ba18f88c33ea7cb12a2001ba3c830c8df72e8aac17df1"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "a8bc60009da6547c125bd54ed518b17d2cbedb22",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/a8bc60009da6547c125bd54ed518b17d2cbedb22",
+        "content_hash": "a3fcb8be321068abb5ced504224667e78ac5eb0dddc56205fd1f43021e34539d"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "a96ec6e087ec4633f5c9252f11c8c5de3081d22a",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/a96ec6e087ec4633f5c9252f11c8c5de3081d22a",
+        "content_hash": "4c1ed2c7b63a62bbeca4426a9b27c870deb097e34be92a7b534ca1eda0a2cad1"
+      },
+      "size_bytes": 8
+    },
+    {
+      "corpus_relative_path": "aa9f0b5c2640143828d33637574cc95fba208403",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/aa9f0b5c2640143828d33637574cc95fba208403",
+        "content_hash": "b72666c1c7e6d88bec8971fa37e1d66ede2108d2e28fe3d3d3b055eab0129d31"
+      },
+      "size_bytes": 8
+    },
+    {
+      "corpus_relative_path": "ace5cc9f2d1466b35a8b86c5de90a51c20f9f9dd",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/ace5cc9f2d1466b35a8b86c5de90a51c20f9f9dd",
+        "content_hash": "b518a280ecb7ba55b23d8079fada90819ce683703bad0cabe1486ad14714d772"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "adc83b19e793491b1c6ea0fd8b46cd9f32e592fc",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/adc83b19e793491b1c6ea0fd8b46cd9f32e592fc",
+        "content_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+      },
+      "size_bytes": 1
+    },
+    {
+      "corpus_relative_path": "b66fd565676df1da297ff8c45a742ee7d8e704c8",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/b66fd565676df1da297ff8c45a742ee7d8e704c8",
+        "content_hash": "ce12520e8c781a3a538ce0b3def6e4dead088613d4d770ac062eb6d30c4b5a65"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "b90c09289a8e0c23d040af2ff150afced5d9aaf6",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/b90c09289a8e0c23d040af2ff150afced5d9aaf6",
+        "content_hash": "48c21ac1ffb2cd509a85d3ef5163715346827d4c1628ffdae58e07b963c897e7"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "cc73595767feb9a825cc1d7ac16c1f5202f51030",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/cc73595767feb9a825cc1d7ac16c1f5202f51030",
+        "content_hash": "9a640f84ece92207ecc2d94846843760cfaa0801993d10070bd31b61d2fdbc92"
+      },
+      "size_bytes": 5
+    },
+    {
+      "corpus_relative_path": "cfda5860588a628d7155214f64a38e95222d6a38",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/cfda5860588a628d7155214f64a38e95222d6a38",
+        "content_hash": "90e00228d63bf929129626ff9ec62543b9df12d12abef13500055270b74389b5"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "d42705de035d9e5d2369a9690e0a356b2ad67978",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/d42705de035d9e5d2369a9690e0a356b2ad67978",
+        "content_hash": "defa9ac4b238b62d93ce08281cea023da9e6d8e1ca80a876ab5c4d06d8b63021"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "d61dccddd49013ed8b4dcaea61d64a10c992896a",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/d61dccddd49013ed8b4dcaea61d64a10c992896a",
+        "content_hash": "996e168662b9f3c066605884ab5a8c52767fcca271e1c0ff243550de3a06bba5"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "db7db232f9d2375dce320216bb35ddc7ef409735",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/db7db232f9d2375dce320216bb35ddc7ef409735",
+        "content_hash": "4850304e3e5e4d8c040ed4a810ee9cb560ab75dbf63b02736a768f778f6c785d"
+      },
+      "size_bytes": 8
+    },
+    {
+      "corpus_relative_path": "dba13705b91afd7f221df026cd05323b745785fb",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/dba13705b91afd7f221df026cd05323b745785fb",
+        "content_hash": "f3d5504d5c4ad0c4bab7d596bf4e11f13ecb6d75861e7ea3d242d7cdbfb725dc"
+      },
+      "size_bytes": 8
+    },
+    {
+      "corpus_relative_path": "de22ae3b1683d948885f510b99d8c5d573ed7352",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/de22ae3b1683d948885f510b99d8c5d573ed7352",
+        "content_hash": "273e0960836f8b4d94087ecbaf3dcc6afaee9834f158391e9c21041e2a2b3605"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "e87ad50b8f315bfad8c56d481fcd0dc6039f7263",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/e87ad50b8f315bfad8c56d481fcd0dc6039f7263",
+        "content_hash": "25a0a9761bcd14521fba9624997968b1c747303cee36cbcf480aa524f3c067e2"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "ed63035cca957345a73bcec50f2821e7a8eccd38",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/ed63035cca957345a73bcec50f2821e7a8eccd38",
+        "content_hash": "d334406aea726433a9a33e816c443de9d4e4c73bfb92e1200d1f18c619daaecd"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "ee42597ef4ea29525297a3202b0b938fbba0057d",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/ee42597ef4ea29525297a3202b0b938fbba0057d",
+        "content_hash": "b9fe6c9d03eb685a1a234b4782234e455cce35f78467858e21a59ca9ab6cc3c0"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "f168095728c64e434bc5f65b7b46d4cde7ea333d",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/bug_aware_adaptive/repeat_001/round_002/attempt_001/corpus/f168095728c64e434bc5f65b7b46d4cde7ea333d",
+        "content_hash": "92c7b3cb13e3af5a7fcbbe580b33637d8e81e06555ef07747e27bc752ec71f90"
+      },
+      "size_bytes": 8
+    }
+  ],
+  "provenance": {
+    "generator_ref": {
+      "artifact_id": "run_fuzzing_round",
+      "artifact_version": "0.5.0",
+      "content_hash": "afdf451c319f854bd302175954bd93ed9dab69669f3b59bc242c813719b463c8"
+    },
+    "generated_at": "2026-10-08T08:33:07.589664Z"
+  }
+}

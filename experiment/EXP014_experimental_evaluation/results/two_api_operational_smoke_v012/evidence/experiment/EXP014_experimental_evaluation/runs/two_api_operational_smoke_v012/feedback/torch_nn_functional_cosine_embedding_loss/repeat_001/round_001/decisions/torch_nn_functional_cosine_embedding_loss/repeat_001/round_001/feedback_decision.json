@@ -1,0 +1,266 @@
+{
+  "record_format_version": "1.5",
+  "canonicalization_version": "1.0",
+  "decision_id": "fd:torch.nn.functional.cosine_embedding_loss:repeat_001:round1",
+  "decision_key": "eaa7a1d558a3bd8a2989229d9dcaebb2326a39c77b77cff9cf0cc3c337db39b4",
+  "scope": {
+    "target_api_id": "torch.nn.functional.cosine_embedding_loss",
+    "experimental_group": "bug_aware_adaptive",
+    "independent_repeat_id": "repeat_001",
+    "observed_round_index": 1,
+    "effective_from_round_index": 2
+  },
+  "input_references": {
+    "current_harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static",
+      "revision_number": 4,
+      "content_hash": "95756ac5c476d86479bfd4d5bcf85975b5fc2ee52705378c3cdffdfed1ca9d09"
+    },
+    "current_strategy_ref": {
+      "strategy_id": "st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004",
+      "revision_number": 2,
+      "content_hash": "b61a5949ccf1342e7d8e879be624538348e2c1b6fb4f9f4d184813163d8bb89f"
+    },
+    "current_harness_artifact_ref": {
+      "artifact_id": "ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2_1db0a08e49f6",
+      "artifact_version": "1.3",
+      "content_hash": "6429151316a4e9e9e11b09a891cc51c66a435abf6d3681205d317f3e90397347"
+    },
+    "fuzzing_round_ref": {
+      "artifact_id": "torch.nn.functional.cosine_embedding_loss:bug_aware_adaptive:repeat_001:round_001",
+      "artifact_version": "1.1",
+      "content_hash": "0ccd77f2fd63a5de966453e8b23429cf30889ee0032eba9dca6c60d7d40f959e"
+    },
+    "runtime_snapshot_ref": {
+      "artifact_id": "runtime_snapshot_ex_6f5c591dd55e4673aaa295bdc4d0c895",
+      "artifact_version": "1.0",
+      "content_hash": "07404e15ea6581500ca7a5fdcb78b3798565e46094e3d0645b8c23c6af701985"
+    },
+    "coverage_summary_ref": {
+      "artifact_id": "coverage_summary",
+      "artifact_version": "1.0",
+      "content_hash": "971093767dd1d82a0744691bc199ba003bd5a2ddc07481b2895345b3457a5ab8"
+    },
+    "output_corpus_ref": {
+      "artifact_id": "corpus_5111a5af8d50d2a6",
+      "artifact_version": 1,
+      "content_hash": "e50fb3df9d14e1544a62ef5ac0277597ede984c8a9b177da1108b3e3e176e49a"
+    },
+    "feedback_policy_ref": {
+      "artifact_id": "adaptive_branch_budget_pilot",
+      "artifact_version": "0.6",
+      "content_hash": "a4dd99405a852f281d3ac00305cef9693c8d904fbfb61806a22cd4a973b3c3ae"
+    },
+    "feedback_protocol_ref": {
+      "artifact_id": "adaptive_feedback_loop_protocol",
+      "artifact_version": "0.8",
+      "content_hash": "1364b3ad4dec961af7a0d75708b2c7e1d9083f5278d980e876af5a7fe501aa01"
+    },
+    "controller_ref": {
+      "artifact_id": "run_feedback_controller",
+      "artifact_version": "0.9.0",
+      "content_hash": "0f65383877aeda8aeac30e1bfb9caab42a8f8b9c90e289c47bdcbaaa9053bca8"
+    },
+    "prior_feedback_decision_refs": []
+  },
+  "round_assessment": {
+    "round_gate": {
+      "result": "eligible",
+      "issue_codes": []
+    },
+    "branch_diagnoses": [
+      {
+        "branch_id": "br_default",
+        "primary_status": "branch_no_detected_bottleneck",
+        "supporting_statuses": [],
+        "measurements": {
+          "branch_selected_count": 7728,
+          "target_reached_count": 6226,
+          "input_rejected_count": 1502,
+          "target_exception_count": 0,
+          "target_exception_observation_state": "available",
+          "activation_required": false,
+          "activation_checked_count": null,
+          "activation_true_count": null,
+          "activation_unevaluable_count": null,
+          "activation_check_error_count": null,
+          "oracle_required": false,
+          "oracle_opportunity_count": null,
+          "oracle_evaluated_count": null,
+          "condition_measurements": [],
+          "behavior_check_measurements": []
+        },
+        "instrumentation_binding_refs": [
+          "ins_0001",
+          "ins_0002",
+          "ins_0014",
+          "ins_0015",
+          "ins_0016"
+        ],
+        "trigger_condition": null,
+        "budget_evidence_usable": true,
+        "budget_recipient_evidence_usable": true,
+        "budget_donor_evidence_usable": true
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "primary_status": "branch_no_detected_bottleneck",
+        "supporting_statuses": [],
+        "measurements": {
+          "branch_selected_count": 10211,
+          "target_reached_count": 10211,
+          "input_rejected_count": 0,
+          "target_exception_count": 4420,
+          "target_exception_observation_state": "available",
+          "activation_required": true,
+          "activation_checked_count": 10211,
+          "activation_true_count": 6834,
+          "activation_unevaluable_count": 0,
+          "activation_check_error_count": 0,
+          "oracle_required": false,
+          "oracle_opportunity_count": null,
+          "oracle_evaluated_count": null,
+          "condition_measurements": [
+            {
+              "condition_id": "tc_br_knowledge_001_001",
+              "role": "exploration_variable",
+              "observe_at": "before_target_api_call",
+              "state": "available",
+              "checked": 10211,
+              "true": 6834,
+              "unevaluable": 0,
+              "error": 0,
+              "rate": 0.6692782293604936,
+              "binding_refs": [
+                "ins_0022",
+                "ins_0023",
+                "ins_0024",
+                "ins_0025"
+              ]
+            },
+            {
+              "condition_id": "tc_br_knowledge_001_002",
+              "role": "exploration_variable",
+              "observe_at": "before_target_api_call",
+              "state": "available",
+              "checked": 10211,
+              "true": 6576,
+              "unevaluable": 0,
+              "error": 0,
+              "rate": 0.6440113602977181,
+              "binding_refs": [
+                "ins_0027",
+                "ins_0028",
+                "ins_0029",
+                "ins_0030"
+              ]
+            },
+            {
+              "condition_id": "tc_br_knowledge_001_003",
+              "role": "exploration_variable",
+              "observe_at": "before_target_api_call",
+              "state": "available",
+              "checked": 10211,
+              "true": 7367,
+              "unevaluable": 0,
+              "error": 0,
+              "rate": 0.7214768387033591,
+              "binding_refs": [
+                "ins_0032",
+                "ins_0033",
+                "ins_0034",
+                "ins_0035"
+              ]
+            }
+          ],
+          "behavior_check_measurements": []
+        },
+        "instrumentation_binding_refs": [
+          "ins_0017",
+          "ins_0022",
+          "ins_0023",
+          "ins_0024",
+          "ins_0025",
+          "ins_0027",
+          "ins_0028",
+          "ins_0029",
+          "ins_0030",
+          "ins_0032",
+          "ins_0033",
+          "ins_0034",
+          "ins_0035",
+          "ins_0044",
+          "ins_0045",
+          "ins_0046"
+        ],
+        "trigger_condition": {
+          "branch_id": "br_knowledge_001",
+          "condition_id": "tc_br_knowledge_001_001",
+          "role": "exploration_variable",
+          "observe_at": "before_target_api_call"
+        },
+        "budget_evidence_usable": true,
+        "budget_recipient_evidence_usable": true,
+        "budget_donor_evidence_usable": true
+      }
+    ],
+    "coverage_assessment": {
+      "trend": "coverage_not_assessed",
+      "coverage_summary_ref": {
+        "artifact_id": "coverage_summary",
+        "artifact_version": "1.0",
+        "content_hash": "971093767dd1d82a0744691bc199ba003bd5a2ddc07481b2895345b3457a5ab8"
+      },
+      "collection_state": "collected",
+      "measurements": {
+        "lines": {
+          "covered": 9186,
+          "total": 172825,
+          "percent": 5.315203240271951
+        },
+        "branches": {
+          "covered": 6683,
+          "total": 56868,
+          "percent": 11.751776042765703
+        }
+      },
+      "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+      "pytorch_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "coverage_image": "sha256:97e81068dd854e60dfc6d6fd5c215935681c6cc4d3e31b959f330a1402b803e9",
+      "harness_binary_hash": "0a0a4fa78e54a16ea25259caa89dafcd63c6222ec1149eb0cbd4d6f7b8f0ee15",
+      "quality_status": "partial_warning"
+    }
+  },
+  "budget_decision": {
+    "budget_action": "retain_current",
+    "transition_kind": "none",
+    "no_change_reason": "no_eligible_recipient",
+    "current_allocation": [
+      {
+        "branch_id": "br_default",
+        "selector_slots": 128
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "selector_slots": 128
+      }
+    ],
+    "proposed_allocation": null,
+    "transfers": [],
+    "pre_boost_decision_ref": null
+  },
+  "materialization": {
+    "outcome": "not_attempted",
+    "candidate_harness_spec_ref": null,
+    "candidate_strategy_ref": null,
+    "candidate_harness_artifact_ref": null,
+    "failed_stage": null,
+    "warning_refs": [],
+    "failure_diagnostic_refs": []
+  },
+  "run_disposition": {
+    "value": "continue",
+    "disposition_reason": null,
+    "handoff_ref": null
+  }
+}

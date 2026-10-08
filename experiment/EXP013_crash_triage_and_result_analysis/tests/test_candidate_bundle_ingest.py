@@ -113,6 +113,7 @@ class CandidateBundleIntegrationTest(unittest.TestCase):
                 run_log_path=run_log,
                 candidate_binding=binding,
                 candidate_observations=observations,
+                coverage_evidence={"status": "not_collected", "location": None, "diagnostic_refs": []},
                 round_validator=ADAPTER.schema_validator(ADAPTER.DEFAULTS["round_schema"], "Fuzzing Round"),
             )
             round_path = attempt / "fuzzing_round_record.json"

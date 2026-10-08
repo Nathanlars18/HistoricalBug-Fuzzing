@@ -1,0 +1,374 @@
+{
+  "schema_version": "2.2",
+  "identity": {
+    "spec_id": "hs_pytorch_torch.batch_norm_update_stats_bug_aware_static",
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats",
+    "spec_mode": "bug_aware_static"
+  },
+  "revision_information": {
+    "revision_number": 5,
+    "parent_revision_ref": {
+      "spec_id": "hs_pytorch_torch.batch_norm_update_stats_bug_aware_static",
+      "revision_number": 4,
+      "content_hash": "11048cef4e6c75c1fb679b8cae7bd5adbe32a84e4a38311cf5d8bebd568db9ca"
+    },
+    "derived_from_spec_ref": null,
+    "feedback_request_ref": null,
+    "revision_trigger": "manual_review",
+    "change_scopes": [
+      "knowledge_selection",
+      "branch_semantics"
+    ],
+    "change_summary": "Regenerate HarnessSpec revision from frozen inputs; changed scopes: knowledge_selection, branch_semantics",
+    "lifecycle_status": "draft"
+  },
+  "target_context": {
+    "api_profile_ref": {
+      "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.batch_norm_update_stats:python_default:aten.batch_norm_update_stats.default",
+      "revision": 7,
+      "content_hash": "33e71c2f3bfa040702c9263bb9e7a2779962791cf53f70676fbb5e39e65e0caf"
+    },
+    "available_helper_profile_refs": [
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_comparetensors_96f975d59bc7",
+        "revision": 2,
+        "content_hash": "3a023fbd4f2abef1efebf74da7c09a39820fb5bcaf87108f06115dcaeaa9c7af"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+        "revision": 2,
+        "content_hash": "77ba0a7b4446c33e3dce2e9c738edb1b113013315817a75cfa00c8321f0b1f1e"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_currenttimestamp_c81f2a7d32da",
+        "revision": 2,
+        "content_hash": "ec490726fa6f4b7ef9bd2a590b3dfa352cfb9ab0f571edc48934d339daf8cccd"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_ensure_log_directory_exists_0998a5920e8b",
+        "revision": 2,
+        "content_hash": "ec5d435bfd631ae34cac1ef70c71eca7ba91352a354689b1b4da987604f6106c"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_logerrormessage_ffbff3bb0e31",
+        "revision": 2,
+        "content_hash": "225e26b459e805214d62aa15b3fcebe3ad4b5f4452adb17460d67abafdcfb7d9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+        "revision": 2,
+        "content_hash": "d24f50a2b9ee76d060d46d3cd29e88d93a4e7c4afc1dd4775fbb964553aeafc6"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+        "revision": 2,
+        "content_hash": "883cb198e4fea076f62b4d8d4a585115c7a7841ea27323959b28c7dde95a6910"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parseshape_bc0dff00f287",
+        "revision": 2,
+        "content_hash": "45ec76ea73190c533ebf6a8cedef5cf44c08278d9002a648f9166b85fd54bc2d"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsetensordata_326eeb67c32d",
+        "revision": 2,
+        "content_hash": "7c13a00d198673107c2a960c6372ae9884298aa09aedcf2609c2d5d45e2807cb"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_sanitizedtimestamp_3462aebdca72",
+        "revision": 2,
+        "content_hash": "2513caf9c97e44f09e903b2c0d9bbe74341defee995561980dd45cbd86141dc9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_savediffinput_2413f328d009",
+        "revision": 2,
+        "content_hash": "6a45475e9d31bb95c9ad693af4b8366ef7ea671252b9d1fbb137ecd2b80d0608"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_saveerrorinput_315d3b0ca605",
+        "revision": 2,
+        "content_hash": "abd8268e9d0019a9a75c95eb96ac0d6b94eeba2e45a9b0ee3e832b1b2fc45086"
+      }
+    ],
+    "framework_version": "v2.10.0",
+    "backend_scope": [
+      "cpu"
+    ]
+  },
+  "knowledge_plan": {
+    "knowledge_decisions": [
+      {
+        "disposition": "included",
+        "branch_ids": [
+          "br_knowledge_001"
+        ],
+        "decision_summary": "Included because the termination-vs-controlled-error observation candidates can be preserved as record-only on_target_api_termination behavior observations; inferred mechanism and platform variation remain deferred because current predicates cannot safely assert them.",
+        "component_mappings": [
+          {
+            "source_path": "/learned_hypothesis",
+            "mapping_status": "partially_represented",
+            "spec_element_refs": [
+              {
+                "branch_id": "br_knowledge_001",
+                "element_type": "exploration_goal",
+                "element_id": null
+              },
+              {
+                "branch_id": "br_knowledge_001",
+                "element_type": "behavior_observation",
+                "element_id": "obs_br_knowledge_001_001"
+              }
+            ],
+            "represented_scope": "Candidate zero-element/zero-normalized-dimension boundary is scoped as the exploration goal and observed for termination versus controlled error.",
+            "deferred_scope": "The inferred division-by-zero-before-validation mechanism, unknown necessity, and platform dependence are not asserted as structured constraints or checks.",
+            "decision_summary": "The hypothesis contributes candidate scope and observational focus; mechanistic and necessity claims remain deferred because they cannot be preserved without unsupported trigger constraints."
+          },
+          {
+            "source_path": "/exploration_guidance/variation_opportunities/0",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "Qualitative zero-element input-shape variation across zero/non-zero normalized-dimension combinations is not represented because the current API Profile and predicate vocabulary do not support shape-dimension variation without inventing dimension indices or bounds.",
+            "decision_summary": "No branch target condition is emitted that would safely vary normalized-dimension zero/non-zero combinations from the supplied sources."
+          },
+          {
+            "source_path": "/exploration_guidance/variation_opportunities/1",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "Execution-environment and device-availability variation is not represented because the API Profile is scoped to CPU and no environment-variation predicate is available.",
+            "decision_summary": "The current capability context cannot meaningfully vary device availability around the reported Linux CPU case, so this variation is deferred."
+          },
+          {
+            "source_path": "/exploration_guidance/observation_candidates/0",
+            "mapping_status": "represented",
+            "spec_element_refs": [
+              {
+                "branch_id": "br_knowledge_001",
+                "element_type": "behavior_observation",
+                "element_id": "obs_br_knowledge_001_001"
+              }
+            ],
+            "represented_scope": null,
+            "deferred_scope": null,
+            "decision_summary": null
+          },
+          {
+            "source_path": "/exploration_guidance/observation_candidates/1",
+            "mapping_status": "represented",
+            "spec_element_refs": [
+              {
+                "branch_id": "br_knowledge_001",
+                "element_type": "behavior_observation",
+                "element_id": "obs_br_knowledge_001_002"
+              }
+            ],
+            "represented_scope": null,
+            "deferred_scope": null,
+            "decision_summary": null
+          },
+          {
+            "source_path": "/learned_hypothesis/limitations/0",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "Unknown necessity of zero-element shape is not converted into a branch constraint or activation-required trigger.",
+            "decision_summary": "The limitation is preserved as deferred because no supported predicate asserts uncertainty without imposing the very trigger whose necessity is unknown."
+          },
+          {
+            "source_path": "/learned_hypothesis/limitations/1",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "Platform-condition uncertainty and cross-platform difference are not asserted as a fixed environment constraint or expected outcome.",
+            "decision_summary": "No environment-variation predicate is available to preserve this limitation without pinning execution context."
+          },
+          {
+            "source_path": "/learned_hypothesis/limitations/2",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "Inferred patch/PR-derived mechanism is not represented as a branch constraint or check because it is not a mapped root cause.",
+            "decision_summary": "Mechanism inference remains outside structured predicates and is not converted into a claim about current target behavior."
+          }
+        ],
+        "knowledge_ref": {
+          "knowledge_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+          "schema_version": "3.0",
+          "content_hash": "019cfb2f00766f92c7b2c29ada4e76c23c6fda0dd2301b2b2669264e17fa744f"
+        }
+      }
+    ]
+  },
+  "validity_constraints": {
+    "global_constraints": []
+  },
+  "exploration_plan": {
+    "default_branch_id": "br_default",
+    "budget_policy_ref": {
+      "artifact_id": "initial_branch_budget_policy__v002.json",
+      "artifact_version": "2.0",
+      "content_hash": "19704f879f0a828c729c45c99ce85f018b7f108243f65bed1bc427fcc070e02b"
+    },
+    "branches": [
+      {
+        "branch_id": "br_default",
+        "branch_kind": "default",
+        "input_validity_intent": "expected_valid",
+        "source_knowledge_ids": [],
+        "grouping_summary": null,
+        "exploration_goal": "Explore torch.batch_norm_update_stats over API-valid tensor and momentum inputs while preserving the general API contract.",
+        "branch_constraints": [],
+        "target_conditions": [],
+        "behavior_observations": [],
+        "behavior_checks": [],
+        "budget_share": 0.5,
+        "input_validity_basis": {
+          "basis_kind": "canonical_baseline_definition",
+          "source_refs": [],
+          "summary": "This branch is the canonical controlled-Baseline definition; it does not assert undocumented API boundary semantics."
+        },
+        "exploration_goal_source_refs": []
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "branch_kind": "knowledge_directed",
+        "input_validity_intent": "contract_boundary_unresolved",
+        "input_validity_basis": {
+          "basis_kind": "unresolved",
+          "source_refs": [],
+          "summary": "Supplied API Profile documents no element-count or normalized-dimension constraints for input, so expected-valid versus intentionally-invalid status cannot be established."
+        },
+        "source_knowledge_ids": [
+          "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002"
+        ],
+        "grouping_summary": "Single Knowledge record with no conflicting contexts; grouped into one candidate-boundary observation branch.",
+        "exploration_goal": "Explore candidate zero-element and zero-size-normalized-dimension inputs to torch.batch_norm_update_stats, recording whether the target executes normally, raises a controlled RuntimeError, or terminates abnormally.",
+        "exploration_goal_source_refs": [
+          {
+            "source_type": "knowledge",
+            "source_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+            "source_version": "3.0",
+            "content_hash": "019cfb2f00766f92c7b2c29ada4e76c23c6fda0dd2301b2b2669264e17fa744f",
+            "source_path": "/learned_hypothesis"
+          },
+          {
+            "source_type": "knowledge",
+            "source_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+            "source_version": "3.0",
+            "content_hash": "019cfb2f00766f92c7b2c29ada4e76c23c6fda0dd2301b2b2669264e17fa744f",
+            "source_path": "/exploration_guidance/observation_candidates/0"
+          },
+          {
+            "source_type": "knowledge",
+            "source_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+            "source_version": "3.0",
+            "content_hash": "019cfb2f00766f92c7b2c29ada4e76c23c6fda0dd2301b2b2669264e17fa744f",
+            "source_path": "/exploration_guidance/observation_candidates/1"
+          }
+        ],
+        "branch_constraints": [],
+        "target_conditions": [],
+        "behavior_observations": [
+          {
+            "observation_id": "obs_br_knowledge_001_001",
+            "subject_refs": [
+              "context.execution",
+              "param_000_input"
+            ],
+            "observe_at": "on_target_api_termination",
+            "description": "Record whether an invocation with zero-element input and zero size along the normalized dimension results in a floating-point-style termination or a controlled error response.",
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+                "source_version": "3.0",
+                "content_hash": "019cfb2f00766f92c7b2c29ada4e76c23c6fda0dd2301b2b2669264e17fa744f",
+                "source_path": "/exploration_guidance/observation_candidates/0"
+              },
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+                "source_version": "3.0",
+                "content_hash": "019cfb2f00766f92c7b2c29ada4e76c23c6fda0dd2301b2b2669264e17fa744f",
+                "source_path": "/learned_hypothesis"
+              }
+            ]
+          },
+          {
+            "observation_id": "obs_br_knowledge_001_002",
+            "subject_refs": [
+              "context.execution",
+              "param_000_input"
+            ],
+            "observe_at": "on_target_api_termination",
+            "description": "Record whether an empty-input invocation raises a controlled RuntimeError indicating a minimum-element requirement.",
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+                "source_version": "3.0",
+                "content_hash": "019cfb2f00766f92c7b2c29ada4e76c23c6fda0dd2301b2b2669264e17fa744f",
+                "source_path": "/exploration_guidance/observation_candidates/1"
+              }
+            ]
+          }
+        ],
+        "behavior_checks": [],
+        "budget_share": 0.5
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "hybrid",
+    "generator_name": "harness_spec_builder_v0.21",
+    "model_name": "deepseek-v4-pro",
+    "generation_run_id": "run_20261005T072410Z_5968fcd833a5",
+    "script_ref": {
+      "artifact_id": "build_harness_spec_json__harness_spec_builder_v0.21__sha256_06814aa0c907a8a5727eaec1f5dc884b7b88aa261a96e957e458f67c7e55fa39.py",
+      "artifact_version": "harness_spec_builder_v0.21",
+      "content_hash": "06814aa0c907a8a5727eaec1f5dc884b7b88aa261a96e957e458f67c7e55fa39",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/build_harness_spec_json__harness_spec_builder_v0.21__sha256_06814aa0c907a8a5727eaec1f5dc884b7b88aa261a96e957e458f67c7e55fa39.py"
+    },
+    "contract_ref": {
+      "artifact_id": "harness_spec_synthesis_contract__2.4__sha256_d6c65bdb0de1d9d2c6db12d7461beaec0a9fb45a342641a2122e9014f087573c.json",
+      "artifact_version": "2.4",
+      "content_hash": "d6c65bdb0de1d9d2c6db12d7461beaec0a9fb45a342641a2122e9014f087573c",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_synthesis_contract__2.4__sha256_d6c65bdb0de1d9d2c6db12d7461beaec0a9fb45a342641a2122e9014f087573c.json"
+    },
+    "rules_ref": {
+      "artifact_id": "knowledge_to_harness_spec_rules__2.4__sha256_376b25673054a6ec89ac4660e3cae9585b2eaaeea677624676973f1430662193.md",
+      "artifact_version": "2.4",
+      "content_hash": "376b25673054a6ec89ac4660e3cae9585b2eaaeea677624676973f1430662193",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/knowledge_to_harness_spec_rules__2.4__sha256_376b25673054a6ec89ac4660e3cae9585b2eaaeea677624676973f1430662193.md"
+    },
+    "schema_ref": {
+      "artifact_id": "harness_spec_record__2.2__sha256_122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2.schema.json",
+      "artifact_version": "2.2",
+      "content_hash": "122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_record__2.2__sha256_122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2.schema.json"
+    },
+    "schema_core_ref": {
+      "artifact_id": "harness_spec_record_core_v2_2__2.2__sha256_4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e.schema.json",
+      "artifact_version": "2.2",
+      "content_hash": "4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_record_core_v2_2__2.2__sha256_4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e.schema.json"
+    },
+    "generation_trace_ref": {
+      "artifact_id": "attempt_002.json",
+      "artifact_version": "1.1",
+      "content_hash": "128c9ed92444a6b349d398097c4ddef10a5821c6163151e37caa6e64ac6bacb2",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_traces/run_20261005t072410z_5968fcd833a5/attempt_002.json"
+    },
+    "generated_at": "2026-10-05T07:30:13.559275Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

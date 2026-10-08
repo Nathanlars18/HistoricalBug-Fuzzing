@@ -1,0 +1,29 @@
+{
+  "record_format_version": "1.0",
+  "runtime_version": "1.1",
+  "artifact_id": "ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3",
+  "generation_key": "5ee53afc00c3f02b8fb90c6144e7f66df0662236d4a2836b43f7de112565c66c",
+  "snapshot_kind": "final",
+  "snapshot_interval": 65536,
+  "site_count": 13,
+  "started_iterations": 32823,
+  "finished_iterations": 32823,
+  "unwound_iterations": 0,
+  "invalid_site_records": 0,
+  "export_failures": 0,
+  "site_counts": [
+    32822,
+    32822,
+    32822,
+    32822,
+    10457,
+    22365,
+    22365,
+    0,
+    0,
+    0,
+    22365,
+    0,
+    22365
+  ]
+}

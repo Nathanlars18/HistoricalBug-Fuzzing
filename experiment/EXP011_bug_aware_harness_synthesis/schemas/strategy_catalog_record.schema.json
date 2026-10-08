@@ -15,7 +15,7 @@
     "review"
   ],
   "properties": {
-    "schema_version": { "const": "1.0" },
+    "schema_version": { "const": "1.1" },
     "catalog_id": { "$ref": "#/$defs/identifier" },
     "catalog_version": { "$ref": "#/$defs/positive_integer" },
     "target_language": { "const": "cpp" },
@@ -24,6 +24,11 @@
       "type": "array",
       "minItems": 1,
       "items": { "$ref": "#/$defs/strategy_primitive" }
+    },
+    "argument_relation_rules": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/argument_relation_rule" }
     },
     "provenance": { "$ref": "#/$defs/provenance" },
     "review": { "$ref": "#/$defs/review" }
@@ -92,6 +97,34 @@
           ]
         },
         "content_hash": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "argument_relation_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_id", "python_api", "framework_commit", "reference_port", "dependent_port", "dependent_subject_ref", "allowed_rank_pairs", "evidence"],
+      "properties": {
+        "rule_id": { "$ref": "#/$defs/identifier" },
+        "python_api": { "$ref": "#/$defs/non_empty_string" },
+        "framework_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "reference_port": { "$ref": "#/$defs/identifier" },
+        "dependent_port": { "$ref": "#/$defs/identifier" },
+        "dependent_subject_ref": { "$ref": "#/$defs/identifier" },
+        "allowed_rank_pairs": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "array", "prefixItems": [{"type": "integer", "minimum": 0, "maximum": 4}, {"type": "integer", "minimum": 0, "maximum": 4}], "items": false }
+        },
+        "evidence": {
+          "type": "object", "additionalProperties": false,
+          "required": ["source_url", "source_sha256", "locator", "excerpt", "excerpt_sha256"],
+          "properties": {
+            "source_url": { "type": "string", "format": "uri" },
+            "source_sha256": { "$ref": "#/$defs/sha256" },
+            "locator": { "$ref": "#/$defs/non_empty_string" },
+            "excerpt": { "$ref": "#/$defs/non_empty_string" },
+            "excerpt_sha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
       }
     },
     "helper_profile_reference": {
@@ -229,23 +262,41 @@
     "semantic_support": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["risk_dimensions", "requirement_types", "oracle_types"],
+      "required": [
+        "predicate_ids",
+        "condition_roles",
+        "observation_phases",
+        "behavior_check_levels",
+        "subject_kinds",
+        "fuzz_dependency"
+      ],
       "properties": {
-        "risk_dimensions": {
+        "predicate_ids": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "$ref": "#/$defs/risk_dimension" }
+          "items": { "$ref": "#/$defs/identifier" }
         },
-        "requirement_types": {
+        "condition_roles": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "$ref": "#/$defs/requirement_type" }
+          "items": {"enum": ["activation_required", "exploration_variable"]}
         },
-        "oracle_types": {
+        "observation_phases": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "$ref": "#/$defs/oracle_type" }
-        }
+          "items": {"enum": ["before_target_api_call", "after_target_api_call", "on_target_api_termination"]}
+        },
+        "behavior_check_levels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["required", "preferred"]}
+        },
+        "subject_kinds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["tensor", "scalar", "execution", "output", "state"]}
+        },
+        "fuzz_dependency": {"enum": ["none", "propagates", "produces"]}
       }
     },
     "input_port": {

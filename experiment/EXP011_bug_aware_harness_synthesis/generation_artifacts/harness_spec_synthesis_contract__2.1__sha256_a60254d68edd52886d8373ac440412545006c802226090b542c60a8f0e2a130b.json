@@ -1,0 +1,130 @@
+{
+  "contract_version": "2.1",
+  "contract_name": "knowledge_v3_to_harness_spec",
+  "target_schema_version": "2.1",
+  "input_unit": "one target API bundle containing one API Profile, one mode-independent Helper capability set, and reviewed same-API Knowledge v3 records",
+  "response_requirements": {
+    "output_format": "json_only",
+    "root_object_keys": ["knowledge_plan", "validity_constraints", "exploration_plan"],
+    "script_owned_fields_not_to_emit": [
+      "schema_version", "identity", "revision_information", "target_context",
+      "knowledge_plan.knowledge_decisions[].knowledge_ref",
+      "exploration_plan.default_branch_id", "exploration_plan.budget_policy_ref",
+      "exploration_plan.branches[].budget_share", "provenance", "review"
+    ]
+  },
+  "response_template": {
+    "knowledge_plan": {"knowledge_decisions": []},
+    "validity_constraints": {"global_constraints": []},
+    "exploration_plan": {"branches": []}
+  },
+  "item_templates": {
+    "source_ref": {"source_type": null, "source_id": null, "source_path": null},
+    "predicate": {"predicate_id": null, "arguments": {}, "description": null},
+    "spec_element_ref": {"branch_id": null, "element_type": null, "element_id": null},
+    "knowledge_component_mapping": {"source_path": null, "mapping_status": null, "spec_element_refs": [], "represented_scope": null, "deferred_scope": null, "decision_summary": null},
+    "knowledge_decision": {"knowledge_id": null, "disposition": null, "branch_ids": [], "decision_summary": null, "component_mappings": []},
+    "constraint": {"constraint_id": null, "subjects": [], "predicate": null, "source_refs": []},
+    "target_condition": {"condition_id": null, "role": null, "predicate": null, "observe_at": [], "source_refs": []},
+    "behavior_observation": {"observation_id": null, "subject_refs": [], "observe_at": null, "description": null, "source_refs": []},
+    "behavior_check": {"check_id": null, "subject_refs": [], "preconditions": [], "expected_predicate": null, "source_refs": [], "requirement_level": null},
+    "exploration_branch": {
+      "branch_id": null,
+      "branch_kind": null,
+      "input_validity_intent": null,
+      "input_validity_basis": {"basis_kind": null, "source_refs": [], "summary": null},
+      "source_knowledge_ids": [],
+      "grouping_summary": null,
+      "exploration_goal": null,
+      "exploration_goal_source_refs": [],
+      "branch_constraints": [],
+      "target_conditions": [],
+      "behavior_observations": [],
+      "behavior_checks": []
+    }
+  },
+  "allowed_values": {
+    "source_type": ["api_profile", "knowledge"],
+    "disposition": ["included", "deferred"],
+    "branch_kind": ["default", "knowledge_directed"],
+    "input_validity_intent": ["expected_valid", "intentionally_invalid", "contract_boundary_unresolved"],
+    "input_validity_basis_kind": ["api_contract", "knowledge_supported", "canonical_baseline_definition", "unresolved"],
+    "knowledge_mapping_status": ["represented", "partially_represented", "deferred"],
+    "spec_element_type": ["exploration_goal", "branch_constraint", "target_condition", "behavior_observation", "behavior_check"],
+    "target_condition_role": ["activation_required", "exploration_variable"],
+    "observation_point": ["before_target_api_call", "after_target_api_call", "on_target_api_termination"],
+    "requirement_level": ["required", "preferred"],
+    "predicate_id": [
+      "property_relation",
+      "set_membership",
+      "range_constraint",
+      "cross_subject_relation",
+      "state_transition",
+      "expected_exception",
+      "result_equivalence",
+      "output_property",
+      "resource_bound"
+    ]
+  },
+  "predicate_contracts": {
+    "property_relation": {
+      "required_arguments": ["subject_ref", "property_ref", "operator", "value"],
+      "operators": ["equals", "not_equals", "less_than", "less_or_equal", "greater_than", "greater_or_equal"]
+    },
+    "set_membership": {
+      "required_arguments": ["subject_ref", "property_ref", "operator", "values"],
+      "operators": ["in", "not_in"]
+    },
+    "range_constraint": {
+      "required_arguments": ["subject_ref", "property_ref", "lower_bound", "upper_bound", "lower_inclusive", "upper_inclusive"]
+    },
+    "cross_subject_relation": {
+      "required_arguments": ["left_subject_ref", "left_property_ref", "relation", "right_subject_ref", "right_property_ref"],
+      "relations": ["equals", "not_equals", "less_than", "less_or_equal", "greater_than", "greater_or_equal", "broadcastable_with", "same_shape_as", "aliases", "not_aliases", "shares_storage_with"]
+    },
+    "state_transition": {
+      "required_arguments": ["subject_ref", "property_ref", "transition"],
+      "transitions": ["changed", "unchanged", "increased", "decreased", "created", "removed"]
+    },
+    "expected_exception": {"required_arguments": ["execution_ref", "exception_class"]},
+    "result_equivalence": {"required_arguments": ["left_subject_ref", "right_subject_ref", "comparison"]},
+    "output_property": {"required_arguments": ["subject_ref", "property_ref", "operator", "value"]},
+    "resource_bound": {"required_arguments": ["subject_ref", "property_ref", "operator", "value"]}
+  },
+  "source_paths": {
+    "api_profile": "Use an exact JSON Pointer into the supplied compact API Profile view.",
+    "knowledge": "Use /learned_hypothesis, an exact /learned_hypothesis/limitations/<index> path, or an exact item path under /exploration_guidance/historical_anchors, /variation_opportunities, or /observation_candidates."
+  },
+  "builder_materialization": {
+    "knowledge_id": "The Builder attaches the exact reviewed Knowledge v3 reference.",
+    "source_ref": "The Builder validates source_path and attaches source_version and content_hash.",
+    "local_identifiers": "The Builder deterministically normalizes branch, constraint, condition, observation, and check IDs.",
+    "predicate_description": "The Builder materializes a missing nullable Predicate description as JSON null and never invents descriptive text.",
+    "component_mapping_refs": "The Builder normalizes and verifies each spec_element_ref against the cited branch element and exact Knowledge source_path.",
+    "generation_artifacts": "The Builder freezes exact script, Contract, and Rules bytes in an immutable hash-qualified artifact directory and cites those snapshots.",
+    "budget": "The Builder assigns all branch shares from a versioned policy; the LLM never allocates budget."
+  },
+  "output_constraints": [
+    "Return only the three response root objects.",
+    "Return exactly one decision for every supplied Knowledge record.",
+    "Return exactly one component mapping for /learned_hypothesis, every historical anchor, variation opportunity, observation candidate, and limitation in each supplied Knowledge record.",
+    "Use represented only when the complete component is cited by one or more exact spec_element_refs; use partially_represented when cited elements preserve only a stated scope; use deferred when no sound representation is emitted.",
+    "A represented or partially represented component must have non-empty spec_element_refs. A deferred component must have none. Do not turn free text into an implicit condition.",
+    "A decision may be included or deferred; do not reject or rank reviewed Knowledge by subjective importance.",
+    "Return exactly one default branch and no generic_exploration branch.",
+    "The controlled baseline contains only the default branch and no Knowledge decisions.",
+    "Every branch declares input_validity_basis. Use contract_boundary_unresolved with basis_kind unresolved when supplied evidence cannot establish expected-valid or intentionally-invalid status.",
+    "expected_valid and intentionally_invalid require a non-unresolved basis. Historical failure or present rejection alone is not sufficient support.",
+    "The default branch uses canonical_baseline_definition and cites no Knowledge. Knowledge branches cite the learned hypothesis used by exploration_goal in exploration_goal_source_refs.",
+    "A Knowledge-directed branch cites every Knowledge it uses and contains at least one target condition, behavior observation, or behavior check.",
+    "Represent historical anchors only as branch constraints or activation_required target conditions; never make them global constraints.",
+    "Represent usable variation opportunities as exploration_variable target conditions rather than fixed historical values.",
+    "At least one target-API input degree of freedom in every Knowledge branch must remain fuzz-derived; do not reproduce the complete historical input.",
+    "An observation candidate may become a record-only behavior observation. Emit a behavior check only when its expected predicate is supported by API/Profile or Knowledge evidence.",
+    "Process crash, signal, sanitizer, timeout, hang, and OOM monitoring are fixed Runner responsibilities and must not be repeated as default per-branch checks.",
+    "Every Predicate object should include description; use JSON null when no description is supplied.",
+    "Use only predicate IDs and exact argument shapes declared by predicate_contracts.",
+    "Use exact API Profile parameter_id or return_id values, or context.backend, context.device, context.execution, context.resource, and context.autograd as subject references.",
+    "Do not emit risk dimensions, Oracle categories, Strategy Primitives, Helper calls, source code, concrete historical reproducers, or hidden reasoning."
+  ]
+}

@@ -1,0 +1,2485 @@
+{
+  "record_format_version": "1.1",
+  "record_type": "fuzzing_round",
+  "identity": {
+    "round_id": "torch.batch_norm_update_stats:bug_aware_adaptive:repeat_001:round_001",
+    "execution_id": "ex_60ba1c64d3c74dd7b7b99e2eb9134252",
+    "target_api_id": "torch.batch_norm_update_stats",
+    "experimental_group": "bug_aware_adaptive",
+    "independent_repeat_id": "repeat_001",
+    "round_index": 1,
+    "attempt_index": 1
+  },
+  "schedule": {
+    "planned_final_round_index": 3,
+    "planned_duration_seconds": 15
+  },
+  "source_context": {
+    "harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.batch_norm_update_stats_bug_aware_static",
+      "revision_number": 6,
+      "content_hash": "80580516215a947526ed15dd31a562cb7d857d1ffd61c5ce60067a590c082223"
+    },
+    "strategy_ref": {
+      "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006",
+      "revision_number": 2,
+      "content_hash": "950e8c5406d41ccba78d20228055a2c57ec390f12b7007e97c0a77f207733a76"
+    },
+    "harness_artifact_ref": {
+      "artifact_id": "ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_0def3d5da005",
+      "artifact_version": "1.3",
+      "content_hash": "8deb5380ab1694ea76ff21a524ce9bc1af3e8446ebc67230138d204ce8e6cf46"
+    },
+    "fuzzing_config_ref": {
+      "artifact_id": "round_config_ex_60ba1c64d3c74dd7b7b99e2eb9134252",
+      "artifact_version": 1,
+      "content_hash": "5143e4a38b4eda7922aa184ecd5791b0f5593c15dcb715e4e2148ecab5e95535"
+    },
+    "runtime_environment_ref": {
+      "artifact_id": "pytorch_2_10_runtime_environment",
+      "artifact_version": "0.1",
+      "content_hash": "9006cfc2edf33d73b38f1a7dcd40e88ec22fff2e2e247f0f4d0f3c67bada6415"
+    },
+    "input_corpus_ref": {
+      "artifact_id": "corpus_torch_batch_norm_update_stats_initial_v1",
+      "artifact_version": 1,
+      "content_hash": "589090fc183910537dd1b36bb542d623ba78b8d57113695c93f5d62c5c0a9771"
+    },
+    "instrumentation_runtime_ref": {
+      "artifact_id": "harness_instrumentation_runtime",
+      "artifact_version": "1.1",
+      "content_hash": "b8becbeecd68b9b8ad82e80d34a2f813753abff5ce4fe39125981d4343c02910"
+    },
+    "instrumentation_contract_version": "1.0"
+  },
+  "attempt_selection": {
+    "status": "selected_as_round_result",
+    "reason_code": "only_attempt"
+  },
+  "execution": {
+    "seed": 1575786059,
+    "started_at": "2026-10-08T08:27:40.717262Z",
+    "ended_at": "2026-10-08T08:27:59.383207Z",
+    "actual_duration_seconds": 18.260565,
+    "termination": {
+      "reason": "time_budget_reached",
+      "exit_code": 0,
+      "signal_name": null,
+      "diagnostic_refs": []
+    },
+    "budget": {
+      "planned_seconds": 15.0,
+      "process_seconds": 18.260564511998382,
+      "wall_seconds": 18.615236539997568,
+      "outside_process_seconds": 0.35467202799918596,
+      "remaining_seconds": 0.0,
+      "timing_status": "measured",
+      "overrun_seconds": 3.260564511998382
+    }
+  },
+  "evidence": {
+    "runtime_snapshot": {
+      "status": "present",
+      "location": {
+        "artifact_ref": {
+          "artifact_id": "runtime_snapshot_ex_60ba1c64d3c74dd7b7b99e2eb9134252",
+          "artifact_version": "1.0",
+          "content_hash": "afae34e577577968f6fee78338dd7a474322193886ef4db066adf0585be680e5"
+        },
+        "file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+          "content_hash": "08af25458ec170ead9108236c871123075555f19125ad8c8eddb2f67320d3e01"
+        }
+      },
+      "snapshot_kind": "final",
+      "staleness_iterations": 0
+    },
+    "coverage_summary": {
+      "status": "present",
+      "location": {
+        "artifact_ref": {
+          "artifact_id": "coverage_summary_4af82fbe82c7514c",
+          "artifact_version": 1,
+          "content_hash": "4af82fbe82c7514cc97e235ff3567174e37f35341871385d9ae2209e1adcf98d"
+        },
+        "file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/coverage/coverage_summary.json",
+          "content_hash": "4af82fbe82c7514cc97e235ff3567174e37f35341871385d9ae2209e1adcf98d"
+        }
+      },
+      "diagnostic_refs": [],
+      "diagnostic_file_refs": []
+    },
+    "output_corpus": {
+      "status": "present",
+      "location": {
+        "artifact_ref": {
+          "artifact_id": "corpus_131f1dd22e96dca3",
+          "artifact_version": 1,
+          "content_hash": "6434c3345b8d6afeb3a8ed716382c69a11ff6ec208d6a7f9c1b0e44e16a5059e"
+        },
+        "file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/corpus_manifest.json",
+          "content_hash": "8b5302500a3ae8623e43a7e8e0d05c15fa8013519c54410414ab08a1ea813e53"
+        }
+      },
+      "diagnostic_refs": []
+    },
+    "candidate_evidence": {
+      "status": "present",
+      "bundle_ref": {
+        "artifact_id": "cb_e36a53307fb9d1cd572d",
+        "artifact_version": 1,
+        "content_hash": "abdb047343c504da683e85f8b15906efe41b3d32860ccd705cea4217d2597ce1"
+      },
+      "bundle_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/candidate_bundle.json",
+        "content_hash": "87bda9ba18b538cba36c5e64a95c95611417f95c8741afed4513107db25ac85c"
+      },
+      "capture_summary": {
+        "sampling": "first_n_per_kind_per_process",
+        "limit_per_kind": 64,
+        "counts": {
+          "attempts": 5067,
+          "saved": 64,
+          "failures": 0,
+          "exception_attempts": 5067,
+          "oracle_attempts": 0,
+          "limit_per_kind": 64,
+          "complete": true
+        },
+        "state": "complete"
+      },
+      "capture_summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/bug_aware_adaptive/repeat_001/round_001/attempt_001/observations/capture_summary.json",
+        "content_hash": "961126ebde8e4c1f3bc545cb9400e9a762ea80bda17b2809df7f5c3882bc110b"
+      },
+      "process_capture_summaries": [],
+      "observations": [
+        {
+          "candidate_id": "cand_64f3b3a55ba2d1d084a3",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_c1b4cfc557cd594b",
+              "artifact_version": 1,
+              "content_hash": "c1b4cfc557cd594ba949e479dcb1dddbdb6998fd296c00c1eb501af66c8b2247"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_da4d29caf27fd2c0",
+              "artifact_version": 1,
+              "content_hash": "da4d29caf27fd2c074c5c3b35864c77ae8e65944a965c18f7095d3ea9f1aafd3"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_be06bc21c3cef9ab8c08",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_26d33ab65269f000",
+              "artifact_version": 1,
+              "content_hash": "26d33ab65269f000f717cae6e22f5b70416c6e151ab1e9c17e02546e20e9f115"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_12be7c3235061863",
+              "artifact_version": 1,
+              "content_hash": "12be7c323506186312799ceed66baf624d5fd05f832ba20d5f1c99aaa5b3b7f3"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_0876771e8d4937d5417e",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_5dfa3fb058748858",
+              "artifact_version": 1,
+              "content_hash": "5dfa3fb058748858f554d5fc0e51fac2d28f7e47f716c1eb3f16076faebf4b6e"
+            },
+            {
+              "artifact_id": "diagnostic_b161aa8072b5a211",
+              "artifact_version": 1,
+              "content_hash": "b161aa8072b5a211b2bfa94da9a3beeddc49ef5a884a35b1d26aab5a8127f7f3"
+            },
+            {
+              "artifact_id": "event_context_fba81a128f59b4fa",
+              "artifact_version": 1,
+              "content_hash": "fba81a128f59b4fa2a2f55792aa16c475c82882e6d1a9da25d1518cb07d0f331"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_6f57ac57ef3e42d941f3",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_94604722cb5fbb29",
+              "artifact_version": 1,
+              "content_hash": "94604722cb5fbb29277988041b70fe5f49b23388405d246e10dcb905c4acbbd2"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_4a7d6afbada3d42e",
+              "artifact_version": 1,
+              "content_hash": "4a7d6afbada3d42ec6e51df48dd07ddd5fb56e44db5e2a028251eb9562d62bed"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_f81aacb23ebc9bd2d8e2",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_fc895a5381a94462",
+              "artifact_version": 1,
+              "content_hash": "fc895a5381a94462bdf3b30343a4f83951649b202a7b81d5247a6b93aefad97e"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_b9c5651a65b8e213",
+              "artifact_version": 1,
+              "content_hash": "b9c5651a65b8e2132e89e570baec5f54cdab6ba2871c8a6ede58d60998d4067c"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_5c18283fa5d30743d8f7",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_5c5a0f724e0bde61",
+              "artifact_version": 1,
+              "content_hash": "5c5a0f724e0bde613d55e5dcb8bda1daa710b326fe4c532520e9de8b942e043e"
+            },
+            {
+              "artifact_id": "diagnostic_b161aa8072b5a211",
+              "artifact_version": 1,
+              "content_hash": "b161aa8072b5a211b2bfa94da9a3beeddc49ef5a884a35b1d26aab5a8127f7f3"
+            },
+            {
+              "artifact_id": "event_context_dfd13b23bcb798e8",
+              "artifact_version": 1,
+              "content_hash": "dfd13b23bcb798e8f9e25f54e7a9924c4313948d155e3d5f70df47876c052084"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_e54161bdfcf342da5eac",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_2455aa85b9a420a9",
+              "artifact_version": 1,
+              "content_hash": "2455aa85b9a420a993614867794eb9e123dbecf7d8a1474bac0251def5e5ae9f"
+            },
+            {
+              "artifact_id": "diagnostic_b161aa8072b5a211",
+              "artifact_version": 1,
+              "content_hash": "b161aa8072b5a211b2bfa94da9a3beeddc49ef5a884a35b1d26aab5a8127f7f3"
+            },
+            {
+              "artifact_id": "event_context_1224dc83172d2df4",
+              "artifact_version": 1,
+              "content_hash": "1224dc83172d2df4ec6ccb34b7732954ac7255e7723f6d91f8a6b9c91a5659a6"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_5d7b37af6addbf76d650",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_1c293d0e7290d177",
+              "artifact_version": 1,
+              "content_hash": "1c293d0e7290d177208f569839ada3747253553d08e7338d290c50f83c77479b"
+            },
+            {
+              "artifact_id": "diagnostic_21c518908d9c175c",
+              "artifact_version": 1,
+              "content_hash": "21c518908d9c175c5edece395b2ef4757763daa54815ae1d379e617039056c2b"
+            },
+            {
+              "artifact_id": "event_context_b88bfa0767dac8fc",
+              "artifact_version": 1,
+              "content_hash": "b88bfa0767dac8fc9eef9662ecd3f4cc19a902b4148e7fe99f2b093cadde15d0"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_66d594a59e746e1c5307",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_3e861fb0349b1f05",
+              "artifact_version": 1,
+              "content_hash": "3e861fb0349b1f058033915b478055001a7bcbb5d0fdfe5af34e7141e6dcadff"
+            },
+            {
+              "artifact_id": "diagnostic_282880c43bc06b5a",
+              "artifact_version": 1,
+              "content_hash": "282880c43bc06b5a3f8fb3df080ea341644be490a002a7cad50926387cdae740"
+            },
+            {
+              "artifact_id": "event_context_611f21dc910f2a41",
+              "artifact_version": 1,
+              "content_hash": "611f21dc910f2a41a466ff5f90def76ba8c7f7505132f8a0c9c5ad346126eaa8"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_d2035f6cab2870a84538",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_c920d1ba4dd40135",
+              "artifact_version": 1,
+              "content_hash": "c920d1ba4dd401354adda0a926be387e2e0f7eebebdf53ad2906c784b4bfa4b2"
+            },
+            {
+              "artifact_id": "diagnostic_41050bed63ebcef4",
+              "artifact_version": 1,
+              "content_hash": "41050bed63ebcef401e83e09c54e2128aecd6ae877275e53eca2a7501786ee56"
+            },
+            {
+              "artifact_id": "event_context_082ee2989b6a08f1",
+              "artifact_version": 1,
+              "content_hash": "082ee2989b6a08f18f3e6f364fa6389f96c332eb50d9d0ed3acafa199bfce25a"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_1df1e4c30164825750a2",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_e589a99fe837e559",
+              "artifact_version": 1,
+              "content_hash": "e589a99fe837e559bb3ce4a11bf20385e5f4165c88ec15e8eab451545e977170"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_0604b3511ba64a0a",
+              "artifact_version": 1,
+              "content_hash": "0604b3511ba64a0a8df8f271eb295652cc8d7398e72bcd7b7b72d357e51aae90"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_8f0ccc7590a254c0cfc9",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_39a1baf62e5e662f",
+              "artifact_version": 1,
+              "content_hash": "39a1baf62e5e662f7dae8d77fc214a9540b00c033c26925832ac7ec6dc5c6744"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_092e59d1c03b9459",
+              "artifact_version": 1,
+              "content_hash": "092e59d1c03b945924593c15db9ebca4bbdcce444b605f0642f924395022621f"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_4a1706cb309b4cafe3d7",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_adc09195d896a0ff",
+              "artifact_version": 1,
+              "content_hash": "adc09195d896a0fffe564992ed6c9364d1bac6ceef02f52ee3d4ec8665865f8e"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_62d1fa9365e1109a",
+              "artifact_version": 1,
+              "content_hash": "62d1fa9365e1109aa6c3288f8162ca677da96202c95605e7c3fcedea715dce30"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_f0cc6c536d973df71322",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_39a1baf62e5e662f",
+              "artifact_version": 1,
+              "content_hash": "39a1baf62e5e662f7dae8d77fc214a9540b00c033c26925832ac7ec6dc5c6744"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_c6d287a163dbc521",
+              "artifact_version": 1,
+              "content_hash": "c6d287a163dbc521f0376d10630466d9863e21917ba9a7ed604c3b17d9f54eba"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_1c50a0739ea6535929f0",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_b6b837aa55a5900a",
+              "artifact_version": 1,
+              "content_hash": "b6b837aa55a5900a19692666c945333d639de31d814df80811aa34d8fad58123"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_222c6d9a30184047",
+              "artifact_version": 1,
+              "content_hash": "222c6d9a3018404741dc4975fc995dc04d4c6920e884c9f07c7bdaf04787a8da"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_2181e7824c93efa95e35",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_4e9f2a0e60bacfd0",
+              "artifact_version": 1,
+              "content_hash": "4e9f2a0e60bacfd02919cc8971949eb23c764ba2a538065a1c4016afd3d046a2"
+            },
+            {
+              "artifact_id": "diagnostic_73a2cd5b771d7601",
+              "artifact_version": 1,
+              "content_hash": "73a2cd5b771d76018a99e11f9479564daae7ffd2ae6935d950f732716eb456e4"
+            },
+            {
+              "artifact_id": "event_context_8eab3c5ef1b566ee",
+              "artifact_version": 1,
+              "content_hash": "8eab3c5ef1b566ee18203c352bf9a7304a55d7dcbb877c83bbef2345c16185e2"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_31bfc4c37649ff197b09",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_ef47a1e25fa30db7",
+              "artifact_version": 1,
+              "content_hash": "ef47a1e25fa30db72b2be11049dfb9fd9ff3d4bc8883798ab0ff1ad1bd999c1c"
+            },
+            {
+              "artifact_id": "diagnostic_7a8e22de3ad73453",
+              "artifact_version": 1,
+              "content_hash": "7a8e22de3ad734539a3a6b665b36f3348941cccb1c0572e8ca25d64841a4fb66"
+            },
+            {
+              "artifact_id": "event_context_2f281fb364173113",
+              "artifact_version": 1,
+              "content_hash": "2f281fb36417311301a7d46b5b83240d96a64c1481746839a2649b7ef5893acf"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_dd318d07a30e86a352be",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_d8e618259f35e038",
+              "artifact_version": 1,
+              "content_hash": "d8e618259f35e0386e6f9a2de2ddd65b86dddda2790f94c02582113dc7a2985e"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_dae2bd756e5629c0",
+              "artifact_version": 1,
+              "content_hash": "dae2bd756e5629c054f51a59706ec94245b81cd9ea66904e116930bf16217e9f"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_b47ec6df3c687cac7f9b",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_432abc738b393434",
+              "artifact_version": 1,
+              "content_hash": "432abc738b39343459c65d179eb8bf9fb450385cf1fe72f130fd9d19d216d708"
+            },
+            {
+              "artifact_id": "diagnostic_04d0aa00842d0a89",
+              "artifact_version": 1,
+              "content_hash": "04d0aa00842d0a89cf8a33e24d68715a6ad8ec8313808b138f7b0a6369e5d933"
+            },
+            {
+              "artifact_id": "event_context_ba829c978326aecc",
+              "artifact_version": 1,
+              "content_hash": "ba829c978326aeccd6fabe6a52895ddb075ad31b455fcbfc59ca0213627dd645"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_8c35bc71b9392d7710b9",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_a9d41072ccec32d4",
+              "artifact_version": 1,
+              "content_hash": "a9d41072ccec32d4b34cb842c4988bdde26f357f357f53c82461a01e241f4d11"
+            },
+            {
+              "artifact_id": "diagnostic_90ef2ed8bf2a7563",
+              "artifact_version": 1,
+              "content_hash": "90ef2ed8bf2a756324dcf0c7216a6cb91cb26e118a60f416c1cac2ea55ed1ac2"
+            },
+            {
+              "artifact_id": "event_context_3b50d3184f86f307",
+              "artifact_version": 1,
+              "content_hash": "3b50d3184f86f3073cb0389db33f3281ebd20a4da1f8918d54f2772d4c1a4f8a"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_d5071341b4f928755fd2",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_0abc92b080dc6a09",
+              "artifact_version": 1,
+              "content_hash": "0abc92b080dc6a09ae697bcd7235674f3ccc6850700c9874edde5ab11c4814c5"
+            },
+            {
+              "artifact_id": "diagnostic_7a8e22de3ad73453",
+              "artifact_version": 1,
+              "content_hash": "7a8e22de3ad734539a3a6b665b36f3348941cccb1c0572e8ca25d64841a4fb66"
+            },
+            {
+              "artifact_id": "event_context_6326f2a710c5a61a",
+              "artifact_version": 1,
+              "content_hash": "6326f2a710c5a61a6cff38d88e0ff509cf80c2e49b3b7c74caf142c68f42bfd9"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_c73d9116089008ffd7d1",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_7c4eef1c7bad3e5d",
+              "artifact_version": 1,
+              "content_hash": "7c4eef1c7bad3e5dc047fae3a435ba1e927ca4a6dca1c5ad170cac9e6092e08d"
+            },
+            {
+              "artifact_id": "diagnostic_7a8e22de3ad73453",
+              "artifact_version": 1,
+              "content_hash": "7a8e22de3ad734539a3a6b665b36f3348941cccb1c0572e8ca25d64841a4fb66"
+            },
+            {
+              "artifact_id": "event_context_86376927776a94fb",
+              "artifact_version": 1,
+              "content_hash": "86376927776a94fb5af04dd84e8d69782734ca4a597687d3de9ff78e43dd8dc3"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_424d8370f9be5eb19211",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_86b4da96b14c54df",
+              "artifact_version": 1,
+              "content_hash": "86b4da96b14c54df6aaa26f5d85d1068beb987d60e306190cb2c4cae8d390401"
+            },
+            {
+              "artifact_id": "diagnostic_7a8e22de3ad73453",
+              "artifact_version": 1,
+              "content_hash": "7a8e22de3ad734539a3a6b665b36f3348941cccb1c0572e8ca25d64841a4fb66"
+            },
+            {
+              "artifact_id": "event_context_b3e59207b1217bd4",
+              "artifact_version": 1,
+              "content_hash": "b3e59207b1217bd4e13d780f11283caf6712bf62e8a10e855abd60e636994d57"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_26a2e23272a4a38be434",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_07053454e2e081b5",
+              "artifact_version": 1,
+              "content_hash": "07053454e2e081b5fc3c1ec35710c73e18b12c07b42cf4ccce475257b79a914d"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_f32ec11f4d2b6e9b",
+              "artifact_version": 1,
+              "content_hash": "f32ec11f4d2b6e9bf8e2b57c0c04ed662c9ad9e845037c25f9c2eef633e56ade"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_944b1acc05abc4581bad",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_ea6567229ff67446",
+              "artifact_version": 1,
+              "content_hash": "ea6567229ff674467391d556f8a66dea5b60c2ff29f613abf0192680f9625384"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_b417db08a2bf6f73",
+              "artifact_version": 1,
+              "content_hash": "b417db08a2bf6f7349a448affee2ba9d3ff937f054354aef1d17425fbdd42c68"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_0ffead5b8b97081aebd3",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_a347d903795b8977",
+              "artifact_version": 1,
+              "content_hash": "a347d903795b8977a561c4ab3b75fc8b04410b01d74ca09311c6b201467e1aad"
+            },
+            {
+              "artifact_id": "diagnostic_ac44930db117aefe",
+              "artifact_version": 1,
+              "content_hash": "ac44930db117aefed1ed7d6092099f531afd610bc50de84dd372187873d1c404"
+            },
+            {
+              "artifact_id": "event_context_595375b0c3448218",
+              "artifact_version": 1,
+              "content_hash": "595375b0c3448218482e77ca1088848136763e66fda4969f0e59f20b13b0e6f2"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_96eb781ed770d75c7fb8",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_1a7b29e3b7cf7119",
+              "artifact_version": 1,
+              "content_hash": "1a7b29e3b7cf711949060ee9eddf43f4fd853321203fa1dc4775e806733a8685"
+            },
+            {
+              "artifact_id": "diagnostic_ac44930db117aefe",
+              "artifact_version": 1,
+              "content_hash": "ac44930db117aefed1ed7d6092099f531afd610bc50de84dd372187873d1c404"
+            },
+            {
+              "artifact_id": "event_context_6577c64ff73bf36f",
+              "artifact_version": 1,
+              "content_hash": "6577c64ff73bf36f2cc8d999338eadee27ba3caa9620f9f3e48ac877ab81d785"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_9c26705229e368595ff3",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_078a8f2765cb4e33",
+              "artifact_version": 1,
+              "content_hash": "078a8f2765cb4e332d65d7c34a23ac9f0c868fda4d95a0fa6200e425c16c18eb"
+            },
+            {
+              "artifact_id": "diagnostic_9dbca4702aae3b8d",
+              "artifact_version": 1,
+              "content_hash": "9dbca4702aae3b8d068a6ddc0b6d90f1e13947f892fe9026f747795763b60b13"
+            },
+            {
+              "artifact_id": "event_context_18bcd5820dcab9eb",
+              "artifact_version": 1,
+              "content_hash": "18bcd5820dcab9eb43642c118547b005cc08d4956377427dd3a8d410ef77f7a0"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_1728a733a3023fdd5543",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_a6243754cf4c3a23",
+              "artifact_version": 1,
+              "content_hash": "a6243754cf4c3a23c8bf1e275b4068a690d619c58b6a102550f766df3162513a"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_c7805f52e0c4b712",
+              "artifact_version": 1,
+              "content_hash": "c7805f52e0c4b712e4573cb4daa004e49fd9699f0c44ffbffb6e75461300f995"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_696d7cd1a0f149b9159b",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_f969f40226825665",
+              "artifact_version": 1,
+              "content_hash": "f969f40226825665606fc4d62af206b5f82c110cef2e92126527553aa1a4cbc2"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_98398b38f015e65d",
+              "artifact_version": 1,
+              "content_hash": "98398b38f015e65de0f5dae84922676a600063c221dde3b73c98dd220c3e2629"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_7417a3cbf1df989502c7",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_657b0e2df94a56b8",
+              "artifact_version": 1,
+              "content_hash": "657b0e2df94a56b81a2d9320303eb8f95cad52027de8485c1a2c67ea488bcea9"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_1db30b39e25b0d3b",
+              "artifact_version": 1,
+              "content_hash": "1db30b39e25b0d3b904df7c4a8ab25195c0ddeaa26bc93bb792190784b5ee735"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_dde8e89735e3917dafd1",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_89e5fc3669a0d361",
+              "artifact_version": 1,
+              "content_hash": "89e5fc3669a0d361291d044e15e39322d133ff127da1de1596b71f59a28b978f"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_a3870fe0e891d01d",
+              "artifact_version": 1,
+              "content_hash": "a3870fe0e891d01d648fd4cf7f7aa86b113f3180b6e392a3d1ce9d78b4a90690"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_e910879e85ee89ce0c3f",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_2d988fa3547ccf28",
+              "artifact_version": 1,
+              "content_hash": "2d988fa3547ccf285359b89793b3efa4756d2874550f03b6af4e036f97e951cf"
+            },
+            {
+              "artifact_id": "diagnostic_0da1bf02f1c54f52",
+              "artifact_version": 1,
+              "content_hash": "0da1bf02f1c54f52999016ce2faf6beba9894ecd6a309ab950f8d6c407f168b8"
+            },
+            {
+              "artifact_id": "event_context_3dff5ae51f6971d7",
+              "artifact_version": 1,
+              "content_hash": "3dff5ae51f6971d7694ea75cfd2872bdf07a55e86e65c20ef46f8365c012f994"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_a163c313c1238a2186f9",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_fb744d84984cf9df",
+              "artifact_version": 1,
+              "content_hash": "fb744d84984cf9df40af11f7862d41c760f84c3f41f7a59fb669c753b7f499bd"
+            },
+            {
+              "artifact_id": "diagnostic_0da1bf02f1c54f52",
+              "artifact_version": 1,
+              "content_hash": "0da1bf02f1c54f52999016ce2faf6beba9894ecd6a309ab950f8d6c407f168b8"
+            },
+            {
+              "artifact_id": "event_context_bc01d2239d929c84",
+              "artifact_version": 1,
+              "content_hash": "bc01d2239d929c843dfa4cd9db4995d4e7afde6396f99ced11f790dc745f9750"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_b7b789450c2ccb36692b",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_957d83875cbf2ea7",
+              "artifact_version": 1,
+              "content_hash": "957d83875cbf2ea76222f293370f9860682b3077bd1069454ebc50c16f069135"
+            },
+            {
+              "artifact_id": "diagnostic_ac44930db117aefe",
+              "artifact_version": 1,
+              "content_hash": "ac44930db117aefed1ed7d6092099f531afd610bc50de84dd372187873d1c404"
+            },
+            {
+              "artifact_id": "event_context_3c84613275ab6275",
+              "artifact_version": 1,
+              "content_hash": "3c84613275ab6275c104904d6d6a653c496f653c36bdeba009d73f1b61d52811"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_3999e73c0260e39cc784",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_67dd986916b593ad",
+              "artifact_version": 1,
+              "content_hash": "67dd986916b593ad67675267426dd351ea89f8bcf70723b16d6d200fc5ffb220"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_8298c9b735c7b797",
+              "artifact_version": 1,
+              "content_hash": "8298c9b735c7b79725cf93178e3076a9184737dc5d69e8adf4386b8ab00e613e"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_cb4e4450bb3da99b2386",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_405afc0907530996",
+              "artifact_version": 1,
+              "content_hash": "405afc09075309960c069bd3707540c8830499ad4bd2d85ae5c6f30b3e376dc1"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_00550a82e7df5eab",
+              "artifact_version": 1,
+              "content_hash": "00550a82e7df5eabd4170eb42115b0a2b952fecd1a1e701576d022494a2ad193"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_61d43e8c83b200d4e458",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_ee474a08d766e904",
+              "artifact_version": 1,
+              "content_hash": "ee474a08d766e90402538ae9c35b63d0b6be1f1b2cb39f914563630c1262ec14"
+            },
+            {
+              "artifact_id": "diagnostic_ac44930db117aefe",
+              "artifact_version": 1,
+              "content_hash": "ac44930db117aefed1ed7d6092099f531afd610bc50de84dd372187873d1c404"
+            },
+            {
+              "artifact_id": "event_context_942d3b858d6d7183",
+              "artifact_version": 1,
+              "content_hash": "942d3b858d6d7183d771b4707cde010d0212c42e53c312d061980143ee2bbb3e"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_43ce6868d0dd826b7e0f",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_549a86b670e5c26d",
+              "artifact_version": 1,
+              "content_hash": "549a86b670e5c26dab5116938a0f54eb577e1a668fa9b3467f19fef6e1d95c8d"
+            },
+            {
+              "artifact_id": "diagnostic_39d884028195bdf6",
+              "artifact_version": 1,
+              "content_hash": "39d884028195bdf6f3ec7ca9186a446a44527c6407148e5f173e88908efa0569"
+            },
+            {
+              "artifact_id": "event_context_17f8dc9ac95b4ee0",
+              "artifact_version": 1,
+              "content_hash": "17f8dc9ac95b4ee0f5bde06a093edf59e25c5630edaffe21e6a26956edd3926d"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_45f9a588d4addcb12608",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_19cf6549ab31e40c",
+              "artifact_version": 1,
+              "content_hash": "19cf6549ab31e40c9167441ac67accb36c5b2619f2a365c75d87d3c440e3ecd3"
+            },
+            {
+              "artifact_id": "diagnostic_90ef2ed8bf2a7563",
+              "artifact_version": 1,
+              "content_hash": "90ef2ed8bf2a756324dcf0c7216a6cb91cb26e118a60f416c1cac2ea55ed1ac2"
+            },
+            {
+              "artifact_id": "event_context_1f44e7c43c1e5c29",
+              "artifact_version": 1,
+              "content_hash": "1f44e7c43c1e5c29e92b7242ff9a435a36c9754d4884a9d83c90d37abd92d84d"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_c9577e90ed11fba073bc",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_4bb0b1b2d6ee472c",
+              "artifact_version": 1,
+              "content_hash": "4bb0b1b2d6ee472cb27fb986fbb4c286d3a8ad438bbce2bdcdf5113df155df77"
+            },
+            {
+              "artifact_id": "diagnostic_e1b8edadb00af528",
+              "artifact_version": 1,
+              "content_hash": "e1b8edadb00af528781d4318172443926af9509a419d59ba272b0b68eab76004"
+            },
+            {
+              "artifact_id": "event_context_c25a0302755d5909",
+              "artifact_version": 1,
+              "content_hash": "c25a0302755d59093a099f539861bbb470c3021787b954c79941ef51318c1621"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_9be0692151539974bab2",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_7ab263567ccfd299",
+              "artifact_version": 1,
+              "content_hash": "7ab263567ccfd299b35f3e62473988752e2f67002d319dfbea66bb2191a3918f"
+            },
+            {
+              "artifact_id": "diagnostic_e1b8edadb00af528",
+              "artifact_version": 1,
+              "content_hash": "e1b8edadb00af528781d4318172443926af9509a419d59ba272b0b68eab76004"
+            },
+            {
+              "artifact_id": "event_context_e88dd7e6e60bdaba",
+              "artifact_version": 1,
+              "content_hash": "e88dd7e6e60bdabaf9291e77c7adfe86a2bb5701d16ea7dcd7f0ac3c73822d6f"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_81c053dd80e3deebd55e",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_f02d8eaa40ad94a7",
+              "artifact_version": 1,
+              "content_hash": "f02d8eaa40ad94a7a1f8ea17f021eb690251d980a8d67ae3d00800693c3c4734"
+            },
+            {
+              "artifact_id": "diagnostic_e1b8edadb00af528",
+              "artifact_version": 1,
+              "content_hash": "e1b8edadb00af528781d4318172443926af9509a419d59ba272b0b68eab76004"
+            },
+            {
+              "artifact_id": "event_context_e3ae869841cc7e13",
+              "artifact_version": 1,
+              "content_hash": "e3ae869841cc7e1300f8bd373de3035ed1ac4de92e4477699f98241ce59ef92b"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_3b937c60fd18a10dad40",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_fdd85194891367e6",
+              "artifact_version": 1,
+              "content_hash": "fdd85194891367e61336f772f622348847751072c5bf8a95169ff80c5b9454c0"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_e3fc917f06be3b64",
+              "artifact_version": 1,
+              "content_hash": "e3fc917f06be3b642baef47338c4d9df6001c06f30089c706cab5de226064b7c"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_cd4ffa07ce2085d5eec3",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_dbd3c7ade4c4e0a8",
+              "artifact_version": 1,
+              "content_hash": "dbd3c7ade4c4e0a874782fed6d01e70d7a3aadcaab828d3b3e850b6a54941226"
+            },
+            {
+              "artifact_id": "diagnostic_9f8e6e64b5ee663e",
+              "artifact_version": 1,
+              "content_hash": "9f8e6e64b5ee663eafb13021c2705b2e167382cca7109bbfb3ba1828ddcab8f2"
+            },
+            {
+              "artifact_id": "event_context_e10b64a423f7c476",
+              "artifact_version": 1,
+              "content_hash": "e10b64a423f7c47634fb7523e5a7577c84ed8d53e877d8ab72cbc081d0064c2c"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_4ed7720405e043683945",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_c72fdcba3a488fff",
+              "artifact_version": 1,
+              "content_hash": "c72fdcba3a488fff43f7dfe3645e07b68278d65fd81088aae31498e927218445"
+            },
+            {
+              "artifact_id": "diagnostic_b161aa8072b5a211",
+              "artifact_version": 1,
+              "content_hash": "b161aa8072b5a211b2bfa94da9a3beeddc49ef5a884a35b1d26aab5a8127f7f3"
+            },
+            {
+              "artifact_id": "event_context_f7a7a304f2b1801e",
+              "artifact_version": 1,
+              "content_hash": "f7a7a304f2b1801ed309c3423006051f265953f772fa8cdad8395d8f609f9cfe"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_a8ef0bed95b28e0ac5ec",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_72e1e20627c23433",
+              "artifact_version": 1,
+              "content_hash": "72e1e20627c234336005a2d569d48c2066ab8c6c43937ab1ec74e21475a4a231"
+            },
+            {
+              "artifact_id": "diagnostic_04d0aa00842d0a89",
+              "artifact_version": 1,
+              "content_hash": "04d0aa00842d0a89cf8a33e24d68715a6ad8ec8313808b138f7b0a6369e5d933"
+            },
+            {
+              "artifact_id": "event_context_44d795a57921e637",
+              "artifact_version": 1,
+              "content_hash": "44d795a57921e637d64eb06be624b96fa042453e700e81a4b7f18bc2fb384c1b"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_46eef7af5c01d8403040",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_a6ac84b02ea684a8",
+              "artifact_version": 1,
+              "content_hash": "a6ac84b02ea684a874446e499e2e4de2c93b04822f7270d438bf38178c6d19af"
+            },
+            {
+              "artifact_id": "diagnostic_04d0aa00842d0a89",
+              "artifact_version": 1,
+              "content_hash": "04d0aa00842d0a89cf8a33e24d68715a6ad8ec8313808b138f7b0a6369e5d933"
+            },
+            {
+              "artifact_id": "event_context_e00112f0863b0491",
+              "artifact_version": 1,
+              "content_hash": "e00112f0863b04916592af9ffba46399be1d6fe2931c84bc84b7ca9b2f8c4e62"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_0f6363cd23fba93a8e07",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_90d301cb5400a705",
+              "artifact_version": 1,
+              "content_hash": "90d301cb5400a70535c213b626ffceb14416e0d416f07fc25d89bd3caa10303a"
+            },
+            {
+              "artifact_id": "diagnostic_04d0aa00842d0a89",
+              "artifact_version": 1,
+              "content_hash": "04d0aa00842d0a89cf8a33e24d68715a6ad8ec8313808b138f7b0a6369e5d933"
+            },
+            {
+              "artifact_id": "event_context_bf48c36d86707ca8",
+              "artifact_version": 1,
+              "content_hash": "bf48c36d86707ca8000f2ab52227e0470006b924ce238866b2e8efc42f4d6a53"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_fde507c4ec601e6af40c",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_90d301cb5400a705",
+              "artifact_version": 1,
+              "content_hash": "90d301cb5400a70535c213b626ffceb14416e0d416f07fc25d89bd3caa10303a"
+            },
+            {
+              "artifact_id": "diagnostic_04d0aa00842d0a89",
+              "artifact_version": 1,
+              "content_hash": "04d0aa00842d0a89cf8a33e24d68715a6ad8ec8313808b138f7b0a6369e5d933"
+            },
+            {
+              "artifact_id": "event_context_00fda6437adc1f7a",
+              "artifact_version": 1,
+              "content_hash": "00fda6437adc1f7a71f8ae843f54f4a98b063c7589815b1119d99e64c31d425c"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_934d26f128db56b1c5c8",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_d7302bcd9e3db867",
+              "artifact_version": 1,
+              "content_hash": "d7302bcd9e3db867ea0f09cfd88f917c7cd99fb989120887bfd1a9cc411034bc"
+            },
+            {
+              "artifact_id": "diagnostic_3ac3c7f05707643e",
+              "artifact_version": 1,
+              "content_hash": "3ac3c7f05707643e63f459d58dede69c19cf5d455b04e3908593675054cd3a96"
+            },
+            {
+              "artifact_id": "event_context_e7f339f9cae26e09",
+              "artifact_version": 1,
+              "content_hash": "e7f339f9cae26e091726a16e58b1e67411757bb4e084f686d47304281dd2acc9"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_cd2ea50ad071d8d10dde",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_2cca12ce3e5deb85",
+              "artifact_version": 1,
+              "content_hash": "2cca12ce3e5deb859456678a1269a96a6d1c6b224bc73185bbaf147417d9f4bf"
+            },
+            {
+              "artifact_id": "diagnostic_3ac3c7f05707643e",
+              "artifact_version": 1,
+              "content_hash": "3ac3c7f05707643e63f459d58dede69c19cf5d455b04e3908593675054cd3a96"
+            },
+            {
+              "artifact_id": "event_context_d44323c6f79cc40a",
+              "artifact_version": 1,
+              "content_hash": "d44323c6f79cc40afe9382a745bfa1f1f1f05b900575ba4ab7d0fd2df5c26318"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_80e9d09d750c73fb0cd7",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_47e506bdd9f1d1c8",
+              "artifact_version": 1,
+              "content_hash": "47e506bdd9f1d1c8feb403d31f879117d08cdc33d3a3b0a6363720a87906b4af"
+            },
+            {
+              "artifact_id": "diagnostic_ac44930db117aefe",
+              "artifact_version": 1,
+              "content_hash": "ac44930db117aefed1ed7d6092099f531afd610bc50de84dd372187873d1c404"
+            },
+            {
+              "artifact_id": "event_context_6b313f701ef48c24",
+              "artifact_version": 1,
+              "content_hash": "6b313f701ef48c24d7ce52fef2db68c3a3139748c42b91343b9792796a43ef12"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_13bb08d0dbbadded93d0",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_06cab4d07b630758",
+              "artifact_version": 1,
+              "content_hash": "06cab4d07b630758ceb14e0f14c14638f443f473ea5fcb9dfbfb1a1173c13fe1"
+            },
+            {
+              "artifact_id": "diagnostic_ac44930db117aefe",
+              "artifact_version": 1,
+              "content_hash": "ac44930db117aefed1ed7d6092099f531afd610bc50de84dd372187873d1c404"
+            },
+            {
+              "artifact_id": "event_context_c3cdcad9f8496e98",
+              "artifact_version": 1,
+              "content_hash": "c3cdcad9f8496e98263659b63ebc7879c063541e50ddfd4a51a519aa34ea4915"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_87dde21a3105671dfb31",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_06cab4d07b630758",
+              "artifact_version": 1,
+              "content_hash": "06cab4d07b630758ceb14e0f14c14638f443f473ea5fcb9dfbfb1a1173c13fe1"
+            },
+            {
+              "artifact_id": "diagnostic_ac44930db117aefe",
+              "artifact_version": 1,
+              "content_hash": "ac44930db117aefed1ed7d6092099f531afd610bc50de84dd372187873d1c404"
+            },
+            {
+              "artifact_id": "event_context_5dea0aeb7b7fc5e0",
+              "artifact_version": 1,
+              "content_hash": "5dea0aeb7b7fc5e0c4732d931f4a6e372c414a702e73074f82b6f963f77ae827"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_04b3e7679443025adcfe",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_202679ca28536032",
+              "artifact_version": 1,
+              "content_hash": "202679ca28536032da2132e4a716ed000e377b967874a1aa1948c8e339324301"
+            },
+            {
+              "artifact_id": "diagnostic_38356b1dd98cde32",
+              "artifact_version": 1,
+              "content_hash": "38356b1dd98cde32cdd747ec0fe1f223e4190ce361e5b0c81448b0bdd1946305"
+            },
+            {
+              "artifact_id": "event_context_f68ea56fbf736394",
+              "artifact_version": 1,
+              "content_hash": "f68ea56fbf736394312b4ecd2b9af798a7f0ee3284d6fb7c23075dd90fc0b345"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_69737f945a595b43255a",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_24d47abcca96bd91",
+              "artifact_version": 1,
+              "content_hash": "24d47abcca96bd91ae43e8ecf98a6dc8499470099b89e37ec9c056144797733a"
+            },
+            {
+              "artifact_id": "diagnostic_3690d957f551eccc",
+              "artifact_version": 1,
+              "content_hash": "3690d957f551eccc340c8b844b6a79c65d4e787fa7accfbb1ce2b37dc6661923"
+            },
+            {
+              "artifact_id": "event_context_1655d94e7e5dafe3",
+              "artifact_version": 1,
+              "content_hash": "1655d94e7e5dafe313ac85c5aeffdb83c1d7fbeb1e37285a38c48079d3dc7f6b"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_96c3868b015e1b615b33",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_52f8ebdb6dea9814",
+              "artifact_version": 1,
+              "content_hash": "52f8ebdb6dea9814b2e7cf400bfdfeb127686456b17cc7ebf93585eedfee91ce"
+            },
+            {
+              "artifact_id": "diagnostic_38356b1dd98cde32",
+              "artifact_version": 1,
+              "content_hash": "38356b1dd98cde32cdd747ec0fe1f223e4190ce361e5b0c81448b0bdd1946305"
+            },
+            {
+              "artifact_id": "event_context_4b9f841266e0e0f5",
+              "artifact_version": 1,
+              "content_hash": "4b9f841266e0e0f56027846f50b56dd2ea953d41b157a35a62c5c352b319fc79"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_2dc8d5213901d43e05a1",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_52f8ebdb6dea9814",
+              "artifact_version": 1,
+              "content_hash": "52f8ebdb6dea9814b2e7cf400bfdfeb127686456b17cc7ebf93585eedfee91ce"
+            },
+            {
+              "artifact_id": "diagnostic_38356b1dd98cde32",
+              "artifact_version": 1,
+              "content_hash": "38356b1dd98cde32cdd747ec0fe1f223e4190ce361e5b0c81448b0bdd1946305"
+            },
+            {
+              "artifact_id": "event_context_f8a725273bca3c0e",
+              "artifact_version": 1,
+              "content_hash": "f8a725273bca3c0ea5fefc9f376d69c0356149f5be3d6bdb3ff8be4037f8bcf9"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_cdaefc489f5e3f777a5f",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_d18619d397d23a8d",
+              "artifact_version": 1,
+              "content_hash": "d18619d397d23a8da00d76abef88c799593908c472c9d5528fca6b7461625f7c"
+            },
+            {
+              "artifact_id": "diagnostic_39d884028195bdf6",
+              "artifact_version": 1,
+              "content_hash": "39d884028195bdf6f3ec7ca9186a446a44527c6407148e5f173e88908efa0569"
+            },
+            {
+              "artifact_id": "event_context_037475cce47fc922",
+              "artifact_version": 1,
+              "content_hash": "037475cce47fc922e50d2201849065d7dd46fc88c169953ed75366b213d81607"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_07159fbaa45a1e09826b",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_c56e4e2aa61ee715",
+              "artifact_version": 1,
+              "content_hash": "c56e4e2aa61ee7156f50b29867efb39dfd406db2ff342124c6415265a332890e"
+            },
+            {
+              "artifact_id": "diagnostic_cf2c4989b05f2e40",
+              "artifact_version": 1,
+              "content_hash": "cf2c4989b05f2e40c379fc086058753e13887dc70cb11168d7a07065f1a16491"
+            },
+            {
+              "artifact_id": "event_context_55b235b4ee765e7f",
+              "artifact_version": 1,
+              "content_hash": "55b235b4ee765e7f9af501490ee91595641a07991075bea5761932d266e9bfd3"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_6e89b42bb02dfeff5083",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_366724bc39085a04",
+              "artifact_version": 1,
+              "content_hash": "366724bc39085a04c57356585e2754ccd9c4dea1ba02577416641dbbd91f8f02"
+            },
+            {
+              "artifact_id": "diagnostic_39d884028195bdf6",
+              "artifact_version": 1,
+              "content_hash": "39d884028195bdf6f3ec7ca9186a446a44527c6407148e5f173e88908efa0569"
+            },
+            {
+              "artifact_id": "event_context_3ae056eb9b1fc8a9",
+              "artifact_version": 1,
+              "content_hash": "3ae056eb9b1fc8a9ed97ae6a84b65a996f9110bcf527f21a222459ad5326e4c0"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_96d1c111bbebd1dd0dcc",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_366724bc39085a04",
+              "artifact_version": 1,
+              "content_hash": "366724bc39085a04c57356585e2754ccd9c4dea1ba02577416641dbbd91f8f02"
+            },
+            {
+              "artifact_id": "diagnostic_39d884028195bdf6",
+              "artifact_version": 1,
+              "content_hash": "39d884028195bdf6f3ec7ca9186a446a44527c6407148e5f173e88908efa0569"
+            },
+            {
+              "artifact_id": "event_context_3596997894424a7f",
+              "artifact_version": 1,
+              "content_hash": "3596997894424a7f87b58ececbebcc47b7e9c178176c374b7581199345ff97ee"
+            }
+          ]
+        },
+        {
+          "candidate_id": "cand_2ee55245b86d966a5174",
+          "observation_kind": "target_exception",
+          "branch_ids": [
+            "br_knowledge_001"
+          ],
+          "site_ids": [
+            "ins_0014",
+            "ins_0015",
+            "ins_0017",
+            "ins_0018",
+            "ins_0019",
+            "ins_0020",
+            "ins_0023",
+            "ins_0024",
+            "ins_0027",
+            "ins_0028"
+          ],
+          "evidence_refs": [
+            {
+              "artifact_id": "input_9b7cabfbfa0313c0",
+              "artifact_version": 1,
+              "content_hash": "9b7cabfbfa0313c0b8358d662e62f34e87a89cbda8ea799f143bee336d18a34b"
+            },
+            {
+              "artifact_id": "diagnostic_875eb5fb82291181",
+              "artifact_version": 1,
+              "content_hash": "875eb5fb82291181619e0af577a693e06d4073f3a1c3fb78830ce7ee7b8ea829"
+            },
+            {
+              "artifact_id": "event_context_15338c83be7db1a8",
+              "artifact_version": 1,
+              "content_hash": "15338c83be7db1a8c2755c8126ef5ec0ef35df67317a3481fb32995b516ca406"
+            }
+          ]
+        }
+      ]
+    },
+    "run_log_refs": [
+      {
+        "artifact_id": "run_log_ex_60ba1c64d3c74dd7b7b99e2eb9134252",
+        "artifact_version": 1,
+        "content_hash": "e87b940df2d27ae7291f2d3c8139c7ec5f35c101417242444950babaa0e49b9d"
+      }
+    ]
+  },
+  "validation": {
+    "validation_status": "passed",
+    "validation_issues": []
+  },
+  "provenance": {
+    "runner_artifact_ref": {
+      "artifact_id": "run_fuzzing_round",
+      "artifact_version": "0.5.0",
+      "content_hash": "afdf451c319f854bd302175954bd93ed9dab69669f3b59bc242c813719b463c8"
+    },
+    "generated_at": "2026-10-08T08:28:14.344825Z"
+  }
+}

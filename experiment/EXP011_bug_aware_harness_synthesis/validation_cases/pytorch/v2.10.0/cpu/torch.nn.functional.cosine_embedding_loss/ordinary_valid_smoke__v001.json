@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "case_id": "vc_pytorch_v2_10_cpu_cosine_embedding_loss_ordinary_valid_smoke_v001",
+  "purpose": "ordinary_valid_smoke",
+  "target": {
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "python_api": "torch.nn.functional.cosine_embedding_loss",
+    "operator_name": "aten::cosine_embedding_loss",
+    "operator_overload": "default"
+  },
+  "arguments": [
+    {
+      "binding_parameter_ref": "binding_param_000_input1",
+      "value": {
+        "kind": "tensor",
+        "shape": [2, 3],
+        "dtype": "float32",
+        "fill": "ones"
+      }
+    },
+    {
+      "binding_parameter_ref": "binding_param_001_input2",
+      "value": {
+        "kind": "tensor",
+        "shape": [2, 3],
+        "dtype": "float32",
+        "fill": "ones"
+      }
+    },
+    {
+      "binding_parameter_ref": "binding_param_002_target",
+      "value": {
+        "kind": "tensor",
+        "shape": [2],
+        "dtype": "float32",
+        "fill": "ones"
+      }
+    }
+  ],
+  "source_evidence_refs": [
+    "ev_pytorch_cosine_embedding_loss_contract"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "ev_pytorch_cosine_embedding_loss_contract",
+      "source_kind": "pytorch_source",
+      "source_location": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/torch/nn/modules/loss.py",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "CosineEmbeddingLoss docstring, lines 1420-1472",
+      "content_hash": "7a8aa9bbcbc0b9f0c2bedc7ff4d0f74c4d68d221ed39867c799dca704abf635a",
+      "excerpt": "Shape: Input1 is (N, D) or (D); Input2 has the same shape as Input1; Target is (N) or (). The official example uses two rank-2 inputs and a rank-1 target. This smoke case instantiates that documented ordinary-valid form with N=2 and D=3."
+    }
+  ]
+}

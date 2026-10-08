@@ -1,0 +1,173 @@
+{
+  "record_format_version": "1.1",
+  "record_type": "fuzzing_round",
+  "identity": {
+    "round_id": "torch.batch_norm_update_stats:structured_baseline:repeat_001:round_001",
+    "execution_id": "ex_cb88eef9b952493b81a24d124460ea76",
+    "target_api_id": "torch.batch_norm_update_stats",
+    "experimental_group": "structured_baseline",
+    "independent_repeat_id": "repeat_001",
+    "round_index": 1,
+    "attempt_index": 1
+  },
+  "schedule": {
+    "planned_final_round_index": 3,
+    "planned_duration_seconds": 15
+  },
+  "source_context": {
+    "harness_spec_ref": {
+      "spec_id": "hs_pytorch_torch.batch_norm_update_stats_controlled_baseline",
+      "revision_number": 4,
+      "content_hash": "50284eba0588decc639eef9db69ba031bf8e61f315b57b6c89997e93ce07699c"
+    },
+    "strategy_ref": {
+      "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004",
+      "revision_number": 3,
+      "content_hash": "660ef6e67ea4fdc1952536e751de01ab1e7120fca8af3e2d8a0469e7c3bba760"
+    },
+    "harness_artifact_ref": {
+      "artifact_id": "ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3",
+      "artifact_version": "1.3",
+      "content_hash": "4d257ba6bf255b8ba37bf6785fd06c2fae5cf6cd0fb3f922582ac957742c7805"
+    },
+    "fuzzing_config_ref": {
+      "artifact_id": "round_config_ex_cb88eef9b952493b81a24d124460ea76",
+      "artifact_version": 1,
+      "content_hash": "6ee15b975100e60817cf66ddae3a310e9e301f149dcae3f51e0baba910c25b6b"
+    },
+    "runtime_environment_ref": {
+      "artifact_id": "pytorch_2_10_runtime_environment",
+      "artifact_version": "0.1",
+      "content_hash": "9006cfc2edf33d73b38f1a7dcd40e88ec22fff2e2e247f0f4d0f3c67bada6415"
+    },
+    "input_corpus_ref": {
+      "artifact_id": "corpus_torch_batch_norm_update_stats_initial_v1",
+      "artifact_version": 1,
+      "content_hash": "589090fc183910537dd1b36bb542d623ba78b8d57113695c93f5d62c5c0a9771"
+    },
+    "instrumentation_runtime_ref": {
+      "artifact_id": "harness_instrumentation_runtime",
+      "artifact_version": "1.1",
+      "content_hash": "b8becbeecd68b9b8ad82e80d34a2f813753abff5ce4fe39125981d4343c02910"
+    },
+    "instrumentation_contract_version": "1.0"
+  },
+  "attempt_selection": {
+    "status": "selected_as_round_result",
+    "reason_code": "only_attempt"
+  },
+  "execution": {
+    "seed": 1575786059,
+    "started_at": "2026-10-08T08:24:29.521579Z",
+    "ended_at": "2026-10-08T08:24:47.963087Z",
+    "actual_duration_seconds": 18.153198,
+    "termination": {
+      "reason": "time_budget_reached",
+      "exit_code": 0,
+      "signal_name": null,
+      "diagnostic_refs": []
+    },
+    "budget": {
+      "planned_seconds": 15.0,
+      "process_seconds": 18.15319810299843,
+      "wall_seconds": 18.441510826000012,
+      "outside_process_seconds": 0.2883127230015816,
+      "remaining_seconds": 0.0,
+      "timing_status": "measured",
+      "overrun_seconds": 3.153198102998431
+    }
+  },
+  "evidence": {
+    "runtime_snapshot": {
+      "status": "present",
+      "location": {
+        "artifact_ref": {
+          "artifact_id": "runtime_snapshot_ex_cb88eef9b952493b81a24d124460ea76",
+          "artifact_version": "1.0",
+          "content_hash": "c09cbd91a8db235533d4692f0faed8facc479887f1fe53b8f6965724f386e7fc"
+        },
+        "file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/runtime_snapshot.json",
+          "content_hash": "32401cefd260faa4fd267cd49a0ca2b816340b21bf9a0f8d5dceb02b2fff2a67"
+        }
+      },
+      "snapshot_kind": "final",
+      "staleness_iterations": 0
+    },
+    "coverage_summary": {
+      "status": "present",
+      "location": {
+        "artifact_ref": {
+          "artifact_id": "coverage_summary_cbc7bcf70f436238",
+          "artifact_version": 1,
+          "content_hash": "cbc7bcf70f436238e1bdc402d3dc401c973c37d909309bcff887166ff4bc928d"
+        },
+        "file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/coverage/coverage_summary.json",
+          "content_hash": "cbc7bcf70f436238e1bdc402d3dc401c973c37d909309bcff887166ff4bc928d"
+        }
+      },
+      "diagnostic_refs": [],
+      "diagnostic_file_refs": []
+    },
+    "output_corpus": {
+      "status": "present",
+      "location": {
+        "artifact_ref": {
+          "artifact_id": "corpus_6250992d03d565e1",
+          "artifact_version": 1,
+          "content_hash": "aba6d4216eda8e704bd1950b14e9ee0d867c6b445872f35fd5c97ea6e6ec4df1"
+        },
+        "file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/corpus_manifest.json",
+          "content_hash": "da569b87d0794ea9ed98fca71c14fe62c02e1c1ae0e0fb59b5f798af92fa4495"
+        }
+      },
+      "diagnostic_refs": []
+    },
+    "candidate_evidence": {
+      "status": "absent",
+      "bundle_ref": null,
+      "bundle_file_ref": null,
+      "capture_summary": {
+        "sampling": "first_n_per_kind_per_process",
+        "limit_per_kind": 64,
+        "counts": {
+          "attempts": 0,
+          "saved": 0,
+          "failures": 0,
+          "exception_attempts": 0,
+          "oracle_attempts": 0,
+          "limit_per_kind": 64,
+          "complete": true
+        },
+        "state": "complete"
+      },
+      "capture_summary_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_001/attempt_001/observations/capture_summary.json",
+        "content_hash": "905f36cfe10d65f1930c1c859ed5d3c5d122fa3e571130b5846a50184255401c"
+      },
+      "process_capture_summaries": [],
+      "observations": []
+    },
+    "run_log_refs": [
+      {
+        "artifact_id": "run_log_ex_cb88eef9b952493b81a24d124460ea76",
+        "artifact_version": 1,
+        "content_hash": "ce4823c663441a4fcf0d4af73cc65a8bde44564744a523ebb5269cee716f4be4"
+      }
+    ]
+  },
+  "validation": {
+    "validation_status": "passed",
+    "validation_issues": []
+  },
+  "provenance": {
+    "runner_artifact_ref": {
+      "artifact_id": "run_fuzzing_round",
+      "artifact_version": "0.5.0",
+      "content_hash": "afdf451c319f854bd302175954bd93ed9dab69669f3b59bc242c813719b463c8"
+    },
+    "generated_at": "2026-10-08T08:24:58.447387Z"
+  }
+}

@@ -184,6 +184,16 @@ Excluded events remain available for experiment-reliability analysis.
 
 Oracle evidence is classified independently from Knowledge confidence.
 
+Tiers classify the justified strength of this observation, not the check method
+name. Differential/metamorphic testing is not automatically Tier 2: the relation,
+applicability, tolerance, and reference implementation must be evidenced.
+`unevaluable` is an evaluation state, not a fourth ordinal confidence tier.
+
+Candidate event classes describe runtime observations; fault attribution locates
+the responsible component after triage. Neither is Chen root-cause classification
+or inferred from historical labels. Build failures are compilation outcomes, not
+runtime crashes. This layer does not add a second historical root-cause taxonomy.
+
 ### 6.1 `tier_1_exact`
 
 The Oracle checks an explicit and applicable contract or safety property.
@@ -254,7 +264,31 @@ Large inputs and logs shall be stored as referenced artifacts rather than embedd
 
 Original evidence is immutable. Later analysis may append conclusions but shall not overwrite the original evidence.
 
+Crash Case format 1.2 freezes the Candidate Bundle item, selected Round source
+context, and exact policy snapshot. Historical 1.1 Cases remain readable for
+inspection but are not considered analysis-complete or included in confirmed
+anomaly estimates until explicitly migrated and revalidated against their
+source evidence; the Analyzer does not silently apply a newer policy to them.
+
+Structured exception and Oracle observations are captured as a bounded, separate
+evidence stream; the cap is first-N per observation kind and per process. The
+Runner records attempted/saved/failed counts when process teardown permits. This
+cap limits retained diagnostics, not fuzz inputs or API execution, and therefore
+must not be interpreted as an event-frequency estimate. Native libFuzzer crash
+inputs remain in the fuzzer candidate corpus independently of this capture cap.
+
+The optional single-input replay trace records the exact input bytes (hex) and
+the runtime-site sequence for each invocation. A site proves Target API reach
+only when its trace row is bound to the selected input and maps to the
+Harness Artifact's `target_api_reached` event. Missing, truncated, or
+input-mismatched traces produce `unknown`, not an inferred invocation.
+
 The production ingest path shall not accept semantic overrides from a manually authored intake manifest. Missing Branch, Site, iteration, or Target invocation identifiers remain null or empty rather than being inferred.
+
+Each new Crash Case preserves its Candidate Bundle item, selected Round source
+context, and the exact Crash Analysis Policy snapshot. Source file references
+are hash-checked at ingest and again when reports select a Case revision. This
+keeps later policy changes from silently changing how an earlier Case is read.
 
 One admitted occurrence is identified by its execution, iteration, Target API invocation, and primary anomaly signature. Cascading messages from the same occurrence are supporting diagnostics rather than automatically separate Candidate Events.
 
@@ -419,6 +453,17 @@ Infrastructure-failed attempts do not count toward the five valid attempts. At m
 
 A replay is successful only when it produces the same primary failure class and the same or semantically equivalent failure signature.
 
+Replay is a one-input execution of the original binary in the pinned runtime
+image, with the original seed and recorded resource limits. The execution record
+must identify and hash the source binary, Harness Artifact, Round configuration,
+input, command, trace, and diagnostic. The verifier reconstructs Target API
+reach from input-bound runtime sites and rejects execution records whose command
+does not mount the same binary/input or use the recorded seed and image. A
+human may classify a different signature as semantically equivalent only in a
+reviewed Case revision, with `reproduction_equivalence` included in the reviewed
+aspects and supporting evidence attached. This adjudication does not alter the
+raw replay diagnostic.
+
 ### 12.1 Reproduction Stability
 
 | Successful valid replays | Status |
@@ -429,7 +474,11 @@ A replay is successful only when it produces the same primary failure class and 
 | 0 of 5 | `not_reproduced` |
 | Fewer than 5 valid attempts | `inconclusive` |
 
-Only `stable` anomalies enter the primary reproducible-anomaly metric.
+Only reportable, human-reviewed `stable` framework anomalies enter the primary
+reproducible-anomaly metric. A derived `stable` value alone is insufficient.
+When the Case set is incomplete, point estimates for confirmed framework
+anomalies and Bug outcomes are reported as unavailable; the report may separately
+show the number confirmed so far and the unresolved Case count.
 
 Other anomalies remain available for secondary analysis.
 
@@ -532,7 +581,10 @@ Result counts are derived from Case role, fault attribution, reproduction status
 
 ### 15.1 Raw Native Crash Events
 
-Occurrences of native crash, fatal signal, or unexpected abort before deduplication.
+Candidate Case records whose primary observation is native process termination,
+fatal signal, or unexpected abort before deduplication. This is a Case count,
+not necessarily a count of every underlying process event; it must not be
+labelled a raw-event frequency unless event-level telemetry is available.
 
 Cascading diagnostic messages from one occurrence do not create additional raw crash events.
 
@@ -579,6 +631,12 @@ Experiment-wide denominators, statistical tests, and group comparisons are defin
 ---
 
 ## 16. Human Review
+
+Closure is allowed only after the exact analyzed subject hash has been reviewed,
+required aspects have been covered, and no blocking question remains open.
+Semantic replay equivalence and semantic duplicate assignments require explicit
+review aspects and evidence. Policy-derived reproduction status is recomputed
+from replay attempts; it is not an independently editable measurement.
 
 All Candidate Clusters included in reproducible-anomaly or Bug metrics require human review.
 

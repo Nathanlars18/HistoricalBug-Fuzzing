@@ -15,6 +15,8 @@
     "result_provenance_ref"
   ],
   "properties": {
+    "selected_api_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "authorization_records": {"type": "array", "items": {"$ref": "#/$defs/file_reference"}},
     "runner_version": {"$ref": "#/$defs/version_string"},
     "matrix_id": {"$ref": "#/$defs/identifier"},
     "matrix_content_hash": {"$ref": "#/$defs/sha256"},
@@ -87,7 +89,8 @@
             "completed",
             "completed_with_abnormal_events",
             "method_failed",
-            "aborted_by_feedback"
+            "aborted_by_feedback",
+            "budget_incomplete", "blocked_by_prior_failure", "infrastructure_failed"
           ]
         },
         "seed": {"type": ["integer", "null"]},

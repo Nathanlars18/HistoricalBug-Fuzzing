@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:historicalbug-fuzzing:schema:harness-spec-generation-trace:1.1",
+  "title": "HarnessSpec LLM Attempt Trace v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["trace_version", "generation_run_id", "attempt", "model_name", "prompt_hash", "prompt_text", "response_hash", "response_text", "prior_errors", "created_at"],
+  "properties": {
+    "trace_version": {"enum": ["1.0", "1.1"]},
+    "generation_run_id": {"type": "string", "minLength": 1},
+    "attempt": {"type": "integer", "minimum": 1},
+    "model_name": {"type": "string", "minLength": 1},
+    "prompt_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prompt_text": {"type": "string", "minLength": 1},
+    "response_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "response_text": {"type": "string"},
+    "prior_errors": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "review_record_ref": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["artifact_id", "artifact_version", "content_hash", "relative_path"],
+          "properties": {
+            "artifact_id": {"type": "string", "minLength": 1},
+            "artifact_version": {"const": "1.1"},
+            "content_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "relative_path": {"type": "string", "minLength": 1}
+          }
+        }
+      ]
+    },
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"trace_version": {"const": "1.1"}}, "required": ["trace_version"]},
+      "then": {"required": ["review_record_ref"]}
+    }
+  ]
+}

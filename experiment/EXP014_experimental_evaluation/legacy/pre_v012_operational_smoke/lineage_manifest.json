@@ -1,0 +1,207 @@
+{
+  "archive_version": "1.0",
+  "archived_on": "2026-10-08",
+  "archive_kind": "logical",
+  "reason": "Earlier frozen snapshots and interrupted smoke runs are historical evidence, not eligible replacements for the completed v012 checkpoint. Moving issued paths or refreshing historical hashes would break provenance.",
+  "current_matrix_file_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v012.json",
+    "content_hash": "15350e377102aada1894f019fc70daebbd15a553dc0375ac422607db1ad1641c"
+  },
+  "current_run_root": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012",
+  "superseded_configurations": [
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v001.json",
+      "content_hash": "f2a7ba3c488c3bc59f590f9dc9ec88cb2f76df5edf4fe4cc211d2af0b0bcc10d"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v002.json",
+      "content_hash": "add0411d4e5e1eedd6c28ed297bad1ac4d55d8cb6dac62cffb770c1415a0a57c"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v003.json",
+      "content_hash": "dd385823289f7939dd13e32df84e5dac63c07fd8d3962cde120101f100337926"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v004.json",
+      "content_hash": "487602f09f9cfe8aa39cead770080d425a78b40ee57c670a7cf25080efae8b61"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v005.json",
+      "content_hash": "02bc26fee558c5c8d176683d08147b811c557aa32125f0ec8c80e23e1c7327c8"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v006.json",
+      "content_hash": "9fbab2e783e9b70a8437c2c8d0dcb565e43b35071d491e5f54f7b3cf3bc107e1"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v007.json",
+      "content_hash": "78b06fe2ad354833ada2777425fd32bb6f794eb4f85baee989127fb5ecd9ada1"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v008.json",
+      "content_hash": "a23e5c46fa78695eb498dfb4d1b4202e0dbbc5ab55381a6af041654c3af6654e"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v009.json",
+      "content_hash": "4d95bdef7ae50fdf04b37ebef5b472d914dbeed1c8a09deeb81508d980817e45"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v010.json",
+      "content_hash": "f81467e97b8b1ef1912fd5dfec9bf0413afec32de37a1db2faca067de2481813"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v011.json",
+      "content_hash": "fe13fdbf48bc4f04ed263c4d72ddc3ca2183dfca9f069210cb3b19e1fefb7f4f"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__two_api_smoke_v001.json",
+      "content_hash": "f941fe08d6d86ff7f831710cb240c8ca9827099031ec9a76b3f878cd10c3922a"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__two_api_smoke_v002.json",
+      "content_hash": "5ebebd13815294c19a9f800158d1d60d7251143fcb43462f0b109a8e3f5a4af8"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_execution_smoke__draft_v003.json",
+      "content_hash": "bc214758280d0872a66ca8b88b982f0deabc6cccd9d9b4091c36c67e890d176a"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_execution_smoke__draft_v004.json",
+      "content_hash": "04b86764d0b7bdf2da450bc9bdfbab9297a41da9f810395af94f246e95fd932d"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_execution_smoke__draft_v005.json",
+      "content_hash": "936371119419cf46df240bb977d0acb13b5df0deac45e0d793756a7b6d64996c"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_execution_smoke__draft_v006.json",
+      "content_hash": "a3cf6f09f7fc1b4c95625926a9ae31edf14ac68697c33c77ccd9867f24efd7ce"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_execution_smoke__draft_v007.json",
+      "content_hash": "79dd1e2f55332b94aa3f0678885606bd2058ac29dc0a6f08cda7597d9163e823"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v001.json",
+      "content_hash": "863e3a159ab9dd9a2742f6e661a0bea57e585f932eda6384a0e34807bc6cfa2f"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v002.json",
+      "content_hash": "12677ce320ed09e68351912c2a10c20e6c500c8fbec40624f34368268ea557a8"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v003.json",
+      "content_hash": "2a8f3cb2b7406757b0d9530a39be596259724eaf42f5fd367481fc3ffb9eb7ab"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v004.json",
+      "content_hash": "a4952aa949ed29aad3a276beb4d645f5d9dc3d7e5dcf7c7a265a2149a84366f8"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v005.json",
+      "content_hash": "d235902e58479ea2dbc8ac2be255c8d4829d1afac76e2879fcfb77e5a7cc6c35"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v006.json",
+      "content_hash": "10e4f5c8d93874538cddba76bdac62ccdf2276629056252575f8ea48e5b1b5de"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v007.json",
+      "content_hash": "75eb2837d440f21ca3f24abe4c76cfeb8cc4bb77b99814855a2ae57f3b19cef7"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v008.json",
+      "content_hash": "0d457049f1d3f65baa214f6c837f1775bbee80ac392627b38fc4e3d8c732a732"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v009.json",
+      "content_hash": "9a07a20abc338f8049f24022111b647333b58281e305b6272dc6f84eab749192"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v010.json",
+      "content_hash": "963f945c0db3e177ff1fe7ed00cb450bc9893694d1efd46d5056b2d17e9ded0e"
+    },
+    {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v011.json",
+      "content_hash": "3414fd2a71968927dacdba666dcc0af395e567d277a975a688e3adf24e9f275f"
+    }
+  ],
+  "retained_earlier_runs": [
+    {
+      "run_root": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v001",
+      "matrix_id": "pytorch_2_10_operational_smoke_v001",
+      "execution_index_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v001/execution_index.json",
+        "content_hash": "4586621ab89651c3a654c4be443c7fa2ef5d3e89d5c55063d25f67a6c403f3b2"
+      },
+      "task_status_counts": {},
+      "retention": "local_only_original_paths",
+      "not_formal_experiment_evidence": true
+    },
+    {
+      "run_root": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v002",
+      "matrix_id": "pytorch_2_10_operational_smoke_v002",
+      "execution_index_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v002/execution_index.json",
+        "content_hash": "27e66c8cbf91e7a8440c927a235dbf983f5e2ee562ca73cb7d32c79f82600b49"
+      },
+      "task_status_counts": {},
+      "retention": "local_only_original_paths",
+      "not_formal_experiment_evidence": true
+    },
+    {
+      "run_root": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v003",
+      "matrix_id": "pytorch_2_10_operational_smoke_v003",
+      "execution_index_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v003/execution_index.json",
+        "content_hash": "d928d6fa70bb75596e0344a49d4c81521f8a1c00e44200965870907da20d1e9d"
+      },
+      "task_status_counts": {
+        "method_failed": 6,
+        "blocked_by_prior_failure": 6
+      },
+      "retention": "local_only_original_paths",
+      "not_formal_experiment_evidence": true
+    },
+    {
+      "run_root": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v004",
+      "matrix_id": "pytorch_2_10_operational_smoke_v004",
+      "execution_index_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v004/execution_index.json",
+        "content_hash": "e50bf2793a81a7afa55ba01b00b5fd1e5ed9cb570ebc3ac01f90cac4fcc27e0d"
+      },
+      "task_status_counts": {
+        "completed": 12
+      },
+      "retention": "local_only_original_paths",
+      "not_formal_experiment_evidence": true
+    },
+    {
+      "run_root": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v005",
+      "matrix_id": "pytorch_2_10_operational_smoke_v005",
+      "execution_index_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v005/execution_index.json",
+        "content_hash": "d2ed27b0f0ddde3a921d53d493b12df9ec73da82680cc5042eae3fc8a0d7968d"
+      },
+      "task_status_counts": {
+        "completed": 12
+      },
+      "retention": "local_only_original_paths",
+      "not_formal_experiment_evidence": true
+    },
+    {
+      "run_root": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v010",
+      "matrix_id": "pytorch_2_10_operational_smoke_v010",
+      "execution_index_file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v010/execution_index.json",
+        "content_hash": "3ee05ec7df5b8d8b0d738495575134e7676bc0b4f20924e364be1f16afdbc5b3"
+      },
+      "task_status_counts": {
+        "completed": 7
+      },
+      "retention": "local_only_original_paths",
+      "not_formal_experiment_evidence": true
+    }
+  ],
+  "raw_run_evidence_publication": "Local raw evidence is retained; source Git commits publish bounded reports and evidence hashes, not profiles, binaries, corpora or every candidate."
+}

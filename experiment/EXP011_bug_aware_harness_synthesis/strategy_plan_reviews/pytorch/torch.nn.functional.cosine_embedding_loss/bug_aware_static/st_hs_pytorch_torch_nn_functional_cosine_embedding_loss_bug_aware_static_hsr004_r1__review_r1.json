@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "review_id": "strategy_review:st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004:r1:rr1",
+  "review_revision": 1,
+  "parent_review_ref": null,
+  "subject": {
+    "strategy_id": "st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004",
+    "revision_number": 1,
+    "content_hash": "b6f9e6c00aacaaa7d6efcd27752095b1eaa76a97524fc97d9de009ede9aff188",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r001.json"
+  },
+  "rules_ref": {
+    "artifact_id": "strategy_plan_human_review_rules__v1.2__sha256_14d2b31692f067cf43f9301d514c04211d14328f633720f01401595159ce2720.md",
+    "artifact_version": "1.2",
+    "content_hash": "14d2b31692f067cf43f9301d514c04211d14328f633720f01401595159ce2720",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_review_artifacts/strategy_plan_human_review_rules__v1.2__sha256_14d2b31692f067cf43f9301d514c04211d14328f633720f01401595159ce2720.md"
+  },
+  "decision": "needs_revision",
+  "findings": [
+    {
+      "criterion_id": "SR-09",
+      "severity": "blocking",
+      "field_path": "$.implementation_plan.branch_strategies[1].steps[2]",
+      "evidence_ref": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/Loss.cpp",
+      "mismatch_summary": "The knowledge branch constructs rank-1 input tensors and a rank-1 target. At the pinned source revision, a rank-1 target requires rank-2 inputs, so every generated call is rejected by this auxiliary relation before the intended input1/input2 shape relation can be exercised. Regenerate with bounded independent input ranks and a source-backed compatible target relation; do not fix a historical trigger."
+    }
+  ],
+  "reviewer_id": "nathan",
+  "reviewed_at": "2026-10-07T06:53:02.538088Z",
+  "review_notes": null
+}

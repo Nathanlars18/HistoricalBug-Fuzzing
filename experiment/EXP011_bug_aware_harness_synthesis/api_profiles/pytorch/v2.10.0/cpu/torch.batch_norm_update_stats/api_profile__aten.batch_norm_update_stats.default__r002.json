@@ -1,0 +1,425 @@
+{
+  "schema_version": "1.1",
+  "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.batch_norm_update_stats:python_default:aten.batch_norm_update_stats.default",
+  "revision": 2,
+  "metadata": {
+    "parent_revision_ref": {
+      "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.batch_norm_update_stats:python_default:aten.batch_norm_update_stats.default",
+      "revision": 1,
+      "content_hash": "d4f1b85f8d359dc33de1cea22d53788642d791b0b7cae157298bf32aaca27d4e"
+    },
+    "generated_at": "2026-10-04T00:48:20.014112Z",
+    "builder_version": "api_profile_builder_v0.4",
+    "content_hash": "b631a871f6552b8ecbebf3d2cd04fcdf50fcf63f1b2220204c41ad8eb1f51f9c"
+  },
+  "target": {
+    "framework": "pytorch",
+    "framework_version": "v2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend_scope": [
+      "cpu"
+    ],
+    "python_api": "torch.batch_norm_update_stats",
+    "callable_kind": "function",
+    "python_variant": "python_default",
+    "aliases": []
+  },
+  "python_contract": {
+    "documentation_status": "partial",
+    "signature": "def batch_norm_update_stats(input: Tensor, running_mean: Tensor | None, running_var: Tensor | None, momentum: _float) -> tuple[Tensor, Tensor]",
+    "behavior_summary": null,
+    "parameters": [
+      {
+        "parameter_id": "param_000_input",
+        "name": "input",
+        "ordinal": 0,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "input_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "parameter_id": "param_001_running_mean",
+        "name": "running_mean",
+        "ordinal": 1,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "Tensor | None",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "other_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "parameter_id": "param_002_running_var",
+        "name": "running_var",
+        "ordinal": 2,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "Tensor | None",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "other_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "parameter_id": "param_003_momentum",
+        "name": "momentum",
+        "ordinal": 3,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "_float",
+        "normalized_types": [
+          "floating"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "scalar",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "returns": [
+      {
+        "return_id": "return_000",
+        "position": 0,
+        "documented_type": "Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "semantic_role": "result_tensor",
+        "description": null,
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "return_id": "return_001",
+        "position": 1,
+        "documented_type": "Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "semantic_role": "result_tensor",
+        "description": null,
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "documented_domains": [],
+    "documented_exceptions": [],
+    "evidence_refs": [
+      "ev_python_signature_source",
+      "ev_operator_schema"
+    ]
+  },
+  "target_binding": {
+    "status": "resolved",
+    "operator_name": "aten::batch_norm_update_stats",
+    "operator_overload": "default",
+    "operator_schema": "batch_norm_update_stats(Tensor input, Tensor? running_mean, Tensor? running_var, float momentum) -> (Tensor, Tensor)",
+    "cpp_callable": "at::batch_norm_update_stats",
+    "binding_parameters": [
+      {
+        "binding_parameter_id": "binding_param_000_input",
+        "name": "input",
+        "ordinal": 0,
+        "schema_type": "Tensor",
+        "default": null
+      },
+      {
+        "binding_parameter_id": "binding_param_001_running_mean",
+        "name": "running_mean",
+        "ordinal": 1,
+        "schema_type": "Tensor?",
+        "default": null
+      },
+      {
+        "binding_parameter_id": "binding_param_002_running_var",
+        "name": "running_var",
+        "ordinal": 2,
+        "schema_type": "Tensor?",
+        "default": null
+      },
+      {
+        "binding_parameter_id": "binding_param_003_momentum",
+        "name": "momentum",
+        "ordinal": 3,
+        "schema_type": "float",
+        "default": null
+      }
+    ],
+    "argument_mapping": [
+      {
+        "python_parameter_ref": "param_000_input",
+        "binding_parameter_ref": "binding_param_000_input",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_001_running_mean",
+        "binding_parameter_ref": "binding_param_001_running_mean",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_002_running_var",
+        "binding_parameter_ref": "binding_param_002_running_var",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_003_momentum",
+        "binding_parameter_ref": "binding_param_003_momentum",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "return_mapping": [
+      {
+        "binding_return_position": 0,
+        "python_return_ref": "return_000",
+        "mapping_kind": "direct",
+        "description": null,
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "binding_return_position": 1,
+        "python_return_ref": "return_001",
+        "mapping_kind": "direct",
+        "description": null,
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "evidence_refs": [
+      "ev_operator_schema"
+    ]
+  },
+  "documented_constraints": [],
+  "flashfuzz_support": {
+    "flashfuzz_commit": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "api_list_status": "listed",
+    "evidence_refs": [
+      "ev_flashfuzz_api_list"
+    ]
+  },
+  "validation": {
+    "validation_status": "passed",
+    "execution_readiness": "ready",
+    "checks": [
+      {
+        "check_id": "check_python_resolution",
+        "check_kind": "python_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Python API resolved in the pinned runtime.",
+        "evidence_refs": []
+      },
+      {
+        "check_id": "check_signature_resolution",
+        "check_kind": "signature_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "One Python signature was resolved.",
+        "evidence_refs": [
+          "ev_python_signature_source"
+        ]
+      },
+      {
+        "check_id": "check_operator_schema_resolution",
+        "check_kind": "operator_schema_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "One target operator schema was selected.",
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_argument_mapping",
+        "check_kind": "argument_mapping",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Python-to-binding argument mapping is complete.",
+        "evidence_refs": [
+          "ev_python_signature_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_cpp_binding_resolution",
+        "check_kind": "cpp_binding_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "A C++/ATen callable candidate was resolved.",
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_cpp_compile",
+        "check_kind": "cpp_compile",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Resolved C++ callable compiled in the pinned runtime.",
+        "evidence_refs": [
+          "ev_cpp_compile_validation"
+        ]
+      },
+      {
+        "check_id": "check_cpp_smoke_execution",
+        "check_kind": "cpp_smoke_execution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Compiled C++ API probe terminated normally.",
+        "evidence_refs": [
+          "ev_cpp_smoke_execution"
+        ]
+      },
+      {
+        "check_id": "check_target_reachability",
+        "check_kind": "target_reachability",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "The resolved target callable was reached by the C++ probe.",
+        "evidence_refs": [
+          "ev_cpp_smoke_execution"
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "issue_id": "issue_runtime_doc_unavailable",
+        "issue_kind": "missing_documentation",
+        "blocking": false,
+        "description": "The pinned runtime exposes no docstring for the requested Python API.",
+        "affected_refs": [
+          "python_contract"
+        ],
+        "evidence_refs": []
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_python_signature_source",
+      "source_kind": "pytorch_source",
+      "source_location": "container://historicalbug/flashfuzz:torch2.10-api-metadata/usr/local/lib/python3.12/dist-packages/torch/_C/_VariableFunctions.pyi",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "batch_norm_update_stats",
+      "content_hash": "c478a2696e0e72fe8d1c5cff8984078bae9c9af2c340e7bc5ca3c6a4e0d29226",
+      "excerpt": "def batch_norm_update_stats(input: Tensor, running_mean: Tensor | None, running_var: Tensor | None, momentum: _float) -> tuple[Tensor, Tensor]",
+      "collected_at": "2026-10-04T00:23:05.065998Z"
+    },
+    {
+      "evidence_id": "ev_operator_schema",
+      "source_kind": "operator_schema",
+      "source_location": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "aten::batch_norm_update_stats.default",
+      "content_hash": "29c55ccb397ea85a392eed7e176813a781dde1925bfc0f6c0a1fda635a421a83",
+      "excerpt": "batch_norm_update_stats(Tensor input, Tensor? running_mean, Tensor? running_var, float momentum) -> (Tensor, Tensor)",
+      "collected_at": "2026-10-04T00:23:05.065998Z"
+    },
+    {
+      "evidence_id": "ev_flashfuzz_api_list",
+      "source_kind": "flashfuzz_api_list",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/api.txt",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "torch.batch_norm_update_stats",
+      "content_hash": "d000ff747c4a517c7ff9685ee980606b27a0861c59fe7524cf3ac89c581d9055",
+      "excerpt": "torch.batch_norm_update_stats",
+      "collected_at": "2026-10-04T00:23:05.065998Z"
+    },
+    {
+      "evidence_id": "ev_cpp_compile_validation",
+      "source_kind": "build_log",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/_runs/api_profile_runtime_validation__20261004T004820014112Z/torch.batch_norm_update_stats.log",
+      "source_revision": "sha256:6d5335ce21952176ae5c38bdfea0867d04980d7c2991420878bb6a262ecd393d",
+      "locator": "HBFG_COMPILE_STATUS=0",
+      "content_hash": "e9ad0518ef6890560b401167d90f65d8fd4e3171d86907451413939e938309b6",
+      "excerpt": "#include <torch/torch.h>\n#include <cstdint>\n#include <exception>\n#include <iostream>\n#include <optional>\n\nint main() {\n  try {\n    auto hbfg_arg_0 = torch::ones({2, 2}, torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU));\n    double hbfg_arg_3 = 0.1;\n    auto hbfg_result = at::batch_norm_update_stats(hbfg_arg_0, std::nullopt, std::nullopt, hbfg_arg_3);\n    (void)hbfg_result;\n    std::cout << \"HBFG_TARGET_REACHED\" << std::endl;\n    return 0;\n  } catch (const std::exception& error) {\n    std::cerr << \"HBFG_TARGET_EXCEPTION: \" << error.what() << std::endl;\n    return 90;\n  }\n}\n",
+      "collected_at": "2026-10-04T00:48:20.014112Z"
+    },
+    {
+      "evidence_id": "ev_cpp_smoke_execution",
+      "source_kind": "runtime_trace",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/_runs/api_profile_runtime_validation__20261004T004820014112Z/torch.batch_norm_update_stats.log",
+      "source_revision": "sha256:6d5335ce21952176ae5c38bdfea0867d04980d7c2991420878bb6a262ecd393d",
+      "locator": "HBFG_RUN_STATUS=0 and HBFG_TARGET_REACHED",
+      "content_hash": "e9ad0518ef6890560b401167d90f65d8fd4e3171d86907451413939e938309b6",
+      "excerpt": "C++ probe invoked the resolved target and terminated normally.",
+      "collected_at": "2026-10-04T00:48:20.014112Z"
+    }
+  ],
+  "review": {
+    "review_status": "approved",
+    "reviewer": "nathan",
+    "reviewed_at": "2026-10-04T00:48:20.014112Z",
+    "issue_refs": [
+      "issue_runtime_doc_unavailable"
+    ]
+  }
+}

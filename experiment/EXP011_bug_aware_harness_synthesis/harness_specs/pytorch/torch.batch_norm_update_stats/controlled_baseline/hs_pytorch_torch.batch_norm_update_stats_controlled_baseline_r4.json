@@ -1,0 +1,175 @@
+{
+  "schema_version": "2.2",
+  "identity": {
+    "spec_id": "hs_pytorch_torch.batch_norm_update_stats_controlled_baseline",
+    "framework": "pytorch",
+    "target_api": "torch.batch_norm_update_stats",
+    "spec_mode": "controlled_baseline"
+  },
+  "revision_information": {
+    "revision_number": 4,
+    "parent_revision_ref": {
+      "spec_id": "hs_pytorch_torch.batch_norm_update_stats_controlled_baseline",
+      "revision_number": 3,
+      "content_hash": "c38fb2d43d262d40ccb672f5246d2b1152e542194ea74909f72b77979bf639dd"
+    },
+    "derived_from_spec_ref": null,
+    "feedback_request_ref": null,
+    "revision_trigger": "source_artifact_update",
+    "change_scopes": [
+      "metadata_only"
+    ],
+    "change_summary": "Migrate the controlled Baseline from HarnessSpec v2.1 to v2.2",
+    "lifecycle_status": "draft"
+  },
+  "target_context": {
+    "api_profile_ref": {
+      "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.batch_norm_update_stats:python_default:aten.batch_norm_update_stats.default",
+      "revision": 7,
+      "content_hash": "33e71c2f3bfa040702c9263bb9e7a2779962791cf53f70676fbb5e39e65e0caf"
+    },
+    "available_helper_profile_refs": [
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_comparetensors_96f975d59bc7",
+        "revision": 2,
+        "content_hash": "3a023fbd4f2abef1efebf74da7c09a39820fb5bcaf87108f06115dcaeaa9c7af"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+        "revision": 2,
+        "content_hash": "77ba0a7b4446c33e3dce2e9c738edb1b113013315817a75cfa00c8321f0b1f1e"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_currenttimestamp_c81f2a7d32da",
+        "revision": 2,
+        "content_hash": "ec490726fa6f4b7ef9bd2a590b3dfa352cfb9ab0f571edc48934d339daf8cccd"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_ensure_log_directory_exists_0998a5920e8b",
+        "revision": 2,
+        "content_hash": "ec5d435bfd631ae34cac1ef70c71eca7ba91352a354689b1b4da987604f6106c"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_logerrormessage_ffbff3bb0e31",
+        "revision": 2,
+        "content_hash": "225e26b459e805214d62aa15b3fcebe3ad4b5f4452adb17460d67abafdcfb7d9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+        "revision": 2,
+        "content_hash": "d24f50a2b9ee76d060d46d3cd29e88d93a4e7c4afc1dd4775fbb964553aeafc6"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+        "revision": 2,
+        "content_hash": "883cb198e4fea076f62b4d8d4a585115c7a7841ea27323959b28c7dde95a6910"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parseshape_bc0dff00f287",
+        "revision": 2,
+        "content_hash": "45ec76ea73190c533ebf6a8cedef5cf44c08278d9002a648f9166b85fd54bc2d"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsetensordata_326eeb67c32d",
+        "revision": 2,
+        "content_hash": "7c13a00d198673107c2a960c6372ae9884298aa09aedcf2609c2d5d45e2807cb"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_sanitizedtimestamp_3462aebdca72",
+        "revision": 2,
+        "content_hash": "2513caf9c97e44f09e903b2c0d9bbe74341defee995561980dd45cbd86141dc9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_savediffinput_2413f328d009",
+        "revision": 2,
+        "content_hash": "6a45475e9d31bb95c9ad693af4b8366ef7ea671252b9d1fbb137ecd2b80d0608"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_saveerrorinput_315d3b0ca605",
+        "revision": 2,
+        "content_hash": "abd8268e9d0019a9a75c95eb96ac0d6b94eeba2e45a9b0ee3e832b1b2fc45086"
+      }
+    ],
+    "framework_version": "v2.10.0",
+    "backend_scope": [
+      "cpu"
+    ]
+  },
+  "knowledge_plan": {
+    "knowledge_decisions": []
+  },
+  "validity_constraints": {
+    "global_constraints": []
+  },
+  "exploration_plan": {
+    "default_branch_id": "br_default",
+    "budget_policy_ref": null,
+    "branches": [
+      {
+        "branch_id": "br_default",
+        "branch_kind": "default",
+        "input_validity_intent": "expected_valid",
+        "source_knowledge_ids": [],
+        "grouping_summary": null,
+        "exploration_goal": "Explore torch.batch_norm_update_stats over API-valid tensor and momentum inputs while preserving the general API contract.",
+        "branch_constraints": [],
+        "target_conditions": [],
+        "behavior_observations": [],
+        "behavior_checks": [],
+        "budget_share": 1.0,
+        "input_validity_basis": {
+          "basis_kind": "canonical_baseline_definition",
+          "source_refs": [],
+          "summary": "This branch is the canonical controlled-Baseline definition; it does not assert undocumented API boundary semantics."
+        },
+        "exploration_goal_source_refs": []
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "script",
+    "generator_name": "harness_spec_builder_v0.18",
+    "model_name": null,
+    "generation_run_id": "schema_migration_20261005T015616Z_77c835679841",
+    "script_ref": {
+      "artifact_id": "build_harness_spec_json__harness_spec_builder_v0.18__sha256_5aa3a97f2edbc22c569f4b5b2ae2284f167f54cfddede523766a9860c42e5351.py",
+      "artifact_version": "harness_spec_builder_v0.18",
+      "content_hash": "5aa3a97f2edbc22c569f4b5b2ae2284f167f54cfddede523766a9860c42e5351",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/build_harness_spec_json__harness_spec_builder_v0.18__sha256_5aa3a97f2edbc22c569f4b5b2ae2284f167f54cfddede523766a9860c42e5351.py"
+    },
+    "contract_ref": {
+      "artifact_id": "harness_spec_synthesis_contract__2.2__sha256_77d9718318053e2a527361a509e7e9c03f78f187c07a2c20b29f5084aa8248b5.json",
+      "artifact_version": "2.2",
+      "content_hash": "77d9718318053e2a527361a509e7e9c03f78f187c07a2c20b29f5084aa8248b5",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_synthesis_contract__2.2__sha256_77d9718318053e2a527361a509e7e9c03f78f187c07a2c20b29f5084aa8248b5.json"
+    },
+    "rules_ref": {
+      "artifact_id": "knowledge_to_harness_spec_rules__2.2__sha256_acdd4760d7e76d81f9fe533538809b9a940c6be0f85624309dd618f77871ca2a.md",
+      "artifact_version": "2.2",
+      "content_hash": "acdd4760d7e76d81f9fe533538809b9a940c6be0f85624309dd618f77871ca2a",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/knowledge_to_harness_spec_rules__2.2__sha256_acdd4760d7e76d81f9fe533538809b9a940c6be0f85624309dd618f77871ca2a.md"
+    },
+    "schema_ref": {
+      "artifact_id": "harness_spec_record__2.2__sha256_122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2.schema.json",
+      "artifact_version": "2.2",
+      "content_hash": "122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_record__2.2__sha256_122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2.schema.json"
+    },
+    "schema_core_ref": {
+      "artifact_id": "harness_spec_record_core_v2_2__2.2__sha256_4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e.schema.json",
+      "artifact_version": "2.2",
+      "content_hash": "4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_record_core_v2_2__2.2__sha256_4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e.schema.json"
+    },
+    "generation_trace_ref": null,
+    "generated_at": "2026-10-05T01:56:16.231307Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}

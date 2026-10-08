@@ -18,7 +18,7 @@
   ],
   "properties": {
     "record_format_version": {
-      "const": "1.0"
+      "enum": ["1.0", "1.1"]
     },
     "record_type": {
       "const": "fuzzing_round"
@@ -493,6 +493,7 @@
         "termination"
       ],
       "properties": {
+        "budget": {"type": "object", "additionalProperties": false, "required": ["planned_seconds", "process_seconds", "remaining_seconds", "timing_status"], "properties": {"planned_seconds": {"type": "number", "minimum": 0}, "process_seconds": {"type": ["number", "null"], "minimum": 0}, "wall_seconds": {"type": "number", "minimum": 0}, "outside_process_seconds": {"type": ["number", "null"], "minimum": 0}, "overrun_seconds": {"type": ["number", "null"], "minimum": 0}, "remaining_seconds": {"type": ["number", "null"], "minimum": 0}, "timing_status": {"enum": ["measured", "unknown_budget_reserved_no_retry", "merged"]}, "all_process_durations_measured": {"type": "boolean"}}},
         "seed": {
           "$ref": "#/$defs/non_negative_integer"
         },
@@ -677,6 +678,11 @@
           "items": {
             "$ref": "#/$defs/artifact_reference"
           }
+        },
+        "diagnostic_file_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/evidence_location"}
         }
       },
       "allOf": [
@@ -857,6 +863,19 @@
             }
           ]
         },
+        "capture_summary": {
+          "$ref": "#/$defs/capture_summary"
+        },
+        "capture_summary_file_ref": {
+          "oneOf": [{"$ref": "#/$defs/file_reference"}, {"type": "null"}]
+        },
+        "process_capture_summaries": {
+          "type": "array",
+          "items": {"type": "object", "additionalProperties": false,
+            "required": ["file_ref", "capture_summary"],
+            "properties": {"file_ref": {"$ref": "#/$defs/file_reference"},
+                           "capture_summary": {"$ref": "#/$defs/capture_summary"}}}
+        },
         "observations": {
           "type": "array",
           "uniqueItems": true,
@@ -906,6 +925,21 @@
         }
       ]
     },
+    "capture_summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sampling", "limit_per_kind", "counts", "state"],
+      "properties": {
+        "sampling": {"const": "first_n_per_kind_per_process"},
+        "limit_per_kind": {"type": "integer", "minimum": 0},
+        "counts": {"oneOf": [{"type": "null"}, {"type": "object", "additionalProperties": false,
+          "required": ["attempts", "saved", "failures", "exception_attempts", "oracle_attempts", "limit_per_kind", "complete"],
+          "properties": {"attempts": {"type": "integer", "minimum": 0}, "saved": {"type": "integer", "minimum": 0},
+            "failures": {"type": "integer", "minimum": 0}, "exception_attempts": {"type": "integer", "minimum": 0},
+            "oracle_attempts": {"type": "integer", "minimum": 0}, "limit_per_kind": {"type": "integer", "minimum": 0},
+            "complete": {"type": "boolean"}}}]},
+        "state": {"enum": ["complete", "unavailable_after_exit", "merged"]}
+      }
+    },
     "evidence": {
       "type": "object",
       "additionalProperties": false,
@@ -917,6 +951,7 @@
         "run_log_refs"
       ],
       "properties": {
+        "process_fragment_refs": {"type": "array", "items": {"$ref": "#/$defs/file_reference"}},
         "runtime_snapshot": {
           "$ref": "#/$defs/runtime_snapshot_evidence"
         },

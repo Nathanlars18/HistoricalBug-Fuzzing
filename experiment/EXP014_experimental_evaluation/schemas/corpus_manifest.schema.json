@@ -29,6 +29,7 @@
       "additionalProperties": false,
       "required": ["kind", "source_round_id"],
       "properties": {
+        "parent_manifest_file_ref": {"$ref": "#/$defs/file_reference"},
         "kind": {"enum": ["initial", "round_output"]},
         "source_round_id": {
           "oneOf": [

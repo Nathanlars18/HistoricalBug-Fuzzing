@@ -25,10 +25,17 @@ from statistics import median
 from typing import Any, Iterable, Mapping, Sequence
 
 from jsonschema import Draft202012Validator, FormatChecker
+from referencing import Registry, Resource
+
+if str(Path(__file__).resolve().parents[3]) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from experiment.EXP013_crash_triage_and_result_analysis.scripts.case_semantics import analysis_complete, reportable, cluster_errors
+from experiment.EXP014_experimental_evaluation.scripts.execution_semantics import snapshot_issues
+from experiment.EXP013_crash_triage_and_result_analysis.scripts import analyze_crash_cases as crash_manager
 
 
 ANALYZER_ID = "analyze_experiment_results"
-ANALYZER_VERSION = "0.3.0"
+ANALYZER_VERSION = "0.5.0"
 MATRIX_FORMAT_VERSION = "0.4"
 TARGET_MANIFEST_FORMAT_VERSION = "1.0"
 GROUPS = (
@@ -186,7 +193,9 @@ def repository_path(value: str | Path, label: str) -> Path:
 def schema_validator(path: Path) -> Draft202012Validator:
     schema = require_object(load_json(path), f"Schema {path}")
     Draft202012Validator.check_schema(schema)
-    return Draft202012Validator(schema, format_checker=FormatChecker())
+    core = load_json(REPOSITORY_ROOT / "experiment/EXP011_bug_aware_harness_synthesis/schemas/harness_spec_record_core__v2_2.schema.json")
+    registry = Registry().with_resource(core["$id"], Resource.from_contents(core))
+    return Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
 
 
 def validate_record(
@@ -406,6 +415,8 @@ def snapshot_is_valid(snapshot: Mapping[str, Any], artifact: Mapping[str, Any]) 
     site_counts = snapshot.get("site_counts")
     expected_count = len(artifact["instrumentation_map"])
     return (
+        not snapshot_issues(snapshot, artifact)
+        and
         snapshot.get("artifact_id") == artifact["identity"]["harness_artifact_id"]
         and snapshot.get("generation_key") == artifact["identity"]["generation_key"]
         and snapshot.get("site_count") == expected_count
@@ -510,6 +521,11 @@ def load_rounds(
             "Fuzzing Round record",
         )
         record = validate_record(load_json(round_path), round_validator, f"Round {round_path}")
+        budget = record['execution'].get('budget')
+        if budget is not None and (budget['process_seconds'] is None or budget['remaining_seconds'] > 0
+                                   or budget.get('all_process_durations_measured') is False):
+            attrition.append({'task_key': task_key, 'status': 'budget_incomplete'})
+            continue
         if record["validation"]["validation_status"] != "passed":
             raise InputError(f"Fuzzing Round validation failed: {round_path}")
         if record["attempt_selection"]["status"] != "selected_as_round_result":
@@ -617,7 +633,21 @@ def coverage_diagnostics(
             if enabled and summary.get("scope_hash") != scope_hash:
                 raise InputError(f"Coverage scope differs from frozen matrix: {path}")
             profile_path = path.with_name("coverage.profdata")
-            if file_hash(profile_path) != summary.get("profile_hash"):
+            quality = summary.get("quality_status")
+            if quality == "partial_failure":
+                if summary.get("measurements") is not None:
+                    raise InputError("Partial Coverage failure must not claim complete measurements")
+                if summary.get("profile_hash") is not None and (
+                    not profile_path.is_file() or file_hash(profile_path) != summary.get("profile_hash")
+                ):
+                    raise InputError(f"Partial Coverage profile hash differs from summary: {profile_path}")
+                row.update(quality_status=quality,
+                           corpus_file_count=summary.get("corpus_file_count"),
+                           warning_count=len(summary.get("warnings", [])))
+                row["status"] = "partial_failure"
+                rows.append(row)
+                continue
+            if not profile_path.is_file() or file_hash(profile_path) != summary.get("profile_hash"):
                 raise InputError(f"Coverage profile hash differs from summary: {profile_path}")
             measures = require_object(summary.get("measurements"), "coverage measurements")
             row.update({
@@ -634,6 +664,105 @@ def coverage_diagnostics(
     return rows
 
 
+def cumulative_coverage_diagnostics(rounds, matrix, output_root):
+    """Separate per API/group/repeat unions; incomplete prefixes remain partial."""
+    if not matrix["coverage"]["enabled"]:
+        return []
+    try:
+        from experiment.EXP014_experimental_evaluation.scripts.coverage_cumulative import merge_profiles, CoverageError
+    except ModuleNotFoundError:
+        from coverage_cumulative import merge_profiles, CoverageError
+    scope = verify_file_reference(matrix["coverage"]["scope_file_ref"], "coverage scope")
+    groups = {}
+    for item in rounds:
+        groups.setdefault((item.api_id, item.group_id, item.repeat_id), []).append(item)
+    rows = []
+    for (api, group, repeat), items in sorted(groups.items()):
+        profiles = []
+        complete = True
+        for item in sorted(items, key=lambda x: x.round_index):
+            record = load_json(Path(item.round_record_path))
+            evidence = record["evidence"]["coverage_summary"]
+            if evidence["status"] == "present":
+                path = verify_file_reference(evidence["location"]["file_ref"], "coverage summary")
+                summary = load_json(path)
+                if summary.get("scope_hash") != file_hash(scope):
+                    raise InputError("Cumulative coverage source scope differs")
+                if summary.get("quality_status") != "partial_failure":
+                    profile = path.with_name("coverage.profdata")
+                    if file_hash(profile) != summary.get("profile_hash"):
+                        raise InputError("Cumulative coverage profile hash differs")
+                    profiles.append(profile)
+                else:
+                    complete = False
+            else:
+                complete = False
+            complete = complete and sorted(x.round_index for x in items if x.round_index <= item.round_index) == list(range(1, item.round_index + 1))
+            row = {"api_id": api, "group_id": group, "repeat_id": repeat,
+                   "round_index": item.round_index, "included_profile_count": len(profiles),
+                   "status": "unavailable", "lines_covered": None, "lines_total": None,
+                   "branches_covered": None, "branches_total": None, "summary_file_ref": None}
+            if profiles:
+                try:
+                    merged_path = merge_profiles(scope, profiles, output_root)
+                    merged = load_json(merged_path)
+                    row.update(status="complete" if complete else "partial",
+                               quality_status=merged["quality_status"],
+                               summary_file_ref={"relative_path": str(merged_path.resolve().relative_to(REPOSITORY_ROOT)),
+                                                 "content_hash": file_hash(merged_path)})
+                    for kind in ("lines", "branches"):
+                        row[f"{kind}_covered"] = merged["measurements"][kind]["covered"]
+                        row[f"{kind}_total"] = merged["measurements"][kind]["total"]
+                except (CoverageError, OSError, ValueError) as exc:
+                    row.update(status="collection_failed", diagnostic=str(exc))
+            rows.append(row)
+    return rows
+
+
+def capture_diagnostics(rounds):
+    rows = []
+    for item in rounds:
+        evidence = load_json(Path(item.round_record_path))["evidence"]["candidate_evidence"]
+        row = {"api_id": item.api_id, "group_id": item.group_id, "repeat_id": item.repeat_id,
+               "round_index": item.round_index, "status": "unavailable", "attempts": None,
+               "saved": None, "failures": None, "suppressed": None,
+               "saturated_process_count": None, "process_count": None}
+        if evidence.get("capture_summary") is not None:
+            processes = evidence.get("process_capture_summaries") or []
+            summaries = []
+            if processes:
+                for process in processes:
+                    source_path = verify_file_reference(process["file_ref"], "process capture summary")
+                    source = load_json(source_path)
+                    if source != process["capture_summary"]["counts"]:
+                        raise InputError("Merged process capture summary differs from source")
+                    summaries.append(process["capture_summary"])
+            else:
+                ref = evidence.get("capture_summary_file_ref")
+                if ref is not None:
+                    source = load_json(verify_file_reference(ref, "capture summary"))
+                    if source != evidence["capture_summary"]["counts"]:
+                        raise InputError("Round capture summary differs from its evidence file")
+                summaries.append(evidence["capture_summary"])
+            counts = [s.get("counts") for s in summaries]
+            if counts and all(c is not None for c in counts):
+                totals = {key: sum(c[key] for c in counts) for key in ("attempts", "saved", "failures")}
+                row.update(status="complete", **totals,
+                           suppressed=totals["attempts"] - totals["saved"] - totals["failures"],
+                           process_count=len(counts), saturated_process_count=sum(
+                               any(c[k] > 0 and c[k] >= c["limit_per_kind"] for k in ("exception_attempts", "oracle_attempts"))
+                               for c in counts))
+        rows.append(row)
+    return rows
+
+
+def analysis_window(cutoff: datetime, now: datetime | None = None):
+    now = now or datetime.now(timezone.utc)
+    return {"status": "provisional" if now < cutoff else "final",
+            "as_of": min(now, cutoff).isoformat().replace("+00:00", "Z"),
+            "generated_at": now.isoformat().replace("+00:00", "Z")}
+
+
 def latest_cases_at_cutoff(
     case_root: Path,
     cutoff: datetime,
@@ -645,13 +774,34 @@ def latest_cases_at_cutoff(
     for case_dir in sorted((path for path in case_root.iterdir() if path.is_dir()), key=lambda p: p.name):
         candidates: list[tuple[datetime, int, dict[str, Any]]] = []
         for path in sorted((case_dir / "records").glob("*.json")):
-            record = validate_record(load_json(path), validator, f"Crash Case {path}")
+            record = load_json(path)
             created = parse_utc(record["revision"]["created_at"], f"{path}.revision.created_at")
             if created <= cutoff:
+                validate_record(record,validator,f"Crash Case {path}")
+                errors = crash_manager.semantic_errors(record)
+                if errors: raise InputError(f"Invalid Crash Case {path}: {errors[0]}")
+                if record.get("record_format_version") == "1.2":
+                    crash_manager.verify_capture_file_refs(record)
                 candidates.append((created, record["revision"]["revision_number"], record))
         if candidates:
             candidates.sort(key=lambda item: (item[0], item[1]))
+            candidates.sort(key=lambda item:item[1])
+            if [r[1] for r in candidates] != list(range(1,len(candidates)+1)):
+                raise InputError("Crash Case revisions at cutoff are not contiguous")
+            for index, (_, number, record) in enumerate(candidates):
+                parent = record["revision"]["parent_revision_ref"]
+                if index == 0 and parent is not None: raise InputError("First Crash Case revision has a parent")
+                if index:
+                    previous = candidates[index-1][2]
+                    prior_path = case_dir / "records" / f"{previous['identity']['case_id']}_r{number-1:03d}.json"
+                    if parent != crash_manager.artifact_ref(previous['identity']['case_id'],number-1,file_hash(prior_path)):
+                        raise InputError("Crash Case parent hash mismatch at cutoff")
+                    if previous.get("capture_record") != record.get("capture_record"):
+                        raise InputError("Raw Crash capture changed across revisions")
             selected.append(candidates[-1][2])
+    cluster_problems = cluster_errors(selected, case_root)
+    if cluster_problems:
+        raise InputError(cluster_problems[0])
     return selected
 
 
@@ -683,14 +833,18 @@ def relevant_cases(
 def validate_candidate_case_coverage(
     rounds: Sequence[RoundResult],
     cases: Sequence[Mapping[str, Any]],
-) -> None:
+    *, allow_missing: bool = False,
+) -> list[tuple[str, str]]:
     """Refuse to treat untriaged abnormal candidates as zero anomalies."""
     expected: set[tuple[str, str]] = set()
+    round_hashes: dict[str, str] = {}
     for round_result in rounds:
+        round_path = Path(round_result.round_record_path)
         record = require_object(
-            load_json(Path(round_result.round_record_path)),
+            load_json(round_path),
             f"Round {round_result.round_record_path}",
         )
+        round_hashes[round_result.round_id] = file_hash(round_path)
         evidence = require_object(record["evidence"], "Round evidence")
         candidate_evidence = require_object(
             evidence["candidate_evidence"], "Round candidate evidence"
@@ -706,16 +860,22 @@ def validate_candidate_case_coverage(
         )
         for case in cases
     }
+    for case in cases:
+        round_ref = case["origin"]["fuzzing_round_ref"]
+        expected_hash = round_hashes.get(round_ref["artifact_id"])
+        if expected_hash is not None and round_ref["content_hash"] != expected_hash:
+            raise InputError(f"Crash Case does not bind to the selected Fuzzing Round: {round_ref['artifact_id']}")
     missing = sorted(expected - materialized)
-    if missing:
+    if missing and not allow_missing:
         preview = ", ".join(
             f"{round_id}/{candidate_id}" for round_id, candidate_id in missing[:5]
         )
         suffix = "" if len(missing) <= 5 else f" (and {len(missing) - 5} more)"
         raise InputError(
             "Crash analysis is incomplete at the analysis cutoff; missing Crash Case "
-            f"records for {preview}{suffix}"
+            f"records for {preview}{suffix}. --case-root must point to the cases directory, not its parent."
         )
+    return missing
 
 
 def anomaly_occurrences(
@@ -723,6 +883,8 @@ def anomaly_occurrences(
     rounds: Sequence[RoundResult],
 ) -> tuple[dict[tuple[str, str, str], dict[str, int]], int]:
     round_lookup = {item.round_id: item for item in rounds}
+    errors = cluster_errors(list(cases))
+    if errors: raise InputError(errors[0])
     selected_round_ids = set(round_lookup)
     by_cluster: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     relevant_cluster_ids: set[str] = set()
@@ -731,7 +893,7 @@ def anomaly_occurrences(
         cluster_id = case["deduplication"]["cluster_id"]
         round_id = case["origin"]["fuzzing_round_ref"]["artifact_id"]
         if cluster_id is None:
-            if round_id in selected_round_ids:
+            if round_id in selected_round_ids and not analysis_complete(case):
                 unresolved += 1
             continue
         by_cluster[cluster_id].append(case)
@@ -749,10 +911,8 @@ def anomaly_occurrences(
             unresolved += 1
             continue
         representative = representatives[0]
-        if not (
-            representative["reproduction"]["status"] == "stable"
-            and representative["fault_attribution"]["status"] == "framework"
-        ):
+        if not reportable(representative):
+            if not analysis_complete(representative): unresolved += 1
             continue
         for case in members:
             round_ref = case["origin"]["fuzzing_round_ref"]
@@ -783,6 +943,7 @@ def run_metrics(
     targets: Mapping[str, Sequence[str]],
     rounds: Sequence[RoundResult],
     anomalies: Mapping[tuple[str, str, str], Mapping[str, int]],
+    pending_analysis: set[tuple[str,str,str]] | None = None,
 ) -> list[dict[str, Any]]:
     round_count = matrix["execution"]["round_count"]
     grouped: dict[tuple[str, str, str], list[RoundResult]] = defaultdict(list)
@@ -810,6 +971,7 @@ def run_metrics(
                     )
                     round_activation[str(item.round_index)] = len(activated) / denominator
                 cluster_rounds = anomalies.get(key, {})
+                analyzed = key not in (pending_analysis or set())
                 rows.append(
                     {
                         "api_id": api_id,
@@ -822,9 +984,11 @@ def run_metrics(
                         "activated_target_count": len(activated) if complete else None,
                         "target_activation_coverage": len(activated) / denominator if complete else None,
                         "cumulative_activation_by_round": round_activation,
-                        "reproducible_anomaly_yield": len(cluster_rounds) if complete else None,
+                        "anomaly_analysis_complete": analyzed,
+                        "confirmed_anomalies_so_far": len(cluster_rounds),
+                        "reproducible_anomaly_yield": len(cluster_rounds) if complete and analyzed else None,
                         "post_feedback_anomaly_yield": (
-                            sum(index >= 2 for index in cluster_rounds.values()) if complete else None
+                            sum(index >= 2 for index in cluster_rounds.values()) if complete and analyzed else None
                         ),
                         "cluster_first_round": dict(sorted(cluster_rounds.items())),
                     }
@@ -1009,9 +1173,8 @@ def paired_metrics(
             row["rq2_activation_difference"] = (
                 static["target_activation_coverage"] - baseline["target_activation_coverage"]
             )
-            row["rq2_anomaly_yield_difference"] = (
-                static["reproducible_anomaly_yield"] - baseline["reproducible_anomaly_yield"]
-            )
+            if static["reproducible_anomaly_yield"] is not None and baseline["reproducible_anomaly_yield"] is not None:
+                row["rq2_anomaly_yield_difference"] = static["reproducible_anomaly_yield"] - baseline["reproducible_anomaly_yield"]
         if rq3_ok:
             static_curve = static["cumulative_activation_by_round"]
             adaptive_curve = adaptive["cumulative_activation_by_round"]
@@ -1024,10 +1187,8 @@ def paired_metrics(
                 adaptive_curve[final_key] - adaptive_curve["1"]
                 - (static_curve[final_key] - static_curve["1"])
             )
-            row["rq3_post_feedback_anomaly_gain"] = (
-                adaptive["post_feedback_anomaly_yield"]
-                - static["post_feedback_anomaly_yield"]
-            )
+            if adaptive["post_feedback_anomaly_yield"] is not None and static["post_feedback_anomaly_yield"] is not None:
+                row["rq3_post_feedback_anomaly_gain"] = adaptive["post_feedback_anomaly_yield"] - static["post_feedback_anomaly_yield"]
         pairs.append(row)
     return pairs
 
@@ -1240,6 +1401,9 @@ def render_summary(
     record: Mapping[str, Any],
     api_results: Sequence[Mapping[str, Any]],
 ) -> str:
+    def shown(value: Any) -> str:
+        return "unavailable" if value is None else f"{value:.4f}"
+
     counts = record["counts"]
     rq1_group = record["rq_summary"]["rq1"]
     rq1 = rq1_group["RQ1_M1_E2E_HARNESS_RATE"]
@@ -1249,16 +1413,21 @@ def render_summary(
         "",
         f"- Analysis ID: `{record['analysis_id']}`",
         f"- Analysis cutoff: `{record['analysis_cutoff_at']}`",
+        f"- Analysis window: {record.get('analysis_window', {}).get('status', 'legacy_unspecified')}",
         f"- APIs: {counts['api_count']}",
         f"- Valid Round records: {counts['round_record_count']}",
         f"- Attrited or missing tasks: {counts['attrited_task_count']}",
         f"- Unresolved current-run cases/clusters: {counts['unresolved_case_or_cluster_count']}",
         f"- Coverage replay present: {counts['coverage_present_round_count']}/{counts['round_record_count']} rounds (diagnostic only)",
         f"- Coverage replay with LLVM warnings: {counts['coverage_warning_round_count']} rounds",
+        f"- Coverage replay with partial failures: {counts.get('coverage_partial_failure_round_count', 0)} rounds",
+        f"- Candidate captures: {counts.get('capture_saved_count', 'unavailable')} saved; {counts.get('capture_suppressed_count', 'unavailable')} suppressed by capture limits",
+        f"- Candidate records awaiting Case materialization: {counts.get('unmaterialized_candidate_count', 'unavailable')}",
+        "- Captured candidate yield is not exhaustive bug discovery; first-N sampling can omit later distinct events.",
         "",
         "## RQ1",
         "",
-        f"- End-to-end Harness rate: {rq1['success_count']}/{rq1['selected_api_count']} ({rq1['rate']:.4f})",
+        (f"- End-to-end Harness rate: {rq1['success_count']}/{rq1['selected_api_count']} ({shown(rq1['rate'])})" if rq1.get('applicable', True) else '- End-to-end Harness rate: not applicable (approved artifact reuse)'),
         f"- APIs with computable observation reach: {reach['computable_api_count']}/{counts['api_count']}",
         "",
         "## Per-API primary medians",
@@ -1268,8 +1437,6 @@ def render_summary(
     ]
     for item in api_results:
         values = item["aggregates"]
-        def shown(value: Any) -> str:
-            return "unavailable" if value is None else f"{value:.4f}"
         lines.append(
             "| "
             + " | ".join(
@@ -1339,6 +1506,7 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
     if state.get("matrix_content_hash") != matrix_hash or provenance.get("matrix_content_hash") != matrix_hash:
         raise InputError("Execution state or result provenance belongs to another matrix")
     cutoff = parse_utc(provenance.get("analysis_cutoff_at"), "analysis_cutoff_at")
+    window = analysis_window(cutoff)
 
     round_validator = schema_validator(ROUND_SCHEMA)
     artifact_validator = schema_validator(ARTIFACT_SCHEMA)
@@ -1360,16 +1528,35 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
         snapshot_validator,
     )
     coverage_rows = coverage_diagnostics(rounds, matrix)
-    cutoff_cases = latest_cases_at_cutoff(case_root, cutoff, case_validator)
+    cumulative_rows = cumulative_coverage_diagnostics(rounds, matrix, run_root / "coverage_cumulative")
+    capture_rows = capture_diagnostics(rounds)
+    cutoff_cases = latest_cases_at_cutoff(case_root, parse_utc(window["as_of"], "analysis as_of"), case_validator)
     cases = relevant_cases(cutoff_cases, rounds)
-    validate_candidate_case_coverage(rounds, cases)
+    missing_candidates = validate_candidate_case_coverage(rounds, cases, allow_missing=True)
     anomalies, unresolved_cases = anomaly_occurrences(cases, rounds)
     validate_pairing(rounds)
     validate_adaptive_lineage(rounds, state)
-    runs = run_metrics(matrix, targets, rounds, anomalies)
+    lookup = {r.round_id:r for r in rounds}
+    incomplete_clusters = {
+        c["deduplication"]["cluster_id"] for c in cases
+        if c["deduplication"]["cluster_id"] is not None and not analysis_complete(c)
+    }
+    pending = {(lookup[round_id].api_id, lookup[round_id].group_id, lookup[round_id].repeat_id)
+               for round_id, _ in missing_candidates}
+    for case in cases:
+        round_id = case["origin"]["fuzzing_round_ref"]["artifact_id"]
+        cluster_id = case["deduplication"]["cluster_id"]
+        if round_id not in lookup or (analysis_complete(case) and (cluster_id is None or cluster_id not in incomplete_clusters)):
+            continue
+        item = lookup[round_id]
+        pending.add((item.api_id, item.group_id, item.repeat_id))
+    runs = run_metrics(matrix, targets, rounds, anomalies,pending)
     pairs = paired_metrics(runs, matrix["execution"]["round_count"])
     per_api = api_records(api_ids, runs, pairs)
     summary = rq_summary(api_ids, state, targets, rounds, per_api, artifact_validator)
+    if matrix.get('preparation', {}).get('mode') == 'reuse_approved':
+        summary['rq1']['RQ1_M1_E2E_HARNESS_RATE'].update(success_count=None, rate=None, wilson_95_interval=None,
+            applicable=False, reason='Approved artifact reuse is not a new synthesis trial')
 
     input_hashes = {
         "matrix": file_hash(matrix_path),
@@ -1386,6 +1573,9 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
             Path(item.snapshot_path) for item in rounds if item.snapshot_path is not None
         ),
         "crash_case_records": sorted(canonical_hash(case) for case in cases),
+        "cumulative_coverage": cumulative_rows,
+        "capture_diagnostics": capture_rows,
+        "analysis_window": {k: window[k] for k in ("status", "as_of")},
     }
     analyzer_hash = file_hash(Path(__file__).resolve())
     analysis_key = canonical_hash(
@@ -1406,6 +1596,7 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
         },
         "matrix_id": matrix["matrix_id"],
         "analysis_cutoff_at": provenance["analysis_cutoff_at"],
+        "analysis_window": window,
         "input_hashes": input_hashes,
         "counts": {
             "api_count": len(api_ids),
@@ -1415,16 +1606,36 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
             "unresolved_case_or_cluster_count": unresolved_cases,
             "coverage_present_round_count": sum(row["status"] == "present" for row in coverage_rows),
             "coverage_warning_round_count": sum(row["quality_status"] == "partial_warning" for row in coverage_rows),
+            "coverage_partial_failure_round_count": sum(row["quality_status"] == "partial_failure" for row in coverage_rows),
+            "unmaterialized_candidate_count": len(missing_candidates),
+            "capture_attempt_count": sum(r["attempts"] for r in capture_rows) if all(r["status"] == "complete" for r in capture_rows) else None,
+            "capture_saved_count": sum(r["saved"] for r in capture_rows) if all(r["status"] == "complete" for r in capture_rows) else None,
+            "capture_suppressed_count": sum(r["suppressed"] for r in capture_rows) if all(r["status"] == "complete" for r in capture_rows) else None,
+            "capture_failure_count": sum(r["failures"] for r in capture_rows) if all(r["status"] == "complete" for r in capture_rows) else None,
         },
         "attrition": attrition,
         "rq_summary": summary,
+        "cumulative_coverage": cumulative_rows,
+        "capture_diagnostics": capture_rows,
     }
     output = repository_path(args.output_root, "output root") / matrix["matrix_id"] / analysis_key[:16]
+    if (output / "analysis_record.json").is_file():
+        record["analysis_window"]["generated_at"] = load_json(output / "analysis_record.json")["analysis_window"]["generated_at"]
     write_json(output / "analysis_record.json", record)
     write_text(output / "summary.md", render_summary(record, per_api))
     for item in per_api:
         safe_id = re.sub(r"[^A-Za-z0-9._-]+", "_", item["api_id"])
         write_json(output / "per_api" / f"{safe_id}.json", item)
+    write_csv(
+        output / "tables" / "coverage_cumulative.csv", cumulative_rows,
+        ("api_id", "group_id", "repeat_id", "round_index", "status", "included_profile_count",
+         "lines_covered", "lines_total", "branches_covered", "branches_total", "summary_file_ref"),
+    )
+    write_csv(
+        output / "tables" / "candidate_capture.csv", capture_rows,
+        ("api_id", "group_id", "repeat_id", "round_index", "status", "attempts", "saved",
+         "failures", "suppressed", "saturated_process_count", "process_count"),
+    )
     write_csv(
         output / "tables" / "run_metrics.csv",
         runs,
@@ -1454,7 +1665,8 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
             "rq3_adaptive_activation_gain", "rq3_post_feedback_anomaly_gain",
         ),
     )
-    return {"status": "completed", "analysis_path": str(output), **record["counts"]}
+    return {"status": "completed", "analysis_window_status": window["status"],
+            "analysis_path": str(output), **record["counts"]}
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

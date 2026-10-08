@@ -33,8 +33,14 @@ from decimal import Decimal, ROUND_FLOOR
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import condition_feedback
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "EXP014_experimental_evaluation/scripts"))
+from execution_semantics import snapshot_issues
+
 try:
     from jsonschema import Draft202012Validator, FormatChecker
+    from referencing import Registry, Resource
 except ImportError as exc:  # pragma: no cover - environment error
     raise SystemExit(
         "Missing dependency; install environment/python-control-requirements.txt"
@@ -42,8 +48,8 @@ except ImportError as exc:  # pragma: no cover - environment error
 
 
 CONTROLLER_ID = "run_feedback_controller"
-CONTROLLER_VERSION = "0.5.3"
-RECORD_FORMAT_VERSION = "1.2"
+CONTROLLER_VERSION = "0.9.0"
+RECORD_FORMAT_VERSION = "1.5"
 CANONICALIZATION_VERSION = "1.0"
 
 EXP_ROOT = Path(__file__).resolve().parents[1]
@@ -65,12 +71,12 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 BRANCH_STATUS_ORDER = (
     "branch_under_sampled",
     "branch_rejection_dominated",
-    "branch_target_unreachable",
+    "branch_target_not_observed",
     "branch_activation_unevaluable",
     "branch_activation_absent",
     "branch_activation_rare",
     "branch_oracle_unevaluable",
-    "branch_healthy",
+    "branch_no_detected_bottleneck",
 )
 CANDIDATE_OBSERVATION_CODES = {
     "crash": "crash_candidate_observed",
@@ -124,6 +130,7 @@ class ResolvedRound:
     policy: dict[str, Any]
     input_references: dict[str, Any]
     evidence_issue_codes: tuple[str, ...]
+    coverage_assessment: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -208,7 +215,12 @@ def schema_validator(path: Path, label: str) -> Draft202012Validator:
         Draft202012Validator.check_schema(value)
     except Exception as exc:
         raise GlobalInputError(f"Invalid {label} Schema: {exc}") from exc
-    return Draft202012Validator(value, format_checker=FormatChecker())
+    registry = Registry()
+    core = EXP011_ROOT / "schemas" / "harness_spec_record_core__v2_2.schema.json"
+    if core.is_file():
+        core_schema = load_json(core, global_input=True)
+        registry = registry.with_resource(core_schema["$id"], Resource.from_contents(core_schema))
+    return Draft202012Validator(value, registry=registry, format_checker=FormatChecker())
 
 def validate_against(
     value: Any,
@@ -272,6 +284,17 @@ def policy_reference(policy: Mapping[str, Any], path: Path) -> dict[str, Any]:
         policy["policy_id"], policy["policy_version"], file_hash(path)
     )
 
+
+def protocol_reference(policy: Mapping[str, Any]) -> dict[str, Any]:
+    protocol = policy["protocol"]
+    path = (REPOSITORY_ROOT / require_string(protocol["path"], "policy.protocol.path")).resolve()
+    if not path.is_relative_to(REPOSITORY_ROOT) or not path.is_file():
+        raise GlobalInputError("Adaptive Feedback Protocol path is missing or outside the repository")
+    observed_hash = file_hash(path)
+    if protocol.get("content_hash") != observed_hash:
+        raise GlobalInputError("Adaptive Feedback Protocol content hash does not match the policy")
+    return artifact_reference(protocol["protocol_id"], protocol["protocol_version"], observed_hash)
+
 def controller_reference(path: Path) -> dict[str, Any]:
     return artifact_reference(CONTROLLER_ID, CONTROLLER_VERSION, file_hash(path))
 
@@ -316,6 +339,40 @@ def validate_feedback_spec_origin(harness_spec: Mapping[str, Any]) -> None:
             "Static H0 must not be derived from a Feedback Request"
         )
 
+
+def verify_approved_review(reference: Mapping[str, Any], artifact: Mapping[str, Any], path: Path, kind: str) -> None:
+    relative = require_string(reference.get("relative_path"), f"{kind} review relative_path")
+    review_path = (REPOSITORY_ROOT / relative).resolve()
+    if not review_path.is_relative_to(REPOSITORY_ROOT) or not review_path.is_file():
+        raise RoundInputError(f"{kind} H0 review is missing or its file hash does not match")
+    review = require_object(load_json(review_path), f"{kind} review")
+    if reference.get("content_hash") not in {file_hash(review_path), canonical_hash(review)}:
+        raise RoundInputError(f"{kind} H0 review is missing or its content hash does not match")
+    if reference.get("review_id") is not None:
+        if reference.get("review_id") != review.get("review_id") or reference.get("review_revision") != review.get("review_revision"):
+            raise RoundInputError(f"{kind} H0 review identity does not match its reference")
+    elif reference.get("artifact_id") != review_path.name or str(reference.get("artifact_version")) != str(review.get("schema_version")):
+        raise RoundInputError(f"{kind} H0 review artifact identity does not match its reference")
+    rules_ref = require_object(review.get("rules_ref"), f"{kind} review rules_ref")
+    rules_path = (REPOSITORY_ROOT / require_string(rules_ref.get("relative_path"), "review rules path")).resolve()
+    if (not rules_path.is_relative_to(REPOSITORY_ROOT) or not rules_path.is_file()
+            or file_hash(rules_path) != rules_ref.get("content_hash")):
+        raise RoundInputError(f"{kind} H0 review rules reference is missing or hash-mismatched")
+    if review.get("decision") != "approved" or review.get("subject", {}).get("content_hash") != canonical_hash(artifact):
+        raise RoundInputError(f"{kind} H0 review does not approve the exact current artifact")
+    expected_path = path.resolve().relative_to(REPOSITORY_ROOT.resolve()).as_posix()
+    if review.get("subject", {}).get("relative_path") != expected_path:
+        raise RoundInputError(f"{kind} H0 review subject path differs from the current artifact")
+
+
+def verify_static_h0_reviews(spec: Mapping[str, Any], strategy: Mapping[str, Any], artifact: Mapping[str, Any], spec_path: Path, strategy_path: Path) -> None:
+    spec_review = strategy["source_context"].get("harness_spec_review_ref")
+    strategy_review = artifact["source_context"].get("strategy_review_ref")
+    if not isinstance(spec_review, dict) or not isinstance(strategy_review, dict):
+        raise RoundInputError("Static H0 requires exact approved HarnessSpec and Strategy reviews")
+    verify_approved_review(spec_review, spec, spec_path, "HarnessSpec")
+    verify_approved_review(strategy_review, strategy, strategy_path, "Strategy")
+
 def load_runtime_snapshot_evidence(
     round_record: Mapping[str, Any], runtime_path: Path | None
 ) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
@@ -349,7 +406,156 @@ def unavailable_coverage_assessment() -> dict[str, Any]:
     return {
         "trend": "coverage_unavailable",
         "coverage_summary_ref": None,
+        "collection_state": "not_collected",
+        "measurements": None,
+        "scope_hash": None,
+        "pytorch_commit": None,
+        "coverage_image": None,
+        "harness_binary_hash": None,
+        "quality_status": None,
     }
+
+
+def validate_coverage_summary(summary: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate the version 1 Coverage contract, including partial replay records."""
+    value = require_object(summary, "Coverage Summary")
+    required = {"record_format_version", "scope_hash", "pytorch_commit", "coverage_image", "source_prefix", "harness_binary_hash", "corpus_file_count", "source_file_count", "measurements", "quality_status", "profile_hash", "warnings", "replay_seconds"}
+    optional = {"resource_limits", "thread_environment", "cleanup_warnings", "successful_batch_count", "planned_batch_count", "failed_batch"}
+    if not required.issubset(value) or set(value) - required - optional or value.get("record_format_version") != "1.0":
+        raise RoundInputError("Coverage Summary has unsupported fields or version")
+    for field in ("scope_hash", "harness_binary_hash"):
+        if not SHA256_RE.fullmatch(str(value[field])):
+            raise RoundInputError(f"Coverage Summary {field} is malformed")
+    if not isinstance(value["pytorch_commit"], str) or not re.fullmatch(r"[0-9a-f]{40}", value["pytorch_commit"]):
+        raise RoundInputError("Coverage Summary PyTorch commit is malformed")
+    if not isinstance(value["coverage_image"], str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", value["coverage_image"]):
+        raise RoundInputError("Coverage Summary image digest is malformed")
+    if not isinstance(value["source_prefix"], str) or not value["source_prefix"].startswith("/root/pytorch/"):
+        raise RoundInputError("Coverage Summary source prefix is malformed")
+    if not isinstance(value["warnings"], list) or any(not isinstance(item, str) for item in value["warnings"]):
+        raise RoundInputError("Coverage Summary warnings are malformed")
+    if not isinstance(value.get("cleanup_warnings", []), list) or any(not isinstance(item, str) for item in value.get("cleanup_warnings", [])):
+        raise RoundInputError("Coverage Summary cleanup warnings are malformed")
+    if not isinstance(value.get("resource_limits", {}), dict) or not isinstance(value.get("thread_environment", {}), dict):
+        raise RoundInputError("Coverage Summary execution metadata is malformed")
+    for field in ("successful_batch_count",):
+        if field in value:
+            require_non_negative_integer(value[field], field)
+    if "planned_batch_count" in value:
+        require_positive_integer(value["planned_batch_count"], "planned_batch_count")
+    require_positive_integer(value["corpus_file_count"], "Coverage Summary corpus_file_count")
+    quality = value["quality_status"]
+    if quality in {"complete", "partial_warning"}:
+        for field in ("profile_hash",):
+            if not isinstance(value[field], str) or not SHA256_RE.fullmatch(value[field]):
+                raise RoundInputError(f"Coverage Summary {field} is malformed")
+        require_positive_integer(value["source_file_count"], "Coverage Summary source_file_count")
+        measures = require_object(value["measurements"], "Coverage Summary measurements")
+        if set(measures) != {"lines", "branches"}:
+            raise RoundInputError("Coverage Summary must contain line and branch measurements")
+        for name, measure in measures.items():
+            measure = require_object(measure, f"Coverage Summary {name}")
+            if set(measure) != {"covered", "total", "percent"}:
+                raise RoundInputError(f"Coverage Summary {name} has unsupported fields")
+            total = require_non_negative_integer(measure["total"], f"{name}.total")
+            covered = require_non_negative_integer(measure["covered"], f"{name}.covered")
+            if covered > total:
+                raise RoundInputError(f"Coverage Summary {name}.covered exceeds total")
+            percent = measure["percent"]
+            if total == 0:
+                if percent is not None:
+                    raise RoundInputError(f"Coverage Summary {name}.percent must be null for an empty denominator")
+            elif isinstance(percent, bool) or not isinstance(percent, (int, float)) or abs(percent - (100.0 * covered / total)) > 1e-6:
+                raise RoundInputError(f"Coverage Summary {name}.percent disagrees with covered/total")
+    elif quality == "partial_failure":
+        if value["measurements"] is not None or value["source_file_count"] is not None:
+            raise RoundInputError("Partial Coverage failure cannot claim complete measurements")
+        profile_hash = value["profile_hash"]
+        if profile_hash is not None and (not isinstance(profile_hash, str) or not SHA256_RE.fullmatch(profile_hash)):
+            raise RoundInputError("Partial Coverage profile_hash is malformed")
+        require_non_negative_integer(value.get("successful_batch_count"), "successful_batch_count")
+        planned = require_positive_integer(value.get("planned_batch_count"), "planned_batch_count")
+        if value["successful_batch_count"] >= planned:
+            raise RoundInputError("Partial Coverage failure batch counts are inconsistent")
+        failed = require_object(value.get("failed_batch"), "Coverage failed_batch")
+        if not isinstance(failed.get("message"), str) or not failed["message"].strip():
+            raise RoundInputError("Partial Coverage failure message is missing")
+    else:
+        raise RoundInputError("Coverage Summary quality_status is unsupported")
+    replay_seconds = value["replay_seconds"]
+    if isinstance(replay_seconds, bool) or not isinstance(replay_seconds, (int, float)) or replay_seconds < 0:
+        raise RoundInputError("Coverage Summary replay_seconds is malformed")
+    return value
+
+
+def failed_coverage_assessment(declared: Mapping[str, Any] | None) -> dict[str, Any]:
+    refs: list[dict[str, Any]] = []
+    reason = None
+    if declared is not None and declared.get("status") == "collection_failed":
+        diagnostic_files = declared.get("diagnostic_file_refs", [])
+        for item in diagnostic_files:
+            location = require_object(item, "Coverage failure diagnostic reference")
+            file_ref = require_object(location.get("file_ref"), "Coverage failure file reference")
+            path = verified_repository_file(file_ref, "Coverage failure diagnostic")
+            artifact_ref = require_object(location.get("artifact_ref"), "Coverage failure artifact reference")
+            if file_hash(path) != artifact_ref.get("content_hash"):
+                raise RoundInputError("Coverage failure diagnostic hash differs")
+            refs.append(copy.deepcopy(artifact_ref))
+            reason = path.read_text(encoding="utf-8", errors="replace").strip() or reason
+        if not diagnostic_files:
+            # Earlier Fuzzing Round records stored only these Artifact refs.
+            refs.extend(copy.deepcopy(declared.get("diagnostic_refs", [])))
+    return {"trend": "coverage_unavailable", "coverage_summary_ref": None,
+            "collection_state": "failed" if declared and declared.get("status") == "collection_failed" else "not_collected",
+            "measurements": None, "scope_hash": None, "pytorch_commit": None,
+            "coverage_image": None, "harness_binary_hash": None, "quality_status": None,
+            "failure_reason": reason, "failure_evidence_refs": refs}
+
+
+def coverage_assessment(path: Path | None, artifact: Mapping[str, Any], declared: Mapping[str, Any] | None = None) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    if path is None:
+        return failed_coverage_assessment(declared), None
+    summary = validate_coverage_summary(load_json(path))
+    if declared is not None:
+        location = declared.get("location")
+        if location is not None:
+            file_ref = location["file_ref"]
+            artifact_ref = location["artifact_ref"]
+            if (path.resolve() != (REPOSITORY_ROOT / file_ref["relative_path"]).resolve()
+                    or file_hash(path) != file_ref["content_hash"]
+                    or file_hash(path) != artifact_ref["content_hash"]):
+                raise RoundInputError("Coverage Summary does not match the exact Fuzzing Round evidence reference")
+    validation = require_object(artifact.get("validation"), "Harness Artifact validation")
+    compile_check = require_object(validation.get("compile_check"), "Harness Artifact compile_check")
+    if compile_check.get("status") != "passed":
+        raise RoundInputError("Coverage Summary references an Artifact without a passed compile check")
+    build = require_object(compile_check.get("binary_artifact"), "Harness Artifact binary_artifact")
+    binary_path = REPOSITORY_ROOT / build.get("relative_path", "")
+    if (not binary_path.is_file() or file_hash(binary_path) != build.get("content_hash")
+            or summary["harness_binary_hash"] != build.get("content_hash")):
+        raise RoundInputError("Coverage Summary does not match the verified Harness binary")
+    ref = artifact_reference("coverage_summary", "1.0", file_hash(path))
+    profile_hash = summary.get("profile_hash")
+    if profile_hash is not None:
+        profile_path = path.with_name("coverage.profdata")
+        if not profile_path.is_file() or file_hash(profile_path) != profile_hash:
+            raise RoundInputError("Coverage profile is missing or its hash differs from the Summary")
+    if summary["quality_status"] == "partial_failure":
+        return ({"trend": "coverage_not_assessed", "coverage_summary_ref": ref,
+                 "collection_state": "partial", "measurements": None,
+                 "scope_hash": summary["scope_hash"], "pytorch_commit": summary["pytorch_commit"],
+                 "coverage_image": summary["coverage_image"], "harness_binary_hash": summary["harness_binary_hash"],
+                 "quality_status": "partial_failure",
+                 "failure_reason": summary["failed_batch"]["message"],
+                 "completed_batch_count": summary["successful_batch_count"],
+                 "planned_batch_count": summary["planned_batch_count"],
+                 "failure_evidence_refs": [ref]}, ref)
+    measures = summary["measurements"]
+    return ({"trend": "coverage_not_assessed", "coverage_summary_ref": ref,
+             "collection_state": "collected", "measurements": copy.deepcopy(measures),
+             "scope_hash": summary["scope_hash"], "pytorch_commit": summary["pytorch_commit"],
+             "coverage_image": summary["coverage_image"], "harness_binary_hash": summary["harness_binary_hash"],
+             "quality_status": summary["quality_status"]}, ref)
 
 def validate_policy(policy: Any) -> dict[str, Any]:
     value = require_object(policy, "Adaptive Feedback Policy")
@@ -374,7 +580,7 @@ def validate_policy(policy: Any) -> dict[str, Any]:
     }
     if set(value) != required:
         raise GlobalInputError(
-            "Adaptive Feedback Policy fields do not match policy v0.4"
+            "Adaptive Feedback Policy fields do not match the supported policy structure"
         )
     if value["policy_kind"] != "adaptive_branch_budget":
         raise GlobalInputError("Unsupported feedback policy kind")
@@ -427,20 +633,20 @@ def validate_policy(policy: Any) -> dict[str, Any]:
     )
     selector = value["selector_space"]
     if selector.get("total_slots") != 256:
-        raise GlobalInputError("Controller v0.5 requires a 256-slot selector")
+        raise GlobalInputError("Controller v0.7 requires a 256-slot selector")
     allocation = value["allocation_rules"]
     if allocation.get("maximum_boost_recipients_per_transition") != 1:
         raise GlobalInputError(
-            "Controller v0.5 requires one boost recipient per transition"
+            "Controller v0.7 requires one boost recipient per transition"
         )
     donor_rules = require_object(
         allocation.get("donor_rules"),
         "allocation_rules.donor_rules",
     )
     excluded_donor_statuses = donor_rules.get("excluded_branch_statuses")
-    if excluded_donor_statuses != ["branch_activation_unevaluable"]:
+    if excluded_donor_statuses != ["branch_activation_unevaluable", "branch_under_sampled"]:
         raise GlobalInputError(
-            "Controller v0.5 requires unevaluable Branches to be excluded as donors"
+            "Controller v0.7 requires unevaluable and under-sampled Branches to be excluded as donors"
         )
     return value
 
@@ -509,7 +715,46 @@ def load_prior_decisions(
             raise RoundInputError(
                 "A new round cannot follow a non-continuing prior Decision"
             )
+        if record["materialization"]["outcome"] == "accepted" and record.get("record_format_version") in {"1.4", "1.5"}:
+            verify_prior_materialization(record)
     return records, references
+
+
+def verify_prior_materialization(record: Mapping[str, Any]) -> None:
+    evidence = require_object(record["materialization"].get("validation_evidence"), "prior accepted materialization evidence")
+    if set(evidence) != {"feedback_request_file_ref", "harness_spec_file_ref", "strategy_plan_file_ref", "harness_artifact_file_ref", "preflight_result_file_ref"}:
+        raise RoundInputError("Prior accepted Decision has incomplete materialization evidence")
+    request_path = verified_repository_file(evidence["feedback_request_file_ref"], "prior feedback request")
+    spec = require_object(load_json(verified_repository_file(evidence["harness_spec_file_ref"], "prior candidate HarnessSpec")), "prior candidate HarnessSpec")
+    strategy = require_object(load_json(verified_repository_file(evidence["strategy_plan_file_ref"], "prior candidate Strategy")), "prior candidate Strategy")
+    artifact = require_object(load_json(verified_repository_file(evidence["harness_artifact_file_ref"], "prior candidate Harness Artifact")), "prior candidate Harness Artifact")
+    preflight = require_object(load_json(verified_repository_file(evidence["preflight_result_file_ref"], "prior preflight")), "prior preflight")
+    request = require_object(load_json(request_path), "prior materialization request")
+    request_key_payload = copy.deepcopy(request)
+    request_key = request_key_payload.pop("request_key", None)
+    refs = record["input_references"]
+    if (request_key != canonical_hash(request_key_payload)
+            or request.get("input_references") != refs
+            or request.get("budget_decision") != record["budget_decision"]
+            or request.get("scope") != record["scope"]
+            or spec["revision_information"]["feedback_request_ref"]["artifact_id"] != request.get("request_id")
+            or spec["revision_information"]["feedback_request_ref"]["artifact_version"] != request.get("request_version")
+            or spec["revision_information"]["feedback_request_ref"]["content_hash"] != file_hash(request_path)):
+        raise RoundInputError("Prior accepted Decision request lineage does not verify")
+    if (harness_spec_reference(spec) != record["materialization"]["candidate_harness_spec_ref"]
+            or strategy_reference(strategy) != record["materialization"]["candidate_strategy_ref"]
+            or harness_artifact_reference(artifact) != record["materialization"]["candidate_harness_artifact_ref"]):
+        raise RoundInputError("Prior accepted Decision candidate references do not verify")
+    if (strategy["source_context"]["harness_spec_ref"] != harness_spec_reference(spec)
+            or artifact["source_context"]["strategy_revision_ref"] != strategy_reference(strategy)
+            or artifact["validation"]["static_validation"]["status"] != "passed"
+            or artifact["validation"]["compile_check"]["status"] != "passed"
+            or preflight.get("status") != "passed"):
+        raise RoundInputError("Prior accepted candidate chain lacks a validated, compiled, preflighted artifact")
+    expected_slots = allocation_map(record["budget_decision"]["proposed_allocation"])
+    observed_slots = {branch["branch_id"]: int(round(branch["budget_share"] * 256)) for branch in spec["exploration_plan"]["branches"]}
+    if observed_slots != expected_slots:
+        raise RoundInputError("Prior accepted HarnessSpec allocation differs from its Decision")
 
 def expected_refs_after_decision(
     decision: Mapping[str, Any]
@@ -538,6 +783,7 @@ def resolve_inputs(args: argparse.Namespace) -> ResolvedRound:
     )
 
     policy = validate_policy(load_json(args.policy, global_input=True))
+    feedback_protocol_ref = protocol_reference(policy)
     round_record = require_object(load_json(args.round_record), "Fuzzing Round record")
     validate_against(round_record, round_validator, "Fuzzing Round record")
     validate_round_record_semantics(round_record)
@@ -565,6 +811,9 @@ def resolve_inputs(args: argparse.Namespace) -> ResolvedRound:
         raise RoundInputError("Round, HarnessSpec, and Strategy scope do not match")
     validate_feedback_spec_origin(harness_spec)
 
+    if spec_identity["spec_mode"] == "bug_aware_static":
+        verify_static_h0_reviews(harness_spec, strategy, harness_artifact, args.harness_spec, args.strategy_plan)
+
     spec_ref = harness_spec_reference(harness_spec)
     strategy_ref = strategy_reference(strategy)
     artifact_ref = harness_artifact_reference(harness_artifact)
@@ -584,6 +833,11 @@ def resolve_inputs(args: argparse.Namespace) -> ResolvedRound:
     prior_decisions, prior_refs = load_prior_decisions(
         args.prior_decision, decision_validator, scope
     )
+    if spec_identity["spec_mode"] == "bug_aware_adaptive" and not prior_decisions:
+        raise RoundInputError("An Adaptive HarnessSpec requires a prior accepted Feedback Decision lineage")
+    current_policy_ref = policy_reference(policy, args.policy)
+    if any(item["input_references"]["feedback_policy_ref"] != current_policy_ref for item in prior_decisions):
+        raise RoundInputError("A repeat must use one frozen feedback policy across its decision chain")
     if prior_decisions:
         expected = expected_refs_after_decision(prior_decisions[-1])
         if expected != (spec_ref, strategy_ref, artifact_ref):
@@ -607,6 +861,15 @@ def resolve_inputs(args: argparse.Namespace) -> ResolvedRound:
             | set(round_record_validation_issue_codes(round_record))
         )
     )
+    coverage_path = args.coverage_summary
+    if coverage_path is None:
+        location = round_record["evidence"]["coverage_summary"].get("location")
+        if location is not None:
+            relative = location["file_ref"]["relative_path"]
+            coverage_path = REPOSITORY_ROOT / relative
+    coverage_result, coverage_ref = coverage_assessment(
+        coverage_path, harness_artifact, round_record["evidence"]["coverage_summary"]
+    )
     input_references = {
         "current_harness_spec_ref": spec_ref,
         "current_strategy_ref": strategy_ref,
@@ -615,13 +878,12 @@ def resolve_inputs(args: argparse.Namespace) -> ResolvedRound:
         "runtime_snapshot_ref": evidence_artifact_reference(
             round_record, "runtime_snapshot"
         ),
-        "coverage_summary_ref": evidence_artifact_reference(
-            round_record, "coverage_summary"
-        ),
+        "coverage_summary_ref": coverage_ref or evidence_artifact_reference(round_record, "coverage_summary"),
         "output_corpus_ref": evidence_artifact_reference(
             round_record, "output_corpus"
         ),
-        "feedback_policy_ref": policy_reference(policy, args.policy),
+        "feedback_policy_ref": current_policy_ref,
+        "feedback_protocol_ref": feedback_protocol_ref,
         "controller_ref": controller_reference(Path(__file__).resolve()),
         "prior_feedback_decision_refs": list(prior_refs),
     }
@@ -636,6 +898,7 @@ def resolve_inputs(args: argparse.Namespace) -> ResolvedRound:
         policy=policy,
         input_references=input_references,
         evidence_issue_codes=evidence_issues,
+        coverage_assessment=coverage_result,
     )
 
 def event_index(
@@ -719,6 +982,16 @@ def event_total(
     )
 
 def branch_measurements(
+    harness_spec: Mapping[str, Any],
+    harness_artifact: Mapping[str, Any],
+    runtime_snapshot: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    if all("target_conditions" in branch for branch in harness_spec["exploration_plan"]["branches"]):
+        return condition_feedback.measurements(harness_spec, harness_artifact, runtime_snapshot, sys.modules[__name__])
+    return _legacy_branch_measurements(harness_spec, harness_artifact, runtime_snapshot)
+
+
+def _legacy_branch_measurements(
     harness_spec: Mapping[str, Any],
     harness_artifact: Mapping[str, Any],
     runtime_snapshot: Mapping[str, Any],
@@ -852,16 +1125,18 @@ def assess_round(resolved: ResolvedRound) -> Assessment:
     termination = record["execution"]["termination"]
     candidate_evidence = record["evidence"]["candidate_evidence"]
 
-    if candidate_evidence["status"] == "present":
+    blocking_observations = [item for item in candidate_evidence["observations"]
+                             if item["observation_kind"] != "target_exception"]
+    if candidate_evidence["status"] == "present" and blocking_observations:
         issue_codes = sorted(
             {
                 CANDIDATE_OBSERVATION_CODES[item["observation_kind"]]
-                for item in candidate_evidence["observations"]
+                for item in blocking_observations
             }
         )
         return Assessment(
             round_gate={
-                "result": "crash_or_sanitizer_candidate",
+                "result": "abnormal_candidate_observed",
                 "issue_codes": issue_codes,
             },
             branch_diagnoses=(),
@@ -955,7 +1230,7 @@ def assess_round(resolved: ResolvedRound) -> Assessment:
         started = snapshot["started_iterations"]
         finished = snapshot["finished_iterations"]
         unwound = snapshot["unwound_iterations"]
-        if finished > started or unwound > finished:
+        if finished + unwound > started:
             issues.append("counter_inconsistent")
         if snapshot["invalid_site_records"] != 0:
             issues.append("invalid_site_record_observed")
@@ -965,6 +1240,8 @@ def assess_round(resolved: ResolvedRound) -> Assessment:
             resolved.harness_artifact["instrumentation_map"]
         ):
             issues.append("site_count_mismatch")
+
+    issues.extend(snapshot_issues(snapshot, resolved.harness_artifact))
 
     if snapshot.get("snapshot_kind") == "periodic":
         staleness = snapshot_evidence["staleness_iterations"]
@@ -1008,6 +1285,7 @@ def assess_round(resolved: ResolvedRound) -> Assessment:
         (item["measurements"]["activation_check_error_count"] or 0)
         > maximum_checker_errors
         for item in measured
+        if item["measurements"].get("condition_measurements") is None
     ):
         return Assessment(
             round_gate={
@@ -1033,10 +1311,18 @@ def assess_round(resolved: ResolvedRound) -> Assessment:
     return Assessment(
         round_gate={"result": "eligible", "issue_codes": []},
         branch_diagnoses=diagnoses,
-        coverage_assessment=unavailable_coverage_assessment(),
+        coverage_assessment=resolved.coverage_assessment or unavailable_coverage_assessment(),
     )
 
 def diagnose_branch(
+    measured: Mapping[str, Any], policy: Mapping[str, Any]
+) -> dict[str, Any]:
+    if "condition_measurements" in measured["measurements"]:
+        return condition_feedback.diagnose(measured, policy, _legacy_diagnose_branch)
+    return _legacy_diagnose_branch(measured, policy)
+
+
+def _legacy_diagnose_branch(
     measured: Mapping[str, Any], policy: Mapping[str, Any]
 ) -> dict[str, Any]:
     values = measured["measurements"]
@@ -1050,9 +1336,8 @@ def diagnose_branch(
     under_sampled = selected < evidence["minimum_branch_selected_cases"]
     if values["activation_required"]:
         checked = values["activation_checked_count"]
-        attempts = checked + values["activation_unevaluable_count"]
         under_sampled = under_sampled or (
-            attempts < evidence["minimum_branch_activation_attempts"]
+            checked < evidence["minimum_branch_activation_attempts"]
         )
     if values["oracle_required"]:
         opportunities = values["oracle_opportunity_count"]
@@ -1070,7 +1355,7 @@ def diagnose_branch(
         if target_reached <= thresholds["target_unreachable"][
             "maximum_target_reached_count"
         ]:
-            statuses.append("branch_target_unreachable")
+            statuses.append("branch_target_not_observed")
 
         if values["activation_required"]:
             checked = values["activation_checked_count"]
@@ -1107,7 +1392,7 @@ def diagnose_branch(
 
     ordered = [name for name in BRANCH_STATUS_ORDER if name in set(statuses)]
     if not ordered:
-        ordered = ["branch_healthy"]
+        ordered = ["branch_no_detected_bottleneck"]
     return {
         "branch_id": measured["branch_id"],
         "primary_status": ordered[0],
@@ -1197,7 +1482,13 @@ def accepted_boost_history(
                 raise RoundInputError(
                     "An accepted restoration does not close exactly one boost episode"
                 )
-            del open_episodes[matches[0]]
+            branch_id = matches[0]
+            target = allocation_map(
+                open_episodes[branch_id][0]["budget_decision"]["current_allocation"]
+            )
+            restored = allocation_map(budget["proposed_allocation"])
+            if restored == target:
+                del open_episodes[branch_id]
     return counts, open_episodes
 
 def allocation_map(vector: Sequence[Mapping[str, Any]]) -> dict[str, int]:
@@ -1302,7 +1593,8 @@ def decide_budget(
             and item["round_assessment"]["round_gate"]["result"] == "eligible"
             for item in resolved.prior_decisions
         ) + 1
-        checked = diagnosis["measurements"]["activation_checked_count"] or 0
+        trigger = diagnosis.get("trigger_condition") or {}
+        checked = _trigger_measurement(diagnosis, trigger, "checked")
         if (
             later_eligible >= history["minimum_post_boost_eligible_rounds"]
             and checked >= history["minimum_post_boost_activation_checked_cases"]
@@ -1315,17 +1607,17 @@ def decide_budget(
         _, _, boost_record, boost_ref = max(
             persistent, key=lambda item: (item[0], item[1])
         )
-        proposed = allocation_map(
-            boost_record["budget_decision"]["current_allocation"]
-        )
-        if set(proposed) != set(current):
+        target = allocation_map(boost_record["budget_decision"]["current_allocation"])
+        if set(target) != set(current):
             raise RoundInputError(
                 "Pre-boost allocation does not match the current Branch set"
             )
+        maximum = allocation_rules["maximum_transfer_slots_per_transition"]
+        proposed = bounded_step_toward(current, target, maximum)
         validate_allocation(proposed, branches, default_id, allocation_rules)
         transfers = compute_transfers(current, proposed)
         if proposed != current and transfers:
-            validate_transfers(current, proposed, transfers)
+            validate_transfers(current, proposed, transfers, maximum)
             return {
                 "budget_action": "reallocate_budget",
                 "transition_kind": "restore_pre_boost_allocation",
@@ -1349,15 +1641,20 @@ def decide_budget(
             "maximum_accepted_exploration_boosts_per_branch"
         ]:
             continue
+        if diagnosis.get("budget_recipient_evidence_usable", diagnosis.get("budget_evidence_usable")) is False:
+            continue
+        if status in {"branch_activation_absent", "branch_activation_rare"} and not diagnosis.get("trigger_condition"):
+            continue
         recipients.append((recipient_priority[status], branch_id))
     if not recipients:
         return no_change_decision(current_vector, "no_eligible_recipient")
 
-    _, recipient = min(recipients, key=lambda item: (item[0], item[1]))
     ceiling = ceilings["multiple_branch_maximum"]
-    capacity = ceiling - current[recipient]
-    if capacity <= 0:
+    recipients = [item for item in recipients if current[item[1]] < ceiling]
+    if not recipients:
         return no_change_decision(current_vector, "recipient_at_ceiling")
+    _, recipient = min(recipients, key=lambda item: (item[0], item[1]))
+    capacity = ceiling - current[recipient]
 
     donors: list[tuple[int, str, int]] = []
     persistent_branches = {item[1] for item in persistent}
@@ -1368,6 +1665,8 @@ def decide_budget(
         if branch_id == recipient:
             continue
         if diagnoses[branch_id]["primary_status"] in excluded_donor_statuses:
+            continue
+        if diagnoses[branch_id].get("budget_donor_evidence_usable", diagnoses[branch_id].get("budget_evidence_usable")) is False:
             continue
         floor = (
             floors["default_branch"]
@@ -1400,7 +1699,7 @@ def decide_budget(
     transfers = compute_transfers(current, proposed)
     if not transfers or proposed == current:
         return no_change_decision(current_vector, "selector_ranges_unchanged")
-    validate_transfers(current, proposed, transfers)
+    validate_transfers(current, proposed, transfers, maximum)
     return {
         "budget_action": "reallocate_budget",
         "transition_kind": "exploration_boost",
@@ -1438,6 +1737,7 @@ def validate_transfers(
     current: Mapping[str, int],
     proposed: Mapping[str, int],
     transfers: Sequence[Mapping[str, Any]],
+    maximum_slots: int | None = None,
 ) -> None:
     donor_ids = {item["donor_branch_id"] for item in transfers}
     recipient_ids = {item["recipient_branch_id"] for item in transfers}
@@ -1454,8 +1754,47 @@ def validate_transfers(
             raise RoundInputError("Transfer contains an invalid donor or recipient")
         reconstructed[donor] -= amount
         reconstructed[recipient] += amount
+    if maximum_slots is not None and sum(
+        item["selector_slots"] for item in transfers
+    ) > maximum_slots:
+        raise RoundInputError("Transfer exceeds the policy transition limit")
     if reconstructed != dict(proposed):
         raise RoundInputError("Transfers do not reconstruct the proposed allocation")
+
+
+def _trigger_measurement(
+    diagnosis: Mapping[str, Any], trigger: Mapping[str, Any], field: str
+) -> int:
+    for item in diagnosis["measurements"].get("condition_measurements", []):
+        if (item.get("condition_id") == trigger.get("condition_id")
+                and item.get("observe_at") == trigger.get("observe_at")):
+            return int(item.get(field) or 0)
+    return int(diagnosis["measurements"].get("activation_checked_count") or 0)
+
+
+def bounded_step_toward(
+    current: Mapping[str, int], target: Mapping[str, int], maximum: int
+) -> dict[str, int]:
+    """Move toward a prior allocation without overshooting the per-transition limit."""
+    donors = [[key, current[key] - target[key]] for key in sorted(current) if current[key] > target[key]]
+    recipients = [[key, target[key] - current[key]] for key in sorted(current) if target[key] > current[key]]
+    result = dict(current)
+    remaining = maximum
+    donor_index = recipient_index = 0
+    while donor_index < len(donors) and recipient_index < len(recipients) and remaining:
+        donor, excess = donors[donor_index]
+        recipient, deficit = recipients[recipient_index]
+        amount = min(excess, deficit, remaining)
+        result[donor] -= amount
+        result[recipient] += amount
+        donors[donor_index][1] -= amount
+        recipients[recipient_index][1] -= amount
+        remaining -= amount
+        if donors[donor_index][1] == 0:
+            donor_index += 1
+        if recipients[recipient_index][1] == 0:
+            recipient_index += 1
+    return result
 
 
 def consecutive_prior_results(
@@ -1482,7 +1821,7 @@ def initial_run_disposition(
 ) -> dict[str, Any]:
     result = assessment.round_gate["result"]
     record = resolved.round_record
-    if result == "crash_or_sanitizer_candidate":
+    if result == "abnormal_candidate_observed":
         return {
             "value": "handoff_crash_analysis",
             "disposition_reason": None,
@@ -1603,7 +1942,8 @@ def materialization_request(
     return payload
 
 def validate_materialization_result(
-    value: Any, request: Mapping[str, Any]
+    value: Any, request: Mapping[str, Any], resolved: ResolvedRound,
+    expected_request_path: Path,
 ) -> dict[str, Any]:
     result = require_object(value, "Materialization result")
     expected = {"result_version", "request_id", "request_key", "materialization"}
@@ -1633,7 +1973,93 @@ def validate_materialization_result(
             raise RoundInputError(
                 "Materialization result does not identify the requested candidate"
             )
+    if outcome == "accepted":
+        evidence = require_object(materialization.get("validation_evidence"), "materialization.validation_evidence")
+        if set(evidence) != {"feedback_request_file_ref", "harness_spec_file_ref", "strategy_plan_file_ref", "harness_artifact_file_ref", "preflight_result_file_ref"}:
+            raise RoundInputError("Accepted materialization must carry the complete machine-validation evidence bundle")
+        request_record = load_json(verified_repository_file(evidence["feedback_request_file_ref"], "feedback request"))
+        if request_record != request or expected_request_path.resolve() != verified_repository_file(evidence["feedback_request_file_ref"], "feedback request").resolve():
+            raise RoundInputError("Materialization request file does not match the exact controller request")
+        spec_path = verified_repository_file(evidence["harness_spec_file_ref"], "candidate HarnessSpec")
+        strategy_path = verified_repository_file(evidence["strategy_plan_file_ref"], "candidate Strategy")
+        artifact_path = verified_repository_file(evidence["harness_artifact_file_ref"], "candidate Harness Artifact")
+        preflight_path = verified_repository_file(evidence["preflight_result_file_ref"], "candidate preflight")
+        candidate_spec = require_object(load_json(spec_path), "candidate HarnessSpec")
+        candidate_strategy = require_object(load_json(strategy_path), "candidate Strategy")
+        candidate_artifact = require_object(load_json(artifact_path), "candidate Harness Artifact")
+        preflight = require_object(load_json(preflight_path), "candidate preflight result")
+        if preflight.get("status") != "passed":
+            raise RoundInputError("Candidate preflight did not pass")
+        if candidate_spec.get("review", {}).get("validation_status") != "passed":
+            raise RoundInputError("Candidate HarnessSpec validation was not passed")
+        source_spec = resolved.harness_spec
+        if spec_semantic_projection(candidate_spec) != spec_semantic_projection(source_spec):
+            raise RoundInputError("Candidate changes non-budget HarnessSpec semantics")
+        directive = request["candidate_directive"]
+        if candidate_spec["identity"]["spec_id"] != directive["spec_id"] or candidate_spec["identity"]["spec_mode"] != directive["spec_mode"] or candidate_spec["revision_information"]["revision_number"] != directive["revision_number"]:
+            raise RoundInputError("Candidate HarnessSpec identity differs from the requested lineage")
+        source_ref = harness_spec_reference(source_spec)
+        lineage = candidate_spec["revision_information"]
+        if directive["lineage_kind"] == "derived_from_shared_h0":
+            if lineage["parent_revision_ref"] is not None or lineage["derived_from_spec_ref"] != source_ref:
+                raise RoundInputError("Candidate does not derive from the exact shared H0")
+        elif lineage["parent_revision_ref"] != source_ref or lineage["derived_from_spec_ref"] is not None:
+            raise RoundInputError("Candidate does not continue the exact accepted parent")
+        if lineage["feedback_request_ref"]["artifact_id"] != request["request_id"] or lineage["feedback_request_ref"]["artifact_version"] != request["request_version"] or lineage["feedback_request_ref"]["content_hash"] != file_hash(expected_request_path):
+            raise RoundInputError("Candidate HarnessSpec does not cite the exact feedback request")
+        if candidate_spec["exploration_plan"].get("budget_policy_ref") != request["input_references"]["feedback_policy_ref"] or lineage["revision_trigger"] != "execution_feedback" or lineage["change_scopes"] != ["budget_allocation"]:
+            raise RoundInputError("Candidate HarnessSpec does not preserve the requested budget-only scope")
+        proposed = allocation_map(request["budget_decision"]["proposed_allocation"])
+        actual = {item["branch_id"]: int(round(item["budget_share"] * 256)) for item in candidate_spec["exploration_plan"]["branches"]}
+        if actual != proposed:
+            raise RoundInputError("Candidate selector allocation differs from the approved request")
+        if implementation_projection(candidate_strategy) != implementation_projection(resolved.strategy):
+            raise RoundInputError("Candidate Strategy implementation differs from its accepted parent")
+        candidate_spec_ref = harness_spec_reference(candidate_spec)
+        candidate_strategy_ref = strategy_reference(candidate_strategy)
+        if candidate_strategy["source_context"]["harness_spec_ref"] != candidate_spec_ref:
+            raise RoundInputError("Candidate Strategy does not reference the candidate HarnessSpec")
+        if candidate_artifact["source_context"]["strategy_revision_ref"] != candidate_strategy_ref:
+            raise RoundInputError("Candidate Harness Artifact does not reference the candidate Strategy")
+        if candidate_artifact["validation"]["static_validation"]["status"] != "passed" or candidate_artifact["validation"]["compile_check"]["status"] != "passed":
+            raise RoundInputError("Candidate Harness Artifact did not pass static validation and compilation")
+        binary = candidate_artifact["validation"]["compile_check"]["binary_artifact"]
+        verified_repository_file(binary, "compiled Harness binary")
+        if (candidate_ref != candidate_spec_ref or materialization.get("candidate_strategy_ref") != candidate_strategy_ref
+                or materialization.get("candidate_harness_artifact_ref") != harness_artifact_reference(candidate_artifact)):
+            raise RoundInputError("Accepted result references do not match the verified candidate records")
     return copy.deepcopy(materialization)
+
+
+def verified_repository_file(reference: Any, label: str) -> Path:
+    value = require_object(reference, f"{label} file reference")
+    if set(value) != {"relative_path", "content_hash"} or not SHA256_RE.fullmatch(str(value["content_hash"])):
+        raise RoundInputError(f"Malformed {label} file reference")
+    path = (REPOSITORY_ROOT / require_string(value["relative_path"], f"{label}.relative_path")).resolve()
+    if not path.is_relative_to(REPOSITORY_ROOT) or not path.is_file() or file_hash(path) != value["content_hash"]:
+        raise RoundInputError(f"{label} file is missing, outside the repository, or has a hash mismatch")
+    return path
+
+
+def spec_semantic_projection(record: Mapping[str, Any]) -> dict[str, Any]:
+    value = copy.deepcopy(record)
+    for key in ("identity", "revision_information", "provenance", "review"):
+        value.pop(key, None)
+    plan = value["exploration_plan"]
+    plan.pop("budget_policy_ref", None)
+    for branch in plan["branches"]:
+        branch.pop("budget_share", None)
+    return value
+
+
+def implementation_projection(record: Mapping[str, Any]) -> dict[str, Any]:
+    value = copy.deepcopy(record)
+    for key in ("identity", "revision_information", "provenance", "review", "validation"):
+        value.pop(key, None)
+    context = value.get("source_context", {})
+    for key in ("harness_spec_ref", "harness_spec_review_ref", "strategy_review_ref", "generation_trace_ref", "derived_from_strategy_ref", "budget_derivation_ref"):
+        context.pop(key, None)
+    return value
 
 def rejected_disposition(
     resolved: ResolvedRound, materialization: Mapping[str, Any]
@@ -1738,6 +2164,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--round-record", type=Path, required=True)
     parser.add_argument("--round-schema", type=Path, default=DEFAULT_ROUND_SCHEMA)
     parser.add_argument("--runtime-snapshot", type=Path)
+    parser.add_argument("--coverage-summary", type=Path,
+                        help="Optional, hash-verified offline coverage replay summary")
     parser.add_argument("--harness-artifact", type=Path, required=True)
     parser.add_argument("--strategy-plan", type=Path, required=True)
     parser.add_argument("--harness-spec", type=Path, required=True)
@@ -1761,6 +2189,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Evaluate and validate inputs without writing a request or Decision.",
     )
     return parser.parse_args(argv)
+
+
+def write_error_result(path: Path | None, exc: Exception) -> None:
+    if path is None:
+        return
+    value = {"status": "error", "error_type": type(exc).__name__, "message": str(exc)}
+    try:
+        atomic_write_json(path, value)
+    except (OSError, DecisionConflictError):
+        # stderr remains authoritative when even the machine-readable result cannot be saved.
+        pass
 
 def run(args: argparse.Namespace) -> int:
     resolved = resolve_inputs(args)
@@ -1786,8 +2225,12 @@ def run(args: argparse.Namespace) -> int:
                 },
             )
             return 3
+        saved_request_path = request_path(args.request_root, scope)
+        if not saved_request_path.is_file() or load_json(saved_request_path) != request:
+            raise RoundInputError("Saved Materialization Request is missing or differs from this deterministic request")
         materialization = validate_materialization_result(
-            load_json(args.materialization_result), request
+            load_json(args.materialization_result), request, resolved,
+            saved_request_path,
         )
         disposition = rejected_disposition(resolved, materialization)
     else:
@@ -1834,13 +2277,20 @@ def run(args: argparse.Namespace) -> int:
     return 0
 
 def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
     try:
-        return run(parse_args(argv))
+        return run(args)
     except GlobalInputError as exc:
+        write_error_result(args.result_json, exc)
         print(f"Global input error: {exc}", file=sys.stderr)
         return 2
     except (RoundInputError, DecisionConflictError) as exc:
+        write_error_result(args.result_json, exc)
         print(f"Round processing error: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        write_error_result(args.result_json, exc)
+        print(f"Controller internal error ({type(exc).__name__}): {exc}", file=sys.stderr)
         return 1
 
 

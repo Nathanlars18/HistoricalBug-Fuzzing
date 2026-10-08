@@ -7,12 +7,14 @@ import argparse
 import copy
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
 import subprocess
 import tempfile
 import uuid
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_FLOOR
@@ -20,14 +22,17 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from jsonschema import Draft202012Validator, FormatChecker
+from referencing import Registry, Resource
 
 
 BUILDER_ID = "build_harness_artifact"
-BUILDER_VERSION = "0.8.0"
-ARTIFACT_SCHEMA_VERSION = "1.2"
+BUILDER_VERSION = "0.13.0"
+ARTIFACT_SCHEMA_VERSION = "1.3"
 
 EXP_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = EXP_ROOT.parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from template_contract import COMPATIBILITY_PATH, verify_template
 
 DEFAULTS = {
     "strategy_schema": EXP_ROOT / "schemas" / "strategy_plan_record.schema.json",
@@ -90,10 +95,9 @@ TRACE_REF_TYPES = {
     "evaluation_target",
     "global_constraint",
     "branch_constraint",
-    "branch_precondition",
-    "target_property",
-    "activation_target",
-    "oracle_requirement",
+    "target_condition",
+    "behavior_observation",
+    "behavior_check",
     "failure_handler",
 }
 
@@ -116,6 +120,7 @@ TEMPLATE_BUILTINS = {
     "size": ("Size", "integer"),
     "offset": ("hbfg_offset", "byte_cursor"),
     "selector": ("hbfg_selector", "integer"),
+    "none": ("c10::nullopt", "optional_value"),
 }
 
 INSERT_MARKERS = {
@@ -155,6 +160,8 @@ class CompileConfiguration:
     command_argv: tuple[str, ...]
     timeout_seconds: int
     build_environment_ref: Mapping[str, Any]
+    dependency_refs: tuple[Mapping[str, Any], ...] = ()
+    environment_identity: str | None = None
 
 
 @dataclass(frozen=True)
@@ -343,7 +350,7 @@ def checked_axis(value: Any, parameter_id: str) -> int:
 def checked_shape(value: Any) -> list[int]:
     if (
         not isinstance(value, list)
-        or not 1 <= len(value) <= 4
+        or not 0 <= len(value) <= 4
         or any(
             not isinstance(item, int)
             or isinstance(item, bool)
@@ -353,7 +360,7 @@ def checked_shape(value: Any) -> list[int]:
         )
     ):
         raise MaterializationError(
-            "shape_template must contain 1..4 dimensions in -1..16"
+            "shape_template must contain 0..4 dimensions in -1..16"
         )
     return value
 
@@ -369,11 +376,19 @@ def emit_construct_tensor_from_fuzz(
     cursor_name = context.output_names["next_cursor"]
     dtype_policy = require_literal_parameter(context, "dtype_policy", str)
     max_dimension = require_literal_parameter(context, "max_dimension", int)
-    if dtype_policy != "int64" or not 1 <= max_dimension <= 16:
+    minimum_dimension = parameter_value(context, 'minimum_dimension', 0)
+    if minimum_dimension not in {0, 1} or minimum_dimension > max_dimension:
+        raise MaterializationError('minimum_dimension must be 0 or 1 and <= max_dimension')
+    if dtype_policy not in {"float32", "int64", "bool"} or not 1 <= max_dimension <= 16:
         raise MaterializationError(
-            "construct_tensor_from_fuzz supports dtype_policy=int64 and "
+            "construct_tensor_from_fuzz supports float32/int64/bool and "
             "max_dimension in 1..16"
         )
+    dtype_cpp = {
+        "float32": "torch::kFloat32",
+        "int64": "torch::kInt64",
+        "bool": "torch::kBool",
+    }[dtype_policy]
 
     handler = failure_handler(context, "insufficient_fuzz_data")
     handler_id = handler["failure_handler_id"]
@@ -388,12 +403,12 @@ def emit_construct_tensor_from_fuzz(
         f"if ({short_expression}) {{ return 0; }}",
         f"std::size_t {cursor_name} = {cursor};",
         (
-            f"const std::int64_t {tensor_name}_rows = 1 + "
-            f"static_cast<std::int64_t>({data}[{cursor_name}++] % {max_dimension}U);"
+            f"const std::int64_t {tensor_name}_rows = "
+            f"{minimum_dimension} + static_cast<std::int64_t>({data}[{cursor_name}++] % {max_dimension - minimum_dimension + 1}U);"
         ),
         (
-            f"const std::int64_t {tensor_name}_cols = 1 + "
-            f"static_cast<std::int64_t>({data}[{cursor_name}++] % {max_dimension}U);"
+            f"const std::int64_t {tensor_name}_cols = "
+            f"{minimum_dimension} + static_cast<std::int64_t>({data}[{cursor_name}++] % {max_dimension - minimum_dimension + 1}U);"
         ),
         (
             f"const std::int64_t {tensor_name}_fill = "
@@ -402,7 +417,7 @@ def emit_construct_tensor_from_fuzz(
         (
             f"auto {tensor_name} = torch::full({{{tensor_name}_rows, "
             f"{tensor_name}_cols}}, {tensor_name}_fill, "
-            "torch::TensorOptions().dtype(torch::kInt64).device(torch::kCPU));"
+            f"torch::TensorOptions().dtype({dtype_cpp}).device(torch::kCPU));"
         ),
         EventAtom(
             event_kind="input_constructed",
@@ -435,13 +450,16 @@ def emit_construct_tensor_with_constraints(
     dtype_policy = require_literal_parameter(context, "dtype_policy", str)
     fill_policy = require_literal_parameter(context, "fill_policy", str)
     max_dimension = require_literal_parameter(context, "max_dimension", int)
-    if dtype_policy != "int64" or fill_policy not in {"zero", "fuzz_int64"}:
+    if dtype_policy not in {"float32", "int64", "bool"} or fill_policy not in {"zero", "fuzz_numeric", "fuzz_sign"}:
         raise MaterializationError(
-            "Constrained tensor construction supports int64 with zero or "
-            "fuzz_int64 fill"
+            "Constrained tensor construction supports float32/int64/bool with "
+            "zero, fuzz_numeric, or fuzz_sign fill"
         )
     if not 1 <= max_dimension <= 16:
         raise MaterializationError("max_dimension must be in 1..16")
+    minimum_dimension = parameter_value(context, 'minimum_dimension', 0)
+    if minimum_dimension not in {0, 1} or minimum_dimension > max_dimension:
+        raise MaterializationError('minimum_dimension must be 0 or 1 and <= max_dimension')
 
     atoms: list[CodeAtom] = [f"std::size_t {cursor_name} = {cursor};"]
     dimension_expressions: list[str] = []
@@ -453,24 +471,34 @@ def emit_construct_tensor_with_constraints(
         atoms.append(
             f"const std::int64_t {dimension_name} = "
             f"({cursor_name} < {size}) ? "
-            f"1 + static_cast<std::int64_t>({data}[{cursor_name}++] % "
-            f"{max_dimension}U) : 1;"
+            f"{minimum_dimension} + static_cast<std::int64_t>({data}[{cursor_name}++] % "
+            f"{max_dimension - minimum_dimension + 1}U) : {minimum_dimension};"
         )
         dimension_expressions.append(dimension_name)
 
     fill_expression = "0"
-    if fill_policy == "fuzz_int64":
+    if fill_policy == "fuzz_numeric":
         fill_expression = (
             f"(({cursor_name} < {size}) ? "
             f"static_cast<std::int64_t>({data}[{cursor_name}++] % 17U) - 8 : 0)"
         )
+    elif fill_policy == "fuzz_sign":
+        fill_expression = (
+            f"(({cursor_name} < {size}) ? "
+            f"(({data}[{cursor_name}++] & 1U) ? 1 : -1) : 1)"
+        )
     shape_expression = ", ".join(dimension_expressions)
+    dtype_cpp = {
+        "float32": "torch::kFloat32",
+        "int64": "torch::kInt64",
+        "bool": "torch::kBool",
+    }[dtype_policy]
     atoms.extend(
         [
             (
                 f"auto {tensor_name} = torch::full({{{shape_expression}}}, "
                 f"{fill_expression}, "
-                "torch::TensorOptions().dtype(torch::kInt64).device(torch::kCPU));"
+                f"torch::TensorOptions().dtype({dtype_cpp}).device(torch::kCPU));"
             ),
             EventAtom(
                 event_kind="input_constructed",
@@ -486,6 +514,202 @@ def emit_construct_tensor_with_constraints(
         },
         includes=("<cstdint>",),
     )
+
+
+@register_emitter("emit_construct_tensor_with_rank_range")
+def emit_construct_tensor_with_rank_range(context: EmitterContext) -> EmissionResult:
+    data = require_input(context, 'data').cpp_expression
+    size = require_input(context, 'size').cpp_expression
+    cursor = require_input(context, 'cursor').cpp_expression
+    tensor = context.output_names['tensor']
+    next_cursor = context.output_names['next_cursor']
+    low = require_literal_parameter(context, 'minimum_rank', int)
+    high = require_literal_parameter(context, 'maximum_rank', int)
+    minimum = parameter_value(context, 'minimum_dimension', 0)
+    maximum = require_literal_parameter(context, 'max_dimension', int)
+    dtype = require_literal_parameter(context, 'dtype_policy', str)
+    fill = require_literal_parameter(context, 'fill_policy', str)
+    if not 0 <= low <= high <= 4 or minimum not in {0, 1} or not minimum <= maximum <= 16 or maximum < 1:
+        raise MaterializationError('Rank range must be in 0..4; dimension bounds must follow the resource policy')
+    if dtype not in {'float32', 'int64', 'bool'} or fill not in {'zero', 'fuzz_numeric', 'fuzz_sign'}:
+        raise MaterializationError('Unsupported rank-range dtype/fill policy')
+    dtype_cpp = {'float32': 'torch::kFloat32', 'int64': 'torch::kInt64', 'bool': 'torch::kBool'}[dtype]
+    atoms: list[CodeAtom] = [
+        f'std::size_t {next_cursor} = {cursor};',
+        f'const std::int64_t {tensor}_rank = ({next_cursor} < {size}) ? {low} + static_cast<std::int64_t>({data}[{next_cursor}++] % {high-low+1}U) : {low};',
+        f'std::vector<std::int64_t> {tensor}_shape;',
+        f'for (std::int64_t axis = 0; axis < {tensor}_rank; ++axis) {{',
+        f'  {tensor}_shape.push_back(({next_cursor} < {size}) ? {minimum} + static_cast<std::int64_t>({data}[{next_cursor}++] % {maximum-minimum+1}U) : {minimum});',
+        '}',
+    ]
+    fill_expression = '0'
+    if fill == 'fuzz_numeric':
+        fill_expression = f'(({next_cursor} < {size}) ? static_cast<std::int64_t>({data}[{next_cursor}++] % 17U) - 8 : 0)'
+    elif fill == 'fuzz_sign':
+        fill_expression = f'(({next_cursor} < {size}) ? (({data}[{next_cursor}++] & 1U) ? 1 : -1) : 1)'
+    atoms.extend((f'auto {tensor} = torch::full({tensor}_shape, {fill_expression}, torch::TensorOptions().dtype({dtype_cpp}).device(torch::kCPU));',
+                  EventAtom('input_constructed', context.step['step_id'])))
+    return EmissionResult(atoms=tuple(atoms), outputs={'tensor': BoundValue(tensor, 'tensor'),
+        'next_cursor': BoundValue(next_cursor, 'byte_cursor')}, includes=('<cstdint>', '<vector>'))
+
+
+@register_emitter("emit_construct_tensor_from_reference")
+def emit_construct_tensor_from_reference(context: EmitterContext) -> EmissionResult:
+    reference = require_input(context, "reference").cpp_expression
+    data = require_input(context, "data").cpp_expression
+    size = require_input(context, "size").cpp_expression
+    cursor = require_input(context, "cursor").cpp_expression
+    tensor_name = context.output_names["tensor"]
+    cursor_name = context.output_names["next_cursor"]
+    shape_policy = require_literal_parameter(context, "shape_policy", str)
+    dtype_policy = require_literal_parameter(context, "dtype_policy", str)
+    fill_policy = require_literal_parameter(context, "fill_policy", str)
+    if shape_policy not in {"same_shape", "leading_dimension", "selected_dimension", "drop_last_dimension"}:
+        raise MaterializationError("Unsupported reference shape policy")
+    if dtype_policy not in {"float32", "int64", "bool"}:
+        raise MaterializationError("Unsupported reference-derived dtype")
+    if fill_policy not in {"zero", "fuzz_numeric", "fuzz_sign"}:
+        raise MaterializationError("Unsupported reference-derived fill policy")
+    dtype_cpp = {
+        "float32": "torch::kFloat32",
+        "int64": "torch::kInt64",
+        "bool": "torch::kBool",
+    }[dtype_policy]
+    reference_axis = checked_axis(parameter_value(context, 'reference_axis', 0), 'reference_axis') if shape_policy == 'selected_dimension' else 0
+    shape_expression = (
+        f"{reference}.sizes().vec()"
+        if shape_policy == "same_shape"
+        else f"std::vector<std::int64_t>{{{reference}.dim() > {reference_axis} ? {reference}.size({reference_axis}) : 0}}"
+    )
+    atoms: list[CodeAtom] = [f"std::size_t {cursor_name} = {cursor};"]
+    if shape_policy == 'drop_last_dimension':
+        atoms.extend((f'auto {tensor_name}_shape = {reference}.sizes().vec();',
+                      f'if (!{tensor_name}_shape.empty()) {{ {tensor_name}_shape.pop_back(); }}'))
+        shape_expression = f'{tensor_name}_shape'
+    fill_expression = "0"
+    if fill_policy == "fuzz_numeric":
+        fill_expression = (
+            f"(({cursor_name} < {size}) ? "
+            f"static_cast<std::int64_t>({data}[{cursor_name}++] % 17U) - 8 : 0)"
+        )
+    elif fill_policy == "fuzz_sign":
+        fill_expression = (
+            f"(({cursor_name} < {size}) ? "
+            f"(({data}[{cursor_name}++] & 1U) ? 1 : -1) : 1)"
+        )
+    atoms.extend((
+        f"auto {tensor_name} = torch::full({shape_expression}, {fill_expression}, "
+        f"torch::TensorOptions().dtype({dtype_cpp}).device(torch::kCPU));",
+        EventAtom("input_constructed", context.step["step_id"]),
+    ))
+    return EmissionResult(
+        atoms=tuple(atoms),
+        outputs={
+            "tensor": BoundValue(tensor_name, "tensor"),
+            "next_cursor": BoundValue(cursor_name, "byte_cursor"),
+        },
+        includes=("<cstdint>", "<vector>"),
+    )
+
+
+@register_emitter("emit_construct_scalar_from_fuzz")
+def emit_construct_scalar_from_fuzz(context: EmitterContext) -> EmissionResult:
+    data = require_input(context, "data").cpp_expression
+    size = require_input(context, "size").cpp_expression
+    cursor = require_input(context, "cursor").cpp_expression
+    value_name = context.output_names["value"]
+    cursor_name = context.output_names["next_cursor"]
+    handler = failure_handler(context, "insufficient_fuzz_data")
+    handler_id = handler["failure_handler_id"]
+    primitive_id = context.primitive["primitive_id"]
+    byte_count = 1
+    if primitive_id == "construct_integer_from_fuzz":
+        minimum, maximum = parameter_value(context, "minimum"), parameter_value(context, "maximum")
+        if (not isinstance(minimum, int) or isinstance(minimum, bool)
+                or not isinstance(maximum, int) or isinstance(maximum, bool)
+                or not -(2**63) <= minimum <= maximum <= 2**63 - 1):
+            raise MaterializationError('Integer bounds must fit signed int64')
+        byte_count = max(1, ((maximum - minimum).bit_length() + 7) // 8)
+    short_expression = f"({size} < {cursor} || {size} - {cursor} < {byte_count}U)"
+    atoms: list[CodeAtom] = [
+        EventAtom(
+            event_kind="input_rejected",
+            key_suffix=f"{context.step['step_id']}_short",
+            condition_expression=short_expression,
+            trace_refs=(TraceRef("failure_handler", handler_id),),
+        ),
+        f"if ({short_expression}) {{ return 0; }}",
+        f"std::size_t {cursor_name} = {cursor};",
+    ]
+    if primitive_id == "construct_boolean_from_fuzz":
+        atoms.append(
+            f"const bool {value_name} = ({data}[{cursor_name}++] & 1U) != 0U;"
+        )
+        value_kind = "boolean"
+    else:
+        minimum = parameter_value(context, "minimum")
+        maximum = parameter_value(context, "maximum")
+        if not isinstance(minimum, (int, float)) or isinstance(minimum, bool):
+            raise MaterializationError("Scalar minimum must be numeric")
+        if not isinstance(maximum, (int, float)) or isinstance(maximum, bool) or maximum < minimum:
+            raise MaterializationError("Scalar maximum must be numeric and >= minimum")
+        try:
+            finite = math.isfinite(minimum) and math.isfinite(maximum)
+        except OverflowError:
+            finite = False
+        if not finite:
+            raise MaterializationError('Scalar bounds must be finite')
+        if primitive_id == "construct_integer_from_fuzz":
+            if not isinstance(minimum, int) or not isinstance(maximum, int):
+                raise MaterializationError("Integer scalar bounds must be integers")
+            if not -(2**63) <= minimum <= maximum <= 2**63 - 1:
+                raise MaterializationError('Integer bounds must fit signed int64')
+            width = maximum - minimum + 1
+            byte_count = max(1, ((width - 1).bit_length() + 7) // 8)
+            atoms.extend([
+                f'std::uint64_t {value_name}_bits = 0;',
+                f'for (unsigned i = 0; i < {byte_count}U; ++i) {{ {value_name}_bits |= static_cast<std::uint64_t>({data}[{cursor_name}++]) << (8U * i); }}',
+            ])
+            offset = f'{value_name}_bits' if width == 2**64 else f'({value_name}_bits % {width}ULL)'
+            minimum_cpp = '(-9223372036854775807LL - 1LL)' if minimum == -(2**63) else f'{minimum}LL'
+            atoms.append(f'const std::int64_t {value_name} = static_cast<std::int64_t>(static_cast<__int128>({minimum_cpp}) + static_cast<__int128>({offset}));')
+            value_kind = "integer"
+        elif primitive_id == "construct_floating_from_fuzz":
+            atoms.extend((
+                f'const double {value_name}_position = static_cast<double>({data}[{cursor_name}++]) / 255.0;',
+                f'const double {value_name} = (1.0 - {value_name}_position) * {float(minimum)!r} + {value_name}_position * {float(maximum)!r};',
+            ))
+            value_kind = "floating"
+        else:
+            raise MaterializationError(
+                f"Unsupported scalar constructor: {primitive_id}"
+            )
+    atoms.append(EventAtom("input_constructed", context.step["step_id"]))
+    return EmissionResult(
+        atoms=tuple(atoms),
+        outputs={
+            "value": BoundValue(value_name, value_kind),
+            "next_cursor": BoundValue(cursor_name, "byte_cursor"),
+        },
+        includes=("<cstdint>",),
+        materialized_failure_handler_ids=(handler_id,),
+    )
+
+
+@register_emitter('emit_select_optional_tensor_from_fuzz')
+def emit_select_optional_tensor_from_fuzz(context: EmitterContext) -> EmissionResult:
+    tensor = require_input(context, 'tensor').cpp_expression
+    data = require_input(context, 'data').cpp_expression
+    size = require_input(context, 'size').cpp_expression
+    cursor = require_input(context, 'cursor').cpp_expression
+    name = context.output_names['optional_value']
+    next_cursor = context.output_names['next_cursor']
+    return EmissionResult(atoms=(
+        f'std::size_t {next_cursor} = {cursor};',
+        f'std::optional<at::Tensor> {name};',
+        f'if ({next_cursor} < {size} && ({data}[{next_cursor}++] & 1U)) {{ {name} = {tensor}; }}',
+    ), outputs={'optional_value': BoundValue(name, 'optional_value'),
+                'next_cursor': BoundValue(next_cursor, 'byte_cursor')}, includes=('<optional>',))
 
 
 @register_emitter("emit_enforce_dimension_relation")
@@ -686,16 +910,25 @@ def emit_evaluate_tensor_property(
             f"Unsupported tensor property kind: {property_kind!r}"
         )
 
-    activation, target_property = activation_context(context)
-    observation_points = activation["observation_points"]
-    if len(observation_points) != 1:
+    condition_binding = one_spec_binding(context, "target_condition")
+    branch = harness_spec_branch(context)
+    condition_id = condition_binding["spec_element_id"]
+    conditions = [
+        item for item in branch["target_conditions"]
+        if item["condition_id"] == condition_id
+    ]
+    if len(conditions) != 1:
         raise MaterializationError(
-            "The minimal observation Emitter supports one Observation Point"
+            "Target Condition binding does not resolve exactly once"
         )
-    point = observation_points[0]
+    condition = conditions[0]
+    observation_points = condition["observe_at"]
+    point = ('before_target_api_call' if context.step['template_slot'] == 'pre_call_observation' else 'after_target_api_call')
+    if point not in observation_points:
+        raise MaterializationError('Tensor-property Step phase is not declared')
     expected_slot = (
         "pre_call_observation"
-        if point["observation_point"] == "before_target_api_call"
+        if point == "before_target_api_call"
         else "post_call_observation"
     )
     if context.step["template_slot"] != expected_slot:
@@ -703,56 +936,107 @@ def emit_evaluate_tensor_property(
             "Observation Step slot does not match the HarnessSpec Observation Point"
         )
 
-    activation_id = activation["activation_target_id"]
-    property_id = target_property["target_property_id"]
-    # HarnessSpec observations are diagnostic. Formal cross-group Evaluation
-    # Targets are injected from the manifest after synthesis, so the Baseline
-    # generator never receives Knowledge-derived guidance.
-    refs = (
-        TraceRef("activation_target", activation_id),
-        TraceRef("target_property", property_id),
-    )
+    refs = (TraceRef("target_condition", condition_id),)
     return EmissionResult(
         atoms=(
             f"const bool {output_name} = {expressions[property_kind]};",
             EventAtom(
                 event_kind="observation_captured",
-                key_suffix=activation_id,
+                key_suffix=f'{condition_id}_{context.step["step_id"]}',
                 trace_refs=refs,
                 observation_locator=ObservationLocator(
-                    point["observation_role"],
-                    point["observation_point"],
+                    "before" if point == "before_target_api_call" else "after",
+                    point,
                 ),
             ),
-            EventAtom("activation_checked", activation_id, trace_refs=refs),
+            EventAtom("activation_checked", f'{condition_id}_{context.step["step_id"]}', trace_refs=refs),
             EventAtom(
                 "activation_true",
-                activation_id,
+                f'{condition_id}_{context.step["step_id"]}',
                 condition_expression=output_name,
                 trace_refs=refs,
             ),
             EventAtom(
                 "activation_unevaluable",
-                activation_id,
+                f'{condition_id}_{context.step["step_id"]}',
                 condition_expression="false",
                 trace_refs=refs,
             ),
             EventAtom(
                 "activation_check_error",
-                activation_id,
+                f'{condition_id}_{context.step["step_id"]}',
                 condition_expression="false",
                 trace_refs=refs,
             ),
-        ) + branch_activation_atoms(context),
+        ),
         outputs={
             "property_holds": BoundValue(output_name, "boolean"),
         },
     )
 
 
+@register_emitter("emit_evaluate_tensor_relation")
+def emit_evaluate_tensor_relation(context: EmitterContext) -> EmissionResult:
+    left = require_input(context, "left").cpp_expression
+    right = require_input(context, "right").cpp_expression
+    property_kind = require_literal_parameter(context, "property_kind", str)
+    relation_kind = require_literal_parameter(context, "relation_kind", str)
+    if property_kind not in {"shape", "rank", "numel"}:
+        raise MaterializationError("Unsupported tensor relation property")
+    if relation_kind not in {"equals", "not_equals"}:
+        raise MaterializationError("Unsupported tensor relation kind")
+    equality = {
+        "shape": f"({left}.sizes().equals({right}.sizes()))",
+        "rank": f"({left}.dim() == {right}.dim())",
+        "numel": f"({left}.numel() == {right}.numel())",
+    }[property_kind]
+    expression = equality if relation_kind == "equals" else f"!{equality}"
+    output_name = context.output_names["relation_holds"]
+    condition_binding = one_spec_binding(context, "target_condition")
+    condition_id = condition_binding["spec_element_id"]
+    refs = (TraceRef("target_condition", condition_id),)
+    event_suffix = f'{condition_id}_{context.step["step_id"]}'
+    point = (
+        "before_target_api_call"
+        if context.step["template_slot"] == "pre_call_observation"
+        else "after_target_api_call"
+    )
+    return EmissionResult(
+        atoms=(
+            f"const bool {output_name} = {expression};",
+            EventAtom(
+                "observation_captured",
+                event_suffix,
+                trace_refs=refs,
+                observation_locator=ObservationLocator(
+                    "before" if point == "before_target_api_call" else "after",
+                    point,
+                ),
+            ),
+            EventAtom('activation_checked', event_suffix, trace_refs=refs),
+            EventAtom(
+                'activation_true', event_suffix,
+                condition_expression=output_name, trace_refs=refs,
+            ),
+            EventAtom(
+                'activation_unevaluable', event_suffix,
+                condition_expression="false", trace_refs=refs,
+            ),
+            EventAtom(
+                'activation_check_error', event_suffix,
+                condition_expression="false", trace_refs=refs,
+            ),
+        ),
+        outputs={"relation_holds": BoundValue(output_name, "boolean")},
+    )
+
+
 def resolved_target_output_contract(
     api_profile: Mapping[str, Any],
 ) -> list[dict[str, Any]]:
+    mappings = api_profile['target_binding']['return_mapping']
+    if any(m['mapping_kind'] == 'omitted' for m in mappings) and any(m['mapping_kind'] != 'omitted' for m in mappings):
+        raise MaterializationError('Partial return omission needs an explicit tuple-position adapter')
     returns = {
         item["return_id"]: item
         for item in api_profile["python_contract"]["returns"]
@@ -766,7 +1050,7 @@ def resolved_target_output_contract(
         mapping_kind = mapping["mapping_kind"]
         if mapping_kind == "omitted":
             continue
-        if mapping_kind not in {"direct", "converted", "packed"}:
+        if mapping_kind != 'direct':
             raise MaterializationError(
                 f"Unsupported target return mapping kind: {mapping_kind!r}"
             )
@@ -909,22 +1193,39 @@ def emit_profiled_target_api(context: EmitterContext) -> EmissionResult:
     output_ports = [
         item["port_id"] for item in context.primitive["output_contract"]
     ]
-    if len(output_ports) != 1:
-        raise MaterializationError(
-            "The minimal target Emitter supports exactly one API return"
-        )
-    output_port = output_ports[0]
-    output_name = context.output_names[output_port]
-    output_kind = context.primitive["output_contract"][0][
-        "produced_value_kind"
-    ]
+    output_names = [context.output_names[port_id] for port_id in output_ports]
+    invocation = f"{callable_name}({', '.join(arguments)})"
+    temporary = 'hbfg_call_result_' + context.step['step_id']
+    declaration = () if not output_ports else (f'std::optional<decltype({invocation})> {temporary};',)
+    if not output_ports:
+        call_atom = f"{invocation};"
+    elif len(output_ports) == 1:
+        call_atom = f"auto {output_names[0]} = std::move(*{temporary});"
+    else:
+        call_atom = f"auto [{', '.join(output_names)}] = std::move(*{temporary});"
+    output_kinds = {
+        item["port_id"]: item["produced_value_kind"]
+        for item in context.primitive["output_contract"]
+    }
     return EmissionResult(
         atoms=(
             EventAtom("target_api_reached", context.step["step_id"]),
-            f"auto {output_name} = {callable_name}({', '.join(arguments)});",
+            *declaration,
+            'try {',
+            f'{temporary}.emplace({invocation});' if output_ports else call_atom,
+            '} catch (const c10::Error& hbfg_error) {',
+            EventAtom('target_api_exception', context.step['step_id']),
+            'hbfg_iteration.log_target_api_exception(hbfg_error.what_without_backtrace());',
+            'return 0;',
+            '}',
             EventAtom("target_api_completed", context.step["step_id"]),
+            *((call_atom,) if output_ports else ()),
         ),
-        outputs={output_port: BoundValue(output_name, output_kind)},
+        outputs={
+            port_id: BoundValue(context.output_names[port_id], output_kinds[port_id])
+            for port_id in output_ports
+        },
+        includes=('<optional>', '<utility>', '<cstdio>', '<c10/util/Exception.h>'),
     )
 
 
@@ -934,31 +1235,30 @@ def emit_execution_survival_oracle(
 ) -> EmissionResult:
     """Record no-crash only after control returns from the target API call."""
 
-    binding = one_spec_binding(context, "oracle_requirement")
+    binding = one_spec_binding(context, "behavior_check")
     oracle_id = binding["spec_element_id"]
     branch = harness_spec_branch(context)
     matches = [
-        oracle
-        for oracle in branch["oracle_requirements"]
-        if oracle["oracle_requirement_id"] == oracle_id
+        check
+        for check in branch["behavior_checks"]
+        if check["check_id"] == oracle_id
     ]
     if len(matches) != 1:
         raise MaterializationError(
-            "Execution-survival Oracle binding does not resolve exactly once"
+            "Execution-survival Behavior Check binding does not resolve exactly once"
         )
     oracle = matches[0]
     if (
-        oracle["oracle_type"] != "crash"
-        or oracle["expected_behavior"]["requirement_type"] != "no_crash"
-        or oracle["observation_subjects"] != ["context.execution"]
+        oracle["expected_predicate"]["predicate_id"] != "execution_survives"
+        or oracle["subject_refs"] != ["context.execution"]
     ):
         raise MaterializationError(
-            "Execution-survival Emitter supports only crash/no_crash over "
+            "Execution-survival Emitter supports execution_survives over "
             "context.execution"
         )
 
     output_name = context.output_names["oracle_holds"]
-    refs = (TraceRef("oracle_requirement", oracle_id),)
+    refs = (TraceRef("behavior_check", oracle_id),)
     return EmissionResult(
         atoms=(
             f"const bool {output_name} = true;",
@@ -1008,8 +1308,8 @@ def emit_evaluate_output_property(
             for index, dimension in enumerate(shape)
         ]
         expression = (
-            f"({result}.dim() == {len(shape)} && "
-            + " && ".join(comparisons)
+            f"({result}.dim() == {len(shape)}"
+            + (' && ' + ' && '.join(comparisons) if comparisons else '')
             + ")"
         )
     else:
@@ -1017,9 +1317,13 @@ def emit_evaluate_output_property(
             f"Unsupported output-property Oracle: {check_kind!r}"
         )
 
-    oracle_binding = one_spec_binding(context, "oracle_requirement")
+    oracle_binding = one_spec_binding(context, "behavior_check")
     oracle_id = oracle_binding["spec_element_id"]
-    refs = (TraceRef("oracle_requirement", oracle_id),)
+    checks = [check for check in harness_spec_branch(context)['behavior_checks'] if check['check_id'] == oracle_id]
+    if len(checks) != 1:
+        raise MaterializationError('Output check binding does not resolve exactly once')
+    required = checks[0]['requirement_level'] == 'required'
+    refs = (TraceRef("behavior_check", oracle_id),)
     return EmissionResult(
         atoms=(
             f"const bool {output_name} = {expression};",
@@ -1036,7 +1340,7 @@ def emit_evaluate_output_property(
                 condition_expression=f"!{output_name}",
                 trace_refs=refs,
             ),
-            f"if (!{output_name}) {{ std::abort(); }}",
+            *((f'if (!{output_name}) {{ std::abort(); }}',) if required else ()),
         ),
         outputs={
             "oracle_holds": BoundValue(output_name, "boolean"),
@@ -1052,9 +1356,9 @@ def emit_evaluate_tensor_determinism(
     first = require_input(context, "first_result").cpp_expression
     second = require_input(context, "second_result").cpp_expression
     output_name = context.output_names["oracle_holds"]
-    oracle_binding = one_spec_binding(context, "oracle_requirement")
+    oracle_binding = one_spec_binding(context, "behavior_check")
     oracle_id = oracle_binding["spec_element_id"]
-    refs = (TraceRef("oracle_requirement", oracle_id),)
+    refs = (TraceRef("behavior_check", oracle_id),)
     return EmissionResult(
         atoms=(
             f"const bool {output_name} = torch::equal({first}, {second});",
@@ -1146,8 +1450,11 @@ def load_validator(path: Path) -> Draft202012Validator:
         Draft202012Validator.check_schema(schema)
     except Exception as exc:
         raise InputError(f"Invalid JSON Schema {path}: {exc}") from exc
+    core = load_json(EXP_ROOT / 'schemas/harness_spec_record_core__v2_2.schema.json')
+    registry = Registry().with_resource(core['$id'], Resource.from_contents(core))
     return Draft202012Validator(
         schema,
+        registry=registry,
         format_checker=FormatChecker(),
     )
 
@@ -1223,7 +1530,8 @@ def evaluation_targets_for_api(
         if not isinstance(target_id, str) or not target_id or target_id in seen:
             raise InputError(f"Evaluation Target IDs are invalid or duplicated for {api_id}")
         seen.add(target_id)
-        if target.get("detector_id") != "matmul_empty_inner_long_pair_v1":
+        detector = target.get("detector_id")
+        if detector not in {"matmul_empty_inner_long_pair_v1", "tensor_empty_v1", "tensor_shape_mismatch_v1", "tensor_pair_empty_v1"}:
             raise InputError(
                 f"Unsupported Evaluation Target detector: {target.get('detector_id')!r}"
             )
@@ -1231,9 +1539,10 @@ def evaluation_targets_for_api(
             item.get("parameter_role")
             for item in target.get("parameter_bindings", [])
         }
-        if roles != {"left", "right"}:
+        required_roles = {"subject"} if detector == "tensor_empty_v1" else {"left", "right"}
+        if roles != required_roles or len(target.get("parameter_bindings", [])) != len(required_roles):
             raise InputError(
-                f"matmul detector requires left/right parameter bindings: {target_id}"
+                f"Detector parameter bindings do not match {required_roles}: {target_id}"
             )
         for source in target.get("source_knowledge_refs", []):
             file_ref = source.get("file_ref", {})
@@ -1265,12 +1574,14 @@ def load_profile_store(
     root: Path,
     validator: Draft202012Validator,
     label: str,
+    wanted_refs: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[tuple[str, int, str], dict[str, Any]]:
     if not root.is_dir():
         raise InputError(f"{label} directory does not exist: {root}")
 
     store: dict[tuple[str, int, str], dict[str, Any]] = {}
     revision_keys: set[tuple[str, int]] = set()
+    wanted = None if wanted_refs is None else {profile_key(ref) for ref in wanted_refs}
 
     filename_pattern = {
         "API Profile": "api_profile__*__r*.json",
@@ -1284,14 +1595,18 @@ def load_profile_store(
         and "legacy" not in path.parts
     )
     for path in paths:
-        record = load_json(path)
+        try:
+            record = load_json(path)
+            key = (record["profile_id"], record["revision"], record["metadata"]["content_hash"])
+        except (BuildError, KeyError, TypeError):
+            if wanted is not None:
+                # A malformed requested record will be reported as unavailable;
+                # unrelated records must not block this task.
+                continue
+            raise
+        if wanted is not None and key not in wanted:
+            continue
         validate_record(record, validator, f"{label} {path}")
-
-        key = (
-            record["profile_id"],
-            record["revision"],
-            record["metadata"]["content_hash"],
-        )
         if key[2] != profile_content_hash(record):
             raise InputError(
                 f"{label} has a non-reproducible metadata.content_hash: {path}"
@@ -1314,26 +1629,109 @@ def load_profile_store(
 def load_harness_spec_store(
     root: Path,
     validator: Draft202012Validator,
+    wanted_refs: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[tuple[str, int, str], dict[str, Any]]:
     if not root.is_dir():
         raise InputError(f"HarnessSpec directory does not exist: {root}")
 
     store: dict[tuple[str, int, str], dict[str, Any]] = {}
 
-    for path in sorted(root.rglob("*.json")):
+    paths = sorted(root.rglob('hs_*_r*.json')) if wanted_refs is None else sorted({
+        path for ref in wanted_refs
+        for path in root.rglob(f'{ref["spec_id"]}_r{ref["revision_number"]}.json')
+        if 'legacy' not in path.parts
+    })
+    wanted = None if wanted_refs is None else {(r['spec_id'], r['revision_number'], r['content_hash']) for r in wanted_refs}
+    for path in paths:
         record = load_json(path)
-        validate_record(record, validator, f"HarnessSpec {path}")
+        if not isinstance(record, dict) or 'identity' not in record or 'revision_information' not in record:
+            continue
 
         key = (
             record["identity"]["spec_id"],
             record["revision_information"]["revision_number"],
             canonical_hash(record),
         )
+        if wanted is not None and key not in wanted:
+            continue
+        validate_record(record, validator, f'HarnessSpec {path}')
         if key in store:
             raise InputError(f"Duplicate exact HarnessSpec reference: {key}")
         store[key] = record
 
     return store
+
+def approved_strategy_review(path: Path | None, strategy_path: Path, strategy: dict[str, Any]) -> dict[str, Any]:
+    if path is None:
+        raise InputError('Artifact requires --strategy-review: exact approved external Strategy review')
+    review = load_json(path)
+    if review.get('record_type') == 'budget_derivation_certificate':
+        from budget_derivation import validate
+        try:
+            validate(review, path, strategy_path, 'strategy')
+        except (ValueError, KeyError) as exc:
+            raise InputError(str(exc)) from exc
+        return {'artifact_id': path.name, 'artifact_version': review['schema_version'],
+                'content_hash': file_hash(path), 'relative_path': repository_relative(path)}
+    validator = load_validator(EXP_ROOT / 'schemas/strategy_plan_review_record.schema.json')
+    validate_record(review, validator, 'Strategy review')
+    if file_hash(Path(review['rules_ref']['relative_path'])) != review['rules_ref']['content_hash']:
+        raise InputError('Strategy review Rules hash mismatch')
+    subject = review['subject']
+    if (review['decision'] != 'approved' or subject['strategy_id'] != strategy['identity']['strategy_id']
+        or subject['revision_number'] != strategy['revision_information']['revision_number']
+        or subject['content_hash'] != canonical_hash(strategy)
+        or Path(subject['relative_path']).resolve() != strategy_path.resolve()):
+        raise InputError('Strategy review approval/subject does not match exactly')
+    return {'artifact_id': path.name, 'artifact_version': review['schema_version'],
+            'content_hash': file_hash(path), 'relative_path': repository_relative(path)}
+
+def revalidate_strategy(resolved: ResolvedInputs) -> None:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import build_strategy_plan_json as builder
+    try:
+        candidate = builder.ResolvedInputs(spec=resolved.harness_spec, api=resolved.api_profile,
+            resolved_api_primitive=builder.resolve_api_primitive(resolved.catalog, resolved.api_profile),
+            candidate_primitives=list(resolved.catalog['primitives']),
+            harness_spec_review_ref=resolved.strategy['source_context']['harness_spec_review_ref'])
+        builder.capability_preflight(candidate, resolved.catalog)
+        builder.validate_materialized_plan(resolved.strategy['implementation_plan'], candidate, resolved.catalog)
+        hs_review_ref = resolved.strategy['source_context']['harness_spec_review_ref']
+        hs_review = load_json(Path(hs_review_ref['relative_path']))
+        derived = hs_review.get('record_type') == 'budget_derivation_certificate'
+        if derived:
+            from budget_derivation import validate
+            validate(hs_review, Path(hs_review_ref['relative_path']), Path(hs_review['subject']['relative_path']), 'spec')
+        else:
+            validate_record(hs_review, load_validator(EXP_ROOT / 'schemas/harness_spec_review_record.schema.json'), 'HarnessSpec review')
+        hs_ref = resolved.strategy['source_context']['harness_spec_ref']
+        if (canonical_hash(hs_review) != hs_review_ref['content_hash'] or (not derived and hs_review['decision'] != 'approved')
+                or any(hs_review['subject'][k] != hs_ref[k] for k in ('spec_id', 'revision_number', 'content_hash'))):
+            raise InputError('HarnessSpec review does not match the exact approved subject')
+        if resolved.strategy.get('schema_version') == '1.3':
+            for key in ('resource_policy_ref', 'ordinary_recipes_ref', 'generation_trace_ref'):
+                ref = resolved.strategy['source_context'].get(key)
+                if ref is None or not Path(ref['relative_path']).is_file() or file_hash(Path(ref['relative_path'])) != ref['content_hash']:
+                    raise InputError(f'Exact Strategy source artifact is unavailable: {key}')
+            if resolved.strategy['source_context']['resource_policy_ref']['content_hash'] != builder.file_hash(builder.RESOURCE_POLICY_PATH):
+                raise InputError('Strategy uses a different resource policy')
+            if resolved.strategy['source_context']['ordinary_recipes_ref']['content_hash'] != builder.file_hash(builder.ORDINARY_RECIPES_PATH):
+                raise InputError('Strategy uses different ordinary recipes')
+            trace_ref = resolved.strategy['source_context']['generation_trace_ref']
+            trace = load_json(Path(trace_ref['relative_path']))
+            if resolved.strategy['identity']['spec_mode'] != 'controlled_baseline' and not derived:
+                frozen = trace.get('frozen_inputs', {}).get('views', {}).get('canonical_default_strategy_view')
+                if not isinstance(frozen, dict):
+                    raise InputError('Bug-aware Strategy lacks its frozen canonical default branch')
+                defaults = [branch for branch in resolved.strategy['implementation_plan']['branch_strategies']
+                            if branch['source_branch_id'] == frozen.get('source_branch_id')]
+                actual = copy.deepcopy(defaults[0]) if len(defaults) == 1 else None
+                if actual is not None:
+                    actual.pop('failure_handlers', None)
+                if actual != frozen:
+                    raise InputError('Bug-aware default branch differs from its frozen canonical Strategy')
+    except builder.BuildError as exc:
+        raise InputError(f'Strategy semantic revalidation: {exc}') from exc
 
 
 def api_profile_is_usable(profile: Mapping[str, Any]) -> bool:
@@ -1372,8 +1770,10 @@ def resolve_inputs(
         raise InputError("Strategy Plan does not reference the loaded Catalog")
 
     template_ref = catalog["template_interface"]["template_ref"]
-    if template_ref["content_hash"] != file_hash(template_path):
-        raise InputError("Catalog template_ref does not match the loaded template")
+    try:
+        verify_template(template_path, template_ref["content_hash"])
+    except ValueError as exc:
+        raise InputError(str(exc)) from exc
 
     spec_ref = strategy["source_context"]["harness_spec_ref"]
     spec_key = (
@@ -1422,6 +1822,7 @@ def resolve_inputs(
         Mapping[str, Any],
     ] = {}
 
+    used_helpers = used_helper_keys(strategy, catalog)
     for reference in harness_spec["target_context"][
         "available_helper_profile_refs"
     ]:
@@ -1429,11 +1830,13 @@ def resolve_inputs(
         helper = helper_store.get(key)
         if helper is None:
             raise InputError(f"Exact Helper Profile is unavailable: {key}")
-        if not helper_profile_is_usable(helper):
+        if key in used_helpers and not helper_profile_is_usable(helper):
             raise InputError(
                 f"Helper Profile is not ready and approved: {key[0]}"
             )
         available_helpers[key] = helper
+    if not used_helpers.issubset(available_helpers):
+        raise InputError('Selected Primitive requires a Helper outside the frozen available pool')
 
     expected_builtins = {
         value_id: value_kind
@@ -1478,6 +1881,20 @@ def strategy_reference(strategy: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def used_helper_keys(strategy: Mapping[str, Any], catalog: Mapping[str, Any]) -> set[tuple[str, int, str]]:
+    primitives = {item['primitive_id']: item for item in catalog['primitives']}
+    result = set()
+    for branch in strategy['implementation_plan']['branch_strategies']:
+        for step in branch['steps']:
+            primitive = primitives.get(step['primitive_id'])
+            if primitive is None:
+                raise InputError(f"Unknown Primitive: {step['primitive_id']}")
+            ref = primitive['implementation_binding'].get('helper_profile_ref')
+            if ref is not None:
+                result.add(profile_key(ref))
+    return result
+
+
 def generator_components(
     template: Path,
     runtime_header: Path,
@@ -1488,8 +1905,15 @@ def generator_components(
 
     components = [
         file_reference(template),
+        file_reference(COMPATIBILITY_PATH),
+        file_reference(EXP_ROOT / 'scripts/template_contract.py'),
         file_reference(runtime_header),
         file_reference(runtime_source),
+        file_reference(EXP_ROOT / 'scripts/build_strategy_plan_json.py'),
+        file_reference(EXP_ROOT / 'scripts/strategy_domains.py'),
+        file_reference(EXP_ROOT / 'strategy_primitives/strategy_resource_policy__v001.json'),
+        file_reference(EXP_ROOT / 'strategy_primitives/ordinary_input_recipes__v001.json'),
+        file_reference(DEFAULTS['artifact_schema']),
     ]
     if evaluation_target_manifest is not None:
         components.append(file_reference(evaluation_target_manifest))
@@ -1511,6 +1935,26 @@ def generation_key(
         "component_refs": list(component_refs),
     }
     return canonical_hash(payload)
+
+
+def build_request(config: CompileConfiguration | None, review_ref: Mapping[str, Any] | None) -> dict[str, Any]:
+    return {
+        'compile_profile_ref': None if config is None else dict(config.build_environment_ref),
+        'dependency_refs': [] if config is None else [dict(ref) for ref in config.dependency_refs],
+        'environment_identity': None if config is None else config.environment_identity,
+        'strategy_review_ref': review_ref,
+    }
+
+
+def build_generation_key(source_key: str, request: Mapping[str, Any]) -> str:
+    build_identity = {
+        key: request[key]
+        for key in ('compile_profile_ref', 'dependency_refs', 'environment_identity')
+    }
+    return canonical_hash({
+        'source_generation_key': source_key,
+        'build_request': build_identity,
+    })
 
 
 def harness_artifact_id(
@@ -1631,18 +2075,8 @@ def resolve_spec_parameter(
             "constraint_id",
         ),
         "branch_constraint": (branch["branch_constraints"], "constraint_id"),
-        "branch_precondition": (
-            branch["branch_preconditions"],
-            "precondition_id",
-        ),
-        "target_property": (
-            branch["target_properties"],
-            "target_property_id",
-        ),
-        "oracle_requirement": (
-            branch["oracle_requirements"],
-            "oracle_requirement_id",
-        ),
+        "target_condition": (branch["target_conditions"], "condition_id"),
+        "behavior_check": (branch["behavior_checks"], "check_id"),
     }
     if element_type not in groups:
         raise MaterializationError(
@@ -1662,18 +2096,18 @@ def resolve_spec_parameter(
         )
 
     element = matches[0]
-    if element_type == "oracle_requirement":
+    if element_type == "behavior_check":
         requirements = [
-            *element["oracle_preconditions"],
-            element["expected_behavior"],
+            *element["preconditions"],
+            element["expected_predicate"],
         ]
     else:
-        requirements = [element["semantic_requirement"]]
+        requirements = [element["predicate"]]
 
     values = [
-        requirement["parameters"][parameter_name]
+        requirement["arguments"][parameter_name]
         for requirement in requirements
-        if parameter_name in requirement.get("parameters", {})
+        if parameter_name in requirement.get("arguments", {})
     ]
     if not values:
         raise MaterializationError(
@@ -1826,6 +2260,13 @@ def validate_emission(
             f"Emitter for Step {step['step_id']} did not materialize exactly "
             "its assigned Failure Handlers"
         )
+    event_handlers = {
+        ref.ref_id for atom in emission.atoms if isinstance(atom, EventAtom)
+        and atom.event_kind == 'input_rejected' for ref in atom.trace_refs
+        if ref.ref_type == 'failure_handler'
+    }
+    if event_handlers != set(expected_handler_ids):
+        raise MaterializationError(f"Step {step['step_id']} failure paths lack exact input_rejected events")
 
 
 def normalized_trace_refs(
@@ -1876,10 +2317,10 @@ def validate_event_semantics(
             raise MaterializationError(
                 "observation_captured requires an Observation Locator"
             )
-        if not {"activation_target", "target_property"}.issubset(ref_types):
+        if "target_condition" not in ref_types and "evaluation_target" not in ref_types:
             raise MaterializationError(
-                "observation_captured requires Activation Target and "
-                "Target Property references"
+                "observation_captured requires a Target Condition or "
+                "Evaluation Target reference"
             )
     elif event.observation_locator is not None:
         raise MaterializationError(
@@ -1895,21 +2336,16 @@ def validate_event_semantics(
         evaluation_ref_count = sum(
             item["ref_type"] == "evaluation_target" for item in trace_refs
         )
-        activation_ref_count = sum(
-            item["ref_type"] == "activation_target" for item in trace_refs
-        )
-        property_ref_count = sum(
-            item["ref_type"] == "target_property" for item in trace_refs
+        condition_ref_count = sum(
+            item["ref_type"] == "target_condition" for item in trace_refs
         )
         if evaluation_ref_count not in {0, 1}:
             raise MaterializationError(
                 f"{event.event_kind} resolves more than one Evaluation Target"
             )
-        if (activation_ref_count, property_ref_count) not in {(0, 0), (1, 1)}:
+        if condition_ref_count not in {0, 1}:
             raise MaterializationError(
-                f"{event.event_kind} requires either no HarnessSpec Target "
-                "references or exactly one Activation Target and one Target "
-                "Property reference"
+                f"{event.event_kind} resolves more than one Target Condition"
             )
 
     if event.event_kind in {
@@ -1918,16 +2354,15 @@ def validate_event_semantics(
         "branch_activation_unevaluable",
         "branch_activation_check_error",
     }:
-        if not {"activation_target", "target_property"}.issubset(ref_types):
+        if "target_condition" not in ref_types:
             raise MaterializationError(
-                f"{event.event_kind} requires all Branch Activation Target and "
-                "Target Property references"
+                f"{event.event_kind} requires Target Condition references"
             )
 
     if event.event_kind.startswith("oracle_"):
-        if "oracle_requirement" not in ref_types:
+        if "behavior_check" not in ref_types:
             raise MaterializationError(
-                f"{event.event_kind} requires an Oracle Requirement reference"
+                f"{event.event_kind} requires a Behavior Check reference"
             )
 
     if event.event_kind == "input_rejected":
@@ -1996,6 +2431,11 @@ def add_event(
 
     state.instrumentation_map.append(entry)
 
+    capture = ""
+    if event.event_kind == "oracle_failed":
+        capture = (f' if ({event.condition_expression}) {{ '
+                   f'hbfg_iteration.capture_anomaly("oracle_failure", "{event.key_suffix}"); }}')
+
     if event.condition_expression is None:
         statement = f"hbfg_iteration.record({site_id});"
     else:
@@ -2004,7 +2444,7 @@ def add_event(
             f"static_cast<bool>({event.condition_expression}));"
         )
 
-    return f"{statement}  // HBFG_EVENT:{binding_id}"
+    return f"{statement}{capture}  // HBFG_EVENT:{binding_id}"
 
 
 def add_support_blocks(
@@ -2037,8 +2477,8 @@ def evaluation_target_atoms(
         item["parameter_role"]: item["binding_parameter_id"]
         for item in target["parameter_bindings"]
     }
-    left = inputs.get(bindings["left"])
-    right = inputs.get(bindings["right"])
+    left = inputs.get(bindings.get("left", bindings.get("subject")))
+    right = inputs.get(bindings.get("right")) if "right" in bindings else left
     if (
         left is None
         or right is None
@@ -2060,6 +2500,12 @@ def evaluation_target_atoms(
         f"{left_expr}.scalar_type() == torch::kInt64 && "
         f"{right_expr}.scalar_type() == torch::kInt64)"
     )
+    if target['detector_id'] == 'tensor_empty_v1':
+        condition = f"({left_expr}.numel() == 0)"
+    elif target['detector_id'] == 'tensor_pair_empty_v1':
+        condition = f"({left_expr}.numel() == 0 || {right_expr}.numel() == 0)"
+    elif target['detector_id'] == 'tensor_shape_mismatch_v1':
+        condition = f"(!{left_expr}.sizes().equals({right_expr}.sizes()))"
     refs = (TraceRef("evaluation_target", target_id),)
     return (
         f"const bool {name} = {condition};",
@@ -2630,10 +3076,7 @@ def validate_materialization_maps(
             )
 
         strategy_branch = strategy_branches[branch_id]
-        determinism_oracle_ids = bound_determinism_oracle_ids(
-            strategy_branch, spec_branches[branch_id]
-        )
-        expected_target_count = 2 if determinism_oracle_ids else 1
+        expected_target_count = 1
         target_entries = [
             entry
             for entry in materialization_map
@@ -2648,72 +3091,7 @@ def validate_materialization_maps(
         target_segments = {
             entry["emitted_segment_id"] for entry in target_entries
         }
-        target_step_ids = [entry["step_id"] for entry in target_entries]
-        step_map = {
-            step["step_id"]: step for step in strategy_branch["steps"]
-        }
-        if determinism_oracle_ids:
-            invocation_signatures = {
-                json.dumps(
-                    {
-                        "input_bindings": step_map[step_id]["input_bindings"],
-                        "parameter_bindings": step_map[step_id]["parameter_bindings"],
-                    },
-                    sort_keys=True,
-                    separators=(",", ":"),
-                )
-                for step_id in target_step_ids
-            }
-            if len(invocation_signatures) != 1:
-                raise MaterializationError(
-                    f"Branch {branch_id} determinism invocations do not have "
-                    "identical bindings"
-                )
-            determinism_bindings = [
-                binding
-                for binding in strategy_branch["spec_bindings"]
-                if binding["spec_element_type"] == "oracle_requirement"
-                and binding["spec_element_id"] in determinism_oracle_ids
-            ]
-            evaluator_ids = {
-                step_id
-                for binding in determinism_bindings
-                for step_id in binding["implementation_step_ids"]
-                if any(
-                    entry["step_id"] == step_id
-                    and entry["emitter_id"]
-                    == "emit_evaluate_tensor_determinism"
-                    for entry in materialization_map
-                )
-            }
-            if len(evaluator_ids) != 1:
-                raise MaterializationError(
-                    f"Branch {branch_id} must materialize exactly one "
-                    "determinism evaluator"
-                )
-            target_outputs: list[str] = []
-            for step_id in target_step_ids:
-                outputs = step_map[step_id]["output_bindings"]
-                if len(outputs) != 1:
-                    raise MaterializationError(
-                        "Determinism v1 supports one target output"
-                    )
-                target_outputs.append(outputs[0]["value_id"])
-            evaluator = step_map[next(iter(evaluator_ids))]
-            evaluator_inputs = [
-                binding["value_ref"]
-                for binding in evaluator["input_bindings"]
-            ]
-            if (
-                len(evaluator_inputs) != 2
-                or len(set(evaluator_inputs)) != 2
-                or set(evaluator_inputs) != set(target_outputs)
-            ):
-                raise MaterializationError(
-                    f"Branch {branch_id} determinism evaluator must compare "
-                    "both distinct target outputs"
-                )
-        for event_kind in ("target_api_reached", "target_api_completed"):
+        for event_kind in ("target_api_reached", "target_api_completed", "target_api_exception"):
             matching = [
                 event
                 for event in instrumentation_map
@@ -2738,10 +3116,9 @@ def validate_materialization_maps(
                     )
 
     for branch_id in branch_ids:
-        activations = spec_branches[branch_id]["activation_targets"]
-        for activation in activations:
-            activation_id = activation["activation_target_id"]
-            target_property_id = activation["target_property_id"]
+        conditions = spec_branches[branch_id]["target_conditions"]
+        for condition in conditions:
+            condition_id = condition["condition_id"]
 
             def matching_events(event_kind: str) -> list[Mapping[str, Any]]:
                 return [
@@ -2754,8 +3131,7 @@ def validate_materialization_maps(
                         for ref in event["trace_refs"]
                     }.issuperset(
                         {
-                            ("activation_target", activation_id),
-                            ("target_property", target_property_id),
+                            ("target_condition", condition_id),
                         }
                     )
                 ]
@@ -2766,19 +3142,18 @@ def validate_materialization_maps(
                 "activation_unevaluable",
                 "activation_check_error",
             ):
-                if len(matching_events(event_kind)) != 1:
+                if len(matching_events(event_kind)) != len(condition['observe_at']):
                     raise MaterializationError(
-                        f"Activation Target {activation_id} must have exactly one "
-                        f"{event_kind} event"
+                        f'Target Condition {condition_id} must have one {event_kind} event per phase'
                     )
 
             observations = matching_events("observation_captured")
             expected_locators = {
                 (
-                    point["observation_role"],
-                    point["observation_point"],
+                    "before" if point == "before_target_api_call" else "after",
+                    point,
                 )
-                for point in activation["observation_points"]
+                for point in condition["observe_at"]
             }
             actual_locators = {
                 (
@@ -2791,54 +3166,9 @@ def validate_materialization_maps(
                 expected_locators
             ):
                 raise MaterializationError(
-                    f"Activation Target {activation_id} observation events do not "
+                    f"Target Condition {condition_id} observation events do not "
                     "match its HarnessSpec observation points"
                 )
-        expected_branch_refs = {
-            ("activation_target", activation["activation_target_id"])
-            for activation in activations
-        } | {
-            ("target_property", activation["target_property_id"])
-            for activation in activations
-        }
-        branch_event_kinds = (
-            "branch_activation_checked",
-            "branch_activation_true",
-            "branch_activation_unevaluable",
-            "branch_activation_check_error",
-        )
-        branch_events = [
-            event
-            for event in instrumentation_map
-            if event["branch_id"] == branch_id
-            and event["event_kind"] in branch_event_kinds
-        ]
-        if activations:
-            for event_kind in branch_event_kinds:
-                matching = [
-                    event
-                    for event in branch_events
-                    if event["event_kind"] == event_kind
-                ]
-                if len(matching) != 1:
-                    raise MaterializationError(
-                        f"Branch {branch_id} must have exactly one {event_kind} event"
-                    )
-                actual_refs = {
-                    (ref["ref_type"], ref["ref_id"])
-                    for ref in matching[0]["trace_refs"]
-                    if ref["ref_type"] in {"activation_target", "target_property"}
-                }
-                if actual_refs != expected_branch_refs:
-                    raise MaterializationError(
-                        f"Branch {branch_id} {event_kind} does not reference exactly "
-                        "its Activation Targets and Target Properties"
-                    )
-        elif branch_events:
-            raise MaterializationError(
-                f"Branch {branch_id} has Branch Activation events without targets"
-            )
-
     target_event_kinds = {
         "activation_checked",
         "activation_true",
@@ -2963,10 +3293,16 @@ def load_compile_config(path: Path | None) -> CompileConfiguration | None:
         "command_argv",
         "timeout_seconds",
     }
-    if not isinstance(value, dict) or set(value) != required:
+    optional = {"dependency_files", "environment_identity"}
+    if (
+        not isinstance(value, dict)
+        or not required.issubset(value)
+        or set(value) - required - optional
+    ):
         raise CompileError(
-            "Compile profile must contain exactly profile_id, "
-            "profile_version, command_argv, and timeout_seconds"
+            "Compile profile must contain profile_id, profile_version, "
+            "command_argv, and timeout_seconds; only dependency_files and "
+            "environment_identity are optional"
         )
 
     profile_id = value["profile_id"]
@@ -3005,6 +3341,36 @@ def load_compile_config(path: Path | None) -> CompileConfiguration | None:
     ):
         raise CompileError("compile_profile.timeout_seconds must be positive")
 
+    dependency_files = value.get("dependency_files", [])
+    if not isinstance(dependency_files, list) or not all(
+        isinstance(item, str) and item for item in dependency_files
+    ):
+        raise CompileError(
+            "compile_profile.dependency_files must be repository-relative files"
+        )
+    dependency_refs: list[dict[str, str]] = []
+    for item in sorted(set(dependency_files)):
+        relative = Path(item)
+        dependency = REPOSITORY_ROOT / relative
+        if (
+            relative.is_absolute()
+            or ".." in relative.parts
+            or not dependency.is_file()
+        ):
+            raise CompileError(
+                f"Compile dependency is invalid or missing: {item}"
+            )
+        dependency_refs.append(file_reference(dependency))
+
+    environment_identity = value.get("environment_identity")
+    if environment_identity is not None and (
+        not isinstance(environment_identity, str)
+        or not environment_identity.strip()
+    ):
+        raise CompileError(
+            "compile_profile.environment_identity must be a non-empty string"
+        )
+
     return CompileConfiguration(
         command_argv=tuple(argv),
         timeout_seconds=timeout,
@@ -3013,6 +3379,8 @@ def load_compile_config(path: Path | None) -> CompileConfiguration | None:
             "artifact_version": profile_version,
             "content_hash": file_hash(path),
         },
+        dependency_refs=tuple(dependency_refs),
+        environment_identity=environment_identity,
     )
 
 
@@ -3193,6 +3561,10 @@ def build_artifact_record(
     repository_commit: str,
     working_tree_state: str,
     working_tree_diff_ref: Mapping[str, Any] | None,
+    strategy_review_ref: Mapping[str, Any] | None = None,
+    runner_observation_bindings: Sequence[Mapping[str, Any]] = (),
+    source_key: str | None = None,
+    request: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     checks = [
         {
@@ -3219,9 +3591,30 @@ def build_artifact_record(
         "identity": {
             "harness_artifact_id": artifact_id,
             "generation_key": key,
+            "source_generation_key": source_key or key,
         },
         "source_context": {
             "strategy_revision_ref": dict(strategy_ref),
+            'strategy_review_ref': strategy_review_ref,
+            'runner_observation_bindings': list(runner_observation_bindings),
+            'observability': {
+                'condition_scope': (
+                    'Per-condition, per-phase counters; no joint-condition '
+                    'or native-code reachability proof.'
+                ),
+                'snapshot_scope': (
+                    'Periodic or normal-exit snapshots; missing or '
+                    'crash-truncated observations are unknown, not zero.'
+                ),
+                'exception_scope': (
+                    'c10::Error at target invocation only; an exception is '
+                    'not automatically invalid input or a detected bug.'
+                ),
+                'exception_text_policy': (
+                    'First 16 target exceptions per process; at most 1024 '
+                    'bytes per message; instrumentation counters are not sampled.'
+                ),
+            },
         },
         "source_artifact": {
             **dict(source_ref),
@@ -3247,6 +3640,9 @@ def build_artifact_record(
             },
         },
         "provenance": {
+            'build_request': dict(
+                request or build_request(None, strategy_review_ref)
+            ),
             "generator": {
                 "generator_id": BUILDER_ID,
                 "generator_version": BUILDER_VERSION,
@@ -3301,6 +3697,10 @@ def existing_artifact_status(
     expected_entrypoint_ref: Mapping[str, Any],
     expected_component_refs: Sequence[Mapping[str, Any]],
     artifact_validator: Draft202012Validator,
+    expected_build_request: Mapping[str, Any] | None = None,
+    expected_source_hash: str | None = None,
+    expected_materialization_map: Sequence[Mapping[str, Any]] | None = None,
+    expected_instrumentation_map: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any] | None:
     if not final_dir.exists():
         return None
@@ -3350,6 +3750,40 @@ def existing_artifact_status(
         )
 
     compile_check = record["validation"]["compile_check"]
+    if expected_build_request is not None:
+        stored_request = record["provenance"].get("build_request", {})
+        identity_keys = (
+            "compile_profile_ref", "dependency_refs", "environment_identity"
+        )
+        if any(stored_request.get(key) != expected_build_request.get(key)
+               for key in identity_keys):
+            raise MaterializationError(
+                "Existing Artifact build request does not match"
+            )
+        requested_profile = expected_build_request["compile_profile_ref"]
+        if compile_check["build_environment_ref"] != requested_profile:
+            raise MaterializationError(
+                "Existing Artifact compile profile does not match"
+            )
+        if requested_profile is not None and compile_check["status"] != "passed":
+            raise MaterializationError(
+                "Existing Artifact does not satisfy requested compilation"
+            )
+    if (
+        expected_source_hash is not None
+        and record["source_artifact"]["content_hash"] != expected_source_hash
+    ):
+        raise MaterializationError(
+            "Existing Artifact source differs from fresh materialization"
+        )
+    for field, expected in (
+        ("materialization_map", expected_materialization_map),
+        ("instrumentation_map", expected_instrumentation_map),
+    ):
+        if expected is not None and record[field] != list(expected):
+            raise MaterializationError(
+                f"Existing Artifact {field} differs from fresh validation"
+            )
     for field in ("diagnostics_ref", "binary_artifact"):
         reference = compile_check[field]
         if reference is not None:
@@ -3381,9 +3815,12 @@ def build_one(
     repository_commit: str,
     working_tree_state: str,
     working_tree_snapshot: str | None,
+    strategy_review_path: Path | None = None,
+    preflight_only: bool = False,
 ) -> dict[str, Any]:
     strategy = load_json(strategy_path)
     validate_record(strategy, strategy_validator, f"Strategy {strategy_path}")
+    external_review_ref = None if preflight_only else approved_strategy_review(strategy_review_path, strategy_path, strategy)
 
     resolved = resolve_inputs(
         strategy,
@@ -3393,6 +3830,7 @@ def build_one(
         helper_store,
         template_path,
     )
+    revalidate_strategy(resolved)
 
     strategy_ref = strategy_reference(strategy)
     evaluation_targets = evaluation_targets_for_api(
@@ -3405,11 +3843,13 @@ def build_one(
         runtime_source,
         evaluation_target_manifest,
     )
-    key = generation_key(
+    source_key = generation_key(
         strategy_ref,
         entrypoint_ref,
         component_refs,
     )
+    request = build_request(compile_config, external_review_ref)
+    key = build_generation_key(source_key, request)
     artifact_id = harness_artifact_id(strategy, key)
 
     identity = strategy["identity"]
@@ -3420,27 +3860,6 @@ def build_one(
         / identity["spec_mode"]
         / artifact_id
     )
-
-    existing = existing_artifact_status(
-        final_dir,
-        artifact_id,
-        key,
-        strategy_ref,
-        entrypoint_ref,
-        component_refs,
-        artifact_validator,
-    )
-    if existing is not None:
-        return {
-            "strategy_path": repository_relative(strategy_path),
-            "status": "reused",
-            "artifact_id": artifact_id,
-            "artifact_path": repository_relative(
-                final_dir / "harness_artifact.json"
-            ),
-            "compile_status":
-                existing["validation"]["compile_check"]["status"],
-        }
 
     spec_branches = resolved.harness_spec["exploration_plan"]["branches"]
     selector_ranges = allocate_selector_ranges(spec_branches)
@@ -3471,6 +3890,42 @@ def build_one(
         instrumentation_map,
         [item["evaluation_target_id"] for item in evaluation_targets],
     )
+    if preflight_only:
+        return {'strategy_path': repository_relative(strategy_path), 'status': 'preflight_passed',
+                'source_sha256': hashlib.sha256(source.encode()).hexdigest(),
+                'materialized_steps': len(materialization_map), 'instrumentation_sites': len(instrumentation_map),
+                'compile_status': 'not_run', 'artifact_path': None}
+
+    existing = existing_artifact_status(
+        final_dir,
+        artifact_id,
+        key,
+        strategy_ref,
+        entrypoint_ref,
+        component_refs,
+        artifact_validator,
+        request,
+        hashlib.sha256(source.encode()).hexdigest(),
+        materialization_map,
+        instrumentation_map,
+    )
+    if existing is not None:
+        return {
+            "strategy_path": repository_relative(strategy_path),
+            "status": "reused",
+            "artifact_id": artifact_id,
+            "artifact_path": repository_relative(
+                final_dir / "harness_artifact.json"
+            ),
+            "source_status": "passed",
+            "compile_status":
+                existing["validation"]["compile_check"]["status"],
+            "execution_readiness": (
+                "compiled_not_run" if compile_config is not None
+                else "source_only"
+            ),
+            "runtime_validation": "not_run",
+        }
 
     final_dir.parent.mkdir(parents=True, exist_ok=True)
     staging_dir = Path(
@@ -3509,6 +3964,23 @@ def build_one(
             runtime_source,
         )
 
+        if compile_check["status"] == "failed":
+            failed_dir = (
+                output_root / "failed_builds" / artifact_id / run_id
+            )
+            for field in ("diagnostics_ref", "binary_artifact"):
+                reference = compile_check[field]
+                if reference is not None:
+                    reference["relative_path"] = repository_relative(
+                        failed_dir / Path(reference["relative_path"]).name
+                    )
+            if working_tree_diff_ref is not None:
+                working_tree_diff_ref["relative_path"] = repository_relative(
+                    failed_dir / "working_tree_state.txt"
+                )
+            final_dir = failed_dir
+            final_dir.parent.mkdir(parents=True, exist_ok=True)
+
         source_ref = file_reference(
             source_path,
             final_dir / "main.cpp",
@@ -3528,6 +4000,20 @@ def build_one(
             repository_commit=repository_commit,
             working_tree_state=working_tree_state,
             working_tree_diff_ref=working_tree_diff_ref,
+            strategy_review_ref=external_review_ref,
+            source_key=source_key,
+            request=request,
+            runner_observation_bindings=[{
+                'source_branch_id': branch['source_branch_id'],
+                'spec_element_id': binding['spec_element_id'],
+                'runner_events': list(binding['runner_events']),
+                'subject_refs': next(obs['subject_refs'] for spec_branch in resolved.harness_spec['exploration_plan']['branches']
+                    if spec_branch['branch_id'] == branch['source_branch_id'] for obs in spec_branch['behavior_observations']
+                    if obs['observation_id'] == binding['spec_element_id']),
+                'observe_at': 'on_target_api_termination',
+                'capability_scope': 'Requested external process outcomes; in-harness c10::Error is target_api_exception. Tensor snapshots and native target-code reachability need explicit Runner capabilities, not this binding alone.'
+            } for branch in strategy['implementation_plan']['branch_strategies']
+              for binding in branch['spec_bindings'] if binding['binding_kind'] == 'runner_event'],
         )
         validate_record(
             record,
@@ -3548,16 +4034,34 @@ def build_one(
 
         return {
             "strategy_path": repository_relative(strategy_path),
-            "status": "generated",
+            "status": (
+                "failed" if compile_check["status"] == "failed"
+                else "generated"
+            ),
             "artifact_id": artifact_id,
             "artifact_path": repository_relative(
                 final_dir / "harness_artifact.json"
             ),
             "compile_status": compile_check["status"],
+            "source_status": "passed",
+            "execution_readiness": {
+                "passed": "compiled_not_run",
+                "failed": "blocked",
+                "skipped": "source_only",
+            }[compile_check["status"]],
+            "runtime_validation": "not_run",
         }
 
     except Exception:
-        shutil.rmtree(staging_dir, ignore_errors=True)
+        if staging_dir.exists():
+            retained = (
+                output_root
+                / "failed_builds"
+                / artifact_id
+                / f"{run_id}_assembly"
+            )
+            retained.parent.mkdir(parents=True, exist_ok=True)
+            staging_dir.rename(retained)
         raise
 
 
@@ -3671,6 +4175,8 @@ def parse_arguments() -> argparse.Namespace:
         type=Path,
         help="Machine-readable outcome selected by the orchestrator.",
     )
+    parser.add_argument('--strategy-review', type=Path, action='append', default=[], help='Exact approved external review; repeat for each Strategy subject.')
+    parser.add_argument('--preflight-only', action='store_true', help='Run semantic and full source/map validation without producing an Artifact or requiring human approval.')
     return parser.parse_args()
 
 
@@ -3712,21 +4218,50 @@ def main() -> int:
         ):
             raise InputError("Strategy Catalog is not passed and approved")
 
+        selected_strategies = [load_json(path) for path in args.strategy_plan]
+        for path, strategy in zip(args.strategy_plan, selected_strategies):
+            validate_record(strategy, strategy_validator, f'Strategy {path}')
+        reviews_by_hash = {}
+        for path in args.strategy_review:
+            review = load_json(path)
+            digest = review.get('subject', {}).get('content_hash')
+            if digest in reviews_by_hash:
+                raise InputError('More than one Strategy review for the same subject')
+            reviews_by_hash[digest] = path
         spec_store = load_harness_spec_store(
             args.harness_spec_root,
             harness_spec_validator,
+            [strategy['source_context']['harness_spec_ref'] for strategy in selected_strategies],
         )
+        selected_specs = []
+        for strategy in selected_strategies:
+            ref = strategy['source_context']['harness_spec_ref']
+            key = (ref['spec_id'], ref['revision_number'], ref['content_hash'])
+            spec = spec_store.get(key)
+            if spec is None:
+                raise InputError(f'Exact HarnessSpec is unavailable: {key}')
+            selected_specs.append(spec)
+        api_refs = [spec['target_context']['api_profile_ref'] for spec in selected_specs]
+        helper_refs = [
+            ref for spec in selected_specs
+            for ref in spec['target_context']['available_helper_profile_refs']
+        ]
         api_store = load_profile_store(
             args.api_profile_root,
             api_profile_validator,
             "API Profile",
+            api_refs,
         )
         helper_store = load_profile_store(
             args.helper_profile_root,
             helper_profile_validator,
             "Helper Profile",
+            helper_refs,
         )
-        compile_config = load_compile_config(args.compile_config)
+        compile_config = (
+            None if args.preflight_only
+            else load_compile_config(args.compile_config)
+        )
 
         repository_relative(args.output_root)
 
@@ -3777,6 +4312,8 @@ def main() -> int:
                 repository_commit=repository_commit,
                 working_tree_state=working_tree_state,
                 working_tree_snapshot=snapshot,
+                strategy_review_path=reviews_by_hash.get(canonical_hash(load_json(strategy_path))),
+                preflight_only=args.preflight_only,
             )
         except Exception as exc:
             result = {
@@ -3820,6 +4357,10 @@ def main() -> int:
         item["status"] == "failed"
         for item in results
     )
+    preflight_passed = sum(
+        item["status"] == "preflight_passed"
+        for item in results
+    )
     machine_result = {
         **summary,
         "status": "failed" if failed else "success",
@@ -3830,6 +4371,7 @@ def main() -> int:
 
     print(
         f"generated={generated} reused={reused} failed={failed} "
+        f"preflight_passed={preflight_passed} "
         f"summary={summary_path}"
     )
     return 1 if failed else 0

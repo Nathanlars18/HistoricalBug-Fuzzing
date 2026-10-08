@@ -1,0 +1,10 @@
+{
+  "builder_version": "harness_spec_builder_v0.15",
+  "generation_run_id": "run_20261004T105822Z_a852a1324036",
+  "generated_at": "2026-10-04T11:05:41.577487Z",
+  "errors": [
+    "ValidationError: br_knowledge_001.target_conditions[0].predicate.property_ref is not a normalized property path",
+    "ValidationError: br_knowledge_001.target_conditions[2].predicate.property_ref is not a normalized property path",
+    "ValidationError: Assembled record violates HarnessSpec Schema: $.exploration_plan.branches[1].target_conditions[0].predicate: 'description' is a required property $.exploration_plan.branches[1].target_conditions[1].predicate: 'description' is a required property"
+  ]
+}

@@ -1,0 +1,438 @@
+{
+  "record_format_version": "1.0",
+  "record_type": "corpus_manifest",
+  "identity": {
+    "corpus_id": "corpus_f6a3bbcb2b3e2b2e",
+    "artifact_version": 1
+  },
+  "source": {
+    "kind": "round_output",
+    "source_round_id": "torch.batch_norm_update_stats:structured_baseline:repeat_001:round_002"
+  },
+  "files": [
+    {
+      "corpus_relative_path": "047c793f431ec31cfeea88919776b5c800716388",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/047c793f431ec31cfeea88919776b5c800716388",
+        "content_hash": "bf240dd55530516181682515bbcfe8d5ffd4477e5c9aeac910a2cd74f92ee7cc"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "076d10b55e5088507538e910376a9f1dc1caed81",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/076d10b55e5088507538e910376a9f1dc1caed81",
+        "content_hash": "f562b1c6b1a352a2e4e62071b89d39800dd43d4a43bb3692800bc649c5f5ad2e"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "0bc3cb2ac3e3c82211f1ad7b34216e016d00443e",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/0bc3cb2ac3e3c82211f1ad7b34216e016d00443e",
+        "content_hash": "ad406961a6518e07ac4e40031f9e4e0486f443208da45ef02e336c3d4a0a50bb"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "0e218cc97f5c6cb3943479507fe524aaf13edc71",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/0e218cc97f5c6cb3943479507fe524aaf13edc71",
+        "content_hash": "37b81b7be90fa8df98fe6c819704a8bd4ed6cd65eb88b02b6542022d48e97936"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "1401245cce99dbb3b765aa3560c4c5fb63b892df",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/1401245cce99dbb3b765aa3560c4c5fb63b892df",
+        "content_hash": "8c72833ea280c55ee4617326ca142bbdd1f981e3128c66ac595652b519cc03f7"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "1654d22ab9af068a3c113a6b7610b0a4c3bf47c4",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/1654d22ab9af068a3c113a6b7610b0a4c3bf47c4",
+        "content_hash": "47c8753a75f80ef7bfdf6c20674f9ba37d52bd39b842001f7bde250935debd39"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "1780cbc13357093b8a8bb4df59ac80a06fea0e3c",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/1780cbc13357093b8a8bb4df59ac80a06fea0e3c",
+        "content_hash": "d3eabd55fdf9558f295234293e39615baee1874a1f9041f7643f200b4108c527"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "1b9fb3d69f78ef9ea7f251ba00ee108698b4bd13",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/1b9fb3d69f78ef9ea7f251ba00ee108698b4bd13",
+        "content_hash": "cd9cad6adc145316e4ac722047ed5dd369b38d04907bacf71d2bfd7024d3c6dd"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "1dfabfdcd1dbd882923568fbdd6558dc24e0af5b",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/1dfabfdcd1dbd882923568fbdd6558dc24e0af5b",
+        "content_hash": "62fa13cea1503ebc81b56e023b8f8807a929da73a8edbc20d90cf793041b73f1"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "1fa474b2ec91725555a86d47e3a12f1012cde2f1",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/1fa474b2ec91725555a86d47e3a12f1012cde2f1",
+        "content_hash": "dd0da669f9c1b37951925da1626046cacee6c7b7ea90e2f464ed50ce484d5e6b"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "2e828fd7d398a74696fc6a0bf9314628257d41b9",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/2e828fd7d398a74696fc6a0bf9314628257d41b9",
+        "content_hash": "02282543f4635a6faeabbfef588b831f182cb4a78728b404082bb1b1aa961930"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "34e0cf50aea2c087d0fe86d5805d9c4f7f611966",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/34e0cf50aea2c087d0fe86d5805d9c4f7f611966",
+        "content_hash": "4f534fbdbe9c386ce5c4876ffdbdd5ac7a1c2c6094c324c4aab0509e56237c17"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "375325d7d8557dbf39eb3e3a8cece27b6932c8a9",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/375325d7d8557dbf39eb3e3a8cece27b6932c8a9",
+        "content_hash": "18407acee3eb8b5159ce50b45b3bdbe5c5a07db59b89fb612507fab5c303464c"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "3b5de3c07bbfeeaa35f916f2901aba779c759c7e",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/3b5de3c07bbfeeaa35f916f2901aba779c759c7e",
+        "content_hash": "12b9330d4b426d88db428e7aecb6738b20decc3049248185c99f5e4f1890ac14"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "3d1add2c768780618c4ef1070a6af09619b6bcb8",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/3d1add2c768780618c4ef1070a6af09619b6bcb8",
+        "content_hash": "6e97dab74e9ded485eefa067dcf038b22407186434648375cabbac1c0ae63f1b"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "3ee5e61a287bb92de0b56cf819f368e6bdbb8cc3",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/3ee5e61a287bb92de0b56cf819f368e6bdbb8cc3",
+        "content_hash": "bd6fcc3499fac79f4a722728fae5d85d38e6be2285ab0f9893c10334655262e5"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "41b2cb65b921f997cbb4ae442b1d631159ee18ac",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/41b2cb65b921f997cbb4ae442b1d631159ee18ac",
+        "content_hash": "558d5ea96d937f659850c2e029350a3c5213de0f78c6c8640a642b5710147228"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "4b504bc7efc5308eeba03600470b3b74ed49eab8",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/4b504bc7efc5308eeba03600470b3b74ed49eab8",
+        "content_hash": "f15679d5b2a2f50d69a7e47277540b34514775493cf29b3b12fc4f13e4699d90"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "4ba470be256b23feee3dab7ab3f28706c990fe23",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/4ba470be256b23feee3dab7ab3f28706c990fe23",
+        "content_hash": "e13b3bf45f1d940c541a635033c4aa689a6e431b0bca1d8eb50f1e71dcd510c1"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "54ad081d7f037f8e7b063d9c2c58e70d8a4bf327",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/54ad081d7f037f8e7b063d9c2c58e70d8a4bf327",
+        "content_hash": "50cc43a25f427e9ed8b0319d86c9f73bc5e0aeebc7c8136ece327d5f8ebac2b3"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "557aebc736e9cf3bc6ba84cc0fd054abc1f49a6b",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/557aebc736e9cf3bc6ba84cc0fd054abc1f49a6b",
+        "content_hash": "865f38667d637ceba244c0f94361c81b5063bcc6738ab17531d3d4e1a63e70bc"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "58900ef8d34b94f26314dc7e6da9d484e315c030",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/58900ef8d34b94f26314dc7e6da9d484e315c030",
+        "content_hash": "1a194998ccb6bb96c39545e01ab7e4fc85e1c7b069ea1ae3c1799670e4e5b069"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "5ba93c9db0cff93f52b521d7420e43f6eda2784f",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/5ba93c9db0cff93f52b521d7420e43f6eda2784f",
+        "content_hash": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+      },
+      "size_bytes": 1
+    },
+    {
+      "corpus_relative_path": "5cabe8255b3e692abb5d4c5887f895bb41f31cb0",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/5cabe8255b3e692abb5d4c5887f895bb41f31cb0",
+        "content_hash": "fc54e8a21b57c912217a52a6a203ca03d9fdf2c96b98655ddc60bc7eb4312bf6"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "5e0269f6d8ff86b4c9f40465a3e73de981dc23ea",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/5e0269f6d8ff86b4c9f40465a3e73de981dc23ea",
+        "content_hash": "609f3f95d2588fe204731a3d515bdd59770eba12bb9ef6ff8160118a7be5ff56"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "6e3935589d1bbcc4e717d300bcd551b055a88582",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/6e3935589d1bbcc4e717d300bcd551b055a88582",
+        "content_hash": "3d8950afa959d978b6a0ac143c66370dd0c215d5f1a2558e2bd8d905b9d051e5"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "6f462db985bdadc18fdf72b5c157b3679f8fb8fb",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/6f462db985bdadc18fdf72b5c157b3679f8fb8fb",
+        "content_hash": "67b38c28b7376aee7d692b67149635e1410e8bb85f146fabca0b61ca272382c8"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "73a5b76ae2f278b230e0a8eb0233788f428fc7ef",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/73a5b76ae2f278b230e0a8eb0233788f428fc7ef",
+        "content_hash": "25390cd0f301597a2a589dfe30b2c315aba11fa7beb26d00fd959f232e060fb4"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "744b19fd932cfea9fd2a7fcacfdabb7bd128eeef",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/744b19fd932cfea9fd2a7fcacfdabb7bd128eeef",
+        "content_hash": "040731f7e1c01eb3a4f23b002c50e1a1f6be1951c63dd899771de509e9ceb918"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "789727428f5f20b4bea7547a88c27d1ae0c62647",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/789727428f5f20b4bea7547a88c27d1ae0c62647",
+        "content_hash": "0436591eb8acad37e924f697bff981a11849afe4620574126921c2ff272a96f1"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "7fd3bc00d1d27a68f4e502bb1f7c02c333417a7a",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/7fd3bc00d1d27a68f4e502bb1f7c02c333417a7a",
+        "content_hash": "984d401a6d687158f02e352bf5aa3aa5b8df1bd148381f306e8193dfb1d14936"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "86cc694502e14d7f95ad34e6187df2484f57155f",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/86cc694502e14d7f95ad34e6187df2484f57155f",
+        "content_hash": "c1c7296e9b90ae470f7538e6b5bfd6f910aef20db2c4eed55cc980744ecd02a8"
+      },
+      "size_bytes": 5
+    },
+    {
+      "corpus_relative_path": "89a0d60ad486e2cc4574fa1e85b1ee1a2e236cb0",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/89a0d60ad486e2cc4574fa1e85b1ee1a2e236cb0",
+        "content_hash": "aa2deb12ab5c4b064b0573a02634839d5c36b814380756b998a285ddbe5d405c"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "8b905e6da15651c1b444e75d1bb8672d7d842cce",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/8b905e6da15651c1b444e75d1bb8672d7d842cce",
+        "content_hash": "e149b1f7cc63832dafed2e0d1b573eb824f0d5416a06233c4c18e4c1c544f15c"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "8f6171ed2bee559a4a83db43797e590705139244",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/8f6171ed2bee559a4a83db43797e590705139244",
+        "content_hash": "636424cae9596c3f1ef7b1e0cbcc8639d329903c66205dd71af9aa0b0e98da2d"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "8ffa397fe6cc05d1214a83691d32ea7db444e3b1",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/8ffa397fe6cc05d1214a83691d32ea7db444e3b1",
+        "content_hash": "458565b1bf502577de3f2d56cf9f312c45472e5f3c02bdf08197dfe9b611a21f"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "94a4bcf6509c203032d9d15c75e022fef23dec11",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/94a4bcf6509c203032d9d15c75e022fef23dec11",
+        "content_hash": "2e32d663351576c3dd78d229cafb8f1deb2624ad88f16cd46e4b241ece20e4de"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "9f328df3292cbff808def552ef511e403dce09e0",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/9f328df3292cbff808def552ef511e403dce09e0",
+        "content_hash": "1a8147f49213849caf61b4e3e51dadd99a88ce96ab639da353e74f2d9374ac8f"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "9fa2a350d98020a3597590c459c9253fc2eaba77",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/9fa2a350d98020a3597590c459c9253fc2eaba77",
+        "content_hash": "0439c0b337e98eb3fee9f7adaca97ab550d580818298d5223f31e722d90cec97"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "a01114e24af3b846ea01002d0aa0861660e20b71",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/a01114e24af3b846ea01002d0aa0861660e20b71",
+        "content_hash": "19c036855ed32772838eb68f9ddcb69eab3c55f252770eb2c6ac79accb56e452"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "a726648f4bd3f6133a1720f8921cdef99de7f82b",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/a726648f4bd3f6133a1720f8921cdef99de7f82b",
+        "content_hash": "44b761250e1712e2a51dcbc18c181e560a724b540d4420778938a2352ed278a0"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "a74a44ae4a9a269d1acbdc82d4601293fb55150b",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/a74a44ae4a9a269d1acbdc82d4601293fb55150b",
+        "content_hash": "9ded5cedd151404e7d6cd1e50570b5e5cd712cacc1698a44cf922910f06ecc53"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "a95336094495aa4176b0ec360a29b50ae8514b6d",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/a95336094495aa4176b0ec360a29b50ae8514b6d",
+        "content_hash": "4a4abd48759caa3a6173afaba5415ef45a9396fb6239eb5ebe3d20756d710803"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "b52dd9ff8ca630621404b7d1285876f88830ba33",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/b52dd9ff8ca630621404b7d1285876f88830ba33",
+        "content_hash": "8006927297bf5628184f2222527ca33fab977fd23120356ebaab77a1a07f1557"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "c5020d8a0d3c8e7e7a7a7fdabc154f6db8f76eb2",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/c5020d8a0d3c8e7e7a7a7fdabc154f6db8f76eb2",
+        "content_hash": "a42404433f074bf4fbc81028dd1edb7e0ab9c233f8e5ba4e542c4d9ec4e88497"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "c6c07933eee86526fa0017f0f51bf555af94b112",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/c6c07933eee86526fa0017f0f51bf555af94b112",
+        "content_hash": "b2cf328cce89b91bf99d530ffb68b1665367d1420845f7d8a9232baef8957d3f"
+      },
+      "size_bytes": 8
+    },
+    {
+      "corpus_relative_path": "cdd3e647ce2d992ed953ed86f71ba82cf1e2bf2d",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/cdd3e647ce2d992ed953ed86f71ba82cf1e2bf2d",
+        "content_hash": "9aab0acc8d7659f047ee82d19647a487e47b8e3b35594633439b1e1eac374110"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "d03bdcff03dba9ab235c3b69f0b87f2f7f26e68d",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/d03bdcff03dba9ab235c3b69f0b87f2f7f26e68d",
+        "content_hash": "1303981fc435c5c514e79a6b3ecfb524e19860bab7c8e38d68816d1270673425"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "da9f959ff5db0fbcfdc10d968722b26747c7f4db",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/da9f959ff5db0fbcfdc10d968722b26747c7f4db",
+        "content_hash": "5a104136b0b650f7ff1a51b419b758352541abe79347559911e555079369b085"
+      },
+      "size_bytes": 3
+    },
+    {
+      "corpus_relative_path": "df4e89f6d6787d90f9ef1cb2de197a4192746d92",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/df4e89f6d6787d90f9ef1cb2de197a4192746d92",
+        "content_hash": "6c32833aa8968574d94dac87849b380438da378dce600ef9964fd72bb5299f8d"
+      },
+      "size_bytes": 7
+    },
+    {
+      "corpus_relative_path": "e5b86a4e8fe2a13271c58d90b0ad5c60221cc445",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/e5b86a4e8fe2a13271c58d90b0ad5c60221cc445",
+        "content_hash": "e991b25cbfe18a80b3091829ffc4d89f18bdacf0c69d674438af95859c369cef"
+      },
+      "size_bytes": 2
+    },
+    {
+      "corpus_relative_path": "e8e4ad0c6f8bdf05ebb19838c30f49b71118e05a",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.batch_norm_update_stats/structured_baseline/repeat_001/round_002/attempt_001/corpus/e8e4ad0c6f8bdf05ebb19838c30f49b71118e05a",
+        "content_hash": "607c68fb0c746eba98519562ec93f62c3a673e95e574782f1ee881aca4b47520"
+      },
+      "size_bytes": 3
+    }
+  ],
+  "provenance": {
+    "generator_ref": {
+      "artifact_id": "run_fuzzing_round",
+      "artifact_version": "0.5.0",
+      "content_hash": "afdf451c319f854bd302175954bd93ed9dab69669f3b59bc242c813719b463c8"
+    },
+    "generated_at": "2026-10-08T08:25:17.463140Z"
+  }
+}

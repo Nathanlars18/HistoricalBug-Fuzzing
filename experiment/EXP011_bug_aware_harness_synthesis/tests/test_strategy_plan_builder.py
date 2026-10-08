@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic tests for Strategy synthesis views and semantics."""
+"""Deterministic tests for HarnessSpec v2.2 to Strategy Plan v1.2."""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ from jsonschema import Draft202012Validator
 
 ROOT = Path("experiment/EXP011_bug_aware_harness_synthesis")
 SCRIPT = ROOT / "scripts/build_strategy_plan_json.py"
-CATALOG_SCHEMA = ROOT / "schemas/strategy_catalog_record.schema.json"
 
 SPEC = importlib.util.spec_from_file_location("build_strategy_plan_json", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
@@ -24,20 +23,17 @@ sys.modules[SPEC.name] = MODULE
 SPEC.loader.exec_module(MODULE)
 
 
-def semantic_requirement(requirement_type: str) -> dict:
+def source_ref() -> dict:
     return {
-        "requirement_type": requirement_type,
-        "parameters": {
-            "subject_ref": "param_input",
-            "property_ref": "tensor.layout",
-            "operator": "equals",
-            "expected_value": "non_contiguous",
-        },
-        "description": "Exercise the requested state.",
+        "source_type": "knowledge",
+        "source_id": "kn_test",
+        "source_version": "3.0",
+        "content_hash": "0" * 64,
+        "source_path": "/test",
     }
 
 
-def harness_spec(*, preferred_oracle: bool = False) -> dict:
+def harness_spec() -> dict:
     return {
         "identity": {
             "spec_id": "hs_test",
@@ -51,86 +47,61 @@ def harness_spec(*, preferred_oracle: bool = False) -> dict:
                 {
                     "branch_id": "br_test",
                     "branch_kind": "knowledge_directed",
-                    "input_validity_intent": "boundary_valid",
-                    "exploration_goal": "Exercise shape and dtype together.",
-                    "risk_dimensions": ["shape", "dtype"],
+                    "input_validity_intent": "contract_boundary_unresolved",
+                    "exploration_goal": "Vary and observe empty tensors.",
                     "branch_constraints": [],
-                    "branch_preconditions": [],
-                    "target_properties": [
+                    "target_conditions": [
                         {
-                            "target_property_id": "tp_test",
-                            "risk_dimensions": ["shape", "dtype"],
-                            "semantic_requirement": semantic_requirement(
-                                "property_state"
-                            ),
-                            "source_refs": [
-                                {
-                                    "source_type": "knowledge",
-                                    "source_id": "kn_test",
-                                }
-                            ],
-                        }
-                    ],
-                    "activation_targets": [
-                        {
-                            "activation_target_id": "at_test",
-                            "target_property_id": "tp_test",
-                            "observation_points": [
-                                {
-                                    "observation_role": "before",
-                                    "observation_point": "before_target_api_call",
+                            "condition_id": "tc_test",
+                            "role": "exploration_variable",
+                            "predicate": {
+                                "predicate_id": "property_relation",
+                                "arguments": {
+                                    "subject_ref": "param_input",
+                                    "property_ref": "numel",
+                                    "operator": "equals",
+                                    "value": 0,
                                 },
-                                {
-                                    "observation_role": "after",
-                                    "observation_point": "after_target_api_call",
-                                },
-                            ],
-                        }
-                    ],
-                    "oracle_requirements": [
-                        {
-                            "oracle_requirement_id": "or_test",
-                            "oracle_type": "crash",
-                            "observation_subjects": ["target_api_call"],
-                            "oracle_preconditions": [],
-                            "expected_behavior": {
-                                "requirement_type": "no_crash",
-                                "parameters": {},
-                                "description": "The call must not crash.",
+                                "description": None,
                             },
-                            "source_refs": [
-                                {
-                                    "source_type": "knowledge",
-                                    "source_id": "kn_test",
-                                }
-                            ],
-                            "requirement_level": (
-                                "preferred" if preferred_oracle else "required"
-                            ),
+                            "observe_at": ["before_target_api_call"],
+                            "source_refs": [source_ref()],
                         }
                     ],
+                    "behavior_observations": [
+                        {
+                            "observation_id": "obs_test",
+                            "subject_refs": ["context.execution", "param_input"],
+                            "observe_at": "on_target_api_termination",
+                            "description": "Record target termination.",
+                            "source_refs": [source_ref()],
+                        }
+                    ],
+                    "behavior_checks": [],
                 }
             ]
         },
     }
 
 
-def primitive(
-    primitive_id: str,
-    *,
-    slot: str,
-    requirement_types: list[str] | None = None,
-    risk_dimensions: list[str] | None = None,
-    oracle_types: list[str] | None = None,
-) -> dict:
+def semantic_support(**overrides: object) -> dict:
+    value = {
+        "predicate_ids": [],
+        "condition_roles": [],
+        "observation_phases": [],
+        "behavior_check_levels": [],
+        "subject_kinds": [],
+        "fuzz_dependency": "none",
+    }
+    value.update(overrides)
+    return value
+
+
+def primitive(primitive_id: str, slot: str, **support: object) -> dict:
     return {
         "primitive_id": primitive_id,
         "primitive_kind": "predicate_evaluate",
-        "semantic_support": {
-            "requirement_types": requirement_types or [],
-            "risk_dimensions": risk_dimensions or [],
-            "oracle_types": oracle_types or [],
-        },
+        "semantic_support": semantic_support(**support),
         "allowed_template_slots": [slot],
         "input_contract": [],
         "output_contract": [],
@@ -151,378 +122,174 @@ def step(step_id: str, primitive_id: str, slot: str) -> dict:
     }
 
 
-def entry(spec: dict, element_type: str) -> dict:
-    return next(
-        item
-        for item in MODULE.all_element_entries(spec)
-        if item["spec_element_type"] == element_type
-    )
-
-
 class StrategyBuilderTests(unittest.TestCase):
-    def test_catalog_schema_is_valid_draft_2020_12(self) -> None:
-        schema = json.loads(CATALOG_SCHEMA.read_text(encoding="utf-8"))
-        Draft202012Validator.check_schema(schema)
-
-    def test_fuzz_constructor_marks_tensor_and_cursor_dependent(self) -> None:
-        candidate = {
-            'primitive_id': 'construct_tensor_from_fuzz',
-            'parameter_bindings': [],
-        }
-        self.assertEqual(
-            MODULE.directly_fuzz_dependent_output_ports(candidate),
-            {'tensor', 'next_cursor'},
-        )
-
-    def test_fixed_zero_constrained_tensor_is_not_fuzz_dependent(self) -> None:
-        candidate = {
-            'primitive_id': 'construct_tensor_with_constraints',
-            'parameter_bindings': [
-                {
-                    'parameter_id': 'shape_template',
-                    'binding_kind': 'literal',
-                    'binding_value': [4, 2],
-                },
-                {
-                    'parameter_id': 'fill_policy',
-                    'binding_kind': 'literal',
-                    'binding_value': 'zero',
-                },
-            ],
-        }
-        self.assertEqual(
-            MODULE.directly_fuzz_dependent_output_ports(candidate),
-            set(),
-        )
-        candidate['parameter_bindings'][0]['binding_value'] = [-1, 2]
-        self.assertEqual(
-            MODULE.directly_fuzz_dependent_output_ports(candidate),
-            {'tensor', 'next_cursor'},
-        )
-        candidate['parameter_bindings'][0]['binding_value'] = [4, 2]
-        candidate['parameter_bindings'][1]['binding_value'] = 'fuzz_int64'
-        self.assertEqual(
-            MODULE.directly_fuzz_dependent_output_ports(candidate),
-            {'tensor', 'next_cursor'},
-        )
-
-    def test_default_branch_requires_fuzz_dependent_target_tensors(self) -> None:
-        spec = harness_spec()
-        spec['exploration_plan']['branches'][0]['branch_kind'] = 'default'
-        target_step = {
-            'step_id': 's_api',
-            'primitive_id': 'p_api',
-            'input_bindings': [
-                {'port_id': 'left', 'value_ref': 'lhs'},
-                {'port_id': 'right', 'value_ref': 'rhs'},
-            ],
-        }
-        target_primitive = {
-            'input_contract': [
-                {
-                    'port_id': 'left',
-                    'accepted_value_kinds': ['tensor'],
-                },
-                {
-                    'port_id': 'right',
-                    'accepted_value_kinds': ['tensor'],
-                },
-            ],
-        }
-        with self.assertRaisesRegex(
-            MODULE.PlanValidationError,
-            'do not depend on consumed LibFuzzer bytes',
+    def test_json_schemas_are_valid(self) -> None:
+        for name in (
+            "strategy_catalog_record.schema.json",
+            "strategy_plan_record.schema.json",
+            "strategy_plan_review_record.schema.json",
         ):
-            MODULE.validate_default_branch_fuzz_dependence(
-                spec,
-                'br_test',
-                ['s_api'],
-                {'s_api': target_step},
-                {'p_api': target_primitive},
-                {'lhs'},
+            Draft202012Validator.check_schema(
+                json.loads((ROOT / "schemas" / name).read_text(encoding="utf-8"))
             )
-        MODULE.validate_default_branch_fuzz_dependence(
-            spec,
-            'br_test',
-            ['s_api'],
-            {'s_api': target_step},
-            {'p_api': target_primitive},
-            {'lhs', 'rhs'},
+
+    def test_catalog_v5_matches_catalog_schema(self) -> None:
+        schema = json.loads(
+            (ROOT / "schemas/strategy_catalog_record.schema.json").read_text()
+        )
+        catalog = json.loads(
+            (ROOT / "strategy_primitives/strategy_primitive_catalog.json").read_text()
+        )
+        self.assertEqual(list(Draft202012Validator(schema).iter_errors(catalog)), [])
+        self.assertEqual(catalog['catalog_version'], 6)
+
+    def test_v22_entries_replace_legacy_element_types(self) -> None:
+        entries = MODULE.all_element_entries(harness_spec())
+        self.assertEqual(
+            [item["spec_element_type"] for item in entries],
+            ["target_condition", "behavior_observation"],
         )
 
-    def test_knowledge_branch_requires_a_fuzz_dependent_target_input(self) -> None:
-        spec = harness_spec()
-        target_step = {
-            'step_id': 's_api',
-            'input_bindings': [
-                {'port_id': 'left', 'value_ref': 'lhs'},
-                {'port_id': 'right', 'value_ref': 'rhs'},
-            ],
-        }
-        with self.assertRaisesRegex(
-            MODULE.PlanValidationError,
-            'fixes every target input',
-        ):
-            MODULE.validate_knowledge_branch_fuzz_dependence(
-                spec,
-                'br_test',
-                ['s_api'],
-                {'s_api': target_step},
-                set(),
-            )
-        MODULE.validate_knowledge_branch_fuzz_dependence(
-            spec,
-            'br_test',
-            ['s_api'],
-            {'s_api': target_step},
-            {'rhs'},
+    def test_runner_observation_is_builder_owned(self) -> None:
+        view = MODULE.build_harness_spec_view(harness_spec())
+        self.assertEqual(
+            [item["spec_element_type"] for item in view["required_spec_elements"]],
+            ["target_condition"],
         )
+        runner = view["runner_observation_elements"][0]
+        self.assertEqual(runner["spec_element_id"], "obs_test")
+        self.assertIn("process_signal", runner["runner_events"])
+        self.assertIn("sanitizer_report", runner["runner_events"])
 
-    def test_exposed_parameters_exclude_runtime_references(self) -> None:
+    def test_exposed_parameters_exclude_subject_reference(self) -> None:
         parameters = MODULE.exposed_parameters(
             MODULE.all_element_entries(harness_spec())
         )
         names = {item["parameter_name"] for item in parameters}
         self.assertNotIn("subject_ref", names)
-        self.assertIn("property_ref", names)
-        self.assertIn("operator", names)
-        self.assertTrue(all("value_kind" in item for item in parameters))
+        self.assertEqual(names, {"operator", "property_ref", "value"})
 
-    def test_ambiguous_exposed_parameter_is_rejected(self) -> None:
+    def test_exploration_variable_cannot_be_guarded(self) -> None:
         spec = harness_spec()
-        oracle = spec["exploration_plan"]["branches"][0][
-            "oracle_requirements"
-        ][0]
-        oracle["oracle_preconditions"] = [
-            {
-                "requirement_type": "range_constraint",
-                "parameters": {"threshold": 1},
-                "description": None,
-            }
-        ]
-        oracle["expected_behavior"]["parameters"] = {"threshold": 2}
+        evaluator = primitive(
+            "p_guard",
+            "pre_call_guard",
+            predicate_ids=["property_relation"],
+            condition_roles=["exploration_variable"],
+            observation_phases=["before_target_api_call"],
+        )
+        evaluator["primitive_kind"] = "relation_enforce"
         with self.assertRaisesRegex(
-            MODULE.ItemInputError, "Ambiguous exposable"
-        ):
-            MODULE.exposed_parameters(MODULE.all_element_entries(spec))
-
-    def test_target_property_requires_union_of_all_risks(self) -> None:
-        spec = harness_spec()
-        shape = primitive(
-            "p_shape",
-            slot="pre_call_transform",
-            requirement_types=["property_state"],
-            risk_dimensions=["shape"],
-        )
-        dtype = primitive(
-            "p_dtype",
-            slot="pre_call_transform",
-            requirement_types=["property_state"],
-            risk_dimensions=["dtype"],
-        )
-        steps = {
-            "s1": step("s1", "p_shape", "pre_call_transform"),
-            "s2": step("s2", "p_dtype", "pre_call_transform"),
-        }
-        MODULE.validate_binding_semantics(
-            entry(spec, "target_property"),
-            ["s1", "s2"],
-            steps,
-            {"p_shape": shape, "p_dtype": dtype},
-            {"s1": set(), "s2": set()},
-            spec,
-        )
-        with self.assertRaisesRegex(
-            MODULE.PlanValidationError, "misses risk dimensions"
+            MODULE.PlanValidationError, "observed, not enforced"
         ):
             MODULE.validate_binding_semantics(
-                entry(spec, "target_property"),
+                MODULE.all_element_entries(spec)[0],
                 ["s1"],
-                steps,
-                {"p_shape": shape, "p_dtype": dtype},
-                {"s1": set(), "s2": set()},
+                {"s1": step("s1", "p_guard", "pre_call_guard")},
+                {"p_guard": evaluator},
+                {"s1": set()},
                 spec,
             )
 
-    def test_activation_requires_each_observation_phase(self) -> None:
+    def test_exploration_variable_requires_declared_phase(self) -> None:
         spec = harness_spec()
-        before = primitive(
-            "p_before",
-            slot="pre_call_observation",
-            requirement_types=["property_state"],
-            risk_dimensions=["shape", "dtype"],
-        )
-        after = primitive(
-            "p_after",
-            slot="post_call_observation",
-            requirement_types=["property_state"],
-            risk_dimensions=["shape", "dtype"],
-        )
-        steps = {
-            "s1": step("s1", "p_before", "pre_call_observation"),
-            "s2": step("s2", "p_after", "post_call_observation"),
-        }
-        primitives = {"p_before": before, "p_after": after}
-        MODULE.validate_binding_semantics(
-            entry(spec, "activation_target"),
-            ["s1", "s2"],
-            steps,
-            primitives,
-            {"s1": set(), "s2": set()},
-            spec,
+        evaluator = primitive(
+            "p_eval",
+            "post_call_observation",
+            predicate_ids=["property_relation"],
+            condition_roles=["exploration_variable"],
+            observation_phases=["after_target_api_call"],
         )
         with self.assertRaisesRegex(
-            MODULE.PlanValidationError, "misses required observation slot"
+            MODULE.PlanValidationError, "no directly compatible"
         ):
             MODULE.validate_binding_semantics(
-                entry(spec, "activation_target"),
+                MODULE.all_element_entries(spec)[0],
                 ["s1"],
-                steps,
-                primitives,
-                {"s1": set(), "s2": set()},
+                {"s1": step("s1", "p_eval", "post_call_observation")},
+                {"p_eval": evaluator},
+                {"s1": set()},
                 spec,
             )
 
-    def test_auxiliary_binding_step_must_be_dataflow_ancestor(self) -> None:
-        spec = harness_spec()
-        auxiliary = primitive("p_aux", slot="input_construction")
-        direct = primitive(
-            "p_direct",
-            slot="pre_call_transform",
-            requirement_types=["property_state"],
-            risk_dimensions=["shape", "dtype"],
-        )
-        steps = {
-            "s1": step("s1", "p_aux", "input_construction"),
-            "s2": step("s2", "p_direct", "pre_call_transform"),
-        }
-        primitives = {"p_aux": auxiliary, "p_direct": direct}
-        MODULE.validate_binding_semantics(
-            entry(spec, "target_property"),
-            ["s1", "s2"],
-            steps,
-            primitives,
-            {"s1": set(), "s2": {"s1"}},
-            spec,
-        )
-        with self.assertRaisesRegex(
-            MODULE.PlanValidationError, "unrelated auxiliary"
-        ):
-            MODULE.validate_binding_semantics(
-                entry(spec, "target_property"),
-                ["s1", "s2"],
-                steps,
-                primitives,
-                {"s1": set(), "s2": set()},
-                spec,
-            )
-
-    def test_blocked_cannot_reference_preferred_oracle(self) -> None:
-        spec = harness_spec(preferred_oracle=True)
-        resolved = MODULE.ResolvedInputs(
-            spec=spec,
-            api={},
-            resolved_api_primitive={},
-            candidate_primitives=[],
-        )
-        response = {
-            "blocking_gaps": [
-                {
-                    "affected_branch_ids": ["br_test"],
-                    "spec_element_type": "oracle_requirement",
-                    "spec_element_id": "or_test",
-                    "reason_code": "required_oracle_unavailable",
-                    "details": "No compatible required oracle exists.",
-                }
-            ]
-        }
-        with self.assertRaisesRegex(
-            MODULE.PlanValidationError, "only required Spec Elements"
-        ):
-            MODULE.validate_blocked_response(response, resolved)
-
-    def test_partial_risk_candidate_does_not_disprove_capability_gap(self) -> None:
-        spec = harness_spec()
-        shape_only = primitive(
-            "p_shape",
-            slot="pre_call_transform",
-            requirement_types=["property_state"],
-            risk_dimensions=["shape"],
-        )
-        resolved = MODULE.ResolvedInputs(
-            spec=spec,
-            api={},
-            resolved_api_primitive={},
-            candidate_primitives=[shape_only],
-        )
-        response = {
-            "blocking_gaps": [
-                {
-                    "affected_branch_ids": ["br_test"],
-                    "spec_element_type": "target_property",
-                    "spec_element_id": "tp_test",
-                    "reason_code": "required_capability_unavailable",
-                    "details": "No candidate covers the required dtype dimension.",
-                }
-            ]
-        }
-        gaps = MODULE.validate_blocked_response(response, resolved)
-        self.assertEqual(len(gaps), 1)
-
-        resolved.candidate_primitives.append(
-            primitive(
-                "p_dtype",
-                slot="pre_call_transform",
-                requirement_types=["property_state"],
-                risk_dimensions=["dtype"],
-            )
-        )
-        with self.assertRaisesRegex(
-            MODULE.PlanValidationError, "contradicts an available"
-        ):
-            MODULE.validate_blocked_response(response, resolved)
-
-    def test_prompt_candidates_exclude_resolved_api_primitive(self) -> None:
-        spec = harness_spec()
-        candidate = primitive("p_candidate", slot="input_construction")
-        api_primitive = primitive("p_api", slot="target_call")
-        api_primitive["primitive_kind"] = "target_api_invoke"
-        resolved = MODULE.ResolvedInputs(
-            spec=spec,
-            api={},
-            resolved_api_primitive={
-                "target_api_primitive_id": "p_api",
-                "input_ports": [],
-                "output_ports": [],
-                "api_binding": {},
-                "_resolved_primitive": api_primitive,
-            },
-            candidate_primitives=[candidate],
-        )
-        catalog = {
-            "template_interface": {
-                "available_slots": ["input_construction", "target_call"],
-                "built_in_values": [
-                    {
-                        "value_id": "fuzz_data",
-                        "value_kind": "raw_bytes",
-                        "description": "Fuzz bytes.",
-                    }
-                ],
-            }
-        }
-        views = MODULE.build_prompt_views(resolved, catalog)
-        ids = [
-            item["primitive_id"]
-            for item in views["primitive_candidate_views"]
-        ]
-        self.assertEqual(ids, ["p_candidate"])
+    def test_scalar_and_optional_api_kinds(self) -> None:
+        self.assertEqual(MODULE.api_schema_type_to_kinds("float"), ["floating"])
+        self.assertEqual(MODULE.api_schema_type_to_kinds("int"), ["integer"])
+        self.assertEqual(MODULE.api_schema_type_to_kinds("bool"), ["boolean"])
         self.assertEqual(
-            views["resolved_api_primitive_view"][
-                "target_api_primitive_id"
-            ],
-            "p_api",
+            MODULE.api_schema_type_to_kinds("Tensor?"),
+            ["tensor", "optional_value"],
         )
+
+    def test_multi_return_ports_are_preserved(self) -> None:
+        api = {
+            "python_contract": {
+                "returns": [
+                    {"return_id": "r0", "normalized_types": ["tensor"], "semantic_role": "result_tensor"},
+                    {"return_id": "r1", "normalized_types": ["tensor"], "semantic_role": "result_tensor"},
+                ]
+            },
+            "target_binding": {
+                "return_mapping": [
+                    {"binding_return_position": 0, "python_return_ref": "r0", "mapping_kind": "direct"},
+                    {"binding_return_position": 1, "python_return_ref": "r1", "mapping_kind": "direct"},
+                ]
+            },
+        }
+        self.assertEqual(
+            [item["port_id"] for item in MODULE.resolve_api_output_ports(api)],
+            ["r0", "r1"],
+        )
+
+    def test_constrained_zero_shape_can_remain_fuzz_dependent(self) -> None:
+        candidate = {
+            "primitive_id": "construct_tensor_with_constraints",
+            "parameter_bindings": [
+                {"parameter_id": "shape_template", "binding_kind": "literal", "binding_value": [-1, 2]},
+                {"parameter_id": "fill_policy", "binding_kind": "literal", "binding_value": "zero"},
+            ],
+        }
+        self.assertEqual(
+            MODULE.directly_fuzz_dependent_output_ports(candidate),
+            {"tensor", "next_cursor"},
+        )
+
+    def test_fixed_zero_tensor_is_not_fuzz_dependent(self) -> None:
+        candidate = {
+            "primitive_id": "construct_tensor_with_constraints",
+            "parameter_bindings": [
+                {"parameter_id": "shape_template", "binding_kind": "literal", "binding_value": [0, 2]},
+                {"parameter_id": "fill_policy", "binding_kind": "literal", "binding_value": "zero"},
+            ],
+        }
+        self.assertEqual(MODULE.directly_fuzz_dependent_output_ports(candidate), set())
+
+    def test_exact_review_subject_is_required(self) -> None:
+        spec = harness_spec()
+        spec["revision_information"] = {"revision_number": 1}
+        digest = MODULE.canonical_hash(spec)
+        review = {
+            "review_id": "review:test",
+            "review_revision": 1,
+            "subject": {
+                "spec_id": "hs_test",
+                "revision_number": 1,
+                "content_hash": digest,
+                "relative_path": "spec.json",
+            },
+        }
+        with self.assertRaisesRegex(MODULE.ItemInputError, "exact approved"):
+            MODULE.resolve_harness_spec_review(spec, Path("spec.json"), {})
+        result = MODULE.resolve_harness_spec_review(
+            spec,
+            Path("spec.json"),
+            {("hs_test", 1, digest): (review, Path("review.json"))},
+        )
+        self.assertEqual(result["review_id"], "review:test")
+
+    def test_runner_events_are_not_in_process_primitives(self) -> None:
+        self.assertIn("timeout", MODULE.RUNNER_EVENTS)
+        self.assertNotIn("runner_event", MODULE.PRIMITIVE_KINDS)
 
     def test_profile_hash_excludes_only_content_hash(self) -> None:
         profile = {

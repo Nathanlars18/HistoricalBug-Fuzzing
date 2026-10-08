@@ -1,0 +1,15 @@
+{
+  "run_id": "harness_generation_20260916T024106Z_92b93853d892",
+  "generator_id": "build_harness_artifact",
+  "generator_version": "0.6.0",
+  "started_at": "2026-09-16T02:41:06.897430Z",
+  "finished_at": "2026-09-16T02:41:07.451599Z",
+  "results": [
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr002_r001.json",
+      "status": "failed",
+      "error_type": "MaterializationError",
+      "message": "Step step_003 must bind exactly one target_property for this Emitter"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "run_id": "harness_generation_20260920T051035Z_3823c86aefd2",
+  "generator_id": "build_harness_artifact",
+  "generator_version": "0.8.0",
+  "started_at": "2026-09-20T05:10:35.096999Z",
+  "finished_at": "2026-09-20T05:10:57.412865Z",
+  "results": [
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr002_r001.json",
+      "status": "generated",
+      "artifact_id": "ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr002_r1_64d766e93746",
+      "artifact_path": "experiment/EXP011_bug_aware_harness_synthesis/harnesses/pytorch/torch_matmul/bug_aware_static/ha_st_hs_pytorch_torch_matmul_bug_aware_static_hsr002_r1_64d766e93746/harness_artifact.json",
+      "compile_status": "passed"
+    },
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_matmul/controlled_baseline/st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r002.json",
+      "status": "generated",
+      "artifact_id": "ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r2_5ffcfa34540d",
+      "artifact_path": "experiment/EXP011_bug_aware_harness_synthesis/harnesses/pytorch/torch_matmul/controlled_baseline/ha_st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r2_5ffcfa34540d/harness_artifact.json",
+      "compile_status": "passed"
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "schema_version": "1.1",
+  "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.compile:python_default:unresolved",
+  "revision": 1,
+  "metadata": {
+    "parent_revision_ref": null,
+    "generated_at": "2026-10-04T05:25:12.791865Z",
+    "builder_version": "api_profile_builder_v0.4",
+    "content_hash": "42cf5ecd5718a52a17722f686ef4d8c51396bdccc0c8197627de6991721322d4"
+  },
+  "target": {
+    "framework": "pytorch",
+    "framework_version": "v2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend_scope": [
+      "cpu"
+    ],
+    "python_api": "torch.compile",
+    "callable_kind": "function",
+    "python_variant": "python_default",
+    "aliases": []
+  },
+  "python_contract": {
+    "documentation_status": "available",
+    "signature": "(model: collections.abc.Callable[~_InputT, ~_RetT] | None = None, *, fullgraph: bool = False, dynamic: bool | None = None, backend: str | collections.abc.Callable = 'inductor', mode: str | None = None, options: dict[str, str | int | bool | collections.abc.Callable] | None = None, disable: bool = False) -> collections.abc.Callable[[collections.abc.Callable[~_InputT, ~_RetT]], collections.abc.Callable[~_InputT, ~_RetT]] | collections.abc.Callable[~_InputT, ~_RetT]",
+    "behavior_summary": "Optimizes given model/function using TorchDynamo and specified backend. If you are compiling an :class:`torch.nn.Module`, you can also use :meth:`torch.nn.Module.compile` to compile the module inplace without changing its structure.",
+    "parameters": [],
+    "returns": [],
+    "documented_domains": [],
+    "documented_exceptions": [],
+    "evidence_refs": [
+      "ev_runtime_docstring",
+      "ev_python_signature_source"
+    ]
+  },
+  "target_binding": {
+    "status": "unresolved",
+    "operator_name": null,
+    "operator_overload": null,
+    "operator_schema": null,
+    "cpp_callable": null,
+    "binding_parameters": [],
+    "argument_mapping": [],
+    "return_mapping": [],
+    "evidence_refs": []
+  },
+  "documented_constraints": [],
+  "flashfuzz_support": {
+    "flashfuzz_commit": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "api_list_status": "listed",
+    "evidence_refs": [
+      "ev_flashfuzz_api_list"
+    ]
+  },
+  "validation": {
+    "validation_status": "failed",
+    "execution_readiness": "blocked",
+    "checks": [
+      {
+        "check_id": "check_python_resolution",
+        "check_kind": "python_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Python API resolved in the pinned runtime.",
+        "evidence_refs": [
+          "ev_runtime_docstring"
+        ]
+      },
+      {
+        "check_id": "check_signature_resolution",
+        "check_kind": "signature_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "One Python signature was resolved.",
+        "evidence_refs": [
+          "ev_python_signature_source"
+        ]
+      },
+      {
+        "check_id": "check_operator_schema_resolution",
+        "check_kind": "operator_schema_resolution",
+        "backend": "cpu",
+        "status": "blocked",
+        "summary": "No target operator schema was resolved.",
+        "evidence_refs": []
+      },
+      {
+        "check_id": "check_argument_mapping",
+        "check_kind": "argument_mapping",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Python-to-binding argument mapping is complete.",
+        "evidence_refs": [
+          "ev_python_signature_source"
+        ]
+      },
+      {
+        "check_id": "check_cpp_binding_resolution",
+        "check_kind": "cpp_binding_resolution",
+        "backend": "cpu",
+        "status": "blocked",
+        "summary": "No C++/ATen callable candidate was resolved.",
+        "evidence_refs": []
+      },
+      {
+        "check_id": "check_cpp_compile",
+        "check_kind": "cpp_compile",
+        "backend": "cpu",
+        "status": "not_run",
+        "summary": "Compile validation was not requested.",
+        "evidence_refs": []
+      },
+      {
+        "check_id": "check_cpp_smoke_execution",
+        "check_kind": "cpp_smoke_execution",
+        "backend": "cpu",
+        "status": "not_run",
+        "summary": "Smoke execution was not requested.",
+        "evidence_refs": []
+      },
+      {
+        "check_id": "check_target_reachability",
+        "check_kind": "target_reachability",
+        "backend": "cpu",
+        "status": "not_run",
+        "summary": "Target reachability was not measured.",
+        "evidence_refs": []
+      }
+    ],
+    "issues": [
+      {
+        "issue_id": "issue_binding_unresolved",
+        "issue_kind": "binding_unresolved",
+        "blocking": true,
+        "description": "No exact target-version operator schema was resolved.",
+        "affected_refs": [
+          "target_binding"
+        ],
+        "evidence_refs": []
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_runtime_docstring",
+      "source_kind": "runtime_docstring",
+      "source_location": "container://historicalbug/flashfuzz:torch2.10-api-metadata/torch.compile",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "torch.compile",
+      "content_hash": "0b8ac3906d6f9bf70da5929a956445d3ed46a6c0d0ff71cce7af93993de66816",
+      "excerpt": "Optimizes given model/function using TorchDynamo and specified backend.\nIf you are compiling an :class:`torch.nn.Module`, you can also use :meth:`torch.nn.Module.compile`\nto compile the module inplace without changing its structure.\n\nConcretely, for every frame executed within the compiled region, we will attempt\nto compile it and cache the compiled result on the code object for future\nuse.  A single frame may be compiled multiple times if previous compiled\nresults are not applicable for subsequent calls (this is called a \"guard\nfailure\"), you can use TORCH_LOGS=guards to debug these situations.\nMultiple compiled results can be associated with a frame up to\n``torch._dynamo.config.recompile_limit``, which defaults to 8; at which\npoint we will fall back to eager.  Note that compile caches are per\n*code object*, not frame; if you dynamically create multiple copies of a\nfunction, they will all share the same code cache.\n\nArgs:\n   model (Callable or None): Module/function to optimize\n   ful",
+      "collected_at": "2026-10-04T05:25:12.791865Z"
+    },
+    {
+      "evidence_id": "ev_python_signature_source",
+      "source_kind": "pytorch_source",
+      "source_location": "container://historicalbug/flashfuzz:torch2.10-api-metadata/usr/local/lib/python3.12/dist-packages/torch/_C/_VariableFunctions.pyi",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "compile",
+      "content_hash": "c478a2696e0e72fe8d1c5cff8984078bae9c9af2c340e7bc5ca3c6a4e0d29226",
+      "excerpt": "(model: collections.abc.Callable[~_InputT, ~_RetT] | None = None, *, fullgraph: bool = False, dynamic: bool | None = None, backend: str | collections.abc.Callable = 'inductor', mode: str | None = None, options: dict[str, str | int | bool | collections.abc.Callable] | None = None, disable: bool = False) -> collections.abc.Callable[[collections.abc.Callable[~_InputT, ~_RetT]], collections.abc.Callable[~_InputT, ~_RetT]] | collections.abc.Callable[~_InputT, ~_RetT]",
+      "collected_at": "2026-10-04T05:25:12.791865Z"
+    },
+    {
+      "evidence_id": "ev_flashfuzz_api_list",
+      "source_kind": "flashfuzz_api_list",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/api.txt",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "torch.compile",
+      "content_hash": "d000ff747c4a517c7ff9685ee980606b27a0861c59fe7524cf3ac89c581d9055",
+      "excerpt": "torch.compile",
+      "collected_at": "2026-10-04T05:25:12.791865Z"
+    }
+  ],
+  "review": {
+    "review_status": "unreviewed",
+    "reviewer": null,
+    "reviewed_at": null,
+    "issue_refs": []
+  }
+}

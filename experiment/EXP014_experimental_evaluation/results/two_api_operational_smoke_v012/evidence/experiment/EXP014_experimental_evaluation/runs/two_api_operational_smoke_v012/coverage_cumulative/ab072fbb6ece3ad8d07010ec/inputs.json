@@ -1,0 +1,16 @@
+{
+  "scope_hash": "51fc75cbe2d7ebf5ff164b3f4699f1cb22057f9ed15ceacc7f11ead361d10b54",
+  "profiles": [
+    {
+      "path": "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_001/attempt_001/coverage/coverage.profdata",
+      "hash": "aa70469463a72c180af5b663e88a8472f77e0338ce2be1674266da6a80da984e",
+      "summary_hash": "872efaa0b36ee227d998313a4f8efe4989a2451557ed4045444e459f94364816",
+      "quality_status": "partial_warning",
+      "warnings": [
+        "warning: 7 functions have mismatched data"
+      ]
+    }
+  ],
+  "worker_hash": "b8dd41bfc81f1948f190a97ce3b5f4b58769e1af435f905d44fe6a82b986401f",
+  "exporter_hash": "3711a5759f78016fe3a942c5586d5e824bfbac65866af13b964a22f4ab28c10f"
+}

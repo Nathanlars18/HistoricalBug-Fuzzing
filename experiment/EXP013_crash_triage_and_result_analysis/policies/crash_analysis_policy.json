@@ -1,13 +1,13 @@
 {
   "policy_format_version": "1.0",
   "policy_id": "crash_analysis_policy",
-  "policy_version": "0.3",
+  "policy_version": "0.5",
   "policy_status": "draft",
   "compatibility": {
     "crash_protocol_version": "1.0",
-    "crash_case_record_version": "1.1",
+    "crash_case_record_version": "1.2",
     "fuzzing_round_record_version": "1.0",
-    "candidate_bundle_record_version": "1.0"
+    "candidate_bundle_record_version": "1.1"
   },
   "algorithms": {
     "canonicalization": {
@@ -25,14 +25,13 @@
     },
     "observation_signature": {
       "algorithm_id": "crash_observation_signature",
-      "algorithm_version": "1.0",
+      "algorithm_version": "2.0",
       "input_components": [
         "observation_kind",
         "observation_subtype",
-        "normalized_primary_diagnostic",
-        "normalized_framework_frames"
+        "normalized_failure_diagnostic_lines"
       ],
-      "maximum_framework_frames": 5,
+      "maximum_diagnostic_lines": 80,
       "normalize_addresses": true,
       "normalize_absolute_paths": true,
       "normalize_thread_ids": true,
@@ -124,10 +123,13 @@
       "/identity/case_id",
       "/identity/case_key",
       "/identity/target_api_id",
+      "/capture_record",
       "/origin/fuzzing_round_ref",
       "/origin/candidate_observation_id",
       "/candidate_event/observed_at",
-      "/evidence/triggering_input_ref"
+      "/evidence/triggering_input_ref",
+      "/origin/candidate_bundle_ref",
+      "/evidence/primary_diagnostic_ref"
     ]
   }
 }

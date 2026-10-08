@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.1",
+  "review_id": "hs_review:hs_pytorch_torch.batch_norm_update_stats_bug_aware_static:r5:rr1",
+  "review_revision": 1,
+  "parent_review_ref": null,
+  "subject": {
+    "spec_id": "hs_pytorch_torch.batch_norm_update_stats_bug_aware_static",
+    "revision_number": 5,
+    "content_hash": "adb28991810871bdea9fb0c8343550c24232166c87ce41948e7f971f785ceb07",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r5.json"
+  },
+  "rules_ref": {
+    "artifact_id": "harness_spec_human_review_rules__v1.3__sha256_469418fea7ac324a909e4f8da8d4fd94f4de59ae1bfe006b8046bf8d29584251.md",
+    "artifact_version": "1.3",
+    "content_hash": "469418fea7ac324a909e4f8da8d4fd94f4de59ae1bfe006b8046bf8d29584251",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_review_artifacts/harness_spec_human_review_rules__v1.3__sha256_469418fea7ac324a909e4f8da8d4fd94f4de59ae1bfe006b8046bf8d29584251.md"
+  },
+  "decision": "needs_revision",
+  "findings": [
+    {
+      "criterion_id": "HR-04",
+      "severity": "blocking",
+      "field_path": "$.knowledge_plan.knowledge_decisions[0].component_mappings[1]",
+      "evidence_ref": "knowledge:kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002#/exploration_guidance/variation_opportunities/0",
+      "mismatch_summary": "The mapping defers the complete component although the cited source contains a directly expressible zero-element sub-scope. The branch also states a positive zero-element exploration goal without a structured target condition that downstream Strategy can materialize. The supported sub-scope must be represented while unsupported normalized-dimension details remain explicitly deferred."
+    }
+  ],
+  "reviewer_id": "nathan",
+  "reviewed_at": "2026-10-05T08:57:36.435020Z",
+  "review_notes": null
+}

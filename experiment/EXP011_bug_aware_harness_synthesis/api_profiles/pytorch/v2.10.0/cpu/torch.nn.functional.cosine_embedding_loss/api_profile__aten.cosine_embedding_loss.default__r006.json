@@ -1,0 +1,622 @@
+{
+  "schema_version": "1.3",
+  "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.nn.functional.cosine_embedding_loss:python_default:aten.cosine_embedding_loss.default",
+  "revision": 6,
+  "metadata": {
+    "parent_revision_ref": {
+      "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.nn.functional.cosine_embedding_loss:python_default:aten.cosine_embedding_loss.default",
+      "revision": 5,
+      "content_hash": "97c3c0b0dc13b638846681db83bc0260bd01ea4774d0245e0b2c7a78346f50cd"
+    },
+    "generated_at": "2026-10-04T10:36:34.619627Z",
+    "builder_version": "api_profile_builder_v0.6",
+    "content_hash": "8140acffb5eccd0cbf6a58164522dcf08011564b37d8e0d0c2aa9d61e5f737dd"
+  },
+  "target": {
+    "framework": "pytorch",
+    "framework_version": "v2.10.0",
+    "framework_commit": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "backend_scope": [
+      "cpu"
+    ],
+    "python_api": "torch.nn.functional.cosine_embedding_loss",
+    "callable_kind": "function",
+    "python_variant": "python_default",
+    "aliases": []
+  },
+  "python_contract": {
+    "documentation_status": "partial",
+    "coverage": {
+      "signature": "complete",
+      "parameters": "complete",
+      "returns": "complete",
+      "domains": "not_collected",
+      "exceptions": "not_collected",
+      "constraints": "not_collected",
+      "effects": "not_collected"
+    },
+    "signature": "(input1: torch.Tensor, input2: torch.Tensor, target: torch.Tensor, margin: float = 0, size_average: Optional[bool] = None, reduce: Optional[bool] = None, reduction: str = 'mean') -> torch.Tensor",
+    "behavior_summary": "Compute the cosine embedding loss.",
+    "parameters": [
+      {
+        "parameter_id": "param_000_input1",
+        "name": "input1",
+        "ordinal": 0,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "torch.Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "input_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      },
+      {
+        "parameter_id": "param_001_input2",
+        "name": "input2",
+        "ordinal": 1,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "torch.Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "other_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      },
+      {
+        "parameter_id": "param_002_target",
+        "name": "target",
+        "ordinal": 2,
+        "parameter_kind": "positional_or_keyword",
+        "required": true,
+        "documented_type": "torch.Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "default": {
+          "kind": "no_default",
+          "value": null
+        },
+        "semantic_role": "other_tensor",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      },
+      {
+        "parameter_id": "param_003_margin",
+        "name": "margin",
+        "ordinal": 3,
+        "parameter_kind": "positional_or_keyword",
+        "required": false,
+        "documented_type": "float",
+        "normalized_types": [
+          "floating"
+        ],
+        "default": {
+          "kind": "literal",
+          "value": 0
+        },
+        "semantic_role": "scalar",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      },
+      {
+        "parameter_id": "param_004_size_average",
+        "name": "size_average",
+        "ordinal": 4,
+        "parameter_kind": "positional_or_keyword",
+        "required": false,
+        "documented_type": "Optional[bool]",
+        "normalized_types": [
+          "boolean",
+          "none"
+        ],
+        "default": {
+          "kind": "none_literal",
+          "value": null
+        },
+        "semantic_role": "boolean_flag",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      },
+      {
+        "parameter_id": "param_005_reduce",
+        "name": "reduce",
+        "ordinal": 5,
+        "parameter_kind": "positional_or_keyword",
+        "required": false,
+        "documented_type": "Optional[bool]",
+        "normalized_types": [
+          "boolean",
+          "none"
+        ],
+        "default": {
+          "kind": "none_literal",
+          "value": null
+        },
+        "semantic_role": "boolean_flag",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      },
+      {
+        "parameter_id": "param_006_reduction",
+        "name": "reduction",
+        "ordinal": 6,
+        "parameter_kind": "positional_or_keyword",
+        "required": false,
+        "documented_type": "str",
+        "normalized_types": [
+          "string"
+        ],
+        "default": {
+          "kind": "literal",
+          "value": "mean"
+        },
+        "semantic_role": "configuration",
+        "normalization_basis": "deterministic",
+        "constraint_refs": [],
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      }
+    ],
+    "returns": [
+      {
+        "return_id": "return_000",
+        "position": 0,
+        "documented_type": "torch.Tensor",
+        "normalized_types": [
+          "tensor"
+        ],
+        "semantic_role": "result_tensor",
+        "description": null,
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      }
+    ],
+    "documented_domains": [],
+    "documented_exceptions": [],
+    "evidence_refs": [
+      "ev_runtime_docstring",
+      "ev_runtime_signature"
+    ]
+  },
+  "target_binding": {
+    "binding_kind": "aten_operator",
+    "status": "resolved",
+    "operator_name": "aten::cosine_embedding_loss",
+    "operator_overload": "default",
+    "operator_schema": "cosine_embedding_loss(Tensor input1, Tensor input2, Tensor target, float margin=0.0, int reduction=Mean) -> Tensor",
+    "cpp_callable": "at::cosine_embedding_loss",
+    "binding_parameters": [
+      {
+        "binding_parameter_id": "binding_param_000_input1",
+        "name": "input1",
+        "ordinal": 0,
+        "schema_type": "Tensor",
+        "default": null
+      },
+      {
+        "binding_parameter_id": "binding_param_001_input2",
+        "name": "input2",
+        "ordinal": 1,
+        "schema_type": "Tensor",
+        "default": null
+      },
+      {
+        "binding_parameter_id": "binding_param_002_target",
+        "name": "target",
+        "ordinal": 2,
+        "schema_type": "Tensor",
+        "default": null
+      },
+      {
+        "binding_parameter_id": "binding_param_003_margin",
+        "name": "margin",
+        "ordinal": 3,
+        "schema_type": "float",
+        "default": "0.0"
+      },
+      {
+        "binding_parameter_id": "binding_param_004_reduction",
+        "name": "reduction",
+        "ordinal": 4,
+        "schema_type": "int",
+        "default": "Mean"
+      }
+    ],
+    "argument_mapping": [
+      {
+        "python_parameter_ref": "param_000_input1",
+        "source_parameter_refs": [
+          "param_000_input1"
+        ],
+        "binding_parameter_ref": "binding_param_000_input1",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_001_input2",
+        "source_parameter_refs": [
+          "param_001_input2"
+        ],
+        "binding_parameter_ref": "binding_param_001_input2",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_002_target",
+        "source_parameter_refs": [
+          "param_002_target"
+        ],
+        "binding_parameter_ref": "binding_param_002_target",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_003_margin",
+        "source_parameter_refs": [
+          "param_003_margin"
+        ],
+        "binding_parameter_ref": "binding_param_003_margin",
+        "mapping_kind": "direct",
+        "transformation": null,
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": null,
+        "source_parameter_refs": [
+          "param_004_size_average",
+          "param_005_reduce",
+          "param_006_reduction"
+        ],
+        "binding_parameter_ref": "binding_param_004_reduction",
+        "mapping_kind": "packed",
+        "transformation": "_Reduction.legacy_get_enum(size_average, reduce) if size_average is not None or reduce is not None else _Reduction.get_enum(reduction)",
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "parameter_dispositions": [
+      {
+        "python_parameter_ref": "param_000_input1",
+        "disposition": "mapped",
+        "description": null,
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_001_input2",
+        "disposition": "mapped",
+        "description": null,
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_002_target",
+        "disposition": "mapped",
+        "description": null,
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_003_margin",
+        "disposition": "mapped",
+        "description": null,
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_004_size_average",
+        "disposition": "converted",
+        "description": "Participates in binding expression: _Reduction.legacy_get_enum(size_average, reduce) if size_average is not None or reduce is not None else _Reduction.get_enum(reduction)",
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_005_reduce",
+        "disposition": "converted",
+        "description": "Participates in binding expression: _Reduction.legacy_get_enum(size_average, reduce) if size_average is not None or reduce is not None else _Reduction.get_enum(reduction)",
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "python_parameter_ref": "param_006_reduction",
+        "disposition": "converted",
+        "description": "Participates in binding expression: _Reduction.legacy_get_enum(size_average, reduce) if size_average is not None or reduce is not None else _Reduction.get_enum(reduction)",
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "return_mapping": [
+      {
+        "binding_return_position": 0,
+        "python_return_ref": "return_000",
+        "mapping_kind": "direct",
+        "description": null,
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      }
+    ],
+    "evidence_refs": [
+      "ev_runtime_signature",
+      "ev_python_wrapper_source",
+      "ev_operator_schema"
+    ]
+  },
+  "documented_constraints": [],
+  "effects": [],
+  "flashfuzz_support": {
+    "flashfuzz_commit": "c1c752963596528e4752360cdaeac77a80f7e07d",
+    "api_list_status": "unlisted",
+    "evidence_refs": [
+      "ev_flashfuzz_api_list"
+    ]
+  },
+  "validation": {
+    "validation_status": "passed",
+    "execution_readiness": "ready",
+    "checks": [
+      {
+        "check_id": "check_python_resolution",
+        "check_kind": "python_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Python API resolved in the pinned runtime.",
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_runtime_docstring"
+        ]
+      },
+      {
+        "check_id": "check_signature_resolution",
+        "check_kind": "signature_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "One structured Python signature was resolved.",
+        "evidence_refs": [
+          "ev_runtime_signature"
+        ]
+      },
+      {
+        "check_id": "check_operator_schema_resolution",
+        "check_kind": "operator_schema_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "One target operator schema was selected.",
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_argument_mapping",
+        "check_kind": "argument_mapping",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Python-to-binding argument mapping is complete.",
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_return_mapping",
+        "check_kind": "return_mapping",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Binding-to-Python return mapping is complete.",
+        "evidence_refs": [
+          "ev_runtime_signature",
+          "ev_python_wrapper_source",
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_cpp_binding_resolution",
+        "check_kind": "cpp_binding_resolution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "A C++/ATen callable candidate was resolved.",
+        "evidence_refs": [
+          "ev_operator_schema"
+        ]
+      },
+      {
+        "check_id": "check_cpp_compile",
+        "check_kind": "cpp_compile",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Resolved C++ callable compiled in the pinned runtime.",
+        "evidence_refs": [
+          "ev_cpp_compile_validation",
+          "ev_runtime_validation_case"
+        ]
+      },
+      {
+        "check_id": "check_cpp_smoke_execution",
+        "check_kind": "cpp_smoke_execution",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "Compiled C++ API probe terminated normally.",
+        "evidence_refs": [
+          "ev_cpp_smoke_execution",
+          "ev_runtime_validation_case"
+        ]
+      },
+      {
+        "check_id": "check_target_reachability",
+        "check_kind": "target_reachability",
+        "backend": "cpu",
+        "status": "passed",
+        "summary": "The resolved target callable was reached by the C++ probe.",
+        "evidence_refs": [
+          "ev_cpp_smoke_execution",
+          "ev_runtime_validation_case"
+        ]
+      }
+    ],
+    "issues": []
+  },
+  "evidence": [
+    {
+      "evidence_id": "ev_runtime_docstring",
+      "source_kind": "runtime_docstring",
+      "source_location": "container://historicalbug/flashfuzz:torch2.10-api-metadata/torch.nn.functional.cosine_embedding_loss",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "torch.nn.functional.cosine_embedding_loss",
+      "content_hash": "91fb98903af69b190bb0ef43458b1514affa0d21493b217b0af0c996525e8994",
+      "excerpt": "Compute the cosine embedding loss.\n\nSee :class:`~torch.nn.CosineEmbeddingLoss` for details.\n\nArgs:\n   input1 (Tensor): Predicted values.\n   input2 (Tensor): Predicted values.\n   target (Tensor): Ground truth values.\n   margin (float, optional): Margin for cosine embedding. Has a default value of 0.\n   size_average (bool, optional): Deprecated (see :attr:`reduction`).\n   reduce (bool, optional): Deprecated (see :attr:`reduction`).\n   reduction (str, optional): Specifies the reduction to apply to the output:\n                              'none' | 'mean' | 'sum'. 'mean': the mean of the output is taken.\n                              'sum': the output will be summed. 'none': no reduction will be applied.\n                              Default: 'mean'.\n\nReturns:\n   Tensor: Cosine embedding loss.",
+      "collected_at": "2026-10-04T10:28:47.883463Z"
+    },
+    {
+      "evidence_id": "ev_runtime_signature",
+      "source_kind": "runtime_signature",
+      "source_location": "container://historicalbug/flashfuzz:torch2.10-api-metadata/torch.nn.functional.cosine_embedding_loss",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "torch.nn.functional.cosine_embedding_loss",
+      "content_hash": "aafe2b22fbf6babae710ade5ef60f8777050a3d3e2a1cb2a53fad7214c0d6496",
+      "excerpt": "(input1: torch.Tensor, input2: torch.Tensor, target: torch.Tensor, margin: float = 0, size_average: Optional[bool] = None, reduce: Optional[bool] = None, reduction: str = 'mean') -> torch.Tensor",
+      "collected_at": "2026-10-04T10:28:47.883463Z"
+    },
+    {
+      "evidence_id": "ev_python_wrapper_source",
+      "source_kind": "python_wrapper_source",
+      "source_location": "container://historicalbug/flashfuzz:torch2.10-api-metadata/usr/local/lib/python3.12/dist-packages/torch/nn/functional.py",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "torch.nn.functional.cosine_embedding_loss:L4198",
+      "content_hash": "f6335e443ce93ddf21ecf9d94bbb4d4a4d92e128c5bfb59826f35495c9c28703",
+      "excerpt": "def cosine_embedding_loss(\n    input1: Tensor,\n    input2: Tensor,\n    target: Tensor,\n    margin: float = 0,\n    size_average: Optional[bool] = None,\n    reduce: Optional[bool] = None,\n    reduction: str = \"mean\",\n) -> Tensor:  # noqa: D400,D402\n    r\"\"\"Compute the cosine embedding loss.\n\n    See :class:`~torch.nn.CosineEmbeddingLoss` for details.\n\n    Args:\n       input1 (Tensor): Predicted values.\n       input2 (Tensor): Predicted values.\n       target (Tensor): Ground truth values.\n       margin (float, optional): Margin for cosine embedding. Has a default value of 0.\n       size_average (bool, optional): Deprecated (see :attr:`reduction`).\n       reduce (bool, optional): Deprecated (see :attr:`reduction`).\n       reduction (str, optional): Specifies the reduction to apply to the output:\n                                  'none' | 'mean' | 'sum'. 'mean': the mean of the output is taken.\n                                  'sum': the output will be summed. 'none': no reduction will be ",
+      "collected_at": "2026-10-04T10:28:47.883463Z"
+    },
+    {
+      "evidence_id": "ev_operator_schema",
+      "source_kind": "operator_schema",
+      "source_location": "https://github.com/pytorch/pytorch/blob/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/native/native_functions.yaml",
+      "source_revision": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+      "locator": "aten::cosine_embedding_loss.default",
+      "content_hash": "29c55ccb397ea85a392eed7e176813a781dde1925bfc0f6c0a1fda635a421a83",
+      "excerpt": "cosine_embedding_loss(Tensor input1, Tensor input2, Tensor target, float margin=0.0, int reduction=Mean) -> Tensor",
+      "collected_at": "2026-10-04T10:28:47.883463Z"
+    },
+    {
+      "evidence_id": "ev_flashfuzz_api_list",
+      "source_kind": "flashfuzz_api_list",
+      "source_location": "third_party/FlashFuzz/testharness_generation/torch_cpu/api.txt",
+      "source_revision": "c1c752963596528e4752360cdaeac77a80f7e07d",
+      "locator": "torch.nn.functional.cosine_embedding_loss",
+      "content_hash": "d000ff747c4a517c7ff9685ee980606b27a0861c59fe7524cf3ac89c581d9055",
+      "excerpt": null,
+      "collected_at": "2026-10-04T10:28:47.883463Z"
+    },
+    {
+      "evidence_id": "ev_cpp_compile_validation",
+      "source_kind": "build_log",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/_runs/api_profile_runtime_validation__20261004T102920891067Z/torch.nn.functional.cosine_embedding_loss.log",
+      "source_revision": "sha256:6d5335ce21952176ae5c38bdfea0867d04980d7c2991420878bb6a262ecd393d",
+      "locator": "HBFG_COMPILE_STATUS=0",
+      "content_hash": "901b700f4fe6e5bdb6fb3214436cdf69bfdc89b5667784215ef258c2a9de94c4",
+      "excerpt": "#include <torch/torch.h>\n#include <cstdint>\n#include <exception>\n#include <iostream>\n#include <optional>\n\nint main() {\n  try {\n    auto hbfg_arg_0 = torch::ones({2, 3}, torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU));\n    auto hbfg_arg_1 = torch::ones({2, 3}, torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU));\n    auto hbfg_arg_2 = torch::ones({2}, torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU));\n    auto hbfg_result = at::cosine_embedding_loss(hbfg_arg_0, hbfg_arg_1, hbfg_arg_2);\n    (void)hbfg_result;\n    std::cout << \"HBFG_TARGET_REACHED\" << std::endl;\n    return 0;\n  } catch (const std::exception& error) {\n    std::cerr << \"HBFG_TARGET_EXCEPTION: \" << error.what() << std::endl;\n    return 90;\n  }\n}\n",
+      "collected_at": "2026-10-04T10:29:20.891067Z"
+    },
+    {
+      "evidence_id": "ev_cpp_smoke_execution",
+      "source_kind": "runtime_trace",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/_runs/api_profile_runtime_validation__20261004T102920891067Z/torch.nn.functional.cosine_embedding_loss.log",
+      "source_revision": "sha256:6d5335ce21952176ae5c38bdfea0867d04980d7c2991420878bb6a262ecd393d",
+      "locator": "HBFG_RUN_STATUS=0 and HBFG_TARGET_REACHED",
+      "content_hash": "901b700f4fe6e5bdb6fb3214436cdf69bfdc89b5667784215ef258c2a9de94c4",
+      "excerpt": "C++ probe invoked the resolved target and terminated normally.",
+      "collected_at": "2026-10-04T10:29:20.891067Z"
+    },
+    {
+      "evidence_id": "ev_runtime_validation_case",
+      "source_kind": "validation_case",
+      "source_location": "experiment/EXP011_bug_aware_harness_synthesis/validation_cases/pytorch/v2.10.0/cpu/torch.nn.functional.cosine_embedding_loss/ordinary_valid_smoke__v001.json",
+      "source_revision": "1.0",
+      "locator": "vc_pytorch_v2_10_cpu_cosine_embedding_loss_ordinary_valid_smoke_v001",
+      "content_hash": "93fa3ac2c82bf4ad095965363cf567a1d827b1effb17cc01f768261faa4c8966",
+      "excerpt": "{\"arguments\": [{\"binding_parameter_ref\": \"binding_param_000_input1\", \"value\": {\"dtype\": \"float32\", \"fill\": \"ones\", \"kind\": \"tensor\", \"shape\": [2, 3]}}, {\"binding_parameter_ref\": \"binding_param_001_input2\", \"value\": {\"dtype\": \"float32\", \"fill\": \"ones\", \"kind\": \"tensor\", \"shape\": [2, 3]}}, {\"binding_parameter_ref\": \"binding_param_002_target\", \"value\": {\"dtype\": \"float32\", \"fill\": \"ones\", \"kind\": \"tensor\", \"shape\": [2]}}], \"case_id\": \"vc_pytorch_v2_10_cpu_cosine_embedding_loss_ordinary_valid_smoke_v001\", \"evidence\": [{\"content_hash\": \"7a8aa9bbcbc0b9f0c2bedc7ff4d0f74c4d68d221ed39867c799dca704abf635a\", \"evidence_id\": \"ev_pytorch_cosine_embedding_loss_contract\", \"excerpt\": \"Shape: Input1 is (N, D) or (D); Input2 has the same shape as Input1; Target is (N) or (). The official example uses two rank-2 inputs and a rank-1 target. This smoke case instantiates that documented ordinary-valid form with N=2 and D=3.\", \"locator\": \"CosineEmbeddingLoss docstring, lines 1420-1472\", \"source_kind\": \"pytorc",
+      "collected_at": "2026-10-04T10:29:20.891067Z"
+    }
+  ],
+  "review": {
+    "review_status": "approved",
+    "reviewer": "nathan",
+    "reviewed_at": "2026-10-04T10:36:34.619627Z",
+    "issue_refs": []
+  }
+}

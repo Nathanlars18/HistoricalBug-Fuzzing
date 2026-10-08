@@ -1,7 +1,7 @@
 {
-  "contract_version": "1.5",
+  "contract_version": "1.8",
   "contract_name": "historical_bug_aware_strategy_synthesis",
-  "target_record_schema_version": "1.1",
+  "target_record_schema_version": "1.3",
   "response_format": {
     "format": "json_object_only",
     "markdown_fence_forbidden": true,
@@ -14,11 +14,11 @@
           "source_branches",
           "global_constraints",
           "branch_constraints",
-          "branch_preconditions",
-          "target_properties",
-          "activation_targets",
-          "oracle_requirements",
+          "target_conditions",
+          "behavior_observations",
+          "behavior_checks",
           "required_spec_elements",
+          "runner_observation_elements",
           "exposable_spec_parameters"
         ],
         "purpose": "Defines the fixed semantic testing plan. Global constraints occur once at the view root; branch-local elements occur only inside their source branch."
@@ -28,9 +28,15 @@
           "target_api_primitive_id",
           "input_ports",
           "output_ports",
-          "api_binding"
+          "api_binding",
+          "python_signature",
+          "documented_constraints",
+          "ordinary_valid_witnesses",
+          "ordinary_input_recipe",
+          "argument_relation_rules",
+          "resource_policy"
         ],
-        "purpose": "Defines the only permitted target API invocation primitive. A branch uses it once normally or twice with identical bindings for a selected determinism Oracle."
+        "purpose": "Defines the only permitted target API invocation primitive and evidence-scoped API context. A branch uses it exactly once. Ordinary-valid witnesses demonstrate reachability but their concrete values are not requirements. Argument-relation rules prevent unrelated auxiliary arguments from masking the intended exploration and do not impose universal branch validity."
       },
       "template_interface_view": {
         "contains": [
@@ -78,17 +84,15 @@
     "traceable_spec_element_type": [
       "global_constraint",
       "branch_constraint",
-      "branch_precondition",
-      "target_property",
-      "activation_target",
-      "oracle_requirement"
+      "target_condition",
+      "behavior_observation",
+      "behavior_check"
     ],
     "parameter_source_spec_element_type": [
       "global_constraint",
       "branch_constraint",
-      "branch_precondition",
-      "target_property",
-      "oracle_requirement"
+      "target_condition",
+      "behavior_check"
     ],
     "dynamic_values": {
       "primitive_id": "Must be an exact primitive_candidate_views.primitive_id or the exact resolved_api_primitive_view.target_api_primitive_id. The latter is permitted only for the unique target_call Step.",
@@ -114,7 +118,7 @@
     },
     "spec_binding": {
       "scope_rule": "A non-global source element may be bound only in its own source branch. A global_constraint may be bound in every source branch.",
-      "coverage_rule": "Each element listed in harness_spec_view.required_spec_elements must have exactly one spec_binding in its applicable branch."
+      "coverage_rule": "Each element listed in harness_spec_view.required_spec_elements must have exactly one in-harness spec_binding in its applicable branch. Elements listed in runner_observation_elements are Builder-owned and must not be emitted by the LLM."
     }
   },
   "response_constraints": {
@@ -135,10 +139,11 @@
       "value_refs_must_not_cross_branch_or_reference_later_steps": true,
       "spec_binding_step_ids_must_be_unique_main_path_ids": true,
       "spec_binding_step_ids_must_follow_branch_execution_order": true,
-      "target_property_risk_dimensions_must_be_jointly_covered": true,
-      "activation_observation_phases_must_each_be_covered": true,
+      "predicate_ids_and_observation_phases_must_be_covered": true,
+      "exploration_variables_must_be_observed_not_enforced": true,
+      "exploration_variables_must_retain_fuzz_dependence": true,
       "spec_binding_auxiliary_steps_must_be_dataflow_ancestors_of_direct_semantic_steps": true,
-      "target_api_invocation_cardinality": "Exactly one target API Step per branch, except that a branch implementing a determinism Oracle must contain exactly two target API Steps with identical input and parameter bindings.",
+      "target_api_invocation_cardinality": "Exactly one target API Step per branch. Repeated invocations, if later required by a behavior check, require a separately reviewed Contract extension.",
       "target_api_invoke_slot": "target_call",
       "each_step_must_be_semantically_used": {
         "satisfied_when_any": [
@@ -148,6 +153,7 @@
         ]
       },
       "branch_semantics_must_not_be_added_or_changed": true,
+      "historical_concrete_inputs_must_not_be_invented": true,
       "raw_cpp_code_forbidden": true,
       "helper_names_forbidden": true,
       "emitter_ids_forbidden": true,
@@ -160,7 +166,10 @@
         "provenance",
         "review",
         "failure_handlers"
-      ]
+      ],
+      "api_defaults_may_be_omitted_or_varied_with_declared_fuzz_domains": true,
+      "omitted_middle_positional_defaults_forbidden": true,
+      "property_specific_exploration_domains_required": true
     },
     "blocked_response_constraints": {
       "use_only_for_real_capability_or_semantic_gaps": true,
@@ -178,6 +187,7 @@
       "Validate raw local references, then normalize step and value identifiers using branch execution order and Catalog output-port order.",
       "Reject unknown or duplicate implementation_step_ids and order valid IDs by branch step execution order.",
       "Resolve the selected API-binding primitive against the API Profile.",
+      "Bind on_target_api_termination observations deterministically to the complete Runner termination event set.",
       "Derive deterministic failure handlers from selected primitive outcome contracts.",
       "Recompute exact API and Helper Profile content hashes before accepting their references.",
       "Populate final record metadata, references, hashes, provenance, and review defaults.",
@@ -266,5 +276,9 @@
       "spec_element_id": "<exact_source_spec_element_id>",
       "parameter_name": "<exact_exposable_parameter_name>"
     }
+  },
+  "materialization_preflight": {
+    "required": true,
+    "description": "All selected emitters run locally before a Strategy is accepted. Unsupported source forms are input capability gaps, not reasons to weaken semantics or spend repeated LLM attempts."
   }
 }

@@ -28,12 +28,16 @@ except ImportError as exc:  # pragma: no cover
     ) from exc
 
 
-BUILDER_VERSION = "api_profile_builder_v0.3"
-SCHEMA_VERSION = "1.0"
+BUILDER_VERSION = "api_profile_builder_v0.6"
+SCHEMA_VERSION = "1.3"
 DEFAULT_RUNTIME_CONFIG = Path("runtime/flashfuzz_2_10/runtime_config.json")
 DEFAULT_SCHEMA = Path(
     "experiment/EXP011_bug_aware_harness_synthesis/"
     "schemas/api_profile_record.schema.json"
+)
+DEFAULT_VALIDATION_CASE_SCHEMA = Path(
+    "experiment/EXP011_bug_aware_harness_synthesis/"
+    "schemas/api_profile_validation_case.schema.json"
 )
 DEFAULT_OUTPUT_ROOT = Path(
     "experiment/EXP011_bug_aware_harness_synthesis/api_profiles"
@@ -109,17 +113,60 @@ def runtime_api(dotted_name):
         for part in parts:
             obj = getattr(obj, part)
         try:
-            signature = str(inspect.signature(obj))
+            inspected_signature = inspect.signature(obj)
+            signature = str(inspected_signature)
+            parameters = []
+            for parameter in inspected_signature.parameters.values():
+                annotation = (
+                    None if parameter.annotation is inspect.Parameter.empty
+                    else inspect.formatannotation(parameter.annotation)
+                )
+                default = (
+                    None if parameter.default is inspect.Parameter.empty
+                    else repr(parameter.default)
+                )
+                parameters.append({
+                    "name": parameter.name,
+                    "kind": parameter.kind.name.lower(),
+                    "annotation": annotation,
+                    "default": default,
+                })
+            return_annotation = (
+                None if inspected_signature.return_annotation is inspect.Signature.empty
+                else inspect.formatannotation(inspected_signature.return_annotation)
+            )
         except Exception:
             signature = None
+            parameters = []
+            return_annotation = None
         try:
             docstring = inspect.getdoc(obj)
         except Exception:
             docstring = None
+        try:
+            source_file = inspect.getsourcefile(obj)
+            source_lines, source_line = inspect.getsourcelines(obj)
+            source_text = "".join(source_lines)
+            source_hash = (
+                sha256_file(Path(source_file))
+                if source_file and Path(source_file).is_file()
+                else None
+            )
+        except Exception:
+            source_file = None
+            source_line = None
+            source_text = None
+            source_hash = None
         return {
             "resolved": True,
             "signature": signature,
+            "parameters": parameters,
+            "return_annotation": return_annotation,
             "docstring": docstring,
+            "source_file": source_file,
+            "source_line": source_line,
+            "source_text": source_text,
+            "source_hash": source_hash,
             "torch_version": getattr(torch, "__version__", None),
             "torch_git_version": getattr(getattr(torch, "version", None), "git_version", None),
             "torch_package_root": str(Path(torch.__file__).resolve().parent),
@@ -129,7 +176,13 @@ def runtime_api(dotted_name):
         return {
             "resolved": False,
             "signature": None,
+            "parameters": [],
+            "return_annotation": None,
             "docstring": None,
+            "source_file": None,
+            "source_line": None,
+            "source_text": None,
+            "source_hash": None,
             "torch_version": None,
             "torch_git_version": None,
             "torch_package_root": None,
@@ -202,6 +255,15 @@ print(json.dumps({
 
 class BuildError(RuntimeError):
     """A requested record cannot be safely materialized."""
+
+
+class RuntimeProbeError(BuildError):
+    """A C++ probe failed after producing preservable diagnostics."""
+
+    def __init__(self, message: str, source: str, log: str) -> None:
+        super().__init__(message)
+        self.source = source
+        self.log = log
 
 
 @dataclass
@@ -331,7 +393,125 @@ exit "$run_status"
 """
 
 
-def cpp_runtime_probe_source(profile: dict[str, Any]) -> str:
+def cpp_value_expression(
+    index: int,
+    parameter: dict[str, Any],
+    value: dict[str, Any] | None,
+) -> tuple[str | None, str]:
+    schema_type = str(parameter["schema_type"]).strip()
+    optional = schema_type.endswith("?")
+    base_type = schema_type[:-1].strip() if optional else schema_type
+    if re.fullmatch(r"Tensor(?:\([^)]*\))?", base_type):
+        base_type = "Tensor"
+    variable = f"hbfg_arg_{index}"
+
+    if value is not None:
+        kind = value["kind"]
+        if kind == "none":
+            if not optional:
+                raise BuildError(f"Validation case cannot assign none to {parameter['name']}")
+            return None, "std::nullopt"
+        if kind == "tensor" and base_type == "Tensor":
+            dtype = {
+                "float32": "torch::kFloat32",
+                "float64": "torch::kFloat64",
+                "int64": "torch::kInt64",
+                "bool": "torch::kBool",
+            }[value["dtype"]]
+            fill = "ones" if value["fill"] == "ones" else "zeros"
+            shape = ", ".join(str(item) for item in value["shape"])
+            declaration = (
+                f"    auto {variable} = torch::{fill}({{{shape}}}, "
+                f"torch::TensorOptions().dtype({dtype}).device(torch::kCPU));"
+            )
+            return declaration, variable
+        if kind == "floating" and base_type == "float":
+            return f"    double {variable} = {float(value['value'])!r};", variable
+        if kind == "integer" and base_type in {"int", "SymInt"}:
+            ctype = "c10::SymInt" if base_type == "SymInt" else "int64_t"
+            return f"    {ctype} {variable} = {int(value['value'])};", variable
+        if kind == "boolean" and base_type == "bool":
+            literal = "true" if value["value"] else "false"
+            return f"    bool {variable} = {literal};", variable
+        raise BuildError(
+            f"Validation case kind {kind!r} is incompatible with "
+            f"{parameter['name']}: {schema_type}"
+        )
+
+    if optional:
+        return None, "std::nullopt"
+    if base_type == "Tensor":
+        return (
+            f"    auto {variable} = torch::ones({{2, 2}}, "
+            "torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU));",
+            variable,
+        )
+    if base_type == "float":
+        return f"    double {variable} = 0.1;", variable
+    if base_type == "int":
+        return f"    int64_t {variable} = 1;", variable
+    if base_type == "SymInt":
+        return f"    c10::SymInt {variable} = 1;", variable
+    if base_type == "bool":
+        return f"    bool {variable} = false;", variable
+    raise BuildError(
+        "Runtime promotion supports Tensor, float, integer, boolean, "
+        "and their optional forms; "
+        f"unsupported {parameter['name']}: {schema_type}"
+    )
+
+
+def validate_runtime_case(
+    profile: dict[str, Any],
+    runtime_case: dict[str, Any],
+    case_schema: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    errors = sorted(
+        jsonschema.Draft202012Validator(case_schema).iter_errors(runtime_case),
+        key=lambda item: list(item.path),
+    )
+    if errors:
+        detail = "; ".join(
+            f"{'/'.join(map(str, error.path)) or '<root>'}: {error.message}"
+            for error in errors[:10]
+        )
+        raise BuildError(f"Validation case schema failed: {detail}")
+    reference = runtime_case["target"]
+    expected = {
+        "framework_commit": profile["target"]["framework_commit"],
+        "python_api": profile["target"]["python_api"],
+        "operator_name": profile["target_binding"]["operator_name"],
+        "operator_overload": profile["target_binding"]["operator_overload"],
+    }
+    if reference != expected:
+        raise BuildError("Validation case target does not match the promoted Profile")
+    evidence_ids = [item["evidence_id"] for item in runtime_case["evidence"]]
+    if len(evidence_ids) != len(set(evidence_ids)):
+        raise BuildError("Validation case evidence IDs are not unique")
+    unknown_evidence = set(runtime_case["source_evidence_refs"]) - set(evidence_ids)
+    if unknown_evidence:
+        raise BuildError(
+            f"Validation case has unknown source_evidence_refs: {sorted(unknown_evidence)}"
+        )
+    known_refs = {
+        item["binding_parameter_id"]
+        for item in profile["target_binding"]["binding_parameters"]
+    }
+    by_ref: dict[str, dict[str, Any]] = {}
+    for argument in runtime_case["arguments"]:
+        ref = argument["binding_parameter_ref"]
+        if ref not in known_refs:
+            raise BuildError(f"Validation case references unknown binding parameter: {ref}")
+        if ref in by_ref:
+            raise BuildError(f"Validation case repeats binding parameter: {ref}")
+        by_ref[ref] = argument["value"]
+    return by_ref
+
+
+def cpp_runtime_probe_source(
+    profile: dict[str, Any],
+    case_arguments: dict[str, dict[str, Any]] | None = None,
+) -> str:
     binding = profile["target_binding"]
     callable_name = binding.get("cpp_callable")
     if not isinstance(callable_name, str) or not re.fullmatch(
@@ -353,25 +533,21 @@ def cpp_runtime_probe_source(profile: dict[str, Any]) -> str:
                 "Runtime promotion cannot bind a required parameter after an "
                 "omitted default"
             )
-        schema_type = str(parameter["schema_type"])
-        if "Tensor" not in schema_type:
-            raise BuildError(
-                "Runtime promotion v1 supports required Tensor parameters only; "
-                f"unsupported {parameter['name']}: {schema_type}"
-            )
-        variable = f"hbfg_arg_{index}"
-        declarations.append(
-            f"    auto {variable} = torch::ones({{2, 2}}, "
-            "torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU));"
+        value = (
+            case_arguments.get(parameter["binding_parameter_id"])
+            if case_arguments is not None else None
         )
-        arguments.append(variable)
+        declaration, expression = cpp_value_expression(index, parameter, value)
+        if declaration is not None:
+            declarations.append(declaration)
+        arguments.append(expression)
 
-    if not arguments:
-        raise BuildError("Runtime promotion requires at least one bound argument")
     body = "\n".join(declarations)
     return f"""#include <torch/torch.h>
+#include <cstdint>
 #include <exception>
 #include <iostream>
+#include <optional>
 
 int main() {{
   try {{
@@ -392,8 +568,9 @@ def run_cpp_runtime_probe(
     image: str,
     profile: dict[str, Any],
     timeout: int,
+    case_arguments: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[str, str, str]:
-    source = cpp_runtime_probe_source(profile)
+    source = cpp_runtime_probe_source(profile, case_arguments)
     try:
         image_result = subprocess.run(
             ["docker", "image", "inspect", image, "--format", "{{.Id}}"],
@@ -435,17 +612,19 @@ def run_cpp_runtime_probe(
         f"{result.stderr}"
     )
     if compile_status != 0:
-        raise BuildError(
+        raise RuntimeProbeError(
             "C++ API probe compilation failed: "
-            + (result.stdout + result.stderr).strip()[-2000:]
+            + (result.stdout + result.stderr).strip()[-2000:], source, log
         )
     if result.returncode != 0 or run_status != 0:
-        raise BuildError(
+        raise RuntimeProbeError(
             "C++ API probe execution failed: "
-            + (result.stdout + result.stderr).strip()[-2000:]
+            + (result.stdout + result.stderr).strip()[-2000:], source, log
         )
     if "HBFG_TARGET_REACHED" not in result.stdout:
-        raise BuildError("C++ API probe did not emit target-reached evidence")
+        raise RuntimeProbeError(
+            "C++ API probe did not emit target-reached evidence", source, log
+        )
     return source, log, image_id
 
 
@@ -460,13 +639,10 @@ def promote_runtime_profile(
     validate_profile(source_profile, schema, expected_commit=expected_commit)
     if source_profile["target_binding"]["status"] != "resolved":
         raise BuildError("Runtime promotion requires target_binding.status=resolved")
+    if source_profile["target_binding"].get("binding_kind", "aten_operator") != "aten_operator":
+        raise BuildError("Runtime promotion currently supports only aten_operator bindings")
 
     collected_at = utc_now()
-    source, log, image_id = run_cpp_runtime_probe(
-        args.docker_image,
-        source_profile,
-        args.probe_timeout,
-    )
     run_id = collected_at.replace("-", "").replace(":", "").replace(".", "")
     log_path = (
         args.output_root
@@ -474,6 +650,25 @@ def promote_runtime_profile(
         / f"api_profile_runtime_validation__{safe_component(run_id)}"
         / f"{safe_component(source_profile['target']['python_api'])}.log"
     )
+    runtime_case = None
+    case_arguments = None
+    if args.validation_case is not None:
+        runtime_case = load_json(args.validation_case)
+        case_schema = load_json(args.validation_case_schema)
+        case_arguments = validate_runtime_case(source_profile, runtime_case, case_schema)
+    try:
+        source, log, image_id = run_cpp_runtime_probe(
+            args.docker_image,
+            source_profile,
+            args.probe_timeout,
+            case_arguments,
+        )
+    except RuntimeProbeError as exc:
+        failed_path = log_path.with_suffix(".failed.log")
+        if not args.dry_run:
+            failed_path.parent.mkdir(parents=True, exist_ok=True)
+            failed_path.write_text(exc.log, encoding="utf-8")
+        raise BuildError(f"{exc} Full diagnostics: {failed_path}") from exc
     if not args.dry_run:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         log_path.write_text(log, encoding="utf-8")
@@ -514,6 +709,18 @@ def promote_runtime_profile(
             ),
         ]
     )
+    if runtime_case is not None:
+        case_text = json.dumps(runtime_case, ensure_ascii=False, sort_keys=True)
+        profile["evidence"].append(evidence(
+            "ev_runtime_validation_case",
+            "validation_case",
+            args.validation_case.as_posix(),
+            runtime_case["schema_version"],
+            runtime_case["case_id"],
+            file_hash(args.validation_case),
+            case_text,
+            collected_at,
+        ))
     check_updates = {
         "check_cpp_compile": (
             "ev_cpp_compile_validation",
@@ -533,15 +740,34 @@ def promote_runtime_profile(
         if update is not None:
             check["status"] = "passed"
             check["summary"] = update[1]
-            check["evidence_refs"] = [update[0]]
-    if profile["validation"]["issues"]:
-        raise BuildError("Runtime promotion cannot approve a Profile with issues")
+            check["evidence_refs"] = [update[0]] + (
+                ["ev_runtime_validation_case"] if runtime_case is not None else []
+            )
+    blocking_issues = [
+        item for item in profile["validation"]["issues"] if item["blocking"]
+    ]
+    if blocking_issues:
+        issue_ids = ", ".join(item["issue_id"] for item in blocking_issues)
+        raise BuildError(
+            "Runtime promotion cannot approve a Profile with blocking issues: "
+            f"{issue_ids}"
+        )
+    blocked_checks = [
+        check["check_id"]
+        for check in profile["validation"]["checks"]
+        if check["status"] == "blocked"
+    ]
+    if blocked_checks:
+        raise BuildError(
+            "Runtime promotion cannot approve a Profile with blocked checks: "
+            + ", ".join(blocked_checks)
+        )
     profile["validation"]["validation_status"] = "passed"
     profile["validation"]["execution_readiness"] = "ready"
     profile["review"] = {
-        "review_status": "approved",
-        "reviewer": args.reviewer,
-        "reviewed_at": collected_at,
+        "review_status": "unreviewed",
+        "reviewer": None,
+        "reviewed_at": None,
         "issue_refs": [],
     }
     profile["metadata"]["content_hash"] = profile_hash(profile)
@@ -607,19 +833,63 @@ def parse_native_schema(schema: str) -> tuple[list[dict[str, Any]], list[str]]:
 def normalized_types(type_text: str | None) -> list[str]:
     if not type_text:
         return ["unknown"]
-    lowered = type_text.lower()
-    tests = [
-        ("tensor[]", "tensor_sequence"), ("list[tensor", "tensor_sequence"),
-        ("tensor", "tensor"), ("symint", "integer"), ("int", "integer"),
-        ("float", "floating"), ("double", "floating"), ("scalar", "scalar"),
-        ("bool", "boolean"), ("str", "string"), ("dtype", "dtype"),
-        ("scalartype", "dtype"), ("device", "device"), ("layout", "layout"),
-        ("memoryformat", "memory_format"), ("generator", "generator"),
-    ]
+    lowered = type_text.lower().strip()
+    optional = lowered.startswith("optional[") and lowered.endswith("]")
+    if optional:
+        lowered = lowered[len("optional["):-1]
+
+    parts: list[str] = []
+    depth = start = 0
+    for index, char in enumerate(lowered):
+        if char in "([":
+            depth += 1
+        elif char in ")]":
+            depth = max(0, depth - 1)
+        elif char == "|" and depth == 0:
+            parts.append(lowered[start:index].strip())
+            start = index + 1
+    parts.append(lowered[start:].strip())
+
+    def classify(part: str) -> str:
+        root = part.split("[", 1)[0].strip()
+        normalized_root = root.rsplit(".", 1)[-1].lstrip("_")
+        if part.endswith("[]") or (root in {"list", "sequence"} and "tensor" in part):
+            return "tensor_sequence"
+        if "tensor" in normalized_root:
+            return "tensor"
+        if normalized_root in {"symint", "int", "integer"}:
+            return "integer"
+        if normalized_root in {"float", "double"}:
+            return "floating"
+        if normalized_root == "scalar":
+            return "scalar"
+        if normalized_root in {"bool", "boolean"}:
+            return "boolean"
+        if normalized_root in {"str", "string"}:
+            return "string"
+        if normalized_root in {"dtype", "scalartype"}:
+            return "dtype"
+        if normalized_root == "device":
+            return "device"
+        if normalized_root == "layout":
+            return "layout"
+        if normalized_root == "memoryformat":
+            return "memory_format"
+        if normalized_root == "generator":
+            return "generator"
+        if normalized_root == "callable":
+            return "callable"
+        if normalized_root in {"none", "nonetype", "null"}:
+            return "none"
+        return "object"
+
     found: list[str] = []
-    for token, value in tests:
-        if token in lowered and value not in found:
+    for part in parts:
+        value = classify(part)
+        if value not in found:
             found.append(value)
+    if optional and "none" not in found:
+        found.append("none")
     return found or ["object"]
 
 
@@ -721,33 +991,58 @@ def collect_flashfuzz_support(
     return record, proof
 
 
-def select_signature(probe: dict[str, Any]) -> tuple[str | None, list[dict[str, Any]]]:
-    runtime_signature = probe["runtime"].get("signature")
-    declarations = probe["pyi"].get("signatures", [])
+def select_python_contract(probe: dict[str, Any]) -> dict[str, Any]:
+    """Select one Python-facing contract without substituting an ATen schema."""
+
+    runtime = probe["runtime"]
+    runtime_signature = runtime.get("signature")
     if runtime_signature:
-        return runtime_signature, declarations
-    texts = [item["declaration"] for item in declarations]
-    return (" | ".join(texts) if texts else None), declarations
+        return {
+            "signature": runtime_signature,
+            "parameters": runtime.get("parameters", []),
+            "return_annotation": runtime.get("return_annotation"),
+            "source": "runtime_signature",
+            "signature_coverage": "complete",
+            "parameter_coverage": "complete",
+            "return_coverage": (
+                "complete" if runtime.get("return_annotation") else "partial"
+            ),
+        }
+
+    declarations = probe["pyi"].get("signatures", [])
+    if len(declarations) == 1:
+        declaration = declarations[0]
+        return {
+            "signature": declaration["declaration"],
+            "parameters": declaration["parameters"],
+            "return_annotation": declaration.get("return_annotation"),
+            "source": "python_stub",
+            "signature_coverage": "complete",
+            "parameter_coverage": "complete",
+            "return_coverage": (
+                "complete" if declaration.get("return_annotation") else "partial"
+            ),
+        }
+    return {
+        "signature": (
+            " | ".join(item["declaration"] for item in declarations)
+            if declarations else None
+        ),
+        "parameters": [],
+        "return_annotation": None,
+        "source": "python_stub" if declarations else None,
+        "signature_coverage": "conflicting" if declarations else "missing",
+        "parameter_coverage": "conflicting" if declarations else "missing",
+        "return_coverage": "conflicting" if declarations else "missing",
+    }
 
 
 def build_python_parameters(
-    signatures: list[dict[str, Any]],
-    native: list[dict[str, Any]],
+    source_parameters: list[dict[str, Any]],
     evidence_refs: list[str],
 ) -> list[dict[str, Any]]:
-    source = signatures[0]["parameters"] if len(signatures) == 1 else []
-    if not source:
-        source = [
-            {
-                "name": item["name"],
-                "kind": "keyword_only" if item["keyword_only"] else "positional_or_keyword",
-                "annotation": item["schema_type"],
-                "default": item["default"],
-            }
-            for item in native
-        ]
     records = []
-    for ordinal, item in enumerate(source):
+    for ordinal, item in enumerate(source_parameters):
         types = normalized_types(item.get("annotation"))
         default = default_value(item.get("default"))
         records.append({
@@ -768,13 +1063,42 @@ def build_python_parameters(
 
 
 def build_returns(
-    signatures: list[dict[str, Any]],
-    native_returns: list[str],
+    return_annotation: str | None,
     evidence_refs: list[str],
 ) -> list[dict[str, Any]]:
-    source = native_returns
-    if not source and len(signatures) == 1 and signatures[0].get("return_annotation"):
-        source = [signatures[0]["return_annotation"]]
+    source: list[str] = []
+    if return_annotation:
+        source = [return_annotation]
+        try:
+            expression = ast.parse(return_annotation, mode="eval").body
+        except SyntaxError:
+            expression = None
+        if isinstance(expression, ast.Subscript):
+            root = expression.value
+            root_name = (
+                root.id if isinstance(root, ast.Name)
+                else root.attr if isinstance(root, ast.Attribute)
+                else None
+            )
+            elements = (
+                list(expression.slice.elts)
+                if isinstance(expression.slice, ast.Tuple)
+                else []
+            )
+            if (
+                root_name is not None
+                and root_name.lower() == "tuple"
+                and elements
+                and not any(
+                    isinstance(item, ast.Constant) and item.value is Ellipsis
+                    for item in elements
+                )
+            ):
+                source = [
+                    ast.get_source_segment(return_annotation, item)
+                    or ast.unparse(item)
+                    for item in elements
+                ]
     records = []
     for position, item in enumerate(source):
         types = normalized_types(item)
@@ -800,78 +1124,405 @@ def build_returns(
     return records
 
 
+def _resolve_wrapper_expression(
+    expression: ast.AST,
+    assignments: dict[str, ast.AST | None],
+    resolving: set[str] | None = None,
+) -> ast.AST | None:
+    """Resolve wrapper-local temporaries without replacing API parameters."""
+
+    resolving = set() if resolving is None else set(resolving)
+    if isinstance(expression, ast.Name) and expression.id in assignments:
+        if expression.id in resolving:
+            return copy.deepcopy(expression)
+        if assignments[expression.id] is None:
+            return None
+        resolving.add(expression.id)
+        return _resolve_wrapper_expression(
+            copy.deepcopy(assignments[expression.id]), assignments, resolving
+        )
+
+    resolved = copy.deepcopy(expression)
+
+    class Resolver(ast.NodeTransformer):
+        def visit_Name(self, node: ast.Name) -> ast.AST:  # noqa: N802
+            if not isinstance(node.ctx, ast.Load) or node.id not in assignments:
+                return node
+            replacement = _resolve_wrapper_expression(node, assignments, resolving)
+            if replacement is None:
+                raise ValueError(f"Ambiguous wrapper assignment for {node.id}")
+            return ast.copy_location(replacement, node)
+
+    try:
+        return ast.fix_missing_locations(Resolver().visit(resolved))
+    except ValueError:
+        return None
+
+
+def _assigned_names(statements: list[ast.stmt]) -> set[str]:
+    names: set[str] = set()
+    for statement in statements:
+        for node in ast.walk(statement):
+            if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+                names.add(node.id)
+    return names
+
+
+def _apply_wrapper_statements(
+    statements: list[ast.stmt],
+    incoming: dict[str, ast.AST | None],
+) -> dict[str, ast.AST | None]:
+    """Track simple assignments and join if/else definitions conservatively."""
+
+    environment = dict(incoming)
+    for statement in statements:
+        if isinstance(statement, (ast.Assign, ast.AnnAssign)):
+            targets = (
+                statement.targets if isinstance(statement, ast.Assign)
+                else [statement.target]
+            )
+            value = _resolve_wrapper_expression(statement.value, environment)
+            for target in targets:
+                if isinstance(target, ast.Name):
+                    environment[target.id] = value
+            continue
+        if isinstance(statement, ast.If):
+            body = _apply_wrapper_statements(statement.body, environment)
+            alternate = _apply_wrapper_statements(statement.orelse, environment)
+            changed = _assigned_names(statement.body) | _assigned_names(statement.orelse)
+            for name in changed:
+                before = environment.get(name, ast.Name(id=name, ctx=ast.Load()))
+                body_value = body.get(name, before)
+                alternate_value = alternate.get(name, before)
+                if body_value is None or alternate_value is None:
+                    environment[name] = None
+                elif ast.dump(body_value) == ast.dump(alternate_value):
+                    environment[name] = body_value
+                else:
+                    test = _resolve_wrapper_expression(statement.test, environment)
+                    environment[name] = (
+                        ast.IfExp(
+                            test=test,
+                            body=body_value,
+                            orelse=alternate_value,
+                        )
+                        if test is not None else None
+                    )
+            continue
+        if isinstance(statement, (ast.For, ast.AsyncFor, ast.While, ast.Try, ast.Match)):
+            for name in _assigned_names([statement]):
+                environment[name] = None
+    return environment
+
+
+def _wrapper_call_context(
+    wrapper_source: str | None,
+    target_leaf: str,
+) -> tuple[list[ast.AST] | None, dict[str, ast.AST], dict[str, ast.AST | None]]:
+    if not wrapper_source:
+        return None, {}, {}
+    try:
+        tree = ast.parse(wrapper_source)
+    except (SyntaxError, ValueError):
+        return None, {}, {}
+    functions = [
+        node for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    ]
+    if not functions:
+        return None, {}, {}
+    environment: dict[str, ast.AST | None] = {}
+    for statement in functions[0].body:
+        if not isinstance(statement, (ast.If, ast.For, ast.AsyncFor, ast.While, ast.Try, ast.Match)):
+            calls = [
+                node for node in ast.walk(statement)
+                if isinstance(node, ast.Call)
+                and (
+                    (isinstance(node.func, ast.Name) and node.func.id == target_leaf)
+                    or (
+                        isinstance(node.func, ast.Attribute)
+                        and node.func.attr == target_leaf
+                    )
+                )
+            ]
+            if calls:
+                target = calls[-1]
+                return (
+                    list(target.args),
+                    {
+                        keyword.arg: keyword.value
+                        for keyword in target.keywords
+                        if keyword.arg is not None
+                    },
+                    environment,
+                )
+        environment = _apply_wrapper_statements([statement], environment)
+    return None, {}, environment
+
+
 def build_argument_mapping(
     python_parameters: list[dict[str, Any]],
     binding_parameters: list[dict[str, Any]],
+    wrapper_source: str | None,
+    target_leaf: str,
     evidence_refs: list[str],
-) -> tuple[list[dict[str, Any]], bool]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], bool]:
     by_name = {item["name"]: item for item in python_parameters}
-    unused = list(python_parameters)
     records: list[dict[str, Any]] = []
     complete = True
+    call_arguments, keyword_arguments, assignment_values = _wrapper_call_context(
+        wrapper_source, target_leaf
+    )
+
+    mapped_python_refs: dict[str, tuple[str, str | None]] = {}
     for item in binding_parameters:
         source = by_name.get(item["name"])
-        kind = "direct"
-        if source is None and unused:
-            source, kind = unused[0], "renamed"
         if source is not None:
-            unused = [candidate for candidate in unused if candidate is not source]
-            source_ref = source["parameter_id"]
-        elif item["default"] is not None:
-            source_ref, kind = None, "default_injected"
-        else:
-            source_ref, kind, complete = None, "unresolved", False
+            binding_type_text = item["schema_type"]
+            if binding_type_text.endswith("?"):
+                binding_type_text = binding_type_text[:-1] + " | None"
+            python_types = set(source["normalized_types"]) - {"none", "unknown"}
+            binding_types = set(normalized_types(binding_type_text)) - {"none", "unknown"}
+            numeric_compatible = (
+                "scalar" in python_types
+                and bool(binding_types & {"integer", "floating"})
+            ) or (
+                "scalar" in binding_types
+                and bool(python_types & {"integer", "floating"})
+            )
+            if (
+                python_types and binding_types
+                and not (python_types & binding_types)
+                and not numeric_compatible
+            ):
+                source = None
+        kind = "unresolved"
+        transformation = None
+        mapping_evidence = list(evidence_refs)
+        raw_expression: ast.AST | None = keyword_arguments.get(item["name"])
+        if raw_expression is None and call_arguments is not None:
+            ordinal = item["ordinal"]
+            if ordinal < len(call_arguments):
+                raw_expression = call_arguments[ordinal]
+        expression = (
+            _resolve_wrapper_expression(raw_expression, assignment_values)
+            if raw_expression is not None else None
+        )
+        source_refs: list[str] = []
+        expression_classified = False
+        if raw_expression is not None and expression is None:
+            complete = False
+        elif expression is not None:
+            names = sorted(
+                {
+                    node.id for node in ast.walk(expression)
+                    if isinstance(node, ast.Name) and node.id in by_name
+                },
+                key=lambda name: (
+                    by_name[name]["ordinal"] is None,
+                    by_name[name]["ordinal"]
+                    if by_name[name]["ordinal"] is not None else 0,
+                    name,
+                ),
+            )
+            if isinstance(expression, ast.Name) and expression.id in by_name:
+                source = by_name[expression.id]
+                kind = "direct" if expression.id == item["name"] else "renamed"
+                transformation = None if kind == "direct" else ast.unparse(expression)
+                source_refs = [source["parameter_id"]]
+                expression_classified = True
+            elif len(names) == 1:
+                source = by_name[names[0]]
+                kind = "converted"
+                transformation = ast.unparse(expression)
+                source_refs = [source["parameter_id"]]
+                expression_classified = True
+            elif len(names) > 1:
+                source = None
+                kind = "packed"
+                transformation = ast.unparse(expression)
+                source_refs = [by_name[name]["parameter_id"] for name in names]
+                expression_classified = True
+            elif isinstance(expression, ast.Constant):
+                source = None
+                kind = "default_injected"
+                transformation = ast.unparse(expression)
+                expression_classified = True
+        if not expression_classified and raw_expression is None and source is not None:
+            kind = "direct"
+            source_refs = [source["parameter_id"]]
+        elif not expression_classified and raw_expression is None and item["default"] is not None:
+            kind = "default_injected"
+        elif not expression_classified:
+            complete = False
+        source_ref = source_refs[0] if len(source_refs) == 1 else None
+        for parameter_ref in source_refs:
+            disposition = "converted" if kind in {"converted", "packed"} else "mapped"
+            previous = mapped_python_refs.get(parameter_ref)
+            if previous is None or disposition == "converted":
+                mapped_python_refs[parameter_ref] = (disposition, transformation)
         records.append({
             "python_parameter_ref": source_ref,
+            "source_parameter_refs": source_refs,
             "binding_parameter_ref": item["binding_parameter_id"],
             "mapping_kind": kind,
-            "transformation": None,
-            "evidence_refs": evidence_refs,
+            "transformation": transformation,
+            "evidence_refs": mapping_evidence,
         })
-    return records, complete
+
+    wrapper_names: set[str] = set()
+    if wrapper_source:
+        try:
+            wrapper_names = {
+                node.id for node in ast.walk(ast.parse(wrapper_source))
+                if isinstance(node, ast.Name)
+            }
+        except SyntaxError:
+            wrapper_names = set()
+    dispositions = []
+    for parameter in python_parameters:
+        parameter_ref = parameter["parameter_id"]
+        mapped = mapped_python_refs.get(parameter_ref)
+        if mapped is None:
+            if wrapper_source and parameter["name"] in wrapper_names:
+                disposition = "consumed_by_wrapper"
+                description = "Consumed by the Python wrapper outside the selected binding expression."
+            else:
+                disposition = "unresolved"
+                description = None
+                complete = False
+        else:
+            disposition, expression_text = mapped
+            description = (
+                f"Participates in binding expression: {expression_text}"
+                if expression_text else None
+            )
+        dispositions.append({
+            "python_parameter_ref": parameter_ref,
+            "disposition": disposition,
+            "description": description,
+            "evidence_refs": list(evidence_refs),
+        })
+    return records, dispositions, complete
+
+
+def wrapper_calls_operator(wrapper_source: str | None, operator_leaf: str) -> bool:
+    if not wrapper_source:
+        return False
+    try:
+        tree = ast.parse(wrapper_source)
+    except SyntaxError:
+        return False
+    return any(
+        isinstance(node, ast.Call)
+        and (
+            (isinstance(node.func, ast.Name) and node.func.id == operator_leaf)
+            or (
+                isinstance(node.func, ast.Attribute)
+                and node.func.attr == operator_leaf
+            )
+        )
+        for node in ast.walk(tree)
+    )
 
 
 def build_validation(
     runtime_resolved: bool,
     runtime_doc_available: bool,
     runtime_version_mismatch: bool,
-    signature_count: int,
-    schema_resolved: bool,
-    mapping_complete: bool,
+    signature_resolved: bool,
+    binding_kind: str,
+    argument_mapping_complete: bool,
+    return_mapping_complete: bool,
     cpp_resolved: bool,
     refs: dict[str, str],
 ) -> dict[str, Any]:
-    def check(check_id: str, kind: str, passed: bool, yes: str, no: str, proof: list[str]):
+    def check(
+        check_id: str,
+        kind: str,
+        status: str,
+        summary: str,
+        proof: list[str],
+    ) -> dict[str, Any]:
         return {
             "check_id": check_id,
             "check_kind": kind,
             "backend": "cpu",
-            "status": "passed" if passed else "blocked",
-            "summary": yes if passed else no,
+            "status": status,
+            "summary": summary,
             "evidence_refs": proof,
         }
 
+    aten_route = binding_kind == "aten_operator"
     checks = [
-        check("check_python_resolution", "python_resolution", runtime_resolved,
-              "Python API resolved in the pinned runtime.",
-              "Python API is unavailable in the selected runtime image.",
-              [refs["doc"]] if refs.get("doc") else []),
-        check("check_signature_resolution", "signature_resolution", signature_count == 1,
-              "One Python signature was resolved.",
-              f"Resolved {signature_count} Python signature declarations.",
-              [refs["signature"]] if refs.get("signature") else []),
-        check("check_operator_schema_resolution", "operator_schema_resolution", schema_resolved,
-              "One target operator schema was selected.",
-              "No target operator schema was resolved.",
-              [refs["schema"]] if refs.get("schema") else []),
-        check("check_argument_mapping", "argument_mapping", mapping_complete,
-              "Python-to-binding argument mapping is complete.",
-              "Python-to-binding argument mapping is incomplete.",
-              [refs[key] for key in ("signature", "schema") if refs.get(key)]),
-        check("check_cpp_binding_resolution", "cpp_binding_resolution", cpp_resolved,
-              "A C++/ATen callable candidate was resolved.",
-              "No C++/ATen callable candidate was resolved.",
-              [refs["schema"]] if refs.get("schema") else []),
+        check(
+            "check_python_resolution", "python_resolution",
+            "passed" if runtime_resolved else "blocked",
+            (
+                "Python API resolved in the pinned runtime."
+                if runtime_resolved
+                else "Python API is unavailable in the selected runtime image."
+            ),
+            [refs[key] for key in ("signature", "doc") if refs.get(key)],
+        ),
+        check(
+            "check_signature_resolution", "signature_resolution",
+            "passed" if signature_resolved else "blocked",
+            (
+                "One structured Python signature was resolved."
+                if signature_resolved
+                else "No unambiguous structured Python signature was resolved."
+            ),
+            [refs["signature"]] if refs.get("signature") else [],
+        ),
+        check(
+            "check_operator_schema_resolution", "operator_schema_resolution",
+            ("passed" if refs.get("schema") else "blocked") if aten_route else "not_applicable",
+            (
+                "One target operator schema was selected."
+                if aten_route and refs.get("schema")
+                else "No target operator schema was resolved."
+                if aten_route
+                else "The selected execution route is Python-level and has no single ATen schema."
+            ),
+            [refs["schema"]] if refs.get("schema") else [],
+        ),
+        check(
+            "check_argument_mapping", "argument_mapping",
+            ("passed" if argument_mapping_complete else "blocked") if aten_route else "not_applicable",
+            (
+                "Python-to-binding argument mapping is complete."
+                if aten_route and argument_mapping_complete
+                else "Python-to-binding argument mapping is incomplete."
+                if aten_route
+                else "No Python-to-ATen mapping is required for the Python-level route."
+            ),
+            [refs[key] for key in ("signature", "wrapper", "schema") if refs.get(key)],
+        ),
+        check(
+            "check_return_mapping", "return_mapping",
+            ("passed" if return_mapping_complete else "blocked") if aten_route else "not_applicable",
+            (
+                "Binding-to-Python return mapping is complete."
+                if aten_route and return_mapping_complete
+                else "Binding-to-Python return mapping is incomplete."
+                if aten_route
+                else "No ATen return mapping is required for the Python-level route."
+            ),
+            [refs[key] for key in ("signature", "wrapper", "schema") if refs.get(key)],
+        ),
+        check(
+            "check_cpp_binding_resolution", "cpp_binding_resolution",
+            ("passed" if cpp_resolved else "blocked") if aten_route else "not_applicable",
+            (
+                "A C++/ATen callable candidate was resolved."
+                if aten_route and cpp_resolved
+                else "No C++/ATen callable candidate was resolved."
+                if aten_route
+                else "The Python-level route requires a non-C++ execution adapter."
+            ),
+            [refs["schema"]] if refs.get("schema") else [],
+        ),
     ]
     for check_id, kind, summary in (
         ("check_cpp_compile", "cpp_compile", "Compile validation was not requested."),
@@ -882,7 +1533,7 @@ def build_validation(
             "check_id": check_id,
             "check_kind": kind,
             "backend": "cpu",
-            "status": "not_run",
+            "status": "not_run" if aten_route else "not_applicable",
             "summary": summary,
             "evidence_refs": [],
         })
@@ -910,16 +1561,16 @@ def build_validation(
             "affected_refs": ["python_contract"],
             "evidence_refs": [],
         })
-    if signature_count != 1:
+    if not signature_resolved:
         issues.append({
             "issue_id": "issue_signature_ambiguity",
             "issue_kind": "signature_ambiguity",
-            "blocking": signature_count == 0,
-            "description": f"Expected one Python signature declaration; found {signature_count}.",
+            "blocking": True,
+            "description": "No unambiguous structured Python signature was resolved.",
             "affected_refs": ["python_contract"],
             "evidence_refs": [refs["signature"]] if refs.get("signature") else [],
         })
-    if not schema_resolved:
+    if aten_route and not refs.get("schema"):
         issues.append({
             "issue_id": "issue_binding_unresolved",
             "issue_kind": "binding_unresolved",
@@ -928,7 +1579,7 @@ def build_validation(
             "affected_refs": ["target_binding"],
             "evidence_refs": [],
         })
-    if schema_resolved and not mapping_complete:
+    if aten_route and not argument_mapping_complete:
         issues.append({
             "issue_id": "issue_argument_mapping_unresolved",
             "issue_kind": "argument_mapping_unresolved",
@@ -937,10 +1588,36 @@ def build_validation(
             "affected_refs": ["target_binding"],
             "evidence_refs": [refs["schema"]],
         })
+    if aten_route and not return_mapping_complete:
+        issues.append({
+            "issue_id": "issue_return_mapping_unresolved",
+            "issue_kind": "return_mapping_unresolved",
+            "blocking": True,
+            "description": "A binding return position lacks a supported Python return mapping.",
+            "affected_refs": ["target_binding", "python_contract.returns"],
+            "evidence_refs": [
+                refs[key] for key in ("signature", "wrapper", "schema")
+                if refs.get(key)
+            ],
+        })
+    if not aten_route:
+        issues.append({
+            "issue_id": "issue_execution_adapter_required",
+            "issue_kind": "execution_adapter_required",
+            "blocking": False,
+            "description": (
+                "The API is represented as a Python-level callable; the current "
+                "C++ Harness pipeline requires a separate execution adapter."
+            ),
+            "affected_refs": ["target_binding", "validation"],
+            "evidence_refs": [refs["signature"]] if refs.get("signature") else [],
+        })
     blocking = any(item["blocking"] for item in issues)
-    readiness = "blocked" if blocking else "unassessed"
+    readiness = "blocked" if blocking else "unassessed" if aten_route else "needs_adapter"
     return {
-        "validation_status": "failed" if blocking else "partial",
+        "validation_status": (
+            "failed" if blocking else "partial" if aten_route else "passed"
+        ),
         "execution_readiness": readiness,
         "checks": checks,
         "issues": issues,
@@ -963,7 +1640,8 @@ def build_profile(
     if commit != expected:
         raise BuildError(f"PyTorch commit mismatch: expected {expected}, found {commit}")
 
-    signature, signatures = select_signature(probe)
+    contract = select_python_contract(probe)
+    signature = contract["signature"]
     runtime = probe["runtime"]
     runtime_verified = bool(runtime.get("resolved")) and runtime.get("torch_git_version") == commit
     runtime_mismatch = bool(runtime.get("resolved")) and not runtime_verified
@@ -977,7 +1655,14 @@ def build_profile(
             f"container://{source_image}/{api}",
             commit, api, canonical_hash(docstring), docstring, collected_at,
         ))
-    if probe["pyi"].get("content_hash"):
+    if contract["source"] == "runtime_signature" and signature:
+        refs["signature"] = "ev_runtime_signature"
+        proofs.append(evidence(
+            refs["signature"], "runtime_signature",
+            f"container://{source_image}/{api}",
+            commit, api, canonical_hash(signature), signature, collected_at,
+        ))
+    elif contract["source"] == "python_stub" and probe["pyi"].get("content_hash"):
         refs["signature"] = "ev_python_signature_source"
         pyi_location = (
             source_url(commit, "torch/_C/_VariableFunctions.pyi")
@@ -988,6 +1673,22 @@ def build_profile(
             refs["signature"], "pytorch_source",
             pyi_location, commit,
             api.rsplit(".", 1)[-1], probe["pyi"]["content_hash"], signature, collected_at,
+        ))
+
+    wrapper_source = runtime.get("source_text") if runtime_verified else None
+    wrapper_file = runtime.get("source_file") if runtime_verified else None
+    if wrapper_source and wrapper_file:
+        refs["wrapper"] = "ev_python_wrapper_source"
+        source_path = Path(wrapper_file)
+        try:
+            relative_source = source_path.relative_to("/root/pytorch")
+            wrapper_location = source_url(commit, relative_source.as_posix())
+        except ValueError:
+            wrapper_location = f"container://{source_image}{wrapper_file}"
+        proofs.append(evidence(
+            refs["wrapper"], "python_wrapper_source", wrapper_location, commit,
+            f"{api}:L{runtime.get('source_line')}" if runtime.get("source_line") else api,
+            runtime.get("source_hash"), wrapper_source, collected_at,
         ))
 
     native_parameters: list[dict[str, Any]] = []
@@ -1001,9 +1702,9 @@ def build_profile(
             f"{operator['operator_name']}.{operator['operator_overload']}",
             probe["native_yaml"].get("content_hash"), operator["operator_schema"], collected_at,
         ))
-    contract_refs = [refs[key] for key in ("doc", "signature", "schema") if refs.get(key)]
-    parameters = build_python_parameters(signatures, native_parameters, contract_refs)
-    returns = build_returns(signatures, native_returns, contract_refs)
+    contract_refs = [refs[key] for key in ("doc", "signature") if refs.get(key)]
+    parameters = build_python_parameters(contract["parameters"], [refs["signature"]] if refs.get("signature") else [])
+    returns = build_returns(contract["return_annotation"], [refs["signature"]] if refs.get("signature") else [])
     binding_parameters = [
         {
             "binding_parameter_id": f"binding_param_{index:03d}_{safe_component(item['name'])}",
@@ -1014,24 +1715,44 @@ def build_profile(
         }
         for index, item in enumerate(native_parameters)
     ]
-    mapping, mapping_complete = build_argument_mapping(
-        parameters,
-        binding_parameters,
-        [refs[key] for key in ("signature", "schema") if refs.get(key)],
-    )
-
     if operator:
+        binding_kind = "aten_operator"
         operator_name = operator["operator_name"]
         overload = operator["operator_overload"]
         cpp_callable = (
             f"at::{operator_name.split('::', 1)[-1]}"
             if "function" in operator.get("variants", []) else None
         )
-        binding_status = "resolved" if cpp_callable and mapping_complete else "partial"
         binding_token = f"{operator_name.replace('::', '.')}.{overload}"
     else:
+        binding_kind = "python_callable"
         operator_name = overload = cpp_callable = None
-        binding_status, binding_token = "unresolved", "unresolved"
+        binding_status, binding_token = (
+            ("resolved", "python_callable")
+            if runtime_verified and signature else ("unresolved", "python_callable")
+        )
+
+    if operator:
+        mapping, parameter_dispositions, argument_mapping_complete = build_argument_mapping(
+            parameters,
+            binding_parameters,
+            wrapper_source,
+            operator_name.split("::", 1)[-1],
+            [refs[key] for key in ("signature", "wrapper", "schema") if refs.get(key)],
+        )
+        binding_status = "partial"
+    else:
+        mapping = []
+        argument_mapping_complete = True
+        parameter_dispositions = [
+            {
+                "python_parameter_ref": item["parameter_id"],
+                "disposition": "not_applicable_to_binding",
+                "description": "The selected route invokes the Python callable directly.",
+                "evidence_refs": [refs["signature"]] if refs.get("signature") else [],
+            }
+            for item in parameters
+        ]
 
     return_mapping = [
         {
@@ -1043,6 +1764,19 @@ def build_profile(
         }
         for index in range(len(native_returns))
     ]
+    return_mapping_complete = (
+        not operator
+        or (
+            len(native_returns) == len(returns)
+            and all(item["mapping_kind"] != "unresolved" for item in return_mapping)
+        )
+    )
+    if operator:
+        binding_status = (
+            "resolved"
+            if cpp_callable and argument_mapping_complete and return_mapping_complete
+            else "partial"
+        )
     proofs.append(ff_evidence)
     profile_id = ":".join([
         "api_prof", "pytorch", runtime_config["source_inputs"]["pytorch"]["tag"],
@@ -1070,10 +1804,18 @@ def build_profile(
         },
         "python_contract": {
             "documentation_status": (
-                "available" if docstring and signature
-                else "partial" if docstring or signature
+                "partial" if docstring or signature
                 else "missing"
             ),
+            "coverage": {
+                "signature": contract["signature_coverage"],
+                "parameters": contract["parameter_coverage"],
+                "returns": contract["return_coverage"],
+                "domains": "not_collected",
+                "exceptions": "not_collected",
+                "constraints": "not_collected",
+                "effects": "not_collected",
+            },
             "signature": signature,
             "behavior_summary": (
                 re.sub(r"\s+", " ", docstring.split("\n\n", 1)[0])[:1000]
@@ -1086,6 +1828,7 @@ def build_profile(
             "evidence_refs": contract_refs,
         },
         "target_binding": {
+            "binding_kind": binding_kind,
             "status": binding_status,
             "operator_name": operator_name,
             "operator_overload": overload,
@@ -1093,18 +1836,24 @@ def build_profile(
             "cpp_callable": cpp_callable,
             "binding_parameters": binding_parameters,
             "argument_mapping": mapping,
+            "parameter_dispositions": parameter_dispositions,
             "return_mapping": return_mapping,
-            "evidence_refs": [refs["schema"]] if refs.get("schema") else [],
+            "evidence_refs": [
+                refs[key] for key in ("signature", "wrapper", "schema")
+                if refs.get(key)
+            ],
         },
         "documented_constraints": [],
+        "effects": [],
         "flashfuzz_support": ff_support,
         "validation": build_validation(
             runtime_verified,
             bool(docstring),
             runtime_mismatch,
-            len(signatures) or (1 if runtime_verified and runtime.get("signature") else 0),
-            operator is not None,
-            mapping_complete,
+            bool(signature) and contract["parameter_coverage"] == "complete",
+            binding_kind,
+            argument_mapping_complete,
+            return_mapping_complete,
             cpp_callable is not None,
             refs,
         ),
@@ -1175,6 +1924,7 @@ def validate_profile(
         "return": [item["return_id"] for item in returns],
         "binding parameter": [item["binding_parameter_id"] for item in binding_parameters],
         "constraint": [item["constraint_id"] for item in profile["documented_constraints"]],
+        "effect": [item["effect_id"] for item in profile.get("effects", [])],
         "validation check": [item["check_id"] for item in profile["validation"]["checks"]],
         "validation issue": [item["issue_id"] for item in profile["validation"]["issues"]],
     }
@@ -1190,9 +1940,80 @@ def validate_profile(
             raise BuildError("argument_mapping contains an unknown Python parameter reference")
         if item["binding_parameter_ref"] not in binding_parameter_ids:
             raise BuildError("argument_mapping contains an unknown binding parameter reference")
+        if profile["schema_version"] == "1.3":
+            source_refs = item["source_parameter_refs"]
+            unknown_sources = set(source_refs) - parameter_ids
+            if unknown_sources:
+                raise BuildError(
+                    "argument_mapping contains unknown source_parameter_refs: "
+                    f"{sorted(unknown_sources)}"
+                )
+            if (
+                item["python_parameter_ref"] is not None
+                and item["python_parameter_ref"] not in source_refs
+            ):
+                raise BuildError(
+                    "python_parameter_ref must be included in source_parameter_refs"
+                )
+            if item["mapping_kind"] in {"direct", "renamed", "converted"} and len(source_refs) != 1:
+                raise BuildError(
+                    f"{item['mapping_kind']} mapping requires exactly one source parameter"
+                )
+            if item["mapping_kind"] == "packed" and len(source_refs) < 2:
+                raise BuildError("packed mapping requires at least two source parameters")
+            if item["mapping_kind"] in {"default_injected", "omitted"} and source_refs:
+                raise BuildError(
+                    f"{item['mapping_kind']} mapping cannot claim source parameters"
+                )
     for item in binding["return_mapping"]:
         if item["python_return_ref"] is not None and item["python_return_ref"] not in return_ids:
             raise BuildError("return_mapping contains an unknown Python return reference")
+    constraint_ids = set(id_groups["constraint"])
+    for item in parameters:
+        unknown_constraints = set(item["constraint_refs"]) - constraint_ids
+        if unknown_constraints:
+            raise BuildError(
+                f"Parameter {item['parameter_id']} has unknown constraint_refs: "
+                f"{sorted(unknown_constraints)}"
+            )
+    if profile["schema_version"] in {"1.2", "1.3"}:
+        dispositions = binding["parameter_dispositions"]
+        disposition_refs = [item["python_parameter_ref"] for item in dispositions]
+        if len(disposition_refs) != len(set(disposition_refs)):
+            raise BuildError("parameter_dispositions contains duplicate Python references")
+        if set(disposition_refs) != parameter_ids:
+            raise BuildError("parameter_dispositions must cover every Python parameter exactly once")
+        mapped_binding_refs = [item["binding_parameter_ref"] for item in binding["argument_mapping"]]
+        if binding["binding_kind"] == "aten_operator" and (
+            set(mapped_binding_refs) != binding_parameter_ids
+            or len(mapped_binding_refs) != len(binding_parameter_ids)
+        ):
+            raise BuildError("argument_mapping must cover every ATen binding parameter exactly once")
+    if profile["schema_version"] == "1.3" and binding["binding_kind"] == "aten_operator":
+        return_positions = [
+            item["binding_return_position"] for item in binding["return_mapping"]
+        ]
+        if return_positions != list(range(len(return_positions))):
+            raise BuildError(
+                "return_mapping must cover contiguous binding return positions exactly once"
+            )
+        mapped_return_refs = []
+        for item in binding["return_mapping"]:
+            if item["mapping_kind"] in {"unresolved", "unpacked"}:
+                if binding["status"] == "resolved":
+                    raise BuildError(
+                        "ATen return_mapping contains a mapping unsupported by the current pipeline"
+                    )
+                continue
+            if item["mapping_kind"] == "omitted":
+                continue
+            if item["python_return_ref"] is None:
+                raise BuildError("Resolved return mapping requires python_return_ref")
+            mapped_return_refs.append(item["python_return_ref"])
+        if len(mapped_return_refs) != len(set(mapped_return_refs)):
+            raise BuildError("return_mapping repeats a Python return reference")
+        if binding["status"] == "resolved" and set(mapped_return_refs) != return_ids:
+            raise BuildError("return_mapping must resolve every documented Python return")
     unknown_review_issues = set(profile["review"]["issue_refs"]) - set(id_groups["validation issue"])
     if unknown_review_issues:
         raise BuildError(f"review.issue_refs contains unknown IDs: {sorted(unknown_review_issues)}")
@@ -1203,10 +2024,34 @@ def validate_profile(
             raise BuildError("Revision greater than 1 requires parent_revision_ref")
         if parent["profile_id"] != profile["profile_id"] or parent["revision"] >= profile["revision"]:
             raise BuildError("parent_revision_ref does not identify an earlier revision of this profile")
-    if binding["status"] == "resolved" and not (
+    binding_kind = binding.get("binding_kind", "aten_operator")
+    if binding["status"] == "resolved" and binding_kind == "aten_operator" and not (
         binding["operator_schema"] and binding["cpp_callable"]
     ):
-        raise BuildError("Resolved binding requires operator_schema and cpp_callable")
+        raise BuildError("Resolved ATen binding requires operator_schema and cpp_callable")
+    if binding_kind == "python_callable" and any(
+        binding.get(key) is not None
+        for key in ("operator_name", "operator_overload", "operator_schema", "cpp_callable")
+    ):
+        raise BuildError("Python-callable binding must not claim an ATen operator")
+    validation = profile["validation"]
+    if validation["execution_readiness"] == "ready":
+        if validation["validation_status"] != "passed":
+            raise BuildError("execution_readiness=ready requires validation_status=passed")
+        required_checks = {
+            "cpp_compile", "cpp_smoke_execution", "target_reachability"
+        }
+        if profile["schema_version"] == "1.3":
+            required_checks.update({"argument_mapping", "return_mapping"})
+        passed_kinds = {
+            item["check_kind"] for item in validation["checks"]
+            if item["status"] == "passed"
+        }
+        if binding_kind != "aten_operator" or not required_checks <= passed_kinds:
+            raise BuildError("execution_readiness=ready requires passed ATen runtime checks")
+    if profile["review"]["review_status"] == "approved":
+        if binding["status"] != "resolved" or validation["validation_status"] == "failed":
+            raise BuildError("Approved review requires a resolved, non-failed Profile")
 
 
 def existing_revisions(api_dir: Path, binding_slug: str) -> list[tuple[Path, dict[str, Any]]]:
@@ -1225,6 +2070,7 @@ def materialize(
     schema: dict[str, Any],
     dry_run: bool,
     expected_commit: str,
+    force_revision: bool = False,
 ) -> tuple[str, Path]:
     api = profile["target"]["python_api"]
     binding = profile["target_binding"]
@@ -1232,6 +2078,8 @@ def materialize(
         f"{binding['operator_name'].replace('::', '.')}.{binding['operator_overload']}"
         if binding["operator_name"] else "unresolved"
     )
+    if binding.get("binding_kind") == "python_callable":
+        token = "python_callable"
     binding_slug = safe_component(token)
     api_dir = (
         output_root
@@ -1245,7 +2093,7 @@ def materialize(
         latest_path, latest = max(existing, key=lambda item: item[1]["revision"])
         if latest["profile_id"] != profile["profile_id"]:
             raise BuildError(f"Profile identity collision at {latest_path}")
-        if semantic_payload(latest) == semantic_payload(profile):
+        if not force_revision and semantic_payload(latest) == semantic_payload(profile):
             validate_profile(latest, schema, api, expected_commit)
             return "unchanged", latest_path
         profile["revision"] = latest["revision"] + 1
@@ -1267,6 +2115,75 @@ def materialize(
     return ("planned" if dry_run else "created"), destination
 
 
+def review_profile(
+    profile_path: Path,
+    args: argparse.Namespace,
+    runtime_config: dict[str, Any],
+    schema: dict[str, Any],
+) -> Outcome:
+    source_profile = load_json(profile_path)
+    expected_commit = runtime_config["source_inputs"]["pytorch"]["commit"]
+    validate_profile(source_profile, schema, expected_commit=expected_commit)
+    binding = source_profile["target_binding"]
+    token = (
+        f"{binding['operator_name'].replace('::', '.')}.{binding['operator_overload']}"
+        if binding["operator_name"] else
+        "python_callable" if binding.get("binding_kind") == "python_callable" else
+        "unresolved"
+    )
+    api_dir = (
+        args.output_root / "pytorch"
+        / safe_component(source_profile["target"]["framework_version"])
+        / source_profile["target"]["backend_scope"][0]
+        / safe_component(source_profile["target"]["python_api"])
+    )
+    revisions = existing_revisions(api_dir, safe_component(token))
+    if revisions:
+        _, latest = max(revisions, key=lambda item: item[1]["revision"])
+        if latest["metadata"]["content_hash"] != source_profile["metadata"]["content_hash"]:
+            raise BuildError("Human review must target the latest retained Profile revision")
+    decision = args.review_decision
+    if decision == "approved":
+        if source_profile["target_binding"]["status"] != "resolved":
+            raise BuildError("Approval requires target_binding.status=resolved")
+        if source_profile["validation"]["validation_status"] != "passed":
+            raise BuildError("Approval requires validation.validation_status=passed")
+    known_issue_ids = {
+        item["issue_id"] for item in source_profile["validation"]["issues"]
+    }
+    requested_issue_ids = set(args.review_issue)
+    unknown = sorted(requested_issue_ids - known_issue_ids)
+    if unknown:
+        raise BuildError(f"Unknown --review-issue values: {unknown}")
+    if decision == "approved":
+        requested_issue_ids.update(known_issue_ids)
+
+    profile = copy.deepcopy(source_profile)
+    collected_at = utc_now()
+    profile["metadata"]["generated_at"] = collected_at
+    profile["metadata"]["builder_version"] = BUILDER_VERSION
+    profile["review"] = {
+        "review_status": decision,
+        "reviewer": args.reviewer.strip(),
+        "reviewed_at": collected_at,
+        "issue_refs": sorted(requested_issue_ids),
+    }
+    profile["metadata"]["content_hash"] = profile_hash(profile)
+    status, destination = materialize(
+        profile,
+        args.output_root,
+        schema,
+        args.dry_run,
+        expected_commit,
+        force_revision=True,
+    )
+    return Outcome(
+        api=source_profile["target"]["python_api"],
+        status=status,
+        paths=[destination.as_posix()],
+    )
+
+
 def build_api(
     api: str,
     args: argparse.Namespace,
@@ -1282,7 +2199,17 @@ def build_api(
         runtime_config["source_inputs"]["flashfuzz"]["base_commit"],
         collected_at,
     )
-    candidates = probe["native_yaml"].get("operators", []) or [None]
+    candidates = probe["native_yaml"].get("operators", [])
+    if api.count(".") > 1:
+        wrapper_source = probe.get("runtime", {}).get("source_text")
+        candidates = [
+            candidate for candidate in candidates
+            if wrapper_calls_operator(
+                wrapper_source,
+                candidate["operator_name"].split("::", 1)[-1],
+            )
+        ]
+    candidates = candidates or [None]
     statuses: list[str] = []
     paths: list[str] = []
     for operator in candidates:
@@ -1334,6 +2261,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--api-file", action="append", type=Path, default=[], help="One API per line")
     parser.add_argument("--runtime-config", type=Path, default=DEFAULT_RUNTIME_CONFIG)
     parser.add_argument("--schema", type=Path, default=DEFAULT_SCHEMA)
+    parser.add_argument(
+        "--validation-case-schema",
+        type=Path,
+        default=DEFAULT_VALIDATION_CASE_SCHEMA,
+    )
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--flashfuzz-root", type=Path, default=DEFAULT_FLASHFUZZ_ROOT)
     parser.add_argument("--flashfuzz-api-list", type=Path, default=DEFAULT_FLASHFUZZ_API_LIST)
@@ -1353,8 +2285,32 @@ def parse_args() -> argparse.Namespace:
         help="Compile and execute an existing resolved Profile, then write a new ready revision.",
     )
     parser.add_argument(
+        "--validation-case",
+        type=Path,
+        help="Evidence-backed ordinary smoke case used by --promote-runtime.",
+    )
+    parser.add_argument(
         "--reviewer",
-        help="Human reviewer recorded for --promote-runtime.",
+        help="Human reviewer identifier for --review-profile.",
+    )
+    parser.add_argument(
+        "--review-profile",
+        action="append",
+        type=Path,
+        default=[],
+        metavar="PROFILE",
+        help="Record a separate human review as a new Profile revision.",
+    )
+    parser.add_argument(
+        "--review-decision",
+        choices=("approved", "needs_revision"),
+        help="Decision recorded for --review-profile.",
+    )
+    parser.add_argument(
+        "--review-issue",
+        action="append",
+        default=[],
+        help="Existing validation issue ID retained by the reviewer; repeatable.",
     )
     return parser.parse_args()
 
@@ -1379,12 +2335,18 @@ def main() -> int:
     if not args.docker_image:
         print("[FATAL] No Docker image is configured", file=sys.stderr)
         return 2
+    if args.promote_runtime and args.review_profile:
+        print("[FATAL] --promote-runtime and --review-profile are mutually exclusive", file=sys.stderr)
+        return 2
+    if args.validation_case is not None and len(args.promote_runtime) != 1:
+        print(
+            "[FATAL] --validation-case requires exactly one --promote-runtime",
+            file=sys.stderr,
+        )
+        return 2
     if args.promote_runtime:
         if args.api or args.api_file:
             print("[FATAL] --promote-runtime cannot be combined with --api/--api-file", file=sys.stderr)
-            return 2
-        if not args.reviewer or not args.reviewer.strip():
-            print("[FATAL] --promote-runtime requires --reviewer", file=sys.stderr)
             return 2
         outcomes: list[Outcome] = []
         for profile_path in args.promote_runtime:
@@ -1406,6 +2368,36 @@ def main() -> int:
                 print(f"[FAILED] {profile_path}: {exc}", file=sys.stderr)
             outcomes.append(outcome)
         counts: dict[str, int] = {}
+        for outcome in outcomes:
+            counts[outcome.status] = counts.get(outcome.status, 0) + 1
+        print("[SUMMARY] " + json.dumps(counts, sort_keys=True))
+        return 1 if counts.get("failed") else 0
+    if args.review_profile:
+        if args.api or args.api_file:
+            print("[FATAL] --review-profile cannot be combined with --api/--api-file", file=sys.stderr)
+            return 2
+        if not args.reviewer or not args.reviewer.strip() or not args.review_decision:
+            print(
+                "[FATAL] --review-profile requires --reviewer and --review-decision",
+                file=sys.stderr,
+            )
+            return 2
+        outcomes = []
+        for profile_path in args.review_profile:
+            print(f"[REVIEW] {profile_path}")
+            try:
+                outcome = review_profile(profile_path, args, runtime_config, schema)
+                print(
+                    f"[{outcome.status.upper()}] {outcome.api}: "
+                    f"{len(outcome.paths)} profile(s)"
+                )
+            except (BuildError, KeyError, OSError, json.JSONDecodeError) as exc:
+                outcome = Outcome(
+                    api=profile_path.as_posix(), status="failed", message=str(exc)
+                )
+                print(f"[FAILED] {profile_path}: {exc}", file=sys.stderr)
+            outcomes.append(outcome)
+        counts = {}
         for outcome in outcomes:
             counts[outcome.status] = counts.get(outcome.status, 0) + 1
         print("[SUMMARY] " + json.dumps(counts, sort_keys=True))

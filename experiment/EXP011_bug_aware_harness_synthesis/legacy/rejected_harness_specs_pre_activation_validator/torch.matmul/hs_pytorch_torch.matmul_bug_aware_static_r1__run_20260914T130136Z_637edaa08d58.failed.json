@@ -1,0 +1,10 @@
+{
+  "builder_version": "harness_spec_builder_v0.8",
+  "generation_run_id": "run_20260914T130136Z_637edaa08d58",
+  "generated_at": "2026-09-14T13:14:44.573827Z",
+  "errors": [
+    "ValidationError: target_property_parameter_contracts.result_equivalence must be an object",
+    "ValidationError: Assembled record violates HarnessSpec Schema: $.exploration_plan.branches[0].oracle_requirements[0].oracle_type: 'no_crash' is not one of ['crash', 'exception', 'sanitizer', 'timeout', 'output_property', 'differential', 'metamorphic', 'state_consistency', 'determinism', 'resource_usage']",
+    "ValidationError: LLM cited an unavailable source reference: ('api_profile', 'ev_runtime_docstring')"
+  ]
+}

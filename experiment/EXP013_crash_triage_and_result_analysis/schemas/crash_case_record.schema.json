@@ -27,11 +27,12 @@
   ],
   "properties": {
     "record_format_version": {
-      "const": "1.1"
+      "enum": ["1.1", "1.2"]
     },
     "record_type": {
       "const": "crash_case"
     },
+    "capture_record": { "type": "object", "required": ["candidate", "round_context", "round_source_context", "policy_snapshot"], "properties": {"candidate": {"type": "object", "required": ["candidate_id", "triggering_input"]}, "round_context": {"type": "object", "required": ["execution_id"]}, "round_source_context": {"type": "object", "required": ["harness_artifact_ref", "fuzzing_config_ref"]}, "policy_snapshot": {"type": "object", "required": ["policy_id", "policy_version", "replay"], "properties": {"policy_id": {"type": "string", "minLength": 1}, "policy_version": {"type": "string", "minLength": 1}, "replay": {"type": "object", "required": ["required_valid_attempts", "maximum_replacement_attempts"]}}}}, "additionalProperties": false },
     "identity": {
       "$ref": "#/$defs/identity"
     },
@@ -92,6 +93,21 @@
       "$ref": "#/$defs/provenance"
     }
   },
+  "allOf": [
+    {
+      "if": {"properties": {"record_format_version": {"const": "1.2"}}, "required": ["record_format_version"]},
+      "then": {
+        "required": ["capture_record"],
+        "properties": {
+          "reproduction": {"properties": {"attempts": {"items": {"required": ["execution_file_ref"]}}}},
+          "human_review": {
+            "if": {"properties": {"status": {"const": "completed"}}, "required": ["status"]},
+            "then": {"required": ["reviewer_id", "reviewed_subject_hash", "evidence_refs"]}
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "identifier": {
       "type": "string",
@@ -666,7 +682,8 @@
             "unexpected_target_exception",
             "per_call_timeout",
             "oom_termination",
-            "abnormal_resource_growth"
+            "abnormal_resource_growth",
+            "oracle_observation"
           ]
         },
         "condition_assessments": {
@@ -1109,6 +1126,7 @@
         "execution_ref": {
           "$ref": "#/$defs/artifact_reference"
         },
+        "execution_file_ref": {"$ref": "#/$defs/file_reference"},
         "target_api_reach_status": {
           "enum": [
             "reached",
@@ -1629,6 +1647,9 @@
         "summary"
       ],
       "properties": {
+        "reviewer_id": {"$ref": "#/$defs/identifier"},
+        "reviewed_subject_hash": {"$ref": "#/$defs/sha256"},
+        "evidence_refs": {"$ref": "#/$defs/artifact_reference_array"},
         "status": {
           "enum": [
             "not_reviewed",

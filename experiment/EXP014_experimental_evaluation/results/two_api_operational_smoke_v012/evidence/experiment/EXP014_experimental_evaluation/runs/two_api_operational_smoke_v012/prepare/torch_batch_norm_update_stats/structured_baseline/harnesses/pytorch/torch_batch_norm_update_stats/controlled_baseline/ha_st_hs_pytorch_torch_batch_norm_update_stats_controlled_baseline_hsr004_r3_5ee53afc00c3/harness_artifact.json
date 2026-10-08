@@ -1,0 +1,489 @@
+{
+  "schema_version": "1.3",
+  "record_type": "harness_artifact",
+  "identity": {
+    "harness_artifact_id": "ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3",
+    "generation_key": "5ee53afc00c3f02b8fb90c6144e7f66df0662236d4a2836b43f7de112565c66c",
+    "source_generation_key": "4d6006d16844a89ee2841348adf2decc71180578b395d45b95ed7144c174b303"
+  },
+  "source_context": {
+    "strategy_revision_ref": {
+      "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004",
+      "revision_number": 3,
+      "content_hash": "660ef6e67ea4fdc1952536e751de01ab1e7120fca8af3e2d8a0469e7c3bba760"
+    },
+    "strategy_review_ref": {
+      "artifact_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3__review_r1.json",
+      "artifact_version": "1.0",
+      "content_hash": "9be6561f80212016df6bfa76ae1673027dea306d8910646ce5dfdb5fe1ec96bf",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3__review_r1.json"
+    },
+    "runner_observation_bindings": [],
+    "observability": {
+      "condition_scope": "Per-condition, per-phase counters; no joint-condition or native-code reachability proof.",
+      "snapshot_scope": "Periodic or normal-exit snapshots; missing or crash-truncated observations are unknown, not zero.",
+      "exception_scope": "c10::Error at target invocation only; an exception is not automatically invalid input or a detected bug.",
+      "exception_text_policy": "First 16 target exceptions per process; at most 1024 bytes per message; instrumentation counters are not sampled."
+    }
+  },
+  "source_artifact": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/structured_baseline/harnesses/pytorch/torch_batch_norm_update_stats/controlled_baseline/ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3/main.cpp",
+    "content_hash": "6953a52eed600e6e1adbdeed3617d06008575b54a06a1543a2ec9cd4338d2574",
+    "encoding": "utf-8",
+    "newline": "lf",
+    "language": "cpp",
+    "entrypoint": "LLVMFuzzerTestOneInput"
+  },
+  "materialization_map": [
+    {
+      "branch_id": "br_default",
+      "step_id": "step_001",
+      "primitive_id": "construct_tensor_with_constraints",
+      "emitter_id": "emit_construct_tensor_with_constraints",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_default_001",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 67,
+        "end_line": 73
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_002",
+      "primitive_id": "construct_tensor_from_reference",
+      "emitter_id": "emit_construct_tensor_from_reference",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_default_002",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 74,
+        "end_line": 78
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_003",
+      "primitive_id": "construct_tensor_from_reference",
+      "emitter_id": "emit_construct_tensor_from_reference",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_default_003",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 79,
+        "end_line": 83
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_004",
+      "primitive_id": "construct_floating_from_fuzz",
+      "emitter_id": "emit_construct_scalar_from_fuzz",
+      "template_slot": "input_construction",
+      "emitted_segment_id": "seg_br_default_004",
+      "materialized_failure_handler_ids": [
+        "fh_step_004_insufficient_fuzz_data"
+      ],
+      "source_span": {
+        "start_line": 84,
+        "end_line": 91
+      }
+    },
+    {
+      "branch_id": "br_default",
+      "step_id": "step_005",
+      "primitive_id": "invoke_profiled_target_api",
+      "emitter_id": "emit_profiled_target_api",
+      "template_slot": "target_call",
+      "emitted_segment_id": "seg_br_default_005",
+      "materialized_failure_handler_ids": [],
+      "source_span": {
+        "start_line": 92,
+        "end_line": 109
+      }
+    }
+  ],
+  "instrumentation_map": [
+    {
+      "instrumentation_binding_id": "ins_0001",
+      "runtime_site_id": 0,
+      "event_kind": "branch_entered",
+      "event_key": "br_default:branch_entered:entry",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "generator_infrastructure",
+        "owner_id": "branch_entry"
+      },
+      "source_span": {
+        "start_line": 66,
+        "end_line": 66
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0002",
+      "runtime_site_id": 1,
+      "event_kind": "input_constructed",
+      "event_key": "br_default:input_constructed:step_001",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_001"
+      },
+      "source_span": {
+        "start_line": 72,
+        "end_line": 72
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0003",
+      "runtime_site_id": 2,
+      "event_kind": "input_constructed",
+      "event_key": "br_default:input_constructed:step_002",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_002"
+      },
+      "source_span": {
+        "start_line": 77,
+        "end_line": 77
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0004",
+      "runtime_site_id": 3,
+      "event_kind": "input_constructed",
+      "event_key": "br_default:input_constructed:step_003",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_003"
+      },
+      "source_span": {
+        "start_line": 82,
+        "end_line": 82
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0005",
+      "runtime_site_id": 4,
+      "event_kind": "input_rejected",
+      "event_key": "br_default:input_rejected:step_004_short",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "failure_handler",
+          "ref_id": "fh_step_004_insufficient_fuzz_data"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_004"
+      },
+      "source_span": {
+        "start_line": 85,
+        "end_line": 85
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0006",
+      "runtime_site_id": 5,
+      "event_kind": "input_constructed",
+      "event_key": "br_default:input_constructed:step_004",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_004"
+      },
+      "source_span": {
+        "start_line": 90,
+        "end_line": 90
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0007",
+      "runtime_site_id": 6,
+      "event_kind": "activation_checked",
+      "event_key": "br_default:activation_checked:et_pytorch_batch_norm_update_stats_empty_input",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_batch_norm_update_stats_empty_input"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_005"
+      },
+      "source_span": {
+        "start_line": 94,
+        "end_line": 94
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0008",
+      "runtime_site_id": 7,
+      "event_kind": "activation_true",
+      "event_key": "br_default:activation_true:et_pytorch_batch_norm_update_stats_empty_input",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_batch_norm_update_stats_empty_input"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_005"
+      },
+      "source_span": {
+        "start_line": 95,
+        "end_line": 95
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0009",
+      "runtime_site_id": 8,
+      "event_kind": "activation_unevaluable",
+      "event_key": "br_default:activation_unevaluable:et_pytorch_batch_norm_update_stats_empty_input",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_batch_norm_update_stats_empty_input"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_005"
+      },
+      "source_span": {
+        "start_line": 96,
+        "end_line": 96
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0010",
+      "runtime_site_id": 9,
+      "event_kind": "activation_check_error",
+      "event_key": "br_default:activation_check_error:et_pytorch_batch_norm_update_stats_empty_input",
+      "branch_id": "br_default",
+      "trace_refs": [
+        {
+          "ref_type": "evaluation_target",
+          "ref_id": "et_pytorch_batch_norm_update_stats_empty_input"
+        }
+      ],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_005"
+      },
+      "source_span": {
+        "start_line": 97,
+        "end_line": 97
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0011",
+      "runtime_site_id": 10,
+      "event_kind": "target_api_reached",
+      "event_key": "br_default:target_api_reached:step_005",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_005"
+      },
+      "source_span": {
+        "start_line": 98,
+        "end_line": 98
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0012",
+      "runtime_site_id": 11,
+      "event_kind": "target_api_exception",
+      "event_key": "br_default:target_api_exception:step_005",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_005"
+      },
+      "source_span": {
+        "start_line": 103,
+        "end_line": 103
+      }
+    },
+    {
+      "instrumentation_binding_id": "ins_0013",
+      "runtime_site_id": 12,
+      "event_kind": "target_api_completed",
+      "event_key": "br_default:target_api_completed:step_005",
+      "branch_id": "br_default",
+      "trace_refs": [],
+      "source_owner": {
+        "owner_type": "strategy_segment",
+        "owner_id": "seg_br_default_005"
+      },
+      "source_span": {
+        "start_line": 107,
+        "end_line": 107
+      }
+    }
+  ],
+  "validation": {
+    "static_validation": {
+      "status": "passed",
+      "checks": [
+        {
+          "check_id": "strategy_materialization_complete",
+          "status": "passed"
+        },
+        {
+          "check_id": "template_markers_resolved",
+          "status": "passed"
+        },
+        {
+          "check_id": "source_spans_resolved",
+          "status": "passed"
+        },
+        {
+          "check_id": "instrumentation_sites_contiguous",
+          "status": "passed"
+        }
+      ],
+      "issues": []
+    },
+    "compile_check": {
+      "status": "passed",
+      "command_argv": [
+        "docker",
+        "run",
+        "--rm",
+        "-e",
+        "HOST_UID=1000",
+        "-e",
+        "HOST_GID=1000",
+        "-v",
+        "/home/nathan/HistoricalBug-Fuzzing/experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/structured_baseline/harnesses/pytorch/torch_batch_norm_update_stats/controlled_baseline/.ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3.2zydc3e3:/artifact",
+        "-v",
+        "/home/nathan/HistoricalBug-Fuzzing:/repo:ro",
+        "-w",
+        "/artifact",
+        "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8",
+        "bash",
+        "-lc",
+        "set -euo pipefail; clang++ -fsanitize=fuzzer -fno-omit-frame-pointer -O0 -g -D_GLIBCXX_USE_CXX11_ABI=1 -I/root/pytorch/build-fuzz/include -I/root/pytorch/aten/src -I/root/pytorch/c10/core -I/root/pytorch -I/root/pytorch/build-fuzz -I/root/pytorch/build-fuzz/aten/src -I/root/pytorch/torch/csrc/api/include -I/repo/third_party/FlashFuzz/scripts/template/torch_cpu -I/repo/experiment/EXP011_bug_aware_harness_synthesis/runtime main.cpp /repo/experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp -Wl,-rpath,/root/pytorch/build-fuzz/lib -L/root/pytorch/build-fuzz/lib -ltorch -ltorch_cpu -lc10 -pthread -o harness_binary; chown \"$HOST_UID:$HOST_GID\" harness_binary"
+      ],
+      "build_environment_ref": {
+        "artifact_id": "pytorch_2_10_fuzz_docker_compile",
+        "artifact_version": 1,
+        "content_hash": "78b99847b4e38d0240555ac2a30e7c8210f3551bd299a2fbfbe9004c45c451a8"
+      },
+      "exit_code": 0,
+      "skip_reason": null,
+      "diagnostics_ref": null,
+      "binary_artifact": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/structured_baseline/harnesses/pytorch/torch_batch_norm_update_stats/controlled_baseline/ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3/harness_binary",
+        "content_hash": "8058357dde7d325a773ef8acfedc03524292cf056a87d3255c91a33414df4d16"
+      }
+    },
+    "human_review": {
+      "status": "not_reviewed",
+      "reviewer_id": null,
+      "reviewed_at": null,
+      "review_note": null
+    }
+  },
+  "provenance": {
+    "build_request": {
+      "compile_profile_ref": {
+        "artifact_id": "pytorch_2_10_fuzz_docker_compile",
+        "artifact_version": 1,
+        "content_hash": "78b99847b4e38d0240555ac2a30e7c8210f3551bd299a2fbfbe9004c45c451a8"
+      },
+      "dependency_refs": [
+        {
+          "relative_path": "third_party/FlashFuzz/scripts/template/torch_cpu/fuzzer_utils.h",
+          "content_hash": "5c3aecce5e9c24de4031436cea02a3327714d8d5155578b4e1e4fa2d915a70e6"
+        }
+      ],
+      "environment_identity": "docker-image-sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8; PyTorch 2.10.0 CPU",
+      "strategy_review_ref": {
+        "artifact_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3__review_r1.json",
+        "artifact_version": "1.0",
+        "content_hash": "9be6561f80212016df6bfa76ae1673027dea306d8910646ce5dfdb5fe1ec96bf",
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3__review_r1.json"
+      }
+    },
+    "generator": {
+      "generator_id": "build_harness_artifact",
+      "generator_version": "0.13.0",
+      "entrypoint_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_harness_artifact.py",
+        "content_hash": "e2dcecdd07b5321dfbab08101d6556a16dcff88811d3a694caa2803319821839"
+      },
+      "component_refs": [
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp",
+          "content_hash": "2161b7d5aaa07a4ff91df08b3c888dbe57bc9e30ef50a8b7fe8ed231e0d681eb"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.h",
+          "content_hash": "adb3681315791e2d61c39fd42e311aa3137c19d2e44a8187e0f80b191a0d5386"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/template_compatibility__v001.json",
+          "content_hash": "a72df2a8ba1d4851a63f4ebae120bd1b5b610e62d21e251a3320203201130059"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/schemas/harness_artifact_record.schema.json",
+          "content_hash": "2bafbe273a32240717366d4ac453247a41f4e1cd8c8c1df48d89c3d9a87fcc0b"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_strategy_plan_json.py",
+          "content_hash": "909bc365ad112bf8b354026f4a12e865df9ba15fff2ed35e4c5fd352b455e10c"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/strategy_domains.py",
+          "content_hash": "e6bde3d8e5caca4bf17028e95bd949173d37f0b486992824cb361cf692184938"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/template_contract.py",
+          "content_hash": "bf7705c044b457fa1888b93987ab6d5e1a4b360364eb5d2ea9fb5d1065c3004e"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/ordinary_input_recipes__v001.json",
+          "content_hash": "21777cfcd71d363c88e5f2509c70871edf6ba4165c64c0bfd4680316a05e712d"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/strategy_resource_policy__v001.json",
+          "content_hash": "f17bb0c23d4ca64142044455c8f9d3fd57995c712dff0d226c5c5ab9892f2f70"
+        },
+        {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/templates/libfuzzer_harness_v1.cpp.in",
+          "content_hash": "ca8da0f415d50105d1ae1cc28e3f99c550855c3d57846c12d3b7a13bbbfb1ab6"
+        },
+        {
+          "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__operational_smoke_v012.json",
+          "content_hash": "c51e75acfc6a362eb15b7a0ae8af4ce7956859afda51524281d50284b2f14c23"
+        }
+      ]
+    },
+    "generation_run_id": "harness_generation_20261008T082334Z_35b3194b56bc",
+    "generated_at": "2026-10-08T08:23:46.581280Z",
+    "repository_commit": "9693c72e24ff2d66a2f0ef89fddeba7533c2020b",
+    "working_tree_state": "dirty",
+    "working_tree_diff_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/structured_baseline/harnesses/pytorch/torch_batch_norm_update_stats/controlled_baseline/ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_5ee53afc00c3/working_tree_state.txt",
+      "content_hash": "95da51b98b941dc73d2cc4a65ce34b64f379ef0c5a7190fca39a291864cf125e"
+    }
+  }
+}

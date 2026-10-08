@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "review_id": "strategy_review:st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004:r2:rr1",
+  "review_revision": 1,
+  "parent_review_ref": null,
+  "subject": {
+    "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004",
+    "revision_number": 2,
+    "content_hash": "375beac488e91ac3e8c085fe64a8e2717b02a01cd9b8a673ad1f6f5a1c9fbd51",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r002.json"
+  },
+  "rules_ref": {
+    "artifact_id": "strategy_plan_human_review_rules__v1.1__sha256_513bd2f9a69f4a3ed31328eb90dcf829ecc8c75a1a526cc8097dbabb733ac1b0.md",
+    "artifact_version": "1.1",
+    "content_hash": "513bd2f9a69f4a3ed31328eb90dcf829ecc8c75a1a526cc8097dbabb733ac1b0",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_review_artifacts/strategy_plan_human_review_rules__v1.1__sha256_513bd2f9a69f4a3ed31328eb90dcf829ecc8c75a1a526cc8097dbabb733ac1b0.md"
+  },
+  "decision": "approved",
+  "findings": [],
+  "reviewer_id": "nathan",
+  "reviewed_at": "2026-10-07T02:11:31.359019Z",
+  "review_notes": null
+}

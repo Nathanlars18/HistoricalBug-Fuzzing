@@ -1,0 +1,55 @@
+{
+  "archive_id": "exp011_superseded_harness_specs_at_contract_v2_5",
+  "created_on": "2026-10-06",
+  "hash_semantics": {
+    "harness_spec": "canonical JSON SHA-256 used by HarnessSpec references",
+    "failed_diagnostic": "raw-file SHA-256"
+  },
+  "active_revisions": [
+    {
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r4.json",
+      "content_hash": "50284eba0588decc639eef9db69ba031bf8e61f315b57b6c89997e93ce07699c",
+      "review_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r4__review_r1.json",
+      "review_decision": "approved"
+    },
+    {
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6.json",
+      "content_hash": "80580516215a947526ed15dd31a562cb7d857d1ffd61c5ce60067a590c082223",
+      "review_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6__review_r1.json",
+      "review_decision": "approved"
+    },
+    {
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r3.json",
+      "content_hash": "6cd485e7e2b1694af52401ce5ad6b37be47d656641af8670edbf096663d5d131",
+      "review_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r3__review_r1.json",
+      "review_decision": "approved"
+    },
+    {
+      "path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4.json",
+      "content_hash": "95756ac5c476d86479bfd4d5bcf85975b5fc2ee52705378c3cdffdfed1ca9d09",
+      "review_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4__review_r1.json",
+      "review_decision": "approved"
+    }
+  ],
+  "superseded_lineage_retained_in_place": [
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r1.json", "content_hash": "08c191ada61d3d639d9eaf295b80475771759e9401a296014cacbf6132b610b2"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r2.json", "content_hash": "96d615c08d9d597ae0212fc5a0e3bc125d1c2c56e7df54e9b63c78b7771f1a48"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r3.json", "content_hash": "c38fb2d43d262d40ccb672f5246d2b1152e542194ea74909f72b77979bf639dd"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r1.json", "content_hash": "8cbe9804508093f41ce4be56b6beecb1a0e4e1406d5e1200b8ef4ab319aa16e4"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r2.json", "content_hash": "82592fcf766e6aad5999c26ba53209aae056e89caf2f55294c3448921e7035c1"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r3.json", "content_hash": "5c66a7b95cebfc22b1c936fd880710230b0ec2419999e7ca07690336b965fb88"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r4.json", "content_hash": "11048cef4e6c75c1fb679b8cae7bd5adbe32a84e4a38311cf5d8bebd568db9ca"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r5.json", "content_hash": "adb28991810871bdea9fb0c8343550c24232166c87ce41948e7f971f785ceb07"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r1.json", "content_hash": "c2d2ca5c9984fe75333926d638935d01014427b869d9529720db4b8b5fbee9cd"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r2.json", "content_hash": "cdc5214f537b661e1888a224bf6b7e0aa136d0fbab896ff0bb1bdc76bb854d5e"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r1.json", "content_hash": "eb843febc6a76bb29bc9aa67bbf2b6d07bdf2da288eea656b91f17e2131d0cf6"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r2.json", "content_hash": "2f6a28465fa15e21766e9bec58213bacb5511ff01dec48c357ab1917f0e5695c"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r3.json", "content_hash": "e02c898ea1bb7077b377a905bf3ed5b0ba3323471bca7f07d058e6993cf2c703"}
+  ],
+  "relocated_failed_diagnostics": [
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/legacy/superseded_harness_specs_v2_5/failed_diagnostics/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r1.json.run_20261004T010122Z_769b693cd5a7.failed.json", "sha256": "9cf5e2a35839c5dc2d8f92f4e6208147ad4b70202e64514eba1c20a292f6e733"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/legacy/superseded_harness_specs_v2_5/failed_diagnostics/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r2.json.run_20261004T105822Z_a852a1324036.failed.json", "sha256": "f1558ab7fec4ca83f19c3542ca0cf2a89b21f2e4a571cd41d9f1033d97157dc2"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/legacy/superseded_harness_specs_v2_5/failed_diagnostics/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r3.json.run_20261005T010107Z_ccb51c24e622.failed.json", "sha256": "4ed426730ac9d6524272e95f0ebe342df3bffdb29e113248173030c9c76fe4bb"},
+    {"path": "experiment/EXP011_bug_aware_harness_synthesis/legacy/superseded_harness_specs_v2_5/failed_diagnostics/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r4.json.run_20261005T023841Z_3578b415bfaf.failed.json", "sha256": "a0e3d891c2cf22c09b1ac7ae06ef95e78ce069d7a8a8c66292144f32681758c9"}
+  ]
+}

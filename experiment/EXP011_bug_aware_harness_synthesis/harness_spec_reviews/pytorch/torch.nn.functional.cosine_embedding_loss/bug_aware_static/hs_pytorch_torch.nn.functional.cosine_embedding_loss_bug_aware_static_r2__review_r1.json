@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.1",
+  "review_id": "hs_review:hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static:r2:rr1",
+  "review_revision": 1,
+  "parent_review_ref": null,
+  "subject": {
+    "spec_id": "hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static",
+    "revision_number": 2,
+    "content_hash": "2f6a28465fa15e21766e9bec58213bacb5511ff01dec48c357ab1917f0e5695c",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r2.json"
+  },
+  "rules_ref": {
+    "artifact_id": "harness_spec_human_review_rules__v1.2__sha256_619069bbe8db61fb11369ade37b6ab4af5eb7c89be971234b092b2225d72ffaf.md",
+    "artifact_version": "1.2",
+    "content_hash": "619069bbe8db61fb11369ade37b6ab4af5eb7c89be971234b092b2225d72ffaf",
+    "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_review_artifacts/harness_spec_human_review_rules__v1.2__sha256_619069bbe8db61fb11369ade37b6ab4af5eb7c89be971234b092b2225d72ffaf.md"
+  },
+  "decision": "needs_revision",
+  "findings": [
+    {
+      "criterion_id": "HR-04",
+      "severity": "blocking",
+      "field_path": "$.knowledge_plan.knowledge_decisions[0].component_mappings[2]",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.nn.functional.cosine_embedding_loss/kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001.json#/exploration_guidance/variation_opportunities/1",
+      "mismatch_summary": "The mapping treats empty and small non-empty variation as partially represented only because the shape-mismatch condition does not exclude those states; permissive absence of an element-count condition does not structurally explore the cited variation."
+    },
+    {
+      "criterion_id": "HR-07",
+      "severity": "blocking",
+      "field_path": "$.exploration_plan.branches[1].behavior_observations[0].subject_refs",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.nn.functional.cosine_embedding_loss/kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001.json#/exploration_guidance/observation_candidates/0",
+      "mismatch_summary": "The observation describes exception rejection and abnormal native termination but names only the two input tensors, so it lacks an execution subject capable of recording the cited outcomes."
+    },
+    {
+      "criterion_id": "HR-04",
+      "severity": "blocking",
+      "field_path": "$.exploration_plan.branches[1].behavior_observations[1]",
+      "evidence_ref": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.nn.functional.cosine_embedding_loss/kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001.json#/exploration_guidance/observation_candidates/1",
+      "mismatch_summary": "The observation claims to record asymmetric dimension validation using only input subjects at an after-call phase; those subjects and phase do not represent validation rejection or other execution treatment when the call does not complete normally."
+    }
+  ],
+  "reviewer_id": "nathan",
+  "reviewed_at": "2026-10-05T07:20:04.255943Z",
+  "review_notes": "Evidence-bounded review under HarnessSpec Human Review Rules v1.2; findings apply the same representation and execution-observation threshold used for all APIs."
+}

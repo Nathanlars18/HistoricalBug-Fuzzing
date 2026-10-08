@@ -1,0 +1,49 @@
+{
+  "run_id": "harness_generation_20261007T075358Z_00574aa413ee",
+  "generator_id": "build_harness_artifact",
+  "generator_version": "0.12.0",
+  "started_at": "2026-10-07T07:53:58.883888Z",
+  "finished_at": "2026-10-07T07:54:41.108112Z",
+  "results": [
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r002.json",
+      "status": "generated",
+      "artifact_id": "ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_cf8e743be2e1",
+      "artifact_path": "experiment/EXP011_bug_aware_harness_synthesis/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_static/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_cf8e743be2e1/harness_artifact.json",
+      "compile_status": "passed",
+      "source_status": "passed",
+      "execution_readiness": "compiled_not_run",
+      "runtime_validation": "not_run"
+    },
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r003.json",
+      "status": "generated",
+      "artifact_id": "ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_9b4e1f8d589d",
+      "artifact_path": "experiment/EXP011_bug_aware_harness_synthesis/harnesses/pytorch/torch_batch_norm_update_stats/controlled_baseline/ha_st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3_9b4e1f8d589d/harness_artifact.json",
+      "compile_status": "passed",
+      "source_status": "passed",
+      "execution_readiness": "compiled_not_run",
+      "runtime_validation": "not_run"
+    },
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r002.json",
+      "status": "generated",
+      "artifact_id": "ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2_8119df6e0a44",
+      "artifact_path": "experiment/EXP011_bug_aware_harness_synthesis/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2_8119df6e0a44/harness_artifact.json",
+      "compile_status": "passed",
+      "source_status": "passed",
+      "execution_readiness": "compiled_not_run",
+      "runtime_validation": "not_run"
+    },
+    {
+      "strategy_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r003.json",
+      "status": "generated",
+      "artifact_id": "ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r3_0331fc93e53d",
+      "artifact_path": "experiment/EXP011_bug_aware_harness_synthesis/harnesses/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/ha_st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r3_0331fc93e53d/harness_artifact.json",
+      "compile_status": "passed",
+      "source_status": "passed",
+      "execution_readiness": "compiled_not_run",
+      "runtime_validation": "not_run"
+    }
+  ]
+}

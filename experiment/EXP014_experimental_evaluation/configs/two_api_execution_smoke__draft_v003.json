@@ -1,0 +1,588 @@
+{
+  "matrix_format_version": "0.4",
+  "matrix_id": "pytorch_2_10_two_api_execution_smoke_draft_v003",
+  "matrix_revision": {
+    "revision_number": 3,
+    "change_reason": "bind a single pair-empty target to avoid duplicated measurement weight; retain human-freeze gate"
+  },
+  "lifecycle": {
+    "status": "draft",
+    "phase": "execution_smoke_review"
+  },
+  "protocol_file_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/experimental_evaluation_protocol.md",
+    "content_hash": "0e1b02b0f6f4b4bccf50840a97da470c7621cab0ce27ef83e0ed409b30925213"
+  },
+  "unresolved_bindings": [],
+  "core_groups": [
+    {
+      "group_id": "structured_baseline",
+      "harness_spec_builder_mode": "controlled_baseline",
+      "knowledge_exposure": "none",
+      "feedback_mode": "disabled",
+      "initial_harness_policy": "independent_structured_baseline"
+    },
+    {
+      "group_id": "bug_aware_static",
+      "harness_spec_builder_mode": "bug_aware_static",
+      "knowledge_exposure": "api_specific",
+      "feedback_mode": "observe_only",
+      "initial_harness_policy": "shared_bug_aware_h0"
+    },
+    {
+      "group_id": "bug_aware_adaptive",
+      "harness_spec_builder_mode": "reuse_bug_aware_static_h0",
+      "knowledge_exposure": "api_specific",
+      "feedback_mode": "adaptive",
+      "initial_harness_policy": "reference_bug_aware_static_h0",
+      "feedback_candidate_spec_mode": "bug_aware_adaptive"
+    }
+  ],
+  "api_entries": [
+    {
+      "api_id": "torch.batch_norm_update_stats",
+      "enabled": true,
+      "target_api": "torch.batch_norm_update_stats",
+      "target_manifest_entry_id": "torch.batch_norm_update_stats",
+      "api_profile_binding": {
+        "artifact_ref": {
+          "artifact_id": "api_prof:pytorch:v2.10.0:cpu:torch.batch_norm_update_stats:python_default:aten.batch_norm_update_stats.default",
+          "artifact_version": 7,
+          "content_hash": "fdceaad18aea59a8953c7b929c0db44263ee16d737cc77a13f92a7a671848268"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/pytorch/v2.10.0/cpu/torch.batch_norm_update_stats/api_profile__aten.batch_norm_update_stats.default__r007.json",
+          "content_hash": "e33e6d6b43a5523898f4ea54c801cb0d758885788fff71a0f46ae7c88e732ee1"
+        }
+      },
+      "compile_profile_file_ref": {
+        "relative_path": "runtime/flashfuzz_2_10/harness_compile_profile.json",
+        "content_hash": "78b99847b4e38d0240555ac2a30e7c8210f3551bd299a2fbfbe9004c45c451a8"
+      },
+      "initial_corpus_binding": {
+        "artifact_ref": {
+          "artifact_id": "corpus_torch_batch_norm_update_stats_initial_v1",
+          "artifact_version": 1,
+          "content_hash": "589090fc183910537dd1b36bb542d623ba78b8d57113695c93f5d62c5c0a9771"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/configs/initial_corpora/torch_batch_norm_update_stats_empty/corpus_manifest.json",
+          "content_hash": "05dab75c02e0e996d91f057df33e39d23f540e7863143afc2f28604fe32040b4"
+        }
+      },
+      "knowledge_bindings": [
+        {
+          "knowledge_id": "kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002",
+          "schema_version": "3.0",
+          "file_ref": {
+            "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.batch_norm_update_stats/kn_pt_pv4_empty_input_division_by_zero_in_batch_norm_update_stats_k002.json",
+            "content_hash": "31946c254c88838ce9dc71585f0b417a9a7f8fa9185b06c97782218eacf1a19e"
+          }
+        }
+      ],
+      "approved_inputs": {
+        "structured_baseline": {
+          "spec_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r4.json",
+            "content_hash": "1340e68e60a10572a6c550e602d3ae8f25915d303568d7cd1a0468d57781c01c"
+          },
+          "spec_review_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/controlled_baseline/hs_pytorch_torch.batch_norm_update_stats_controlled_baseline_r4__review_r1.json",
+            "content_hash": "ff358b3ed09d37fbb1b5082ea57a57d8e447f0afaca8d689d37fb5b1fa18ffa7"
+          },
+          "strategy_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r003.json",
+            "content_hash": "277cbedaa87f5150d67f73e196c2cf2ac2559b59097c5a5cab915b4d4cff768f"
+          },
+          "strategy_review_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r3__review_r1.json",
+            "content_hash": "9be6561f80212016df6bfa76ae1673027dea306d8910646ce5dfdb5fe1ec96bf"
+          }
+        },
+        "bug_aware_static": {
+          "spec_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6.json",
+            "content_hash": "1b3ab473c0eb8e412885b5f0ddd86d853d615d058e8ca80cc7c30226997f968f"
+          },
+          "spec_review_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/hs_pytorch_torch.batch_norm_update_stats_bug_aware_static_r6__review_r1.json",
+            "content_hash": "1adeb7f9384a88ece7412d1096040acff2c25fcd1a0de386cf3465882b94f411"
+          },
+          "strategy_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r002.json",
+            "content_hash": "59962f9c96e8f36412a68d504e01e67a1182cd4ff43969793e5ae3c3b6d7e822"
+          },
+          "strategy_review_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2__review_r1.json",
+            "content_hash": "0d3611ec5171f79c4f047076860a4757caa48ec75ddc539d552191d6ce68efce"
+          }
+        }
+      }
+    },
+    {
+      "api_id": "torch.nn.functional.cosine_embedding_loss",
+      "enabled": true,
+      "target_api": "torch.nn.functional.cosine_embedding_loss",
+      "target_manifest_entry_id": "torch.nn.functional.cosine_embedding_loss",
+      "api_profile_binding": {
+        "artifact_ref": {
+          "artifact_id": "api_prof:pytorch:v2.10.0:cpu:torch.nn.functional.cosine_embedding_loss:python_default:aten.cosine_embedding_loss.default",
+          "artifact_version": 6,
+          "content_hash": "8a26eae7983f28f0d81c858d6efc1a3c2c51d7ba9f699f95791a8e0b7f5ecd0e"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/api_profiles/pytorch/v2.10.0/cpu/torch.nn.functional.cosine_embedding_loss/api_profile__aten.cosine_embedding_loss.default__r006.json",
+          "content_hash": "7ddaa6109416d619b4ea3c914211676aa1079ab999345f48d5af354731cff077"
+        }
+      },
+      "compile_profile_file_ref": {
+        "relative_path": "runtime/flashfuzz_2_10/harness_compile_profile.json",
+        "content_hash": "78b99847b4e38d0240555ac2a30e7c8210f3551bd299a2fbfbe9004c45c451a8"
+      },
+      "initial_corpus_binding": {
+        "artifact_ref": {
+          "artifact_id": "corpus_torch_nn_functional_cosine_embedding_loss_initial_v1",
+          "artifact_version": 1,
+          "content_hash": "1f735ddca7396113d661dd20a8bd952759d3667717086aa0901e0252ba3f9665"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/configs/initial_corpora/torch_nn_functional_cosine_embedding_loss_empty/corpus_manifest.json",
+          "content_hash": "774eeef991773096e0242e6c8ae513a04f643b15c7ade341e4dae4d657b3d277"
+        }
+      },
+      "knowledge_bindings": [
+        {
+          "knowledge_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+          "schema_version": "3.0",
+          "file_ref": {
+            "relative_path": "experiment/EXP006_historical_bug_pattern_dataset/knowledge_base/v3/torch.nn.functional.cosine_embedding_loss/kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001.json",
+            "content_hash": "589ec890a0605b3d9daf309acd97b8d368f1a07eb6a17107b7e49ef5492161e2"
+          }
+        }
+      ],
+      "approved_inputs": {
+        "structured_baseline": {
+          "spec_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r3.json",
+            "content_hash": "42afbea919a8b072ce9f188d6aabd588ccc2f6a138e60809582297ddf64abde5"
+          },
+          "spec_review_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/hs_pytorch_torch.nn.functional.cosine_embedding_loss_controlled_baseline_r3__review_r1.json",
+            "content_hash": "06e8043a174bcfc69d5497dc4eb81d9c3c91e83e11b9e0b644172ab2efc34d09"
+          },
+          "strategy_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r003.json",
+            "content_hash": "ce1270551b07a8c899a50dd1bfaf9d750c9e8ed3b6ea621a39c337c43790ccd4"
+          },
+          "strategy_review_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r3__review_r1.json",
+            "content_hash": "16e1a190261aa03872745de257f1ca263f584db217231b842369f65088124e46"
+          }
+        },
+        "bug_aware_static": {
+          "spec_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_specs/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4.json",
+            "content_hash": "0dbe0c3c6bef1261b677da2db644195f9d6fdc5799340c1f5ba99f4109835fc5"
+          },
+          "spec_review_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/harness_spec_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static_r4__review_r1.json",
+            "content_hash": "b9ebe32c7e4160339cdbd3f1943c9e95dc6113957027254b22d36fad85628c31"
+          },
+          "strategy_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r002.json",
+            "content_hash": "41290ec0ae55fe76c9f40f6cc5a3841b6350526d4c3a68b54d95e01ffd287bcd"
+          },
+          "strategy_review_file_ref": {
+            "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_plan_reviews/pytorch/torch.nn.functional.cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r2__review_r1.json",
+            "content_hash": "0a2eda712a19a86fa4d794ae02387e0541350ad3b06dac177615fc0c6578f40a"
+          }
+        }
+      }
+    }
+  ],
+  "inputs": {
+    "shared_file_refs": {
+      "harness_template": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/templates/libfuzzer_harness_v1.cpp.in",
+        "content_hash": "ca8da0f415d50105d1ae1cc28e3f99c550855c3d57846c12d3b7a13bbbfb1ab6"
+      },
+      "runtime_instrumentation_header": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.h",
+        "content_hash": "adb3681315791e2d61c39fd42e311aa3137c19d2e44a8187e0f80b191a0d5386"
+      },
+      "runtime_instrumentation_source": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/runtime/harness_instrumentation.cpp",
+        "content_hash": "2161b7d5aaa07a4ff91df08b3c888dbe57bc9e30ef50a8b7fe8ed231e0d681eb"
+      },
+      "initial_branch_budget_policy": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/schemas/initial_branch_budget_policy.json",
+        "content_hash": "e0d09200c9eb83565f0153e71a6a025ce17ea29904592b75256af9714a9eb8c9"
+      },
+      "crash_analysis_policy": {
+        "relative_path": "experiment/EXP013_crash_triage_and_result_analysis/policies/crash_analysis_policy.json",
+        "content_hash": "aaea91bb39e27e57f5b1e37ab05866612543f191ea8c72e0e69569d03c3b4051"
+      },
+      "round_adapter": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/scripts/run_fuzzing_round.py",
+        "content_hash": "3af1bc4473b01e8b46c90369481aef6954b4f6519479953482090be2f3635a41"
+      },
+      "fuzzing_round_schema": {
+        "relative_path": "experiment/EXP012_adaptive_feedback/schemas/fuzzing_round_record.schema.json",
+        "content_hash": "4bed59298537b39e24189d8c2ba395f1d72325bc6b98ea8af619f9f53b99adbf"
+      },
+      "candidate_bundle_schema": {
+        "relative_path": "experiment/EXP013_crash_triage_and_result_analysis/schemas/candidate_bundle_record.schema.json",
+        "content_hash": "c481a8ef18a4537d9bff6a48e0ffe256a87b6ba730d6ac21e7d7db6ea40b17bb"
+      }
+    },
+    "shared_artifact_refs": {
+      "capability_snapshot": {
+        "artifact_ref": {
+          "artifact_id": "capability_snapshot_pytorch_2_10_torch_matmul",
+          "artifact_version": 3,
+          "content_hash": "6fa3492fced7191b0e68ba474211aeb8a22b935d8d7b6de1c838b859bf02622f"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/strategy_primitive_catalog.json",
+          "content_hash": "40d6757d513a0b1e0ef9ea926d3d9409fff0eb4d806b1986cd86ceed11061bae"
+        }
+      },
+      "evaluation_target_manifest": {
+        "artifact_ref": {
+          "artifact_id": "etm_pytorch_2_10_two_api_smoke_v002",
+          "artifact_version": 2,
+          "content_hash": "630d6d94d128fcf9d16590ff1a2f84477e98759f2aefd9124a1cefd4dae38c57"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP014_experimental_evaluation/configs/evaluation_target_manifest__two_api_smoke_v002.json",
+          "content_hash": "5ebebd13815294c19a9f800158d1d60d7251143fcb43462f0b109a8e3f5a4af8"
+        }
+      },
+      "helper_profile_set": {
+        "artifact_ref": {
+          "artifact_id": "helper_profile_set_pytorch_2_10_cpu",
+          "artifact_version": 1,
+          "content_hash": "0b54434c4bfb7b5bb2cf8c453106e0daa6618703c5d8c89698ad4cc0e82fcf33"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/helper_profiles/helper_profile_set__pytorch_2_10_cpu__v001.json",
+          "content_hash": "4e23fde9c19c692f461ebe0066b823b7e8d94ff4bd5d6c34fb0188fc6c9d1cbe"
+        }
+      },
+      "strategy_primitive_catalog": {
+        "artifact_ref": {
+          "artifact_id": "pytorch_cpp_strategy_primitives",
+          "artifact_version": 3,
+          "content_hash": "6fa3492fced7191b0e68ba474211aeb8a22b935d8d7b6de1c838b859bf02622f"
+        },
+        "record_file_ref": {
+          "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/strategy_primitive_catalog.json",
+          "content_hash": "40d6757d513a0b1e0ef9ea926d3d9409fff0eb4d806b1986cd86ceed11061bae"
+        }
+      }
+    }
+  },
+  "synthesis": {
+    "model_configuration_file_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/configs/pilot_model_configuration.json",
+      "content_hash": "c31704027d64350f6a0b57dde865b6770e7cbdc2ff678075177e7cf69669c590"
+    },
+    "harness_spec": {
+      "maximum_completed_responses": 3,
+      "contract_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/schemas/harness_spec_synthesis_contract.json",
+        "content_hash": "71affa9f93fa213358b361b548af131421a7e1b026e37aa7c1c879e8fc1c8234"
+      },
+      "builder_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_harness_spec_json.py",
+        "content_hash": "763b1cf43a49c10e84daec34c1cd7f069066ecdb15c2dd20b81e43a35dc2828b"
+      }
+    },
+    "strategy": {
+      "maximum_completed_responses": 3,
+      "contract_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/schemas/strategy_synthesis_contract.json",
+        "content_hash": "a5a0cd7838d53416f8818e5108f10dd51195cc7d627d7bf3ae69de8df6d41235"
+      },
+      "builder_file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_strategy_plan_json.py",
+        "content_hash": "4e77ebf1ca0eaad46b936f13e488955e8061a61e2652c7e20cb7e0cb4fe701fb"
+      }
+    },
+    "repair_input": "normalized_deduplicated_validator_diagnostics",
+    "artifact_materialization_attempts": 1,
+    "artifact_builder_file_ref": {
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/scripts/build_harness_artifact.py",
+      "content_hash": "3cb552c99232206b310568c41f484cb493b17b9d2694aec328990d7bec26a35d"
+    }
+  },
+  "execution_environment": {
+    "framework_name": "pytorch",
+    "framework_version": "2.10",
+    "fuzz_environment_snapshot_ref": {
+      "artifact_ref": {
+        "artifact_id": "runtime_config_pytorch_2_10_cpu",
+        "artifact_version": 1,
+        "content_hash": "9006cfc2edf33d73b38f1a7dcd40e88ec22fff2e2e247f0f4d0f3c67bada6415"
+      },
+      "record_file_ref": {
+        "relative_path": "runtime/flashfuzz_2_10/runtime_config.json",
+        "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f"
+      }
+    },
+    "coverage_environment_snapshot_ref": {
+      "artifact_ref": {
+        "artifact_id": "runtime_config_pytorch_2_10_cpu",
+        "artifact_version": 1,
+        "content_hash": "9006cfc2edf33d73b38f1a7dcd40e88ec22fff2e2e247f0f4d0f3c67bada6415"
+      },
+      "record_file_ref": {
+        "relative_path": "runtime/flashfuzz_2_10/runtime_config.json",
+        "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f"
+      }
+    },
+    "resource_profile_file_ref": {
+      "relative_path": "runtime/flashfuzz_2_10/runtime_config.json",
+      "content_hash": "bcf849e17a94e0dab0e58b0372420a46b3b0f361cfbbe41e099b87e392f3843f"
+    }
+  },
+  "execution": {
+    "repeat_count": 1,
+    "round_count": 2,
+    "active_fuzzing_seconds_per_round": 15,
+    "restart_fuzzer_at_round_boundary": true,
+    "maximum_parallel_main_jobs": 1,
+    "runner_file_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/scripts/run_experiment_matrix.py",
+      "content_hash": "4a87300d384b7633204e8191d0a54e8ad780c1e68ba863c62da798c2310d6479"
+    },
+    "runner_adapters": {
+      "round_argv_template": [
+        ".venv/bin/python",
+        "-B",
+        "experiment/EXP014_experimental_evaluation/scripts/run_fuzzing_round.py",
+        "run",
+        "--harness-record",
+        "{harness_record}",
+        "--strategy-plan",
+        "{strategy_plan}",
+        "--harness-spec",
+        "{harness_spec}",
+        "--api-id",
+        "{api_id}",
+        "--target-api",
+        "{target_api}",
+        "--group-id",
+        "{group_id}",
+        "--repeat-id",
+        "{repeat_id}",
+        "--repeat-index",
+        "{repeat_index}",
+        "--round-id",
+        "{round_id}",
+        "--round-index",
+        "{round_index}",
+        "--planned-final-round-index",
+        "{planned_final_round_index}",
+        "--attempt-index",
+        "{attempt_index}",
+        "--task-key",
+        "{task_key}",
+        "--seed",
+        "{seed}",
+        "--active-seconds",
+        "{active_seconds}",
+        "--round-start-corpus-record",
+        "{round_start_corpus_record}",
+        "--attempt-dir",
+        "{attempt_dir}",
+        "--result-json",
+        "{result_json}",
+        "--runtime-image",
+        "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8"
+      ],
+      "preflight_argv_template": [
+        ".venv/bin/python",
+        "-B",
+        "experiment/EXP014_experimental_evaluation/scripts/run_fuzzing_round.py",
+        "preflight",
+        "--harness-record",
+        "{harness_record}",
+        "--strategy-plan",
+        "{strategy_plan}",
+        "--harness-spec",
+        "{harness_spec}",
+        "--runtime-image",
+        "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8",
+        "--result-json",
+        "{result_json}"
+      ]
+    },
+    "group_order_by_repeat": [
+      {
+        "repeat_id": 1,
+        "group_order": [
+          "structured_baseline",
+          "bug_aware_static",
+          "bug_aware_adaptive"
+        ]
+      }
+    ],
+    "resource_limits": {
+      "timeout": null,
+      "rss_limit_mb": null,
+      "max_len": null,
+      "process_memory_mb": null,
+      "candidate_sample_limit": 64
+    }
+  },
+  "seed_policy": {
+    "derivation_algorithm": "sha256_modulo_supported_range_v1",
+    "derivation_inputs": [
+      "master_seed",
+      "api_id",
+      "fuzz_repeat_id",
+      "round_id"
+    ],
+    "group_id_excluded": true,
+    "record_actual_runtime_seed": true,
+    "master_seed": 20260920,
+    "supported_seed_minimum": 1,
+    "supported_seed_maximum": 2147483647,
+    "canonical_input_encoding": "utf8_nul_separated_v1",
+    "digest_projection": "first_8_bytes_unsigned_big_endian"
+  },
+  "corpus_policy": {
+    "initial_corpus_source": "api_entry.initial_corpus_binding",
+    "independent_copy_per_group_and_repeat": true,
+    "inherit_within_repeat": true,
+    "share_runtime_corpus_across_groups": false,
+    "share_runtime_corpus_across_repeats": false,
+    "record_round_start_manifest": true,
+    "record_round_end_manifest": true
+  },
+  "instrumentation_policy": {
+    "insert_after_core_harness_generation": true,
+    "shared_evaluation_targets_across_groups": true,
+    "read_only_target_checkers": true,
+    "preserve_core_source_hash": true,
+    "record_instrumented_source_hash": true,
+    "record_binary_hash": true
+  },
+  "feedback": {
+    "shared_initial_state": {
+      "source_group": "bug_aware_static",
+      "reuse_exact_harness_spec": true,
+      "reuse_exact_strategy": true,
+      "reuse_exact_core_source": true,
+      "reuse_exact_instrumented_source": true,
+      "reuse_exact_binary": true
+    },
+    "controller_file_ref": {
+      "relative_path": "experiment/EXP012_adaptive_feedback/scripts/run_feedback_controller.py",
+      "content_hash": "0cf026cd8f7052cb0d25b33bcd503601c6e150c80b89327ad936a6a5b1087e3d"
+    },
+    "policy_file_ref": {
+      "relative_path": "experiment/EXP012_adaptive_feedback/policies/adaptive_feedback_policy.json",
+      "content_hash": "12b1925a5401eababba00fbaa4bb1f45ede6f6c2f59853dc21c851d309afb11c"
+    },
+    "applicable_group": "bug_aware_adaptive",
+    "decision_after_rounds": [
+      1
+    ],
+    "maximum_revisions_per_repeat": 2,
+    "materialization_pipeline": {
+      "uses_llm": false,
+      "harness_spec_operation": "apply_feedback_request",
+      "strategy_operation": "deterministic_rebind",
+      "harness_operation": "materialize_compile_preflight",
+      "orchestrator": "run_experiment_matrix"
+    },
+    "rollback_to_latest_valid_harness": true,
+    "extend_fuzzing_budget_after_revision_failure": false
+  },
+  "coverage": {
+    "enabled": false,
+    "replay_after_each_round": false,
+    "input": "frozen_round_end_corpus",
+    "cumulative_merge": "set_union",
+    "scope_file_ref": null
+  },
+  "failure_handling": {
+    "method_failure_extra_attempts": 0,
+    "infrastructure_retry": {
+      "retryable_categories": [
+        "model_transport_no_response",
+        "container_start_failure",
+        "pre_active_fuzzing_io_failure",
+        "scheduler_interruption"
+      ],
+      "maximum_retries_per_operation": 1,
+      "round_retry_mode": "restart_from_frozen_round_start",
+      "reuse_original_paired_seed": true,
+      "exclude_partial_attempt_from_primary_metrics": true,
+      "preserve_all_attempt_records": true,
+      "rerun_paired_counterpart": false
+    },
+    "abnormal_exit": {
+      "target_or_framework_exit_action": "record_candidate_isolate_input_and_resume_remaining_budget",
+      "fuzzer_infrastructure_exit_action": "apply_infrastructure_retry_policy",
+      "reuse_current_harness": true,
+      "preserve_all_failure_records": true,
+      "maximum_process_restarts_per_round": 1,
+      "repeated_event_suppression_policy_file_ref": {
+        "relative_path": "experiment/EXP013_crash_triage_and_result_analysis/policies/crash_analysis_policy.json",
+        "content_hash": "aaea91bb39e27e57f5b1e37ab05866612543f191ea8c72e0e69569d03c3b4051"
+      }
+    }
+  },
+  "analysis": {
+    "analysis_cutoff_policy": {
+      "mode": "relative_to_last_terminal_core_run",
+      "delay_seconds": 86400
+    },
+    "resolved_cutoff_location": "result_provenance",
+    "main_statistical_unit": "api",
+    "repeat_aggregation": "median",
+    "rq2_pair": [
+      "structured_baseline",
+      "bug_aware_static"
+    ],
+    "rq3_pair": [
+      "bug_aware_static",
+      "bug_aware_adaptive"
+    ],
+    "unresolved_cases_in_primary_anomaly_metrics": false,
+    "analyzer_file_ref": {
+      "relative_path": "experiment/EXP014_experimental_evaluation/scripts/analyze_experiment_results.py",
+      "content_hash": "836be27d93267d5e195b1c4141f54578adf6120cdc82cf64ea570913ffc4cc3f"
+    },
+    "input_schema_file_refs": {
+      "evaluation_target_manifest": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/schemas/evaluation_target_manifest.schema.json",
+        "content_hash": "a6ec6ba2b31fdde01986ba83391c54167353e9cb0c8a92b85f438a69c41ed491"
+      },
+      "execution_index": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/schemas/execution_index.schema.json",
+        "content_hash": "ac2ad62a252e04cd24196a6c9b2a5f7d6f786555dd2f4532db8bda62c11035cc"
+      },
+      "result_provenance": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/schemas/result_provenance.schema.json",
+        "content_hash": "e470ddce6fc8b45e7af8c1cd527ff2127c5077e24161f96cffb0e2f7d0095263"
+      },
+      "runtime_snapshot": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/schemas/runtime_snapshot.schema.json",
+        "content_hash": "4bdbb691176de42cec186572b84ab6be07a3427d9def8290b5dd9bf10a5acdfb"
+      }
+    }
+  },
+  "auxiliary_flashfuzz_comparison": {
+    "enabled": false,
+    "api_ids": [],
+    "require_deviation_record": true,
+    "include_in_core_group_statistics": false
+  },
+  "preparation": {
+    "mode": "reuse_approved"
+  }
+}

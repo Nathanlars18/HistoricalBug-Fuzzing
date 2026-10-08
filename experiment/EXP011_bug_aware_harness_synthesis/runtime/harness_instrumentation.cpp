@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstdio>
+#include <cstring>
 #include <cstdlib>
 #include <exception>
 #include <fstream>
@@ -10,6 +11,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+#include <filesystem>
+#include <stdexcept>
 
 namespace hbfg {
 namespace {
@@ -19,13 +22,25 @@ constexpr char kSnapshotIntervalEnv[] =
     "HBFG_METRICS_SNAPSHOT_INTERVAL";
 
 constexpr char kRecordFormatVersion[] = "1.0";
-constexpr char kRuntimeVersion[] = "1.0";
+constexpr char kRuntimeVersion[] = "1.1";
 
 constexpr std::uint64_t kDefaultSnapshotInterval = 65536;
+constexpr std::uint64_t kTargetExceptionLogLimit = 16;
+constexpr int kTargetExceptionMessageLimit = 1024;
 
 std::string ReadMetricsPath() {
   const char* value = std::getenv(kMetricsPathEnv);
   return value == nullptr ? std::string{} : std::string{value};
+}
+
+std::uint64_t ReadCaptureLimit() noexcept {
+  const char* value = std::getenv("HBFG_CANDIDATE_SAMPLE_LIMIT");
+  if (value == nullptr) return 64U;
+  try {
+    std::string text(value);
+    if (text.empty() || text.find_first_not_of("0123456789") != std::string::npos) return 64U;
+    return std::stoull(text);
+  } catch (...) { return 64U; }
 }
 
 std::uint64_t ReadSnapshotInterval() noexcept {
@@ -164,6 +179,15 @@ struct InstrumentationRegistry::State final {
   std::atomic<std::uint64_t> unwound_iterations{0U};
   std::atomic<std::uint64_t> invalid_site_records{0U};
   std::atomic<std::uint64_t> export_failures{0U};
+  std::atomic<std::uint64_t> target_exception_log_attempts{0U};
+  std::atomic<std::uint64_t> capture_attempts{0U};
+  std::atomic<std::uint64_t> captured{0U};
+  std::atomic<std::uint64_t> capture_failures{0U};
+  std::atomic<std::uint64_t> exception_capture_attempts{0U};
+  std::atomic<std::uint64_t> oracle_capture_attempts{0U};
+  const std::uint64_t capture_limit{ReadCaptureLimit()};
+  const std::string capture_dir{std::getenv("HBFG_CANDIDATE_DIR") == nullptr ? "" : std::getenv("HBFG_CANDIDATE_DIR")};
+  const std::string trace_path{std::getenv("HBFG_REPLAY_TRACE") == nullptr ? "" : std::getenv("HBFG_REPLAY_TRACE")};
 
   std::mutex export_mutex;
 
@@ -275,10 +299,11 @@ struct InstrumentationRegistry::State final {
 };
 
 IterationContext::IterationContext(
-    InstrumentationRegistry* registry) noexcept
+    InstrumentationRegistry* registry, const std::uint8_t* data,
+    std::size_t size, std::uint64_t iteration) noexcept
     : registry_(registry),
       uncaught_exceptions_on_entry_(
-          std::uncaught_exceptions()) {}
+          std::uncaught_exceptions()), data_(data), size_(size), iteration_(iteration) {}
 
 IterationContext::~IterationContext() noexcept {
   if (registry_ == nullptr) {
@@ -289,6 +314,7 @@ IterationContext::~IterationContext() noexcept {
       std::uncaught_exceptions() >
       uncaught_exceptions_on_entry_;
 
+  registry_->trace(*this);
   registry_->finish_iteration(unwinding);
 }
 
@@ -296,7 +322,8 @@ IterationContext::IterationContext(
     IterationContext&& other) noexcept
     : registry_(std::exchange(other.registry_, nullptr)),
       uncaught_exceptions_on_entry_(
-          other.uncaught_exceptions_on_entry_) {
+          other.uncaught_exceptions_on_entry_), data_(other.data_), size_(other.size_),
+      iteration_(other.iteration_), sites_(other.sites_), sites_used_(other.sites_used_) {
   other.uncaught_exceptions_on_entry_ = 0;
 }
 
@@ -304,15 +331,17 @@ void IterationContext::record(
     RuntimeSiteId site_id) noexcept {
   if (registry_ != nullptr) {
     registry_->record(site_id);
+    if (sites_used_ < sites_.size()) sites_[sites_used_++] = site_id;
+    // Replay-only write-ahead evidence: a fatal target signal may prevent
+    // IterationContext destruction. Normal fuzzing has no trace I/O here.
+    registry_->trace(*this);
   }
 }
 
 void IterationContext::record_if(
     RuntimeSiteId site_id,
     bool condition) noexcept {
-  if (condition && registry_ != nullptr) {
-    registry_->record(site_id);
-  }
+  if (condition) record(site_id);
 }
 
 InstrumentationRegistry::InstrumentationRegistry(
@@ -335,19 +364,105 @@ InstrumentationRegistry::InstrumentationRegistry(
 InstrumentationRegistry::~InstrumentationRegistry() noexcept {
   if (state_ != nullptr) {
     state_->export_snapshot(true);
+    if (!state_->capture_dir.empty()) {
+      try {
+        std::ofstream out(state_->capture_dir + "/capture_summary.json");
+        out << "{\"attempts\":" << state_->capture_attempts.load()
+            << ",\"saved\":" << state_->captured.load()
+            << ",\"failures\":" << state_->capture_failures.load()
+            << ",\"exception_attempts\":" << state_->exception_capture_attempts.load()
+            << ",\"oracle_attempts\":" << state_->oracle_capture_attempts.load()
+            << ",\"limit_per_kind\":" << state_->capture_limit << ",\"complete\":true}";
+      } catch (...) {}
+    }
   }
 }
 
-IterationContext InstrumentationRegistry::begin_iteration() noexcept {
+void IterationContext::log_target_api_exception(
+    const char* message) noexcept {
+  if (registry_ != nullptr) {
+    registry_->log_target_api_exception(message);
+    capture_anomaly("target_exception", message);
+  }
+}
+
+void IterationContext::capture_anomaly(const char* kind, const char* message) noexcept {
+  if (registry_ != nullptr) registry_->capture(*this, kind, message);
+}
+
+void InstrumentationRegistry::trace(const IterationContext& context) noexcept {
+  if (state_ == nullptr || state_->trace_path.empty()) return;
+  try {
+    std::ofstream out(state_->trace_path, std::ios::app);
+    static constexpr char kHex[] = "0123456789abcdef";
+    out << "{\"iteration\":" << context.iteration_ << ",\"input_hex\":\"";
+    for (std::size_t i = 0; context.data_ != nullptr && i < context.size_; ++i) {
+      const auto byte = context.data_[i];
+      out.put(kHex[(byte >> 4U) & 0x0fU]);
+      out.put(kHex[byte & 0x0fU]);
+    }
+    out << "\",\"sites_truncated\":"
+        << (context.sites_used_ == context.sites_.size() ? "true" : "false")
+        << ",\"runtime_site_ids\":[";
+    for (std::size_t i = 0; i < context.sites_used_; ++i) {
+      if (i != 0) out.put(',');
+      out << context.sites_[i];
+    }
+    out << "]}\n";
+    out.flush();
+  } catch (...) {}
+}
+
+void InstrumentationRegistry::capture(const IterationContext& context, const char* kind, const char* message) noexcept {
+  if (state_ == nullptr || state_->capture_dir.empty() || (context.data_ == nullptr && context.size_ != 0U)) return;
+  const auto ordinal = state_->capture_attempts.fetch_add(1U);
+  // Separate first-N limits prevent ordinary exceptions from consuming Oracle samples.
+  const bool is_oracle = kind != nullptr && std::strcmp(kind, "oracle_failure") == 0;
+  const auto kind_ordinal = (is_oracle ? state_->oracle_capture_attempts : state_->exception_capture_attempts).fetch_add(1U);
+  if (kind_ordinal >= state_->capture_limit) return;
+  try {
+    const std::string base = state_->capture_dir + "/event_" + std::to_string(ordinal);
+    std::ofstream input(base + ".input", std::ios::binary);
+    if (context.size_ != 0U) input.write(reinterpret_cast<const char*>(context.data_), context.size_);
+    input.close();
+    if (!input) throw std::runtime_error("input capture failed");
+    std::ofstream out(base + ".json");
+    out << "{\"capture_version\":\"1.0\",\"kind\":";
+    WriteJsonString(out, kind == nullptr ? "unknown" : kind);
+    out << ",\"message\":";
+    WriteJsonString(out, std::string(message == nullptr ? "" : message).substr(0, 4096));
+    out << ",\"artifact_id\":"; WriteJsonString(out, state_->artifact_id);
+    out << ",\"iteration_index\":" << context.iteration_
+        << ",\"sites_truncated\":" << (context.sites_used_ == context.sites_.size() ? "true" : "false")
+        << ",\"runtime_sites\":[";
+    for (std::size_t i = 0; i < context.sites_used_; ++i) {
+      if (i) out << ',';
+      out << context.sites_[i];
+    }
+    out << "]}\n"; out.flush();
+    if (!out) throw std::runtime_error("event capture failed");
+    state_->captured.fetch_add(1U);
+    if (is_oracle) {
+      std::fprintf(stderr, "HBFG_ORACLE_FAILURE=%.*s\n",
+                   kTargetExceptionMessageLimit,
+                   message == nullptr ? "" : message);
+    }
+  } catch (...) {
+    state_->capture_failures.fetch_add(1U);
+    std::fputs("HBFG_CAPTURE_FAILED\n", stderr);
+  }
+}
+
+IterationContext InstrumentationRegistry::begin_iteration(const std::uint8_t* data, std::size_t size) noexcept {
   if (state_ == nullptr) {
     return IterationContext(nullptr);
   }
 
-  state_->started_iterations.fetch_add(
+  const auto iteration = state_->started_iterations.fetch_add(
       1U,
       std::memory_order_relaxed);
 
-  return IterationContext(this);
+  return IterationContext(this, data, size, iteration);
 }
 
 void InstrumentationRegistry::record(
@@ -366,6 +481,25 @@ void InstrumentationRegistry::record(
   state_->site_counts[site_id].fetch_add(
       1U,
       std::memory_order_relaxed);
+}
+
+void InstrumentationRegistry::log_target_api_exception(
+    const char* message) noexcept {
+  if (state_ == nullptr) {
+    return;
+  }
+  const std::uint64_t attempt =
+      state_->target_exception_log_attempts.fetch_add(
+          1U, std::memory_order_relaxed);
+  if (attempt >= kTargetExceptionLogLimit) {
+    return;
+  }
+  const char* safe_message = message == nullptr ? "" : message;
+  std::fprintf(
+      stderr,
+      "HBFG_TARGET_API_EXCEPTION=%.*s\n",
+      kTargetExceptionMessageLimit,
+      safe_message);
 }
 
 void InstrumentationRegistry::finish_iteration(

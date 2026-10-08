@@ -21,6 +21,33 @@ SPEC.loader.exec_module(MODULE)
 
 
 class MatrixRunnerPrepareTests(unittest.TestCase):
+    def test_timeout_with_byte_output_preserves_logs_and_state(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            attempt = Path(temporary) / "attempt"
+            with mock.patch.object(MODULE.subprocess, "run", side_effect=__import__("subprocess").TimeoutExpired(["fake"], 1, output=b"partial out", stderr=b"partial err")):
+                result = MODULE.run_command(["fake"], attempt, timeout_seconds=1)
+            self.assertTrue(result["timed_out"])
+            self.assertEqual((attempt / "stdout.log").read_text(), "partial out")
+            self.assertEqual((attempt / "stderr.log").read_text(), "partial err")
+
+    def test_missing_knowledge_is_rejected_before_generation(self):
+        with mock.patch.object(MODULE, "prepare_group") as generate:
+            with self.assertRaisesRegex(MODULE.ConfigurationError, "knowledge_bindings"):
+                MODULE.prepare_all({}, [{"api_id": "torch.matmul"}], Path("/tmp/state.json"), {}, Path("/tmp/run"), "python")
+            generate.assert_not_called()
+
+    def test_target_manifest_requires_exact_frozen_knowledge(self):
+        binding = {"knowledge_id": "kn_test", "schema_version": "2.1",
+                   "file_ref": {"relative_path": "knowledge.json", "content_hash": "a" * 64}}
+        entry = {"api_id": "torch.matmul", "knowledge_bindings": [binding]}
+        manifest = {"api_target_sets": [{"api_id": "torch.matmul", "targets": [
+            {"source_knowledge_refs": [dict(binding)]}], "excluded_knowledge": []}]}
+        with mock.patch.object(MODULE, "evaluation_target_manifest", return_value=Path("/tmp/manifest.json")), mock.patch.object(MODULE, "load_json", return_value=manifest):
+            MODULE.validate_target_knowledge_bindings({}, entry)
+            manifest["api_target_sets"][0]["targets"][0]["source_knowledge_refs"][0]["knowledge_id"] = "kn_other"
+            with self.assertRaisesRegex(MODULE.ConfigurationError, "differ"):
+                MODULE.validate_target_knowledge_bindings({}, entry)
+
     def test_round_attempt_paths_separate_adapter_and_runner_outputs(self) -> None:
         operation_root = Path("/tmp/round_001")
         adapter_dir, process_dir = MODULE.round_attempt_paths(operation_root, 1)
@@ -181,6 +208,7 @@ class MatrixRunnerPrepareTests(unittest.TestCase):
             mock.patch.object(
                 MODULE, "default_branch_strategy_hash", return_value="b" * 64
             ),
+            mock.patch.object(MODULE, "find_authorization", side_effect=[Path("/tmp/spec_review.json"), Path("/tmp/strategy_review.json")]),
             mock.patch.object(MODULE, "preflight"),
             mock.patch.object(MODULE, "persist_state"),
         ):
@@ -242,6 +270,8 @@ class MatrixRunnerPrepareTests(unittest.TestCase):
                         "spec_path": baseline_spec,
                         "strategy_path": baseline_strategy,
                         "artifact_path": "/tmp/baseline_artifact.json",
+                        "spec_authorization_path": "/tmp/baseline_spec_review.json",
+                        "strategy_authorization_path": "/tmp/baseline_strategy_review.json",
                         "default_branch_spec_hash": "a" * 64,
                         "default_branch_strategy_hash": "b" * 64,
                     }
@@ -260,6 +290,7 @@ class MatrixRunnerPrepareTests(unittest.TestCase):
             mock.patch.object(MODULE, "api_profile", return_value=(profile, Path("/tmp/api.json"))),
             mock.patch.object(MODULE, "model_arguments", return_value=[]),
             mock.patch.object(MODULE, "helper_profile_set", return_value=Path("/tmp/helpers.json")),
+            mock.patch.object(MODULE, "frozen_knowledge_arguments", return_value=["--knowledge-binding", "pinned-test-reference"]),
             mock.patch.object(MODULE, "verify_file_reference", return_value=Path("/tmp/compile.json")),
             mock.patch.object(MODULE, "evaluation_target_manifest", return_value=Path("/tmp/targets.json")),
             mock.patch.object(MODULE, "run_builder_step", side_effect=fake_builder_step),
@@ -267,6 +298,7 @@ class MatrixRunnerPrepareTests(unittest.TestCase):
             mock.patch.object(MODULE, "persist_state"),
             mock.patch.object(MODULE, "default_branch_spec_hash", return_value="a" * 64),
             mock.patch.object(MODULE, "default_branch_strategy_hash", return_value="b" * 64),
+            mock.patch.object(MODULE, "find_authorization", side_effect=[Path("/tmp/static_spec_review.json"), Path("/tmp/static_strategy_review.json")]),
         ):
             MODULE.prepare_group(
                 matrix,
@@ -284,9 +316,14 @@ class MatrixRunnerPrepareTests(unittest.TestCase):
             baseline_spec,
         )
         strategy_argv = captured["strategy"]
+        self.assertEqual(spec_argv[spec_argv.index("--knowledge-binding") + 1], "pinned-test-reference")
         self.assertEqual(
             strategy_argv[strategy_argv.index("--canonical-default-strategy") + 1],
             baseline_strategy,
+        )
+        self.assertEqual(
+            strategy_argv[strategy_argv.index("--canonical-default-strategy-review") + 1],
+            "/tmp/baseline_strategy_review.json",
         )
 
     def test_formal_matrix_satisfies_controlled_design(self) -> None:
@@ -301,3 +338,56 @@ class MatrixRunnerPrepareTests(unittest.TestCase):
             "group_id_excluded must be true",
         ):
             MODULE.validate_controlled_design(matrix)
+
+    def test_feedback_resume_uses_new_attempt_after_transient_interruption(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            base = root / "controller_initial"
+
+            def interrupted(argv: list[str], attempt_dir: Path) -> dict[str, object]:
+                attempt_dir.mkdir(parents=True)
+                outcome = {"returncode": None, "timed_out": True, "launch_error": None}
+                MODULE.write_json(attempt_dir / "process_result.json", outcome)
+                return outcome
+
+            with mock.patch.object(MODULE, "run_command", side_effect=interrupted):
+                with self.assertRaisesRegex(MODULE.RunnerError, "without a result JSON"):
+                    MODULE.call_feedback_controller(
+                        python="python", arguments=[], attempt_dir=base, maximum_retries=1)
+
+            def succeeds(argv: list[str], attempt_dir: Path) -> dict[str, object]:
+                attempt_dir.mkdir(parents=True)
+                result_path = Path(argv[argv.index("--result-json") + 1])
+                MODULE.write_json(result_path, {"status": "decision_recorded", "decision_path": "/tmp/decision.json"})
+                outcome = {"returncode": 0, "timed_out": False, "launch_error": None}
+                MODULE.write_json(attempt_dir / "process_result.json", outcome)
+                return outcome
+
+            with mock.patch.object(MODULE, "run_command", side_effect=succeeds) as run:
+                result, _ = MODULE.call_feedback_controller(
+                    python="python", arguments=[], attempt_dir=base, maximum_retries=1)
+            self.assertEqual(result["status"], "decision_recorded")
+            self.assertIn("attempt_002", run.call_args.args[1].as_posix())
+            self.assertTrue((base / "attempts/attempt_001/process_result.json").is_file())
+
+    def test_feedback_resume_does_not_retry_deterministic_controller_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary) / "controller_initial"
+
+            def fails(argv: list[str], attempt_dir: Path) -> dict[str, object]:
+                attempt_dir.mkdir(parents=True)
+                result_path = Path(argv[argv.index("--result-json") + 1])
+                MODULE.write_json(result_path, {"status": "error", "error_type": "RoundInputError",
+                                                "message": "coverage hash mismatch"})
+                outcome = {"returncode": 1, "timed_out": False, "launch_error": None}
+                MODULE.write_json(attempt_dir / "process_result.json", outcome)
+                return outcome
+
+            with mock.patch.object(MODULE, "run_command", side_effect=fails) as run:
+                with self.assertRaisesRegex(MODULE.RunnerError, "coverage hash mismatch"):
+                    MODULE.call_feedback_controller(
+                        python="python", arguments=[], attempt_dir=base, maximum_retries=2)
+                with self.assertRaisesRegex(MODULE.RunnerError, "coverage hash mismatch"):
+                    MODULE.call_feedback_controller(
+                        python="python", arguments=[], attempt_dir=base, maximum_retries=2)
+                run.assert_called_once()

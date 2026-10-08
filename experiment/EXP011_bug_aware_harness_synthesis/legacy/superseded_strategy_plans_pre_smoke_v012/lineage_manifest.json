@@ -1,0 +1,148 @@
+{
+  "archive_version": "1.0",
+  "archived_on": "2026-10-08",
+  "archive_kind": "logical",
+  "reason": "Superseded Strategy revisions are retained byte-for-byte at original paths for reviews, generation traces and frozen run references. Only matrix-approved revisions are current smoke inputs.",
+  "active_selection_matrix_file_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/configs/two_api_operational_smoke__v012.json",
+    "content_hash": "15350e377102aada1894f019fc70daebbd15a553dc0375ac422607db1ad1641c"
+  },
+  "active_plans": [
+    {
+      "target_api": "torch.batch_norm_update_stats",
+      "group": "structured_baseline",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r003.json",
+      "content_hash": "277cbedaa87f5150d67f73e196c2cf2ac2559b59097c5a5cab915b4d4cff768f"
+    },
+    {
+      "target_api": "torch.batch_norm_update_stats",
+      "group": "bug_aware_static",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r002.json",
+      "content_hash": "59962f9c96e8f36412a68d504e01e67a1182cd4ff43969793e5ae3c3b6d7e822"
+    },
+    {
+      "target_api": "torch.nn.functional.cosine_embedding_loss",
+      "group": "structured_baseline",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r003.json",
+      "content_hash": "ce1270551b07a8c899a50dd1bfaf9d750c9e8ed3b6ea621a39c337c43790ccd4"
+    },
+    {
+      "target_api": "torch.nn.functional.cosine_embedding_loss",
+      "group": "bug_aware_static",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r002.json",
+      "content_hash": "41290ec0ae55fe76c9f40f6cc5a3841b6350526d4c3a68b54d95e01ffd287bcd"
+    }
+  ],
+  "superseded_plans": [
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/bug_aware_static/st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r001.json",
+        "content_hash": "9600d8a005dcf1dd7e1a54b1ccf4aafd617a22f4d3c7442dd7af11ee3b837791"
+      },
+      "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006",
+      "revision_number": 1,
+      "schema_version": "1.3",
+      "retention": "original_path_for_lineage_only"
+    },
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r001.json",
+        "content_hash": "61114c66ca44e4dd68c69f3297f28491e3816d1f25ed4f58077b0fb0714cbe3c"
+      },
+      "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004",
+      "revision_number": 1,
+      "schema_version": "1.2",
+      "retention": "original_path_for_lineage_only"
+    },
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_batch_norm_update_stats/controlled_baseline/st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004_r002.json",
+        "content_hash": "cd62f2c73319267c80d84c3c2bb95dc1610a55e78bac921a6b8271564a7c89d8"
+      },
+      "strategy_id": "st_hs_pytorch_torch_batch_norm_update_stats_controlled_baseline_hsr004",
+      "revision_number": 2,
+      "schema_version": "1.3",
+      "retention": "original_path_for_lineage_only"
+    },
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_matmul/bug_aware_static/st_hs_pytorch_torch_matmul_bug_aware_static_hsr002_r001.json",
+        "content_hash": "e2d41a1b447f265fa12d70c3c44dd706c7c06da770bb2e3ea8bdef31526cfefd"
+      },
+      "strategy_id": "st_hs_pytorch_torch_matmul_bug_aware_static_hsr002",
+      "revision_number": 1,
+      "schema_version": "1.1",
+      "retention": "original_path_for_lineage_only"
+    },
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_matmul/controlled_baseline/st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r001.json",
+        "content_hash": "bb5348e6b1da5e9a8eec1175267953b76da5ff7976ab7ef0391de7aaad7b414f"
+      },
+      "strategy_id": "st_hs_pytorch_torch_matmul_controlled_baseline_hsr001",
+      "revision_number": 1,
+      "schema_version": "1.1",
+      "retention": "original_path_for_lineage_only"
+    },
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_matmul/controlled_baseline/st_hs_pytorch_torch_matmul_controlled_baseline_hsr001_r002.json",
+        "content_hash": "82dd25e49bfd45f44eb372efa0f45e27173cbc914894338d54f97fcb349e6dbf"
+      },
+      "strategy_id": "st_hs_pytorch_torch_matmul_controlled_baseline_hsr001",
+      "revision_number": 2,
+      "schema_version": "1.1",
+      "retention": "original_path_for_lineage_only"
+    },
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/bug_aware_static/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004_r001.json",
+        "content_hash": "99128df771c4e42594bc10cf6493f1cba6f75d7688d72c08dff62fb47e6475ee"
+      },
+      "strategy_id": "st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_bug_aware_static_hsr004",
+      "revision_number": 1,
+      "schema_version": "1.3",
+      "retention": "original_path_for_lineage_only"
+    },
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r001.json",
+        "content_hash": "2b2237c3f5a469e54e794aa9dfad60c107941510c204b4d22e31df4cac8cd7dd"
+      },
+      "strategy_id": "st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003",
+      "revision_number": 1,
+      "schema_version": "1.2",
+      "retention": "original_path_for_lineage_only"
+    },
+    {
+      "file_ref": {
+        "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/plans/pytorch/torch_nn_functional_cosine_embedding_loss/controlled_baseline/st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003_r002.json",
+        "content_hash": "cada24170203273fd6f3395454b62d41c6c0e889df7e785c1b914574521ced47"
+      },
+      "strategy_id": "st_hs_pytorch_torch_nn_functional_cosine_embedding_loss_controlled_baseline_hsr003",
+      "revision_number": 2,
+      "schema_version": "1.3",
+      "retention": "original_path_for_lineage_only"
+    }
+  ],
+  "retained_catalog_snapshots": [
+    {
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/catalog_snapshots/strategy_primitive_catalog__v004.json",
+      "content_hash": "a8d3a26857be8b16c2ae77fd627945e984552a8ad899d0bac4ec5ced43fdf29f"
+    },
+    {
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/strategy_primitives/catalog_snapshots/strategy_primitive_catalog__v005.json",
+      "content_hash": "7c840080415eef27d6b07477cbddd2ddd9953f1bcf9c5da23186bc6cef6f0c98"
+    }
+  ],
+  "physically_moved_unreferenced_script_backups": [
+    {
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/legacy/strategy_stack_pre_v1_2/scripts/build_harness_artifact.py.orig",
+      "content_hash": "8e1ed23dc5a687b65f628f37fa084bc7f0a39505d36cf37fc1e94a0a7b1e1fa4"
+    },
+    {
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/legacy/strategy_stack_pre_v1_2/scripts/build_strategy_plan_json.py.orig",
+      "content_hash": "b4c6dd2926d0fd808ca8c7d750af02b9161b827caa8379c8f954ba16f3654736"
+    }
+  ]
+}

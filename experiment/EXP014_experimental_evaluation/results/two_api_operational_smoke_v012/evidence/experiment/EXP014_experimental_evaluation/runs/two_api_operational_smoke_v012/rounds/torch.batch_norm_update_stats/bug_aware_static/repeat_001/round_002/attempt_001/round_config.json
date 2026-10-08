@@ -1,0 +1,28 @@
+{
+  "config_format_version": "1.0",
+  "execution_id": "ex_b88c7cf06d9b451b845fb519f4b10510",
+  "api_id": "torch.batch_norm_update_stats",
+  "target_api": "torch.batch_norm_update_stats",
+  "task_key": "torch.batch_norm_update_stats:bug_aware_static:repeat_001:round_002",
+  "runtime_image": "sha256:10968a7f565bb6c1fa008d3a5800af46a8085de7d880c3db3751c287d29865c8",
+  "seed": 1838236848,
+  "active_seconds": 15,
+  "harness_binary_ref": {
+    "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/prepare/torch_batch_norm_update_stats/bug_aware_static/harnesses/pytorch/torch_batch_norm_update_stats/bug_aware_static/ha_st_hs_pytorch_torch_batch_norm_update_stats_bug_aware_static_hsr006_r2_0def3d5da005/harness_binary",
+    "content_hash": "64edbbe18b9d2295984d626280d7730de0d4ebf82b8f4d0af3844ca952caaed1"
+  },
+  "limits": {
+    "timeout": null,
+    "rss_limit_mb": null,
+    "max_len": null,
+    "process_memory_mb": null,
+    "candidate_sample_limit": 64
+  },
+  "initialization_included_in_process_budget": true,
+  "budget_resolution_seconds": 1,
+  "thread_environment": {
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+  }
+}

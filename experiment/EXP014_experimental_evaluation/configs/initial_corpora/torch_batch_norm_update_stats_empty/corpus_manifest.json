@@ -1,0 +1,11 @@
+{
+  "record_format_version": "1.0",
+  "record_type": "corpus_manifest",
+  "identity": {"corpus_id": "corpus_torch_batch_norm_update_stats_initial_v1", "artifact_version": 1},
+  "source": {"kind": "initial", "source_round_id": null},
+  "files": [],
+  "provenance": {
+    "generator_ref": {"artifact_id": "run_fuzzing_round", "artifact_version": "0.5.0", "content_hash": "3af1bc4473b01e8b46c90369481aef6954b4f6519479953482090be2f3635a41"},
+    "generated_at": "2026-10-08T00:00:00Z"
+  }
+}

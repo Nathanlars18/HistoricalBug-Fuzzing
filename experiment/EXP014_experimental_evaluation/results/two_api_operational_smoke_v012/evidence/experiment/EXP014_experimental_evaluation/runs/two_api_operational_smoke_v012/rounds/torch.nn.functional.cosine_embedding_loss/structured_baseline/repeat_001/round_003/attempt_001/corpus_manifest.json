@@ -1,0 +1,118 @@
+{
+  "record_format_version": "1.0",
+  "record_type": "corpus_manifest",
+  "identity": {
+    "corpus_id": "corpus_835bb41b4ec8a694",
+    "artifact_version": 1
+  },
+  "source": {
+    "kind": "round_output",
+    "source_round_id": "torch.nn.functional.cosine_embedding_loss:structured_baseline:repeat_001:round_003"
+  },
+  "files": [
+    {
+      "corpus_relative_path": "08d78fdca3e7b73d551e03f5346ca682aca55744",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/08d78fdca3e7b73d551e03f5346ca682aca55744",
+        "content_hash": "56020424d9bf5ca6d1506969788cddc869712f0937b5f056e20f0f613cb6f881"
+      },
+      "size_bytes": 6
+    },
+    {
+      "corpus_relative_path": "1e5c2f367f02e47a8c160cda1cd9d91decbac441",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/1e5c2f367f02e47a8c160cda1cd9d91decbac441",
+        "content_hash": "245843abef9e72e7efac30138a994bf6301e7e1d7d7042a33d42e863d2638811"
+      },
+      "size_bytes": 1
+    },
+    {
+      "corpus_relative_path": "3d5d03d9e54fd0cdddc08fed1814b11d78c61b42",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/3d5d03d9e54fd0cdddc08fed1814b11d78c61b42",
+        "content_hash": "96d5d553db881d8ec63e9cc5653c6ebcf8316b4089a1aacecf40a71b33acfb39"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "4ca78f448307f4a3f12f5890c1f4c25853c54127",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/4ca78f448307f4a3f12f5890c1f4c25853c54127",
+        "content_hash": "edb136ef3f3f6a63c26916b4d0b3c66f486965506f6d1db2e7065c882bd1f55a"
+      },
+      "size_bytes": 5
+    },
+    {
+      "corpus_relative_path": "55b9e93205e6c44df1f70512e4adb7109dd498c9",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/55b9e93205e6c44df1f70512e4adb7109dd498c9",
+        "content_hash": "b40ecd7789794eb34f044bd05430b053f01e00ef77ed906594f4c02bf921d9ac"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "8002053226d84fc892c645384785a025aa42e9a1",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/8002053226d84fc892c645384785a025aa42e9a1",
+        "content_hash": "51c00fd6090734763ae9ec04cce93d9f734bd8144d51ee4a5577bf428dc03b4c"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "837537698147b663fc10c68215a6a2c7fa178854",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/837537698147b663fc10c68215a6a2c7fa178854",
+        "content_hash": "1a24ec938b911e112efbbbcc022108cd99a657b39ea58742d6f32221e4a266b4"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "b9ecfb249053e7a200bbad150181e66c0bc124ea",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/b9ecfb249053e7a200bbad150181e66c0bc124ea",
+        "content_hash": "60db7eb8bd3802164b522aeadaa31f18bcbfebcc6ec7d87dfe4e75733261f119"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "ca72c3fadf8ad22c4b2c46e655d073fb7695d6b2",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/ca72c3fadf8ad22c4b2c46e655d073fb7695d6b2",
+        "content_hash": "80320a0bea345a29161552baf35de657ae8430621db0bf5833bd102f299a922f"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "da71cdb3a776be0670476501e6bc2382cbe72d0a",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/da71cdb3a776be0670476501e6bc2382cbe72d0a",
+        "content_hash": "d6bb40a6d7f66a7e24bd3aef004d3618c6b4208c76ecba41402c46e8a48d294c"
+      },
+      "size_bytes": 5
+    },
+    {
+      "corpus_relative_path": "e007a0387ffcee20a7158b5b49d8783715244b6d",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/e007a0387ffcee20a7158b5b49d8783715244b6d",
+        "content_hash": "6ed2e148b7d269d9dce873fc15d809ad407e7ec2119412d1952c40ae948b8b01"
+      },
+      "size_bytes": 4
+    },
+    {
+      "corpus_relative_path": "f65178f1a2773c66cccbbaab6615c06c4afdef3c",
+      "file_ref": {
+        "relative_path": "experiment/EXP014_experimental_evaluation/runs/two_api_operational_smoke_v012/rounds/torch.nn.functional.cosine_embedding_loss/structured_baseline/repeat_001/round_003/attempt_001/corpus/f65178f1a2773c66cccbbaab6615c06c4afdef3c",
+        "content_hash": "328220a55dfa111660918b1008d91587bf74a43a16f838558fcb1784d8e92a4c"
+      },
+      "size_bytes": 4
+    }
+  ],
+  "provenance": {
+    "generator_ref": {
+      "artifact_id": "run_fuzzing_round",
+      "artifact_version": "0.5.0",
+      "content_hash": "afdf451c319f854bd302175954bd93ed9dab69669f3b59bc242c813719b463c8"
+    },
+    "generated_at": "2026-10-08T08:30:40.054511Z"
+  }
+}

@@ -1,0 +1,427 @@
+{
+  "schema_version": "2.2",
+  "identity": {
+    "spec_id": "hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static",
+    "framework": "pytorch",
+    "target_api": "torch.nn.functional.cosine_embedding_loss",
+    "spec_mode": "bug_aware_static"
+  },
+  "revision_information": {
+    "revision_number": 3,
+    "parent_revision_ref": {
+      "spec_id": "hs_pytorch_torch.nn.functional.cosine_embedding_loss_bug_aware_static",
+      "revision_number": 2,
+      "content_hash": "2f6a28465fa15e21766e9bec58213bacb5511ff01dec48c357ab1917f0e5695c"
+    },
+    "derived_from_spec_ref": null,
+    "feedback_request_ref": null,
+    "revision_trigger": "manual_review",
+    "change_scopes": [
+      "knowledge_selection",
+      "branch_semantics"
+    ],
+    "change_summary": "Regenerate HarnessSpec revision from frozen inputs; changed scopes: knowledge_selection, branch_semantics",
+    "lifecycle_status": "draft"
+  },
+  "target_context": {
+    "api_profile_ref": {
+      "profile_id": "api_prof:pytorch:v2.10.0:cpu:torch.nn.functional.cosine_embedding_loss:python_default:aten.cosine_embedding_loss.default",
+      "revision": 6,
+      "content_hash": "8140acffb5eccd0cbf6a58164522dcf08011564b37d8e0d0c2aa9d61e5f737dd"
+    },
+    "available_helper_profile_refs": [
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_comparetensors_96f975d59bc7",
+        "revision": 2,
+        "content_hash": "3a023fbd4f2abef1efebf74da7c09a39820fb5bcaf87108f06115dcaeaa9c7af"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_createtensor_14110b37b225",
+        "revision": 2,
+        "content_hash": "77ba0a7b4446c33e3dce2e9c738edb1b113013315817a75cfa00c8321f0b1f1e"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_currenttimestamp_c81f2a7d32da",
+        "revision": 2,
+        "content_hash": "ec490726fa6f4b7ef9bd2a590b3dfa352cfb9ab0f571edc48934d339daf8cccd"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_ensure_log_directory_exists_0998a5920e8b",
+        "revision": 2,
+        "content_hash": "ec5d435bfd631ae34cac1ef70c71eca7ba91352a354689b1b4da987604f6106c"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_logerrormessage_ffbff3bb0e31",
+        "revision": 2,
+        "content_hash": "225e26b459e805214d62aa15b3fcebe3ad4b5f4452adb17460d67abafdcfb7d9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsedatatype_54f7f7e39ec2",
+        "revision": 2,
+        "content_hash": "d24f50a2b9ee76d060d46d3cd29e88d93a4e7c4afc1dd4775fbb964553aeafc6"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parserank_f3fec1bde48a",
+        "revision": 2,
+        "content_hash": "883cb198e4fea076f62b4d8d4a585115c7a7841ea27323959b28c7dde95a6910"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parseshape_bc0dff00f287",
+        "revision": 2,
+        "content_hash": "45ec76ea73190c533ebf6a8cedef5cf44c08278d9002a648f9166b85fd54bc2d"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_parsetensordata_326eeb67c32d",
+        "revision": 2,
+        "content_hash": "7c13a00d198673107c2a960c6372ae9884298aa09aedcf2609c2d5d45e2807cb"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_sanitizedtimestamp_3462aebdca72",
+        "revision": 2,
+        "content_hash": "2513caf9c97e44f09e903b2c0d9bbe74341defee995561980dd45cbd86141dc9"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_savediffinput_2413f328d009",
+        "revision": 2,
+        "content_hash": "6a45475e9d31bb95c9ad693af4b8366ef7ea671252b9d1fbb137ecd2b80d0608"
+      },
+      {
+        "profile_id": "hp_pytorch_2.10.0_cpu_flashfuzz_base_torch_2_10_cpu_debug_instrumented_fuzzer_utils_saveerrorinput_315d3b0ca605",
+        "revision": 2,
+        "content_hash": "abd8268e9d0019a9a75c95eb96ac0d6b94eeba2e45a9b0ee3e832b1b2fc45086"
+      }
+    ],
+    "framework_version": "v2.10.0",
+    "backend_scope": [
+      "cpu"
+    ]
+  },
+  "knowledge_plan": {
+    "knowledge_decisions": [
+      {
+        "disposition": "included",
+        "branch_ids": [
+          "br_knowledge_001"
+        ],
+        "decision_summary": "Included because shape/rank mismatch variation and execution-outcome observations can be represented in a knowledge-directed branch; empty versus small non-empty element-count variation and the inferred mechanism remain deferred.",
+        "component_mappings": [
+          {
+            "source_path": "/learned_hypothesis",
+            "mapping_status": "partially_represented",
+            "spec_element_refs": [
+              {
+                "branch_id": "br_knowledge_001",
+                "element_type": "exploration_goal",
+                "element_id": null
+              }
+            ],
+            "represented_scope": "The exploration goal preserves the asymmetric dimension-checking boundary hypothesis and motivates mismatched-dimension exploration.",
+            "deferred_scope": "The patch-derived/inferred mechanism and any assertion that the current API still crashes or fails are not represented as structured predicates or checks.",
+            "decision_summary": "Goal-level representation only; the shape-mismatch variation and execution-outcome observations provide the structured branch contributions."
+          },
+          {
+            "source_path": "/learned_hypothesis/limitations/0",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "The inferred/patch-derived mechanism uncertainty is not directly representable as a branch constraint, target condition, observation, or check.",
+            "decision_summary": "Recorded as limitation context; no structured element asserts an unconfirmed root cause."
+          },
+          {
+            "source_path": "/learned_hypothesis/limitations/1",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "The unknown/contributing empty-tensor and exact shape/dtype conditions are not represented as required triggers.",
+            "decision_summary": "Used to avoid treating unestablished prerequisites as branch constraints or activation conditions."
+          },
+          {
+            "source_path": "/learned_hypothesis/limitations/2",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "The historical hypothesis's lack of current failure/crash assertion is not converted into a behavior check or constraint.",
+            "decision_summary": "Used to support contract-boundary-unresolved validity and record-only observations."
+          },
+          {
+            "source_path": "/exploration_guidance/variation_opportunities/0",
+            "mapping_status": "partially_represented",
+            "spec_element_refs": [
+              {
+                "branch_id": "br_knowledge_001",
+                "element_type": "target_condition",
+                "element_id": "tc_br_knowledge_001_001"
+              }
+            ],
+            "represented_scope": "Mismatched rank/shape relationships are structurally explored through an exploration_variable target condition requiring input1.shape not_equals input2.shape.",
+            "deferred_scope": "The empty or near-empty tensor character attached to this variation is not structurally preserved.",
+            "decision_summary": "Shape/rank mismatch is explicitly represented; the empty/near-empty qualifier is deferred because it would require an unsupported element-count bound or category."
+          },
+          {
+            "source_path": "/exploration_guidance/variation_opportunities/1",
+            "mapping_status": "deferred",
+            "spec_element_refs": [],
+            "represented_scope": null,
+            "deferred_scope": "Empty versus small non-empty element-count exploration requires an unsupported numeric or categorical bound on tensor element count.",
+            "decision_summary": "Deferred rather than inferred from the absence of a restricting condition."
+          },
+          {
+            "source_path": "/exploration_guidance/observation_candidates/0",
+            "mapping_status": "represented",
+            "spec_element_refs": [
+              {
+                "branch_id": "br_knowledge_001",
+                "element_type": "behavior_observation",
+                "element_id": "obs_br_knowledge_001_001"
+              }
+            ],
+            "represented_scope": null,
+            "deferred_scope": null,
+            "decision_summary": null
+          },
+          {
+            "source_path": "/exploration_guidance/observation_candidates/1",
+            "mapping_status": "represented",
+            "spec_element_refs": [
+              {
+                "branch_id": "br_knowledge_001",
+                "element_type": "behavior_observation",
+                "element_id": "obs_br_knowledge_001_002"
+              }
+            ],
+            "represented_scope": null,
+            "deferred_scope": null,
+            "decision_summary": null
+          }
+        ],
+        "knowledge_ref": {
+          "knowledge_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+          "schema_version": "3.0",
+          "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210"
+        }
+      }
+    ]
+  },
+  "validity_constraints": {
+    "global_constraints": []
+  },
+  "exploration_plan": {
+    "default_branch_id": "br_default",
+    "budget_policy_ref": {
+      "artifact_id": "initial_branch_budget_policy__v002.json",
+      "artifact_version": "2.0",
+      "content_hash": "19704f879f0a828c729c45c99ce85f018b7f108243f65bed1bc427fcc070e02b"
+    },
+    "branches": [
+      {
+        "branch_id": "br_default",
+        "branch_kind": "default",
+        "input_validity_intent": "expected_valid",
+        "source_knowledge_ids": [],
+        "grouping_summary": null,
+        "exploration_goal": "Canonical general API-valid exploration of torch.nn.functional.cosine_embedding_loss.",
+        "branch_constraints": [],
+        "target_conditions": [],
+        "behavior_observations": [],
+        "behavior_checks": [],
+        "budget_share": 0.5,
+        "input_validity_basis": {
+          "basis_kind": "canonical_baseline_definition",
+          "source_refs": [],
+          "summary": "This branch is the canonical controlled-Baseline definition; it does not assert undocumented API boundary semantics."
+        },
+        "exploration_goal_source_refs": []
+      },
+      {
+        "branch_id": "br_knowledge_001",
+        "branch_kind": "knowledge_directed",
+        "input_validity_intent": "contract_boundary_unresolved",
+        "input_validity_basis": {
+          "basis_kind": "unresolved",
+          "source_refs": [
+            {
+              "source_type": "api_profile",
+              "source_id": "api_prof:pytorch:v2.10.0:cpu:torch.nn.functional.cosine_embedding_loss:python_default:aten.cosine_embedding_loss.default",
+              "source_version": 6,
+              "content_hash": "8140acffb5eccd0cbf6a58164522dcf08011564b37d8e0d0c2aa9d61e5f737dd",
+              "source_path": "/python_contract/coverage/constraints"
+            },
+            {
+              "source_type": "knowledge",
+              "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+              "source_version": "3.0",
+              "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+              "source_path": "/learned_hypothesis/limitations/2"
+            }
+          ],
+          "summary": "The API Profile marks constraints as not_collected and the Knowledge record is a historical inferred hypothesis, so current-contract evidence cannot classify shape/rank mismatches as expected_valid or intentionally_invalid."
+        },
+        "source_knowledge_ids": [
+          "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001"
+        ],
+        "grouping_summary": "Single compatible Knowledge record grouped into one dimension/rank mismatch boundary exploration branch.",
+        "exploration_goal": "Probe input1/input2 dimensionality and shape relationship mismatches, including empty and near-empty cases, and record whether execution is rejected or terminates abnormally when validation may treat input2 differently from input1.",
+        "exploration_goal_source_refs": [
+          {
+            "source_type": "knowledge",
+            "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+            "source_version": "3.0",
+            "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+            "source_path": "/learned_hypothesis"
+          },
+          {
+            "source_type": "knowledge",
+            "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+            "source_version": "3.0",
+            "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+            "source_path": "/exploration_guidance/variation_opportunities/0"
+          },
+          {
+            "source_type": "knowledge",
+            "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+            "source_version": "3.0",
+            "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+            "source_path": "/exploration_guidance/variation_opportunities/1"
+          },
+          {
+            "source_type": "knowledge",
+            "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+            "source_version": "3.0",
+            "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+            "source_path": "/exploration_guidance/observation_candidates/0"
+          },
+          {
+            "source_type": "knowledge",
+            "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+            "source_version": "3.0",
+            "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+            "source_path": "/exploration_guidance/observation_candidates/1"
+          }
+        ],
+        "branch_constraints": [],
+        "target_conditions": [
+          {
+            "condition_id": "tc_br_knowledge_001_001",
+            "role": "exploration_variable",
+            "predicate": {
+              "predicate_id": "cross_subject_relation",
+              "arguments": {
+                "left_subject_ref": "param_000_input1",
+                "left_property_ref": "shape",
+                "relation": "not_equals",
+                "right_subject_ref": "param_001_input2",
+                "right_property_ref": "shape"
+              },
+              "description": null
+            },
+            "observe_at": [
+              "before_target_api_call"
+            ],
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+                "source_version": "3.0",
+                "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+                "source_path": "/exploration_guidance/variation_opportunities/0"
+              }
+            ]
+          }
+        ],
+        "behavior_observations": [
+          {
+            "observation_id": "obs_br_knowledge_001_001",
+            "subject_refs": [
+              "context.execution",
+              "param_000_input1",
+              "param_001_input2"
+            ],
+            "observe_at": "on_target_api_termination",
+            "description": "Record whether calls with mismatched input1/input2 dimensions are rejected by exception or proceed into an unsafe native execution path that terminates abnormally.",
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+                "source_version": "3.0",
+                "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+                "source_path": "/exploration_guidance/observation_candidates/0"
+              }
+            ]
+          },
+          {
+            "observation_id": "obs_br_knowledge_001_002",
+            "subject_refs": [
+              "context.execution",
+              "param_000_input1",
+              "param_001_input2"
+            ],
+            "observe_at": "on_target_api_termination",
+            "description": "Record whether dimension validation treats input2 differently from input1 when the two tensors have mismatched ranks or shapes.",
+            "source_refs": [
+              {
+                "source_type": "knowledge",
+                "source_id": "kn_pt_pv4_cosine_embedding_loss_mismatched_dimension_validation_boundary_k001",
+                "source_version": "3.0",
+                "content_hash": "4f0e704dc2e0beb39dd531ca8494009c102ece15a34c02301ad7b32636105210",
+                "source_path": "/exploration_guidance/observation_candidates/1"
+              }
+            ]
+          }
+        ],
+        "behavior_checks": [],
+        "budget_share": 0.5
+      }
+    ]
+  },
+  "provenance": {
+    "generation_method": "hybrid",
+    "generator_name": "harness_spec_builder_v0.21",
+    "model_name": "deepseek-v4-pro",
+    "generation_run_id": "run_20261005T073347Z_3ab44fcbb84a",
+    "script_ref": {
+      "artifact_id": "build_harness_spec_json__harness_spec_builder_v0.21__sha256_06814aa0c907a8a5727eaec1f5dc884b7b88aa261a96e957e458f67c7e55fa39.py",
+      "artifact_version": "harness_spec_builder_v0.21",
+      "content_hash": "06814aa0c907a8a5727eaec1f5dc884b7b88aa261a96e957e458f67c7e55fa39",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/build_harness_spec_json__harness_spec_builder_v0.21__sha256_06814aa0c907a8a5727eaec1f5dc884b7b88aa261a96e957e458f67c7e55fa39.py"
+    },
+    "contract_ref": {
+      "artifact_id": "harness_spec_synthesis_contract__2.4__sha256_d6c65bdb0de1d9d2c6db12d7461beaec0a9fb45a342641a2122e9014f087573c.json",
+      "artifact_version": "2.4",
+      "content_hash": "d6c65bdb0de1d9d2c6db12d7461beaec0a9fb45a342641a2122e9014f087573c",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_synthesis_contract__2.4__sha256_d6c65bdb0de1d9d2c6db12d7461beaec0a9fb45a342641a2122e9014f087573c.json"
+    },
+    "rules_ref": {
+      "artifact_id": "knowledge_to_harness_spec_rules__2.4__sha256_376b25673054a6ec89ac4660e3cae9585b2eaaeea677624676973f1430662193.md",
+      "artifact_version": "2.4",
+      "content_hash": "376b25673054a6ec89ac4660e3cae9585b2eaaeea677624676973f1430662193",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/knowledge_to_harness_spec_rules__2.4__sha256_376b25673054a6ec89ac4660e3cae9585b2eaaeea677624676973f1430662193.md"
+    },
+    "schema_ref": {
+      "artifact_id": "harness_spec_record__2.2__sha256_122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2.schema.json",
+      "artifact_version": "2.2",
+      "content_hash": "122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_record__2.2__sha256_122b5b40a2b7560d40c1bf3a88e66edc038dfd7d7213b662fd853913e41cafe2.schema.json"
+    },
+    "schema_core_ref": {
+      "artifact_id": "harness_spec_record_core_v2_2__2.2__sha256_4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e.schema.json",
+      "artifact_version": "2.2",
+      "content_hash": "4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_artifacts/harness_spec_record_core_v2_2__2.2__sha256_4ed6109e59f4fc4cee2859a30374a2a638836abd618e04d7a96c4a4f6b6c666e.schema.json"
+    },
+    "generation_trace_ref": {
+      "artifact_id": "attempt_002.json",
+      "artifact_version": "1.1",
+      "content_hash": "d8c0f390b8d9deb0604a8e87b6cd57a5279063a6bded41950132935f514efc9a",
+      "relative_path": "experiment/EXP011_bug_aware_harness_synthesis/generation_traces/run_20261005t073347z_3ab44fcbb84a/attempt_002.json"
+    },
+    "generated_at": "2026-10-05T07:40:00.747993Z"
+  },
+  "review": {
+    "validation_status": "passed",
+    "validation_issues": [],
+    "human_review_status": "not_reviewed",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_notes": null
+  }
+}
